@@ -9,8 +9,9 @@ async function handler(request: Request) {
     );
   try {
     return await getAuth().handler(request);
-  } catch {
-    console.error("Authentication request failed");
+  } catch (error) {
+    console.error("Authentication request failed:", error);
+
     return Response.json(
       { message: "შესვლა ვერ მოხერხდა. სცადეთ ხელახლა." },
       { status: 500 },
