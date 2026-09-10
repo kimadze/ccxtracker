@@ -1,1 +1,17 @@
-export default function Loading() { return <main id="main" aria-busy="true" aria-label="იტვირთება" className="mx-auto max-w-6xl space-y-6 p-8"><div className="h-8 w-60 animate-pulse rounded bg-raised" /><div className="h-52 animate-pulse rounded-xl bg-surface" /><div className="grid grid-cols-2 gap-6"><div className="h-64 animate-pulse rounded-xl bg-surface" /><div className="h-64 animate-pulse rounded-xl bg-surface" /></div></main>; }
+export default function Loading() {
+  return (
+    <main
+      id="main"
+      aria-busy="true"
+      aria-label="იტვირთება"
+      className="mx-auto max-w-6xl space-y-6 p-8"
+    >
+      <div className="h-8 w-60 animate-pulse rounded bg-raised" />
+      <div className="h-52 animate-pulse rounded-xl bg-surface" />
+      <div className="grid grid-cols-2 gap-6">
+        <div className="h-64 animate-pulse rounded-xl bg-surface" />
+        <div className="h-64 animate-pulse rounded-xl bg-surface" />
+      </div>
+    </main>
+  );
+}

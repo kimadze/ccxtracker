@@ -17,6 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:server": "tsx scripts/test-server.ts",
+    "format": "prettier --write src tests scripts *.ts *.mjs *.json docs README.md .github",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "check": "npm run typecheck && npm run lint && npm test && npm run build"
@@ -46,6 +48,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
+    "@electric-sql/pglite-socket": "0.2.11",
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.20.2",
@@ -55,6 +58,7 @@
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
+    "prettier": "3.9.6",
     "tailwindcss": "4.3.3",
     "tsx": "4.23.13",
     "typescript": "6.0.3",

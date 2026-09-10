@@ -22,6 +22,27 @@
       "when": 1789033624447,
       "tag": "0002_wonderful_maximus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789048860641,
+      "tag": "0003_closed_sleepwalker",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789049145300,
+      "tag": "0004_real_purifiers",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789049762810,
+      "tag": "0005_perpetual_multiple_man",
+      "breakpoints": true
     }
   ]
 }

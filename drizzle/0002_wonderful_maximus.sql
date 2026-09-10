@@ -47,6 +47,8 @@ CREATE TABLE "position_journals" (
 ALTER TABLE "exit_plan_levels" ADD CONSTRAINT "exit_plan_levels_plan_id_exit_plans_id_fk" FOREIGN KEY ("plan_id") REFERENCES "public"."exit_plans"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "exit_plans" ADD CONSTRAINT "exit_plans_portfolio_id_portfolios_id_fk" FOREIGN KEY ("portfolio_id") REFERENCES "public"."portfolios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "exit_plans" ADD CONSTRAINT "exit_plans_asset_id_assets_id_fk" FOREIGN KEY ("asset_id") REFERENCES "public"."assets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- The referenced composite unique index must exist before this foreign key.
+CREATE UNIQUE INDEX "journal_id_portfolio_unique" ON "position_journals" USING btree ("id","portfolio_id");--> statement-breakpoint
 ALTER TABLE "journal_attachments" ADD CONSTRAINT "journal_attachments_journal_id_portfolio_id_position_journals_id_portfolio_id_fk" FOREIGN KEY ("journal_id","portfolio_id") REFERENCES "public"."position_journals"("id","portfolio_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "position_journals" ADD CONSTRAINT "position_journals_portfolio_id_portfolios_id_fk" FOREIGN KEY ("portfolio_id") REFERENCES "public"."portfolios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "position_journals" ADD CONSTRAINT "position_journals_asset_id_assets_id_fk" FOREIGN KEY ("asset_id") REFERENCES "public"."assets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -55,4 +57,3 @@ CREATE UNIQUE INDEX "exit_plan_portfolio_asset_unique" ON "exit_plans" USING btr
 CREATE UNIQUE INDEX "exit_plan_id_portfolio_unique" ON "exit_plans" USING btree ("id","portfolio_id");--> statement-breakpoint
 CREATE INDEX "attachments_journal_idx" ON "journal_attachments" USING btree ("journal_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "journal_portfolio_asset_unique" ON "position_journals" USING btree ("portfolio_id","asset_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "journal_id_portfolio_unique" ON "position_journals" USING btree ("id","portfolio_id");

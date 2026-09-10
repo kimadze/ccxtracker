@@ -122,6 +122,7 @@ Verify current Vercel plan limits, provider quotas, snapshot cadence and storage
 Prepare README setup, environment validation, database migrations, test commands, deployment guide, health checks, safe observability, backup/restore procedure and rollback instructions. Run deployment smoke tests against configured services: sign-in/out, isolation, CRUD, quotes, scheduled snapshots and core calculations. Live deployment is verified only after credentials and a deployed environment exist; distinguish local completion from production verification.
 
 Official deployment references consulted during planning:
+
 - https://nextjs.org/docs/app/getting-started/deploying
 - https://vercel.com/docs/frameworks/full-stack/nextjs
 - https://neon.com/docs/guides/vercel-manual

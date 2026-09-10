@@ -20,8 +20,8 @@ export interface Holding {
 export interface LedgerResult {
   holdings: Holding[];
   cash: string;
-  contributions: string;
-  withdrawals: string;
+  contributions: string | null;
+  withdrawals: string | null;
   cashFees: string;
   realizedPnl: string | null;
 }
@@ -56,8 +56,8 @@ export interface PortfolioSummary {
   realizedPnl: string | null;
   unrealizedPnl: string | null;
   totalPnl: string | null;
-  contributions: string;
-  withdrawals: string;
+  contributions: string | null;
+  withdrawals: string | null;
   reserve: string;
   complete: boolean;
   stale: boolean;

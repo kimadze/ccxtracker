@@ -6,19 +6,281 @@ import type { Asset, LedgerEntry, TransactionKind } from "@/domain/types";
 import { saveTransaction, searchAssets } from "@/server/actions";
 import { Field, Message, Modal } from "./ui";
 
-export const kindLabels: Record<TransactionKind, string> = { buy: "შესყიდვა", sell: "გაყიდვა", deposit: "შეტანა", withdrawal: "გატანა", fee: "საკომისიო" };
-export function TransactionForm({ portfolioId, revision, assets, entry, initialAsset, opening = false }: { portfolioId: string; revision: number; assets: Asset[]; entry?: LedgerEntry; initialAsset?: string; opening?: boolean }) {
-  const [open, setOpen] = useState(false), [kind, setKind] = useState<TransactionKind>(entry?.kind ?? (opening ? "deposit" : "buy")), [assetId, setAssetId] = useState(entry?.assetId ?? initialAsset ?? (opening ? "bitcoin" : "bitcoin"));
-  const [options, setOptions] = useState(assets), [query, setQuery] = useState(""), [error, setError] = useState(""), [pending, setPending] = useState(false), [searching, setSearching] = useState(false);
+export const kindLabels: Record<TransactionKind, string> = {
+  buy: "შესყიდვა",
+  sell: "გაყიდვა",
+  deposit: "შეტანა",
+  withdrawal: "გატანა",
+  fee: "საკომისიო",
+};
+export function TransactionForm({
+  portfolioId,
+  revision,
+  assets,
+  entry,
+  initialAsset,
+  opening = false,
+  draft,
+  triggerLabel,
+}: {
+  portfolioId: string;
+  revision: number;
+  assets: Asset[];
+  entry?: LedgerEntry;
+  initialAsset?: string;
+  opening?: boolean;
+  draft?: { quantity: string; price: string; fee: string };
+  triggerLabel?: string;
+}) {
+  const [open, setOpen] = useState(false),
+    [kind, setKind] = useState<TransactionKind>(
+      entry?.kind ?? (opening ? "deposit" : "buy"),
+    ),
+    [assetId, setAssetId] = useState(
+      entry?.assetId ?? initialAsset ?? (opening ? "bitcoin" : "bitcoin"),
+    );
+  const [options, setOptions] = useState(assets),
+    [query, setQuery] = useState(""),
+    [error, setError] = useState(""),
+    [pending, setPending] = useState(false),
+    [searching, setSearching] = useState(false);
   const [submissionId, setSubmissionId] = useState(entry?.id ?? "");
   const router = useRouter();
   const isCash = assetId === "USD";
-  const defaultDate = () => { const d = entry ? new Date(entry.occurredAt) : new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
-  return <><button className={entry ? "text-xs text-brand hover:underline" : "button-primary"} onClick={() => { setSubmissionId(entry?.id ?? crypto.randomUUID()); setError(""); setOpen(true); }}>{!entry && <Plus size={16} />}{entry ? "რედაქტირება" : opening ? "პოზიციის დამატება" : "ტრანზაქციის დამატება"}</button><Modal open={open} onOpenChange={value => { if (!pending) setOpen(value); }} title={entry ? "ტრანზაქციის რედაქტირება" : opening ? "პოზიციის დამატება" : "ტრანზაქციის დამატება"} description={opening ? "არსებული აქტივის შესატანად მიუთითეთ რაოდენობა და საშუალო თვითღირებულება. ახალი შესყიდვისთვის აირჩიეთ შესყიდვა." : "ტრანზაქცია განაახლებს პორტფელსა და მასთან დაკავშირებულ გამოთვლებს."} wide><form className="space-y-5" onSubmit={async e => { e.preventDefault(); const form = new FormData(e.currentTarget); setPending(true); setError(""); const rawPrice = String(form.get("price") ?? "").trim(); try { const result = await saveTransaction({ id: submissionId, portfolioId, assetId, kind, quantity: String(form.get("quantity")), price: rawPrice || null, fee: String(form.get("fee") || "0"), occurredAt: new Date(String(form.get("occurredAt"))).toISOString(), notes: String(form.get("notes") ?? "") }, entry ? "update" : "create", revision); if (result.ok) { setOpen(false); router.refresh(); } else setError(result.error); } catch { setError("მოქმედება ვერ შესრულდა. გადაამოწმეთ მონაცემები და სცადეთ ხელახლა."); } finally { setPending(false); } }}>
-    <div className="grid gap-4 sm:grid-cols-2"><Field label="ტრანზაქციის ტიპი"><select value={kind} onChange={e => setKind(e.target.value as TransactionKind)}>{Object.entries(kindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field><Field label="აქტივი"><select value={assetId} onChange={e => setAssetId(e.target.value)}>{options.map(a => <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>)}</select></Field></div>
-    <div className="flex gap-2"><input aria-label="სხვა აქტივის ძიება" placeholder="სხვა აქტივის ძიება…" value={query} onChange={e => setQuery(e.target.value)} /><button type="button" className="button-secondary shrink-0" disabled={searching || query.trim().length < 2} onClick={async () => { setSearching(true); try { const result = await searchAssets(query); if (result.ok) { setOptions(current => [...current, ...result.assets.filter(a => !current.some(c => c.id === a.id))]); if (result.assets[0]) setAssetId(result.assets[0].id); else setError("აქტივი ვერ მოიძებნა."); } else setError(result.error); } catch { setError("ძიება ვერ მოხერხდა."); } finally { setSearching(false); } }}><Search size={15} />{searching ? "ძიება…" : "ძიება"}</button></div>
-    <div className="grid gap-4 sm:grid-cols-2"><Field label={isCash ? "თანხა (USD)" : "რაოდენობა"}><input name="quantity" inputMode="decimal" required defaultValue={entry?.quantity} placeholder="0.00" /></Field>{!isCash && (kind === "buy" || kind === "sell" || kind === "deposit") && <Field label={kind === "deposit" ? "საშუალო თვითღირებულება (USD)" : "ერთეულის ფასი (USD)"}><input name="price" inputMode="decimal" required={kind !== "deposit"} defaultValue={entry?.price ?? ""} placeholder={kind === "deposit" ? "თუ ცნობილია" : "0.00"} /></Field>}<Field label="საკომისიო (USD)"><input name="fee" inputMode="decimal" defaultValue={entry?.fee ?? "0"} /></Field><Field label="თარიღი და დრო (თქვენი მოწყობილობის დრო)"><input name="occurredAt" type="datetime-local" required defaultValue={defaultDate()} /></Field></div>
-    {kind === "buy" && <p className="text-xs leading-6 text-muted">შესყიდვა თანხის ნაშთიდან დაიფარება. საჭიროების შემთხვევაში ჯერ ჩაიწერეთ USD-ის შეტანა.</p>}{kind === "deposit" && !isCash && <p className="text-xs leading-6 text-muted">თუ თვითღირებულება უცნობია, დატოვეთ ცარიელი. შესაბამისი მოგება / ზარალი არ გამოითვლება.</p>}
-    <Field label="შენიშვნა"><textarea name="notes" rows={2} maxLength={2000} defaultValue={entry?.notes} placeholder="არასავალდებულო" /></Field>{entry && <label className="flex items-start gap-3 text-xs leading-5 text-muted"><input type="checkbox" required className="mt-1" />ვადასტურებ ისტორიის შესწორებასა და შემდგომი ტრანზაქციების თავიდან გამოთვლას.</label>}{error && <Message error>{error}</Message>}<div className="flex justify-end gap-3"><button type="button" className="button-secondary" disabled={pending} onClick={() => setOpen(false)}>გაუქმება</button><button disabled={pending} className="button-primary">{pending ? "ინახება…" : "შენახვა"}</button></div>
-  </form></Modal></>;
+  const defaultDate = () => {
+    const d = entry ? new Date(entry.occurredAt) : new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+  };
+  return (
+    <>
+      <button
+        className={
+          entry ? "text-xs text-brand hover:underline" : "button-primary"
+        }
+        onClick={() => {
+          setSubmissionId(entry?.id ?? crypto.randomUUID());
+          setError("");
+          setOpen(true);
+        }}
+      >
+        {!entry && <Plus size={16} />}
+        {triggerLabel ??
+          (entry
+            ? "რედაქტირება"
+            : opening
+              ? "პოზიციის დამატება"
+              : "ტრანზაქციის დამატება")}
+      </button>
+      <Modal
+        open={open}
+        onOpenChange={(value) => {
+          if (!pending) setOpen(value);
+        }}
+        title={
+          entry
+            ? "ტრანზაქციის რედაქტირება"
+            : opening
+              ? "პოზიციის დამატება"
+              : "ტრანზაქციის დამატება"
+        }
+        description={
+          opening
+            ? "არსებული აქტივის შესატანად მიუთითეთ რაოდენობა და საშუალო თვითღირებულება. ახალი შესყიდვისთვის აირჩიეთ შესყიდვა."
+            : "ტრანზაქცია განაახლებს პორტფელსა და მასთან დაკავშირებულ გამოთვლებს."
+        }
+        wide
+      >
+        <form
+          className="space-y-5"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const form = new FormData(e.currentTarget);
+            setPending(true);
+            setError("");
+            const rawPrice = String(form.get("price") ?? "").trim();
+            try {
+              const result = await saveTransaction(
+                {
+                  id: submissionId,
+                  portfolioId,
+                  assetId,
+                  kind,
+                  quantity: String(form.get("quantity")),
+                  price: rawPrice || null,
+                  fee: String(form.get("fee") || "0"),
+                  occurredAt: new Date(
+                    String(form.get("occurredAt")),
+                  ).toISOString(),
+                  notes: String(form.get("notes") ?? ""),
+                },
+                entry ? "update" : "create",
+                revision,
+              );
+              if (result.ok) {
+                setOpen(false);
+                router.refresh();
+              } else setError(result.error);
+            } catch {
+              setError(
+                "მოქმედება ვერ შესრულდა. გადაამოწმეთ მონაცემები და სცადეთ ხელახლა.",
+              );
+            } finally {
+              setPending(false);
+            }
+          }}
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="ტრანზაქციის ტიპი">
+              <select
+                value={kind}
+                onChange={(e) => setKind(e.target.value as TransactionKind)}
+              >
+                {Object.entries(kindLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="აქტივი">
+              <select
+                value={assetId}
+                onChange={(e) => setAssetId(e.target.value)}
+              >
+                {options.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.symbol} · {a.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <div className="flex gap-2">
+            <input
+              aria-label="სხვა აქტივის ძიება"
+              placeholder="სხვა აქტივის ძიება…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <button
+              type="button"
+              className="button-secondary shrink-0"
+              disabled={searching || query.trim().length < 2}
+              onClick={async () => {
+                setSearching(true);
+                try {
+                  const result = await searchAssets(query);
+                  if (result.ok) {
+                    setOptions((current) => [
+                      ...current,
+                      ...result.assets.filter(
+                        (a) => !current.some((c) => c.id === a.id),
+                      ),
+                    ]);
+                    if (result.assets[0]) setAssetId(result.assets[0].id);
+                    else setError("აქტივი ვერ მოიძებნა.");
+                  } else setError(result.error);
+                } catch {
+                  setError("ძიება ვერ მოხერხდა.");
+                } finally {
+                  setSearching(false);
+                }
+              }}
+            >
+              <Search size={15} />
+              {searching ? "ძიება…" : "ძიება"}
+            </button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={isCash ? "თანხა (USD)" : "რაოდენობა"}>
+              <input
+                name="quantity"
+                inputMode="decimal"
+                required
+                defaultValue={entry?.quantity ?? draft?.quantity}
+                placeholder="0.00"
+              />
+            </Field>
+            {!isCash &&
+              (kind === "buy" || kind === "sell" || kind === "deposit") && (
+                <Field
+                  label={
+                    kind === "deposit"
+                      ? "საშუალო თვითღირებულება (USD)"
+                      : "ერთეულის ფასი (USD)"
+                  }
+                >
+                  <input
+                    name="price"
+                    inputMode="decimal"
+                    required={kind !== "deposit"}
+                    defaultValue={entry?.price ?? draft?.price ?? ""}
+                    placeholder={kind === "deposit" ? "თუ ცნობილია" : "0.00"}
+                  />
+                </Field>
+              )}
+            <Field label="საკომისიო (USD)">
+              <input
+                name="fee"
+                inputMode="decimal"
+                defaultValue={entry?.fee ?? draft?.fee ?? "0"}
+              />
+            </Field>
+            <Field label="თარიღი და დრო (თქვენი მოწყობილობის დრო)">
+              <input
+                name="occurredAt"
+                type="datetime-local"
+                required
+                defaultValue={defaultDate()}
+              />
+            </Field>
+          </div>
+          {kind === "buy" && (
+            <p className="text-xs leading-6 text-muted">
+              შესყიდვა თანხის ნაშთიდან დაიფარება. საჭიროების შემთხვევაში ჯერ
+              ჩაიწერეთ USD-ის შეტანა.
+            </p>
+          )}
+          {kind === "deposit" && !isCash && (
+            <p className="text-xs leading-6 text-muted">
+              თუ თვითღირებულება უცნობია, დატოვეთ ცარიელი. შესაბამისი მოგება /
+              ზარალი არ გამოითვლება.
+            </p>
+          )}
+          <Field label="შენიშვნა">
+            <textarea
+              name="notes"
+              rows={2}
+              maxLength={2000}
+              defaultValue={entry?.notes}
+              placeholder="არასავალდებულო"
+            />
+          </Field>
+          {entry && (
+            <label className="flex items-start gap-3 text-xs leading-5 text-muted">
+              <input type="checkbox" required className="mt-1" />
+              ვადასტურებ ისტორიის შესწორებასა და შემდგომი ტრანზაქციების თავიდან
+              გამოთვლას.
+            </label>
+          )}
+          {error && <Message error>{error}</Message>}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              className="button-secondary"
+              disabled={pending}
+              onClick={() => setOpen(false)}
+            >
+              გაუქმება
+            </button>
+            <button disabled={pending} className="button-primary">
+              {pending ? "ინახება…" : "შენახვა"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </>
+  );
 }

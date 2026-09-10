@@ -9,28 +9,114 @@ import { replayLedger } from "@/domain/ledger";
 export function strategyService(db: Database, userId: string) {
   const portfolios = portfolioService(db, userId);
   return {
+    async journalAssets(portfolioId: string) {
+      await portfolios.owned(portfolioId);
+      return db
+        .select({
+          id: assets.id,
+          symbol: assets.symbol,
+          name: assets.name,
+          providerId: assets.providerId,
+          logoUrl: assets.logoUrl,
+          isStablecoin: assets.isStablecoin,
+        })
+        .from(journals)
+        .innerJoin(assets, eq(journals.assetId, assets.id))
+        .where(eq(journals.portfolioId, portfolioId));
+    },
     async load(portfolioId: string, assetId: string) {
       await portfolios.owned(portfolioId);
-      const [plan] = await db.select().from(exitPlans).where(and(eq(exitPlans.portfolioId, portfolioId), eq(exitPlans.assetId, assetId)));
-      const levels = plan ? await db.select().from(exitLevels).where(eq(exitLevels.planId, plan.id)).orderBy(asc(exitLevels.level)) : [];
-      const [journal] = await db.select().from(journals).where(and(eq(journals.portfolioId, portfolioId), eq(journals.assetId, assetId)));
-      return { plan: plan ? { feePercent: plan.feePercent, levels: levels.map(l => ({ price: l.price, percentage: l.percentage })) } : null, journal: journal ?? null };
+      const [plan] = await db
+        .select()
+        .from(exitPlans)
+        .where(
+          and(
+            eq(exitPlans.portfolioId, portfolioId),
+            eq(exitPlans.assetId, assetId),
+          ),
+        );
+      const levels = plan
+        ? await db
+            .select()
+            .from(exitLevels)
+            .where(eq(exitLevels.planId, plan.id))
+            .orderBy(asc(exitLevels.level))
+        : [];
+      const [journal] = await db
+        .select()
+        .from(journals)
+        .where(
+          and(
+            eq(journals.portfolioId, portfolioId),
+            eq(journals.assetId, assetId),
+          ),
+        );
+      return {
+        plan: plan
+          ? {
+              feePercent: plan.feePercent,
+              levels: levels.map((l) => ({
+                price: l.price,
+                percentage: l.percentage,
+              })),
+            }
+          : null,
+        journal: journal ?? null,
+      };
     },
     async saveExit(input: unknown) {
-      const data = exitPlanSchema.parse(input); await portfolios.owned(data.portfolioId);
-      const holding = replayLedger(await portfolios.entries(data.portfolioId)).holdings.find(h => h.assetId === data.assetId);
-      if (!holding || holding.costBasis === null) throw new Error("UNKNOWN_BASIS");
-      calculateExit({ quantity: holding.quantity, costBasis: holding.costBasis, feePercent: data.feePercent, levels: data.levels });
-      await db.transaction(async tx => {
-        const [plan] = await tx.insert(exitPlans).values({ portfolioId: data.portfolioId, assetId: data.assetId, feePercent: data.feePercent }).onConflictDoUpdate({ target: [exitPlans.portfolioId, exitPlans.assetId], set: { feePercent: data.feePercent, updatedAt: new Date() } }).returning();
+      const data = exitPlanSchema.parse(input);
+      await portfolios.owned(data.portfolioId);
+      const holding = replayLedger(
+        await portfolios.entries(data.portfolioId),
+      ).holdings.find((h) => h.assetId === data.assetId);
+      if (!holding || holding.costBasis === null)
+        throw new Error("UNKNOWN_BASIS");
+      calculateExit({
+        quantity: holding.quantity,
+        costBasis: holding.costBasis,
+        feePercent: data.feePercent,
+        levels: data.levels,
+      });
+      await db.transaction(async (tx) => {
+        const [plan] = await tx
+          .insert(exitPlans)
+          .values({
+            portfolioId: data.portfolioId,
+            assetId: data.assetId,
+            feePercent: data.feePercent,
+          })
+          .onConflictDoUpdate({
+            target: [exitPlans.portfolioId, exitPlans.assetId],
+            set: { feePercent: data.feePercent, updatedAt: new Date() },
+          })
+          .returning();
         await tx.delete(exitLevels).where(eq(exitLevels.planId, plan.id));
-        await tx.insert(exitLevels).values(data.levels.map((l, i) => ({ planId: plan.id, level: i + 1, ...l })));
+        await tx.insert(exitLevels).values(
+          data.levels.map((l, i) => ({
+            planId: plan.id,
+            level: i + 1,
+            ...l,
+          })),
+        );
       });
     },
     async saveJournal(input: unknown) {
-      const data = journalSchema.parse(input); await portfolios.owned(data.portfolioId);
-      const [asset] = await db.select().from(assets).where(eq(assets.id, data.assetId)); if (!asset) throw new Error("UNKNOWN_ASSET");
-      const [journal] = await db.insert(journals).values(data).onConflictDoUpdate({ target: [journals.portfolioId, journals.assetId], set: { ...data, updatedAt: new Date() } }).returning();
+      const data = journalSchema.parse(input);
+      await portfolios.owned(data.portfolioId);
+      const [asset] = await db
+        .select()
+        .from(assets)
+        .where(eq(assets.id, data.assetId));
+      if (!asset) throw new Error("UNKNOWN_ASSET");
+      const [journal] = await db
+        .insert(journals)
+        .values(data)
+        .onConflictDoUpdate({
+          target: [journals.portfolioId, journals.assetId],
+          set: { ...data, updatedAt: new Date() },
+        })
+        .returning();
       return journal.id;
     },
   };

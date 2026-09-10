@@ -1,23 +1,263 @@
 import Link from "next/link";
-import { ArrowUpRight, Wallet, ShieldCheck, ArrowDownLeft, CircleHelp } from "lucide-react";
+import {
+  ArrowUpRight,
+  Wallet,
+  ShieldCheck,
+  ArrowDownLeft,
+  CircleHelp,
+} from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { money, percentage, pnlClass } from "@/lib/formatters";
 import { percent } from "@/domain/decimal";
 import { PositionsTable } from "./positions";
 
-export function Overview({ summary: s, base, preview = false, history }: { summary: PortfolioSummary; base: string; preview?: boolean; history?: React.ReactNode }) {
-  const largest = [...s.positions].sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0))[0];
-  return <div className="space-y-6">{!s.complete && <div role="status" className="rounded-lg border border-brand/25 bg-brand/5 p-4 text-xs leading-6 text-brand">ზოგიერთი აქტივის ფასი მიუწვდომელია. სრული ღირებულება და მასზე დამოკიდებული მაჩვენებლები ფასების მიღების შემდეგ გამოჩნდება.</div>}{s.stale && <p role="status" className="text-xs text-muted">ნაჩვენებია ბოლო ხელმისაწვდომი ფასები. ზოგიერთი მათგანი 15 წუთზე ძველია.</p>}
-    <section className="panel overflow-hidden"><div className="grid xl:grid-cols-[1.25fr_1fr]"><div className="relative border-b border-line p-6 sm:p-8 xl:border-r xl:border-b-0"><div className="flex items-center gap-2 text-xs text-muted"><Wallet size={15} />პორტფელის ღირებულება</div><div className="numeric mt-5 text-4xl font-medium sm:text-5xl">{money(s.value)}</div><div className="mt-4 flex flex-wrap items-center gap-2.5"><span className={`rounded-md bg-white/4 px-2 py-1 text-xs ${pnlClass(s.totalPnl)}`}>{s.totalPnl && Number(s.totalPnl) > 0 ? "+" : ""}{money(s.totalPnl)}</span><span className="text-[11px] text-muted">ჯამური მოგება / ზარალი</span></div><div className="absolute right-7 top-7 hidden size-10 items-center justify-center rounded-full border border-line text-brand sm:flex"><ArrowUpRight size={18} /></div><div className="mt-7 flex items-center gap-2 text-[10px] text-muted"><span className="size-1.5 rounded-full bg-brand" />{preview ? "სადემონსტრაციო მონაცემები" : s.positions.length ? "შეფასება ბოლო ხელმისაწვდომი ფასებით" : "დაიწყეთ თქვენი პირველი პოზიციით"}</div></div><div className="grid grid-cols-2 gap-x-5 gap-y-7 p-6 sm:p-8"><Metric label="ჯამური შეტანები" value={money(s.contributions)} hint="თანხა და აქტივების შეტანილი თვითღირებულება" /><Metric label="მიმდინარე თვითღირებულება" value={money(s.costBasis)} hint="დარჩენილი პოზიციების ღირებულებითი საფუძველი" /><Metric label="არარეალიზებული მოგება / ზარალი" value={money(s.unrealizedPnl)} tone={pnlClass(s.unrealizedPnl)} /><Metric label="რეალიზებული მოგება / ზარალი" value={money(s.realizedPnl)} tone={pnlClass(s.realizedPnl)} /></div></div></section>
-    <div className="grid gap-6 xl:grid-cols-[1.65fr_1fr]"><section className="panel min-w-0 p-6"><div className="mb-6 flex items-center justify-between"><div><h2 className="text-sm font-medium">პორტფელის დინამიკა</h2><p className="mt-1.5 text-[11px] text-muted">ღირებულების ცვლილება დროში</p></div><span className="rounded-md border border-line px-2.5 py-1 text-[10px] text-muted">USD</span></div>{history ?? <div className="flex h-52 flex-col items-center justify-center rounded-lg border border-dashed border-line text-center"><ArrowDownLeft size={23} className="mb-3 text-brand" /><p className="text-xs text-muted">ისტორია ჯერ არ არის დაგროვებული</p><p className="mt-2 max-w-xs text-[11px] leading-5 text-muted">გრაფიკი გამოჩნდება რეალური ისტორიული მონაცემების დაგროვების შემდეგ.</p></div>}</section><section className="panel p-6"><div className="flex items-center justify-between"><h2 className="text-sm font-medium">აქტივების განაწილება</h2><Link href={`${base}/allocation`} className="text-muted hover:text-brand" aria-label="განაწილების ნახვა"><ArrowUpRight size={17} /></Link></div><div className="my-6 flex items-center gap-5"><AllocationRing summary={s} /><div><p className="numeric text-3xl font-medium">{s.positions.length.toString().padStart(2, "0")}</p><p className="mt-1 text-[11px] text-muted">აქტიური პოზიცია</p><p className="mt-4 text-[11px] text-muted">თანხა და სტეიბლკოინები</p><p className="numeric mt-1 text-sm">{money(s.reserve)}</p></div></div><div className="space-y-3">{s.positions.slice(0, 3).map((p, i) => <div key={p.assetId} className="flex items-center justify-between text-xs"><span className="flex items-center gap-2.5"><span className="size-2 rounded-full" style={{ background: ["#aa91ff", "#72628e", "#cfbfe9"][i] }} />{p.asset.symbol}</span><span className="numeric text-muted">{percentage(p.allocation)}</span></div>)}<div className="flex justify-between border-t border-line pt-3 text-xs text-muted"><span>თანხის ნაშთი</span><span className="numeric">{money(s.cash)}</span></div></div></section></div>
-    <section className="panel"><div className="flex items-center justify-between px-6 pt-6 pb-3"><div className="flex items-center gap-3"><h2 className="text-sm font-medium">თქვენი პოზიციები</h2><span className="rounded-md bg-raised px-2 py-0.5 text-[10px] text-muted">{s.positions.length}</span></div><Link href={`${base}/positions`} className="flex items-center gap-1 text-[11px] text-brand">ყველას ნახვა <ArrowUpRight size={13} /></Link></div><PositionsTable positions={s.positions} base={base} preview={preview} /></section>
-    <div className="grid gap-4 sm:grid-cols-2"><div className="flex items-start gap-4 rounded-xl border border-line p-5"><ShieldCheck size={20} className="mt-1 shrink-0 text-brand" /><div><h3 className="text-xs font-medium">კონცენტრაციის მონიტორინგი</h3><p className="mt-2 text-xs leading-6 text-muted">{largest ? `${largest.asset.symbol} პორტფელის ${percentage(largest.allocation)}-ს შეადგენს. განაწილების ცვლილება აქვე აისახება.` : "პოზიციების დამატების შემდეგ აქ გამოჩნდება ყველაზე დიდი პოზიციის წილი."}</p></div></div><div className="flex items-start gap-4 rounded-xl border border-line p-5"><CircleHelp size={20} className="mt-1 shrink-0 text-brand" /><div><h3 className="text-xs font-medium">ერთი პორტფელი, სრული სურათი</h3><p className="mt-2 text-xs leading-6 text-muted">შესყიდვები, გაყიდვები და საკომისიოები საერთო ისტორიაში ინახება. გამოთვლები ამ მონაცემებს ეყრდნობა.</p></div></div></div>
-  </div>;
+export function Overview({
+  summary: s,
+  base,
+  preview = false,
+  history,
+}: {
+  summary: PortfolioSummary;
+  base: string;
+  preview?: boolean;
+  history?: React.ReactNode;
+}) {
+  const largest = [...s.positions].sort(
+    (a, b) => Number(b.value ?? 0) - Number(a.value ?? 0),
+  )[0];
+  return (
+    <div className="space-y-6">
+      {!s.complete && (
+        <div
+          role="status"
+          className="rounded-lg border border-brand/25 bg-brand/5 p-4 text-xs leading-6 text-brand"
+        >
+          ზოგიერთი აქტივის ფასი მიუწვდომელია. სრული ღირებულება და მასზე
+          დამოკიდებული მაჩვენებლები ფასების მიღების შემდეგ გამოჩნდება.
+        </div>
+      )}
+      {s.stale && (
+        <p role="status" className="text-xs text-muted">
+          ნაჩვენებია ბოლო ხელმისაწვდომი ფასები. ზოგიერთი მათგანი 15 წუთზე
+          ძველია.
+        </p>
+      )}
+      <section className="panel overflow-hidden">
+        <div className="grid xl:grid-cols-[1.25fr_1fr]">
+          <div className="relative border-b border-line p-6 sm:p-8 xl:border-r xl:border-b-0">
+            <div className="flex items-center gap-2 text-xs text-muted">
+              <Wallet size={15} />
+              პორტფელის ღირებულება
+            </div>
+            <div className="numeric mt-5 text-4xl font-medium sm:text-5xl">
+              {money(s.value)}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2.5">
+              <span
+                className={`rounded-md bg-white/4 px-2 py-1 text-xs ${pnlClass(s.totalPnl)}`}
+              >
+                {s.totalPnl && Number(s.totalPnl) > 0 ? "+" : ""}
+                {money(s.totalPnl)}
+              </span>
+              <span className="text-[11px] text-muted">
+                ჯამური მოგება / ზარალი
+              </span>
+            </div>
+            <div className="absolute right-7 top-7 hidden size-10 items-center justify-center rounded-full border border-line text-brand sm:flex">
+              <ArrowUpRight size={18} />
+            </div>
+            <div className="mt-7 flex items-center gap-2 text-[10px] text-muted">
+              <span className="size-1.5 rounded-full bg-brand" />
+              {preview
+                ? "სადემონსტრაციო მონაცემები"
+                : s.positions.length
+                  ? "შეფასება ბოლო ხელმისაწვდომი ფასებით"
+                  : "დაიწყეთ თქვენი პირველი პოზიციით"}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-x-5 gap-y-7 p-6 sm:p-8">
+            <Metric
+              label="ჯამური შეტანები"
+              value={money(s.contributions)}
+              hint="თანხა და აქტივების შეტანილი თვითღირებულება"
+            />
+            <Metric
+              label="მიმდინარე თვითღირებულება"
+              value={money(s.costBasis)}
+              hint="დარჩენილი პოზიციების ღირებულებითი საფუძველი"
+            />
+            <Metric
+              label="არარეალიზებული მოგება / ზარალი"
+              value={money(s.unrealizedPnl)}
+              tone={pnlClass(s.unrealizedPnl)}
+            />
+            <Metric
+              label="რეალიზებული მოგება / ზარალი"
+              value={money(s.realizedPnl)}
+              tone={pnlClass(s.realizedPnl)}
+            />
+          </div>
+        </div>
+      </section>
+      <div className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
+        <section className="panel min-w-0 p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-medium">პორტფელის დინამიკა</h2>
+              <p className="mt-1.5 text-[11px] text-muted">
+                ღირებულების ცვლილება დროში
+              </p>
+            </div>
+            <span className="rounded-md border border-line px-2.5 py-1 text-[10px] text-muted">
+              USD
+            </span>
+          </div>
+          {history ?? (
+            <div className="flex h-52 flex-col items-center justify-center rounded-lg border border-dashed border-line text-center">
+              <ArrowDownLeft size={23} className="mb-3 text-brand" />
+              <p className="text-xs text-muted">
+                ისტორია ჯერ არ არის დაგროვებული
+              </p>
+              <p className="mt-2 max-w-xs text-[11px] leading-5 text-muted">
+                გრაფიკი გამოჩნდება რეალური ისტორიული მონაცემების დაგროვების
+                შემდეგ.
+              </p>
+            </div>
+          )}
+        </section>
+        <section className="panel p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium">აქტივების განაწილება</h2>
+            <Link
+              href={`${base}/allocation`}
+              className="text-muted hover:text-brand"
+              aria-label="განაწილების ნახვა"
+            >
+              <ArrowUpRight size={17} />
+            </Link>
+          </div>
+          <div className="my-6 flex items-center gap-5">
+            <AllocationRing summary={s} />
+            <div>
+              <p className="numeric text-3xl font-medium">
+                {s.positions.length.toString().padStart(2, "0")}
+              </p>
+              <p className="mt-1 text-[11px] text-muted">აქტიური პოზიცია</p>
+              <p className="mt-4 text-[11px] text-muted">
+                თანხა და სტეიბლკოინები
+              </p>
+              <p className="numeric mt-1 text-sm">{money(s.reserve)}</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {s.positions.slice(0, 3).map((p, i) => (
+              <div
+                key={p.assetId}
+                className="flex items-center justify-between text-xs"
+              >
+                <span className="flex items-center gap-2.5">
+                  <span
+                    className="size-2 rounded-full"
+                    style={{ background: ["#aa91ff", "#72628e", "#cfbfe9"][i] }}
+                  />
+                  {p.asset.symbol}
+                </span>
+                <span className="numeric text-muted">
+                  {percentage(p.allocation)}
+                </span>
+              </div>
+            ))}
+            <div className="flex justify-between border-t border-line pt-3 text-xs text-muted">
+              <span>თანხის ნაშთი</span>
+              <span className="numeric">{money(s.cash)}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+      <section className="panel">
+        <div className="flex items-center justify-between px-6 pt-6 pb-3">
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-medium">თქვენი პოზიციები</h2>
+            <span className="rounded-md bg-raised px-2 py-0.5 text-[10px] text-muted">
+              {s.positions.length}
+            </span>
+          </div>
+          <Link
+            href={`${base}/positions`}
+            className="flex items-center gap-1 text-[11px] text-brand"
+          >
+            ყველას ნახვა <ArrowUpRight size={13} />
+          </Link>
+        </div>
+        <PositionsTable positions={s.positions} base={base} preview={preview} />
+      </section>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex items-start gap-4 rounded-xl border border-line p-5">
+          <ShieldCheck size={20} className="mt-1 shrink-0 text-brand" />
+          <div>
+            <h3 className="text-xs font-medium">კონცენტრაციის მონიტორინგი</h3>
+            <p className="mt-2 text-xs leading-6 text-muted">
+              {largest
+                ? `${largest.asset.symbol} პორტფელის ${percentage(largest.allocation)}-ს შეადგენს. განაწილების ცვლილება აქვე აისახება.`
+                : "პოზიციების დამატების შემდეგ აქ გამოჩნდება ყველაზე დიდი პოზიციის წილი."}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-4 rounded-xl border border-line p-5">
+          <CircleHelp size={20} className="mt-1 shrink-0 text-brand" />
+          <div>
+            <h3 className="text-xs font-medium">ერთი პორტფელი, სრული სურათი</h3>
+            <p className="mt-2 text-xs leading-6 text-muted">
+              შესყიდვები, გაყიდვები და საკომისიოები საერთო ისტორიაში ინახება.
+              გამოთვლები ამ მონაცემებს ეყრდნობა.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
-export function Metric({ label, value, hint, tone = "text-foreground" }: { label: string; value: string; hint?: string; tone?: string }) { return <div><p className="max-w-48 text-[11px] leading-5 text-muted" title={hint}>{label}</p><p className={`numeric mt-2 text-xl font-medium sm:text-2xl ${tone}`}>{value}</p></div>; }
+export function Metric({
+  label,
+  value,
+  hint,
+  tone = "text-foreground",
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: string;
+}) {
+  return (
+    <div>
+      <p className="max-w-48 text-[11px] leading-5 text-muted" title={hint}>
+        {label}
+      </p>
+      <p className={`numeric mt-2 text-xl font-medium sm:text-2xl ${tone}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
 function AllocationRing({ summary }: { summary: PortfolioSummary }) {
-  const p = summary.positions.slice(0, 3).map(p => Number(p.allocation ?? 0));
-  const reserve = summary.value ? Number(percent(summary.cash, summary.value) ?? 0) : 0;
-  const gradient = p.length && summary.complete ? `conic-gradient(#aa91ff 0% ${p[0]}%, #72628e ${p[0]}% ${p[0] + (p[1] ?? 0)}%, #cfbfe9 ${p[0] + (p[1] ?? 0)}% ${p.reduce((a, b) => a + b, 0)}%, #494454 ${p.reduce((a, b) => a + b, 0)}% ${100 - reserve}%, #30333f ${100 - reserve}% 100%)` : "conic-gradient(#30333f 0% 100%)";
-  return <div aria-hidden="true" className="flex size-32 shrink-0 items-center justify-center rounded-full" style={{ background: gradient }}><div className="flex size-[104px] flex-col items-center justify-center rounded-full bg-surface"><span className="text-xs font-medium">CCX</span><span className="mt-1 text-[9px] text-muted">პორტფელი</span></div></div>;
+  const p = summary.positions.slice(0, 3).map((p) => Number(p.allocation ?? 0));
+  const reserve = summary.value
+    ? Number(percent(summary.cash, summary.value) ?? 0)
+    : 0;
+  const gradient =
+    p.length && summary.complete
+      ? `conic-gradient(#aa91ff 0% ${p[0]}%, #72628e ${p[0]}% ${p[0] + (p[1] ?? 0)}%, #cfbfe9 ${p[0] + (p[1] ?? 0)}% ${p.reduce((a, b) => a + b, 0)}%, #494454 ${p.reduce((a, b) => a + b, 0)}% ${100 - reserve}%, #30333f ${100 - reserve}% 100%)`
+      : "conic-gradient(#30333f 0% 100%)";
+  return (
+    <div
+      aria-hidden="true"
+      className="flex size-32 shrink-0 items-center justify-center rounded-full"
+      style={{ background: gradient }}
+    >
+      <div className="flex size-[104px] flex-col items-center justify-center rounded-full bg-surface">
+        <span className="text-xs font-medium">CCX</span>
+        <span className="mt-1 text-[9px] text-muted">პორტფელი</span>
+      </div>
+    </div>
+  );
 }
