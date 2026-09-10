@@ -16,6 +16,7 @@ export const coreAssets: Asset[] = [
     symbol: "USD",
     name: "აშშ დოლარი",
     isStablecoin: false,
+    category: "cash",
   },
   {
     id: "bitcoin",
@@ -23,6 +24,7 @@ export const coreAssets: Asset[] = [
     symbol: "BTC",
     name: "Bitcoin",
     isStablecoin: false,
+    category: "store-of-value",
   },
   {
     id: "ethereum",
@@ -30,6 +32,7 @@ export const coreAssets: Asset[] = [
     symbol: "ETH",
     name: "Ethereum",
     isStablecoin: false,
+    category: "layer-1",
   },
   {
     id: "solana",
@@ -37,6 +40,7 @@ export const coreAssets: Asset[] = [
     symbol: "SOL",
     name: "Solana",
     isStablecoin: false,
+    category: "layer-1",
   },
   {
     id: "tether",
@@ -44,6 +48,7 @@ export const coreAssets: Asset[] = [
     symbol: "USDT",
     name: "Tether",
     isStablecoin: true,
+    category: "stablecoin",
   },
   {
     id: "usd-coin",
@@ -51,6 +56,7 @@ export const coreAssets: Asset[] = [
     symbol: "USDC",
     name: "USDC",
     isStablecoin: true,
+    category: "stablecoin",
   },
 ];
 export async function seedAssets() {

@@ -6,11 +6,14 @@ function formatted(value: string, places: number, trim = false) {
 }
 export function money(value: string | null, compact = false) {
   if (value === null) return "—";
-  if (compact && decimal(value).abs().gte(1000000))
-    return `$${formatted(decimal(value).div(1000000).toFixed(), 1, true)} მლნ`;
-  if (compact && decimal(value).abs().gte(1000))
-    return `$${formatted(decimal(value).div(1000).toFixed(), 1, true)} ათ.`;
-  return `$${formatted(value, 2)}`;
+  const number = decimal(value),
+    sign = number.lt(0) ? "-" : "",
+    absolute = number.abs();
+  if (compact && absolute.gte(1000000))
+    return `${sign}$${formatted(absolute.div(1000000).toFixed(), 1, true)} მლნ`;
+  if (compact && absolute.gte(1000))
+    return `${sign}$${formatted(absolute.div(1000).toFixed(), 1, true)} ათ.`;
+  return `${sign}$${formatted(absolute.toFixed(), 2)}`;
 }
 export function quantity(value: string) {
   return formatted(

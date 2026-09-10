@@ -53,6 +53,16 @@ test("every preview workspace fits phone, tablet and desktop widths", async ({
       const response = await page.goto(`/preview/${section}`);
       expect(response?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      if (section === "analytics") {
+        await expect(
+          page.getByRole("heading", { name: "პორტფელის შედეგის წყარო" }),
+        ).toBeVisible();
+        await expect(page.getByText("Bitcoin", { exact: true })).toBeVisible();
+        await page.screenshot({
+          path: `test-results/attribution-${info.project.name}.png`,
+          fullPage: true,
+        });
+      }
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth + 1,

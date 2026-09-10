@@ -43,6 +43,13 @@
       "when": 1789049762810,
       "tag": "0005_perpetual_multiple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789069283396,
+      "tag": "0006_misty_scrambler",
+      "breakpoints": true
     }
   ]
 }

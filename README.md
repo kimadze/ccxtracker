@@ -7,7 +7,7 @@ Georgian-language crypto portfolio tracking and planning for a small private aud
 - Google sign-in, private database sessions, multiple portfolios and ownership checks on all protected resources.
 - Funded transaction ledger: deposits, buys, partial/full sales, withdrawals, fees, corrections and confirmed deletion. Holdings and cash are recalculated atomically.
 - Overview, searchable positions, filtered/paginated transactions, explicit missing/stale prices and daily history.
-- Cash-flow-adjusted estimated performance, drawdown, concentration and reserve analysis.
+- Cash-flow-adjusted estimated performance, drawdown, concentration, reserve analysis and reconciled all-time performance attribution by asset and category.
 - DCA with a prefilled transaction draft, saved staged exits, capital recovery, journals and private attachments.
 - Saved what-if scenarios, copies, portfolio goals, milestones, target allocations and capital deployment simulations.
 - Independent watchlist, profile/portfolio settings, JSON export and session revocation.
@@ -65,6 +65,8 @@ Transactions are the source of truth. Moving weighted-average cost includes buy 
 Asset deposits accept the original unit acquisition basis or an explicit unknown basis. Unknown basis suppresses affected profit and contribution totals. Withdrawals remove proportional basis and do not realize sale proceeds. Contribution/withdrawal totals involving crypto represent basis transferred, not historical fair market value. Standalone asset fees expense their removed basis; any additional USD fee is separately expensed. No tax-lot or tax-reporting claim is made.
 
 Daily performance uses chained Modified Dietz estimates for sufficiently covered intervals. Asset transfers without reliable flow valuation and history gaps suppress affected returns. No pre-onboarding history is fabricated, and backdated corrections invalidate affected snapshots. Snapshot day keys use UTC; display dates use Asia/Tbilisi.
+
+Performance attribution uses the canonical ledger and current market valuation. Each asset's total contribution is realized plus unrealized P&L; separately recorded USD fees appear as an explicit fee contributor so the rows reconcile exactly with portfolio P&L. Closed positions remain in all-time attribution. Unknown basis or missing current prices suppress unreconciled output. Category totals are derived from asset metadata, with unclassified provider-discovered assets shown as `Other`. Period attribution is intentionally unavailable until historical per-asset holdings and prices are stored with sufficient coverage.
 
 Simulations read the same current holdings. DCA assumes additional external capital; a saved real purchase requires sufficient recorded USD cash. Exit percentages use original current quantity and cannot exceed 100%. Target allocation weights must total 100%; deployment uses buy-only proportional deficits with deterministic cent rounding. It cannot promise exact rebalancing of overweight positions through purchases alone.
 

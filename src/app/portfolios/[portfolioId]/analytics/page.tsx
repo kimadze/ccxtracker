@@ -26,6 +26,7 @@ export default async function Page({
       <Analytics
         summary={w.summary}
         entries={w.entries}
+        assets={w.assets}
         snapshots={history.map((s) => ({
           ...s,
           capturedAt: s.capturedAt.toISOString(),

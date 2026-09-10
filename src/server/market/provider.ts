@@ -44,6 +44,7 @@ export class CoinGeckoProvider implements MarketPriceProvider {
       symbol: c.symbol.toUpperCase(),
       name: c.name,
       isStablecoin: false,
+      category: "other",
     }));
   }
   async quotes(assets: Asset[]): Promise<Quote[]> {

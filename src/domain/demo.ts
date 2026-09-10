@@ -10,6 +10,7 @@ export const demoAssets: Asset[] = [
     symbol: "BTC",
     name: "Bitcoin",
     isStablecoin: false,
+    category: "store-of-value",
   },
   {
     id: "ethereum",
@@ -17,6 +18,7 @@ export const demoAssets: Asset[] = [
     symbol: "ETH",
     name: "Ethereum",
     isStablecoin: false,
+    category: "layer-1",
   },
   {
     id: "solana",
@@ -24,6 +26,7 @@ export const demoAssets: Asset[] = [
     symbol: "SOL",
     name: "Solana",
     isStablecoin: false,
+    category: "layer-1",
   },
   {
     id: "chainlink",
@@ -31,6 +34,7 @@ export const demoAssets: Asset[] = [
     symbol: "LINK",
     name: "Chainlink",
     isStablecoin: false,
+    category: "infrastructure",
   },
   {
     id: "usd-coin",
@@ -38,6 +42,7 @@ export const demoAssets: Asset[] = [
     symbol: "USDC",
     name: "USDC",
     isStablecoin: true,
+    category: "stablecoin",
   },
 ];
 const demoPrices = ["97420", "3248", "182.65", "22.84", "0.9998"];
@@ -56,7 +61,7 @@ const tuples = [
   ["chainlink", "120", "25.4"],
   ["usd-coin", "3200", "1"],
 ];
-const demoEntries: LedgerEntry[] = [
+export const demoEntries: LedgerEntry[] = [
   {
     id: "fund",
     assetId: "USD",

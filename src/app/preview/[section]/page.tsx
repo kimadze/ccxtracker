@@ -6,6 +6,7 @@ import {
   demoAssets,
   demoQuotes,
   demoHistory,
+  demoEntries,
 } from "@/domain/demo";
 import { PositionsWorkspace } from "@/components/positions-workspace";
 import { Analytics } from "@/components/analytics";
@@ -78,7 +79,12 @@ export default async function Page({
         />
       )}
       {section === "analytics" && (
-        <Analytics summary={demoSummary} snapshots={demoHistory} entries={[]} />
+        <Analytics
+          summary={demoSummary}
+          snapshots={demoHistory}
+          entries={demoEntries}
+          assets={demoAssets}
+        />
       )}
       {(section === "strategy" || section === "journal") && (
         <StrategyWorkspace

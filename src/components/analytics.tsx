@@ -1,22 +1,27 @@
 "use client";
 import { useState } from "react";
-import type { LedgerEntry, PortfolioSummary } from "@/domain/types";
+import type { Asset, LedgerEntry, PortfolioSummary } from "@/domain/types";
 import {
   analyzeHealth,
   analyzePerformance,
   type Snapshot,
 } from "@/domain/analytics";
+import { calculatePortfolioAttribution } from "@/domain/attribution";
+import { replayLedger } from "@/domain/ledger";
 import { percentage, money } from "@/lib/formatters";
 import { HistoryChart } from "./history-chart";
 import { Metric } from "./overview";
+import { PerformanceAttribution } from "./performance-attribution";
 export function Analytics({
   summary,
   snapshots,
   entries,
+  assets,
 }: {
   summary: PortfolioSummary;
   snapshots: Snapshot[];
   entries: LedgerEntry[];
+  assets: Asset[];
 }) {
   const [period, setPeriod] = useState("all");
   const latest = snapshots.length
@@ -29,7 +34,12 @@ export function Analytics({
           (s) => Date.parse(s.capturedAt) >= latest - Number(period) * 86400000,
         );
   const performance = analyzePerformance(selected, entries),
-    health = analyzeHealth(summary);
+    health = analyzeHealth(summary),
+    attribution = calculatePortfolioAttribution(
+      replayLedger(entries),
+      summary,
+      assets,
+    );
   const performers = [...summary.positions]
     .filter((p) => p.returnPercent !== null)
     .sort((a, b) => Number(b.returnPercent) - Number(a.returnPercent));
@@ -83,6 +93,7 @@ export function Analytics({
           შეტანებსაც ასახავს.
         </p>
       </section>
+      <PerformanceAttribution attribution={attribution} />
       <section className="panel p-6">
         <h2 className="text-sm font-medium">პორტფელის მდგომარეობა</h2>
         {health ? (

@@ -31,6 +31,7 @@ export interface Asset {
   name: string;
   providerId: string;
   isStablecoin: boolean;
+  category?: string;
 }
 export interface Quote {
   assetId: string;

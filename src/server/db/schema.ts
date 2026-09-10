@@ -117,6 +117,7 @@ export const assets = pgTable("assets", {
   providerId: text("provider_id").notNull().unique(),
   logoUrl: text("logo_url"),
   isStablecoin: boolean("is_stablecoin").default(false).notNull(),
+  category: text("category").default("other").notNull(),
   ...times(),
 });
 export const transactions = pgTable(
