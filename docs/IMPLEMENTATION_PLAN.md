@@ -1,6 +1,6 @@
 # Crypto Collective X — Implementation Plan
 
-Status: implementation started on 2026-09-10. Phase 1 local checks passed; external-service verification is pending. See `docs/reports` for checkpoint evidence.
+Status: all six implementation phases completed locally on 2026-09-10. Typecheck, lint, 51 automated tests, production build, 8 authenticated/public browser tests and the production dependency audit pass. Live external-service verification remains pending because production credentials and a deployed environment have not been configured. See `docs/reports` for checkpoint evidence and `docs/DEPLOYMENT.md` for release steps.
 
 ## Product and scope
 
@@ -128,9 +128,9 @@ Official deployment references consulted during planning:
 - https://neon.com/docs/guides/vercel-manual
 - https://neon.com/docs/connect/connection-pooling
 
-## Decisions to confirm during plan review
+## Implemented release decisions
 
-- Initial crypto-only scope follows the supplied specification; securities would require separate market and instrument models.
-- Proposed initial entry method is manual transactions; exchange and wallet synchronization can be scoped separately.
-- Proposed initial authentication is Google sign-in; email sign-in can replace or supplement it if required.
-- User supplies service accounts and the acceptable recurring service budget before paid integrations or plan-dependent deployment decisions.
+- The release is crypto-only; securities require separate market and instrument models.
+- Transactions are entered manually. Exchange and wallet synchronization remain separate future scope.
+- Authentication uses Google OAuth with database-backed Better Auth sessions.
+- The operator supplies service accounts and selects acceptable service plans before live deployment. No paid plan was selected or purchased during local implementation.

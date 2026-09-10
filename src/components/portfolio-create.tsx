@@ -4,7 +4,13 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createPortfolio } from "@/server/actions";
 import { Field, Message, Modal } from "./ui";
-export function PortfolioCreate({ compact = false, onCreated }: { compact?: boolean; onCreated?: () => void }) {
+export function PortfolioCreate({
+  compact = false,
+  onCreated,
+}: {
+  compact?: boolean;
+  onCreated?: () => void;
+}) {
   const [open, setOpen] = useState(false),
     [pending, setPending] = useState(false),
     [error, setError] = useState("");

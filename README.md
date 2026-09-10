@@ -32,18 +32,18 @@ Open `http://localhost:3000`. `/preview` contains explicitly fictional fixtures 
 
 ## Environment
 
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL application connection, preferably the provider's pooled TLS connection |
-| `DATABASE_MIGRATION_URL` | Direct development/release database connection; falls back to `DATABASE_URL` |
-| `BETTER_AUTH_SECRET` | Independently generated random secret, at least 32 characters |
-| `BETTER_AUTH_URL` | Exact application origin, HTTPS in deployment |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth web application credentials |
-| `COINGECKO_DEMO_API_KEY` | Server-only CoinGecko Demo API key for discovery/quotes |
-| `CRON_SECRET` | Independent random secret, at least 32 characters |
-| `BLOB_READ_WRITE_TOKEN` | Private Vercel Blob store credential, including local development |
-| `BLOB_STORE_ID` | Alternative linked-store configuration on Vercel |
-| `ALLOWED_EMAILS` | Optional comma-separated allowlist for new Google registrations |
+| Variable                                   | Purpose                                                                            |
+| ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `DATABASE_URL`                             | PostgreSQL application connection, preferably the provider's pooled TLS connection |
+| `DATABASE_MIGRATION_URL`                   | Direct development/release database connection; falls back to `DATABASE_URL`       |
+| `BETTER_AUTH_SECRET`                       | Independently generated random secret, at least 32 characters                      |
+| `BETTER_AUTH_URL`                          | Exact application origin, HTTPS in deployment                                      |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth web application credentials                                           |
+| `COINGECKO_DEMO_API_KEY`                   | Server-only CoinGecko Demo API key for discovery/quotes                            |
+| `CRON_SECRET`                              | Independent random secret, at least 32 characters                                  |
+| `BLOB_READ_WRITE_TOKEN`                    | Private Vercel Blob store credential, including local development                  |
+| `BLOB_STORE_ID`                            | Alternative linked-store configuration on Vercel                                   |
+| `ALLOWED_EMAILS`                           | Optional comma-separated allowlist for new Google registrations                    |
 
 Changing the allowlist does not revoke existing accounts or sessions. Settings offers session revocation. Account administration is outside the current user interface.
 

@@ -29,6 +29,7 @@ The repository contains the application, SQL migrations, tests and Vercel cron c
    ```
 
    Verify the target database first. The migration runner loads local environment files, so use an isolated release environment rather than an ambiguous developer shell. Drizzle records applied migrations. Do not run migrations concurrently in every Vercel build.
+
 4. Deploy, set the final domain and update both the auth origin and Google callback if the domain changes. Redeploy after changing environment values. Run the live checks below before sharing the URL.
 
 The migration `0002_wonderful_maximus.sql` intentionally creates the journal composite unique index before its referencing foreign key. Preserve that order. Fresh SQL application is tested in the database suite.

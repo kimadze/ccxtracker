@@ -61,7 +61,10 @@ export function Shell({
           <select
             aria-label="პორტფელის არჩევა"
             value={preview ? "preview" : (activeId ?? "")}
-            onChange={(e) => { setMobileOpen(false); router.push(`/portfolios/${e.target.value}`); }}
+            onChange={(e) => {
+              setMobileOpen(false);
+              router.push(`/portfolios/${e.target.value}`);
+            }}
             disabled={preview}
             className="appearance-none border-0 bg-transparent py-1 pl-0 pr-6 text-xs font-medium"
           >
@@ -123,7 +126,9 @@ export function Shell({
           <Settings2 size={17} />
           პარამეტრები
         </Link>
-        {!preview && <PortfolioCreate compact onCreated={() => setMobileOpen(false)} />}
+        {!preview && (
+          <PortfolioCreate compact onCreated={() => setMobileOpen(false)} />
+        )}
         <div className="mt-5 flex items-center gap-3 border-t border-line px-2 pt-5">
           <span className="flex size-8 items-center justify-center rounded-full bg-brand/15 text-xs text-brand">
             {userName.charAt(0)}
