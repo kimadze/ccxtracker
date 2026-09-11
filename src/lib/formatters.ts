@@ -15,6 +15,21 @@ export function money(value: string | null, compact = false) {
     return `${sign}$${formatted(absolute.div(1000).toFixed(), 1, true)} ათ.`;
   return `${sign}$${formatted(absolute.toFixed(), 2)}`;
 }
+export function compactMoney(value: string | null) {
+  if (value === null) return "—";
+  const number = decimal(value),
+    sign = number.lt(0) ? "-" : "",
+    absolute = number.abs(),
+    units = [
+      { threshold: "1000000000000", divisor: "1000000000000", suffix: "ტრილ." },
+      { threshold: "1000000000", divisor: "1000000000", suffix: "მლრდ" },
+      { threshold: "1000000", divisor: "1000000", suffix: "მლნ" },
+      { threshold: "1000", divisor: "1000", suffix: "ათ." },
+    ];
+  const unit = units.find((candidate) => absolute.gte(candidate.threshold));
+  if (!unit) return money(value);
+  return `${sign}$${formatted(absolute.div(unit.divisor).toFixed(), 2, true)} ${unit.suffix}`;
+}
 export function quantity(value: string) {
   return formatted(
     value,

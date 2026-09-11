@@ -15,10 +15,12 @@ import { ScenarioLab } from "@/components/scenario-lab";
 import { AllocationWorkspace } from "@/components/allocation-workspace";
 import { Watchlist } from "@/components/watchlist";
 import { Settings } from "@/components/settings";
+import { StatisticsWorkspace } from "@/components/statistics-workspace";
 const titles: Record<string, string> = {
   positions: "პოზიციები",
   transactions: "ტრანზაქციები",
   analytics: "ანალიტიკა",
+  statistics: "სტატისტიკა",
   scenarios: "სცენარების ლაბორატორია",
   allocation: "განაწილება",
   strategy: "სტრატეგია",
@@ -84,6 +86,51 @@ export default async function Page({
           snapshots={demoHistory}
           entries={demoEntries}
           assets={demoAssets}
+        />
+      )}
+      {section === "statistics" && (
+        <StatisticsWorkspace
+          base="/preview"
+          summary={demoSummary}
+          selectedAssetIds={["chainlink"]}
+          market={{
+            error: false,
+            overview: {
+              totalMarketCap: "3840000000000",
+              volume24h: "142000000000",
+              btcDominance: "56.4",
+              ethDominance: "13.1",
+              stablecoinMarketCap: "305000000000",
+              updatedAt: "2026-09-10T08:00:00.000Z",
+              source: "სადემონსტრაციო მონაცემები",
+            },
+            assets: demoAssets.map((asset, index) => ({
+              id: asset.id,
+              symbol: asset.symbol,
+              name: asset.name,
+              image: null,
+              rank: index + 1,
+              price: demoQuotes[index].price,
+              change1h: ["0.4", "-0.2", "0.8", "0.1", "0"][index],
+              change24h: demoQuotes[index].change24h,
+              change7d: ["5.2", "2.1", "-3.4", "6.8", "0.02"][index],
+              marketCap: String(1900000000000 / (index + 1)),
+              volume24h: String(48000000000 / (index + 1)),
+              circulatingSupply: String(20000000 * (index + 1)),
+              sparkline7d: Array.from({ length: 24 }, (_, point) => 100 + point * (index % 2 ? -0.2 : 0.4) + Math.sin(point) * 2),
+            })),
+          }}
+          macro={{
+            error: false,
+            fetchedAt: "2026-09-10T08:00:00.000Z",
+            events: [],
+            metrics: [
+              { id: "FED_FUNDS", label: "FED განაკვეთი", value: "4.25", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "0" },
+              { id: "CPI_YOY", label: "CPI YoY", value: "2.9", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "-0.1" },
+              { id: "CORE_CPI_YOY", label: "Core CPI YoY", value: "3.1", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "0" },
+              { id: "UNEMPLOYMENT", label: "უმუშევრობა", value: "4.2", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "0.1" },
+            ],
+          }}
         />
       )}
       {(section === "strategy" || section === "journal") && (

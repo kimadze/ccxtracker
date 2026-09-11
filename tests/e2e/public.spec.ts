@@ -32,6 +32,24 @@ test("anonymous portfolio routes require sign-in", async ({ page }) => {
     page.getByRole("button", { name: "Google-ით შესვლა" }),
   ).toBeVisible();
 });
+test("statistics preview hydrates without client/server text mismatches", async ({
+  page,
+}) => {
+  const hydrationErrors: string[] = [];
+  page.on("console", (message) => {
+    if (
+      message.type() === "error" &&
+      message.text().toLowerCase().includes("hydration")
+    )
+      hydrationErrors.push(message.text());
+  });
+  await page.goto("/preview/statistics");
+  await expect(page.getByText("$3,84 ტრილ.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "მაკრო", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "მაკრო გარემო" })).toBeVisible();
+  await page.waitForTimeout(250);
+  expect(hydrationErrors).toEqual([]);
+});
 test("every preview workspace fits phone, tablet and desktop widths", async ({
   page,
 }, info) => {
@@ -43,6 +61,7 @@ test("every preview workspace fits phone, tablet and desktop widths", async ({
       "positions",
       "transactions",
       "analytics",
+      "statistics",
       "strategy",
       "journal",
       "scenarios",
