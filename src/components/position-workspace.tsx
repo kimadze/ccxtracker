@@ -58,7 +58,7 @@ export function PositionWorkspace({
             value={money(p.averagePrice)}
           />
           <Metric
-            label="მოგება / ზარალი"
+            label="შემოსავალი / დანახარჯი"
             value={money(p.unrealizedPnl)}
             tone={pnlClass(p.unrealizedPnl)}
           />

@@ -86,7 +86,7 @@ export function PerformanceAttribution({
             value={String(attribution.assetsInProfit)}
           />
           <Metric
-            label="ზარალში მყოფი აქტივები"
+            label="ხარჯში მყოფი აქტივები"
             value={String(attribution.assetsInLoss)}
           />
         </div>
@@ -130,8 +130,8 @@ export function PerformanceAttribution({
                       </p>
                       <p className="mt-1 text-[10px] text-muted">
                         {portfolioLoss && decimal(row.totalPnl!).gt(0)
-                          ? `ზარალის შემცირება: ${percentage(decimal(row.contributionPercent!).abs().toString())}`
-                          : `${portfolioLoss ? "მთლიან ზარალში წილი" : "მთლიან შედეგში წილი"}: ${percentage(row.contributionPercent)}`}
+                          ? `ხარჯის შემცირება: ${percentage(decimal(row.contributionPercent!).abs().toString())}`
+                          : `${portfolioLoss ? "მთლიანი ხარჯის წილი" : "მთლიან შედეგში წილი"}: ${percentage(row.contributionPercent)}`}
                       </p>
                     </div>
                   </div>
