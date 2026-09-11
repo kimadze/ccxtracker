@@ -10,14 +10,14 @@
 - Added market search, sorting, 1h/24h/7d change, market cap, volume and seven-day sparklines.
 - Reused canonical asset identifiers, the existing watchlist and existing portfolio allocations for owned/tracked indicators.
 - Added dynamic FRED macro series for the effective federal funds rate, headline/core CPI YoY, unemployment, GDP growth, 2Y/10Y Treasury yields and the broad US dollar index.
-- Added upcoming FOMC meeting dates parsed from the Federal Reserve's official calendar. No dates are entered through the UI.
+- Organized dynamic FRED indicators into Monetary Policy, Inflation, Labor Market, and Growth & Market Conditions cards.
 - Added source and observation/update timestamps and explicit unavailable states.
 - Added portfolio context for BTC, ETH, other crypto, stablecoins and USD cash.
 
 ## Caching and failure behavior
 
 - CoinGecko market data uses server-side five-minute revalidation and batched market requests.
-- FRED series use six-hour revalidation; the official FOMC schedule uses daily revalidation.
+- FRED series use six-hour revalidation.
 - Provider payloads are validated or normalized before reaching UI components.
 - Provider errors remain server-side. Widgets show Georgian unavailable states and never substitute demo values in authenticated routes.
 - Demo fixtures appear only below `/preview` and are explicitly labeled as fictional by the existing preview shell.
@@ -33,7 +33,7 @@
 ## Current limitations
 
 - CoinGecko market widgets require `COINGECKO_DEMO_API_KEY`.
-- Forecast/consensus values, macro surprises and non-FOMC economic calendar events need a licensed calendar/consensus provider and are outside this MVP.
+- The macro workspace intentionally contains indicators only; economic-calendar and consensus features were removed.
 - Event market reaction and normalized BTC-versus-macro charts are outside this MVP.
 - The existing watchlist is reused for selected assets; favorites and manual reordering are not added in this release.
 - FRED's broad trade-weighted US dollar index is labeled accurately and is not presented as DXY.

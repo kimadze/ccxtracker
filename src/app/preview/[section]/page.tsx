@@ -123,18 +123,15 @@ export default async function Page({
           macro={{
             error: false,
             fetchedAt: "2026-09-10T08:00:00.000Z",
-            calendarStatus: "ready",
-            consensusConfigured: true,
-            events: [
-              { id: "demo-cpi", name: "CPI · YoY", startsAt: "2026-09-10T12:30:00Z", impact: "high", category: "inflation", source: "სადემონსტრაციო", previous: "3.0%", forecast: "2.9%", actual: null },
-              { id: "demo-ppi", name: "PPI · MoM", startsAt: "2026-09-11T12:30:00Z", impact: "medium", category: "inflation", source: "სადემონსტრაციო", previous: "0.2%", forecast: "0.1%", actual: null },
-              { id: "demo-fed", name: "FED — განაკვეთის გადაწყვეტილება", startsAt: "2026-09-16T18:00:00Z", impact: "high", category: "fed", source: "სადემონსტრაციო", previous: "4.25%", forecast: "4.00%", actual: null },
-            ],
             metrics: [
               { id: "FED_FUNDS", label: "FED განაკვეთი", value: "4.25", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "0" },
               { id: "CPI_YOY", label: "CPI YoY", value: "2.9", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "-0.1" },
               { id: "CORE_CPI_YOY", label: "Core CPI YoY", value: "3.1", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "0" },
               { id: "UNEMPLOYMENT", label: "უმუშევრობა", value: "4.2", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "0.1" },
+              { id: "GDP_GROWTH", label: "GDP ზრდა", value: "3.3", unit: "%", observationDate: "2026-04-01", source: "სადემონსტრაციო FRED", change: "0.2" },
+              { id: "US_2Y", label: "აშშ 2-წლიანი ობლიგაცია", value: "3.58", unit: "%", observationDate: "2026-09-09", source: "სადემონსტრაციო FRED", change: "-0.03" },
+              { id: "US_10Y", label: "აშშ 10-წლიანი ობლიგაცია", value: "4.04", unit: "%", observationDate: "2026-09-09", source: "სადემონსტრაციო FRED", change: "0.01" },
+              { id: "DOLLAR_INDEX", label: "აშშ დოლარის ფართო ინდექსი", value: "119.42", unit: "index", observationDate: "2026-09-09", source: "სადემონსტრაციო FRED", change: "-0.12" },
             ],
           }}
         />

@@ -42,24 +42,8 @@ export interface MacroMetric {
   change: string | null;
 }
 
-export interface MacroEvent {
-  dateOnly?: boolean;
-  category?: "fed" | "inflation" | "labor" | "growth" | "other";
-  previous?: string | null;
-  forecast?: string | null;
-  actual?: string | null;
-  id: string;
-  name: string;
-  startsAt: string;
-  impact: "high" | "medium" | "low";
-  source: string;
-}
-
 export interface MacroStatistics {
-  calendarStatus?: "ready" | "partial" | "unavailable";
-  consensusConfigured?: boolean;
   metrics: MacroMetric[];
-  events: MacroEvent[];
   fetchedAt: string;
   error: boolean;
 }

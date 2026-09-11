@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { MacroCalendar } from "./macro-calendar";
+import { MacroIndicators } from "./macro-indicators";
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ExternalLink, Search } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
@@ -149,7 +149,7 @@ function MoverBlock({ title, rows, positive = false }: { title: string; rows: Ma
 }
 
 function MacroTab({ data }: { data: MacroStatistics }) {
-  return <MacroCalendar data={data} />;
+  return <MacroIndicators data={data} />;
 }
 
 function PortfolioTab({ summary }: { summary: PortfolioSummary }) {

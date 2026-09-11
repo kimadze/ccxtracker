@@ -11,7 +11,7 @@ Georgian-language crypto portfolio tracking and planning for a small private aud
 - DCA with a prefilled transaction draft, saved staged exits, capital recovery, journals and private attachments.
 - Saved what-if scenarios, copies, portfolio goals, milestones, target allocations and capital deployment simulations.
 - Independent watchlist, profile/portfolio settings, JSON export and session revocation.
-- Statistics workspace with CoinGecko top-100 market intelligence, dynamic FRED macro indicators, official FOMC dates and portfolio context.
+- Statistics workspace with CoinGecko top-100 market intelligence, dynamic FRED macro indicator cards and portfolio context.
 - Georgian typography, decimal/date formatting, responsive navigation and accessible dialogs.
 
 ## Local setup
