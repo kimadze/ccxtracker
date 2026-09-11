@@ -1,6 +1,7 @@
 import "server-only";
 import type { MacroMetric, MacroStatistics } from "@/domain/statistics";
 import { latestObservation, percentageChange } from "@/domain/statistics";
+import { getEconomicCalendar } from "./calendar";
 
 interface SeriesDefinition {
   id: string;
@@ -72,7 +73,7 @@ export function parseFomcMeetings(html: string, now = new Date()) {
   for (const section of sections) {
     const year = Number(section[1]);
     const meetings = section[2].matchAll(
-      /fomc-meeting__month[^>]*>\s*([^<]+)[\s\S]*?fomc-meeting__date[^>]*>\s*([^<]+)/gi,
+      /fomc-meeting__month[^>]*>\s*(?:<strong>)?([^<]+)[\s\S]*?fomc-meeting__date[^>]*>\s*([^<]+)/gi,
     );
     for (const meeting of meetings) {
       const month = monthNumbers[meeting[1].trim().toLowerCase()];
@@ -81,13 +82,15 @@ export function parseFomcMeetings(html: string, now = new Date()) {
       // The official page supplies meeting dates but no machine-readable release time.
       // Noon UTC keeps the calendar date stable without inventing a decision timestamp.
       const startsAt = new Date(Date.UTC(year, month, days[days.length - 1], 12));
-      if (startsAt.getTime() < now.getTime()) continue;
+      if (startsAt.toISOString().slice(0, 10) < now.toISOString().slice(0, 10)) continue;
       events.push({
         id: `fomc-${year}-${month + 1}-${days[days.length - 1]}`,
         name: "FOMC განაკვეთის გადაწყვეტილება",
         startsAt: startsAt.toISOString(),
         impact: "high",
         source: "Federal Reserve",
+        dateOnly: true,
+        category: "fed",
       });
     }
   }
@@ -106,7 +109,7 @@ async function fetchFomcMeetings() {
 export async function getMacroStatistics(): Promise<MacroStatistics> {
   const [seriesResult, calendarResult] = await Promise.all([
     Promise.allSettled(series.map(fetchSeries)),
-    fetchFomcMeetings().catch(() => []),
+    getEconomicCalendar(fetchFomcMeetings),
   ]);
   const settled = seriesResult;
   const metrics = settled.flatMap((result) =>
@@ -116,7 +119,9 @@ export async function getMacroStatistics(): Promise<MacroStatistics> {
     console.warn("One or more FRED macro series are unavailable");
   return {
     metrics,
-    events: calendarResult,
+    events: calendarResult.events,
+    calendarStatus: calendarResult.status,
+    consensusConfigured: !!process.env.TRADING_ECONOMICS_API_KEY,
     fetchedAt: new Date().toISOString(),
     error: metrics.length === 0,
   };

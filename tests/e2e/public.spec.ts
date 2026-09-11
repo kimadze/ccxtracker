@@ -47,6 +47,11 @@ test("statistics preview hydrates without client/server text mismatches", async 
   await expect(page.getByText("$3,84 ტრილ.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "მაკრო", exact: true }).click();
   await expect(page.getByRole("heading", { name: "მაკრო გარემო" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "ეკონომიკური კალენდარი" })).toBeVisible();
+  await page.getByLabel("მოვლენის კატეგორია").selectOption("fed");
+  await expect(page.getByRole("heading", { name: "FED — განაკვეთის გადაწყვეტილება", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "PPI · MoM", exact: true })).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.waitForTimeout(250);
   expect(hydrationErrors).toEqual([]);
 });

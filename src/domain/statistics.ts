@@ -43,6 +43,11 @@ export interface MacroMetric {
 }
 
 export interface MacroEvent {
+  dateOnly?: boolean;
+  category?: "fed" | "inflation" | "labor" | "growth" | "other";
+  previous?: string | null;
+  forecast?: string | null;
+  actual?: string | null;
   id: string;
   name: string;
   startsAt: string;
@@ -51,6 +56,8 @@ export interface MacroEvent {
 }
 
 export interface MacroStatistics {
+  calendarStatus?: "ready" | "partial" | "unavailable";
+  consensusConfigured?: boolean;
   metrics: MacroMetric[];
   events: MacroEvent[];
   fetchedAt: string;

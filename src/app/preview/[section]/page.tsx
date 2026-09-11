@@ -123,7 +123,13 @@ export default async function Page({
           macro={{
             error: false,
             fetchedAt: "2026-09-10T08:00:00.000Z",
-            events: [],
+            calendarStatus: "ready",
+            consensusConfigured: true,
+            events: [
+              { id: "demo-cpi", name: "CPI · YoY", startsAt: "2026-09-10T12:30:00Z", impact: "high", category: "inflation", source: "სადემონსტრაციო", previous: "3.0%", forecast: "2.9%", actual: null },
+              { id: "demo-ppi", name: "PPI · MoM", startsAt: "2026-09-11T12:30:00Z", impact: "medium", category: "inflation", source: "სადემონსტრაციო", previous: "0.2%", forecast: "0.1%", actual: null },
+              { id: "demo-fed", name: "FED — განაკვეთის გადაწყვეტილება", startsAt: "2026-09-16T18:00:00Z", impact: "high", category: "fed", source: "სადემონსტრაციო", previous: "4.25%", forecast: "4.00%", actual: null },
+            ],
             metrics: [
               { id: "FED_FUNDS", label: "FED განაკვეთი", value: "4.25", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "0" },
               { id: "CPI_YOY", label: "CPI YoY", value: "2.9", unit: "%", observationDate: "2026-08-01", source: "სადემონსტრაციო FRED", change: "-0.1" },

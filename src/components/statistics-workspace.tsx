@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { MacroCalendar } from "./macro-calendar";
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ExternalLink, Search } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
@@ -9,7 +10,7 @@ import type {
   MarketStatistics,
 } from "@/domain/statistics";
 import { topMovers } from "@/domain/statistics";
-import { compactMoney, dateTime, money, percentage, pnlClass, quantity } from "@/lib/formatters";
+import { compactMoney, dateTime, money, percentage, pnlClass } from "@/lib/formatters";
 
 type Tab = "market" | "macro" | "portfolio";
 type SortKey = "rank" | "marketCap" | "price" | "change1h" | "change24h" | "change7d" | "volume24h";
@@ -148,13 +149,7 @@ function MoverBlock({ title, rows, positive = false }: { title: string; rows: Ma
 }
 
 function MacroTab({ data }: { data: MacroStatistics }) {
-  const nextEvent = data.events[0];
-  return <div className="space-y-7">
-    {nextEvent && <div className="rounded-xl border border-brand/25 bg-brand/5 p-6"><p className="eyebrow">შემდეგი მნიშვნელოვანი მოვლენა</p><div className="mt-3 flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-lg font-semibold">{nextEvent.name}</h2><p className="mt-2 text-xs text-muted">{dateTime(nextEvent.startsAt, true)} · წყარო: {nextEvent.source}</p></div><span className="rounded-full bg-negative/10 px-3 py-1.5 text-[10px] text-negative">მაღალი მნიშვნელობა</span></div></div>}
-    <div className="panel p-6"><div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-sm font-medium">მაკრო გარემო</h2><p className="mt-2 text-xs leading-6 text-muted">ოფიციალური ეკონომიკური სერიები ავტომატურად ახლდება.</p></div><span className="rounded-md border border-line px-3 py-2 text-[10px] text-muted">FRED · {dateTime(data.fetchedAt)}</span></div></div>
-    {data.metrics.length ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{data.metrics.map((metric) => <MetricCard key={metric.id} label={metric.label} value={metric.value === null ? "—" : metric.unit === "%" ? percentage(metric.value) : quantity(metric.value)} hint={`${metric.source}${metric.observationDate ? ` · ${metric.observationDate}` : ""}`} />)}</div> : <div className="panel p-10 text-center text-xs text-muted">მაკრო მონაცემები ამჟამად ხელმისაწვდომი არ არის.</div>}
-    <div className="panel p-6"><h2 className="text-sm font-medium">ეკონომიკური კალენდარი</h2>{data.events.length ? <div className="mt-4 divide-y divide-line">{data.events.slice(0, 6).map((event) => <div key={event.id} className="flex flex-wrap items-center justify-between gap-3 py-4 text-xs"><div><p>{event.name}</p><p className="mt-1 text-[10px] text-muted">{event.source}</p></div><span className="numeric text-muted">{dateTime(event.startsAt, true)}</span></div>)}</div> : <p className="mt-3 text-xs leading-6 text-muted">მომავალი მოვლენების მონაცემები ამჟამად ხელმისაწვდომი არ არის.</p>}</div>
-  </div>;
+  return <MacroCalendar data={data} />;
 }
 
 function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
