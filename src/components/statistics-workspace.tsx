@@ -10,6 +10,7 @@ import type {
   MarketStatistics,
 } from "@/domain/statistics";
 import { topMovers } from "@/domain/statistics";
+import { percent } from "@/domain/decimal";
 import { compactMoney, dateTime, money, percentage, pnlClass } from "@/lib/formatters";
 
 type Tab = "market" | "macro" | "portfolio";
@@ -156,10 +157,11 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
   const active = summary.positions.filter((position) => position.quantity !== "0");
   const btc = active.find((position) => position.asset.symbol === "BTC")?.allocation ?? "0";
   const eth = active.find((position) => position.asset.symbol === "ETH")?.allocation ?? "0";
-  const stable = active.filter((position) => position.asset.isStablecoin).reduce((sum, position) => sum + Number(position.allocation ?? 0), 0);
-  const reserve = Number(summary.value ?? 0) > 0 ? (Number(summary.cash) / Number(summary.value!)) * 100 : 0;
-  const alt = Math.max(0, 100 - Number(btc) - Number(eth) - stable - reserve);
-  return <div className="space-y-7"><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><MetricCard label="პორტფელის ღირებულება" value={money(summary.value)} /><MetricCard label="BTC განაწილება" value={percentage(btc)} /><MetricCard label="ETH განაწილება" value={percentage(eth)} /><MetricCard label="სხვა კრიპტოაქტივები" value={percentage(String(alt))} /><MetricCard label="Stablecoin-ები" value={percentage(String(stable))} /><MetricCard label="ნაღდი რეზერვი" value={percentage(String(reserve))} /></div><div className="panel p-6"><h2 className="text-sm font-medium">ბაზრის კონტექსტი</h2><p className="mt-3 max-w-3xl text-xs leading-6 text-muted">აქ ნაჩვენებია თქვენი მიმდინარე განაწილება საბაზრო და მაკრო მონაცემების კონტექსტში. ეს ბლოკი მხოლოდ ფაქტობრივ მდგომარეობას აღწერს და საინვესტიციო რეკომენდაციას არ წარმოადგენს.</p></div></div>;
+  const stable = summary.value && summary.stablecoinValue !== null ? Number(percent(summary.stablecoinValue, summary.value) ?? 0) : 0;
+  const cash = summary.value ? Number(percent(summary.cash, summary.value) ?? 0) : 0;
+  const liquidity = summary.value && summary.liquidity !== null ? percent(summary.liquidity, summary.value) : null;
+  const alt = Math.max(0, 100 - Number(btc) - Number(eth) - stable - cash);
+  return <div className="space-y-7"><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><MetricCard label="პორტფელის ღირებულება" value={money(summary.value)} /><MetricCard label="ნაღდი ფული" value={money(summary.cash)} hint={`პორტფელის ${percentage(String(cash))}`} /><MetricCard label="სტეიბლკოინები" value={money(summary.stablecoinValue)} hint={`პორტფელის ${percentage(String(stable))}`} /><MetricCard label="საერთო ლიკვიდობა" value={money(summary.liquidity)} hint={`პორტფელის ${percentage(liquidity)}`} /><MetricCard label="BTC / ETH" value={`${percentage(btc)} / ${percentage(eth)}`} /><MetricCard label="სხვა კრიპტოაქტივები" value={percentage(String(alt))} /></div><div className="panel p-6"><h2 className="text-sm font-medium">ლიკვიდობის სურათი</h2><p className="mt-3 max-w-3xl text-xs leading-6 text-muted">ნაღდი ფული და სტეიბლკოინები ცალ-ცალკე აღირიცხება. მათი ჯამი აჩვენებს ახალი შესაძლებლობებისთვის ხელმისაწვდომ საერთო ლიკვიდობას.</p></div></div>;
 }
 
 export function StatisticsWorkspace({ market, macro, summary, selectedAssetIds, base }: { market: MarketStatistics; macro: MacroStatistics; summary: PortfolioSummary; selectedAssetIds: string[]; base: string }) {

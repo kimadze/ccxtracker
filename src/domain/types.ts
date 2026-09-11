@@ -59,6 +59,8 @@ export interface PortfolioSummary {
   totalPnl: string | null;
   contributions: string | null;
   withdrawals: string | null;
+  stablecoinValue: string | null;
+  liquidity: string | null;
   reserve: string;
   complete: boolean;
   stale: boolean;

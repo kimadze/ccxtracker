@@ -177,6 +177,33 @@ describe("valuation", () => {
     expect(s.positions[0].allocation).toBeNull();
     expect(s.knownValue).toBe("9800");
   });
+  it("reports cash, stablecoins and total liquidity separately", () => {
+    const stablecoin = {
+      id: "usdc",
+      providerId: "usd-coin",
+      symbol: "USDC",
+      name: "USD Coin",
+      isStablecoin: true,
+    };
+    const result = replayLedger([
+      fund(),
+      entry("buy", "usdc", "2000", "1"),
+    ]);
+    const summary = valuePortfolio(result, [stablecoin], [
+      {
+        assetId: "usdc",
+        price: "0.999",
+        change24h: null,
+        updatedAt: "2026-01-01T12:00:00Z",
+        stale: false,
+      },
+    ]);
+
+    expect(summary.cash).toBe("8000");
+    expect(summary.stablecoinValue).toBe("1998");
+    expect(summary.liquidity).toBe("9998");
+    expect(summary.reserve).toBe("9998");
+  });
   it("values an empty portfolio at zero", () => {
     expect(valuePortfolio(replayLedger([]), [], []).value).toBe("0");
   });

@@ -13,6 +13,9 @@ test("public entry and honest demo render without horizontal overflow", async ({
   await expect(
     page.getByText("სადემონსტრაციო რეჟიმი", { exact: false }),
   ).toBeVisible();
+  await expect(page.getByText("ნაღდი ფული", { exact: true })).toBeVisible();
+  await expect(page.getByText("სტეიბლკოინები", { exact: true })).toBeVisible();
+  await expect(page.getByText("საერთო ლიკვიდობა", { exact: true })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth + 1,

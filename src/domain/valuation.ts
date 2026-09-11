@@ -45,6 +45,19 @@ export function valuePortfolio(
     !complete || costBasis === null
       ? null
       : amount(decimal(knownValue).minus(ledger.cash).minus(costBasis));
+  const stablecoinPositions = positions.filter((p) => p.asset.isStablecoin);
+  const stablecoinValue = stablecoinPositions.some((p) => p.value === null)
+    ? null
+    : amount(
+        stablecoinPositions.reduce(
+          (sum, position) => sum.plus(position.value ?? 0),
+          new D(0),
+        ),
+      );
+  const liquidity =
+    stablecoinValue === null
+      ? null
+      : amount(decimal(ledger.cash).plus(stablecoinValue));
   return {
     positions,
     cash: ledger.cash,
@@ -59,11 +72,9 @@ export function valuePortfolio(
         : amount(decimal(unrealizedPnl).plus(ledger.realizedPnl)),
     contributions: ledger.contributions,
     withdrawals: ledger.withdrawals,
-    reserve: amount(
-      positions
-        .filter((p) => p.asset.isStablecoin)
-        .reduce((s, p) => s.plus(p.value ?? 0), new D(ledger.cash)),
-    ),
+    stablecoinValue,
+    liquidity,
+    reserve: liquidity ?? ledger.cash,
     complete,
     stale: positions.some((p) => p.quote?.stale),
   };

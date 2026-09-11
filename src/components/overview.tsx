@@ -22,6 +22,13 @@ export function Overview({
   preview?: boolean;
   history?: React.ReactNode;
 }) {
+  const cashShare = s.value ? percent(s.cash, s.value) : null;
+  const stablecoinShare =
+    s.value && s.stablecoinValue !== null
+      ? percent(s.stablecoinValue, s.value)
+      : null;
+  const liquidityShare =
+    s.value && s.liquidity !== null ? percent(s.liquidity, s.value) : null;
   const largest = [...s.positions].sort(
     (a, b) => Number(b.value ?? 0) - Number(a.value ?? 0),
   )[0];
@@ -143,11 +150,26 @@ export function Overview({
                 {s.positions.length.toString().padStart(2, "0")}
               </p>
               <p className="mt-1 text-[11px] text-muted">აქტიური პოზიცია</p>
-              <p className="mt-4 text-[11px] text-muted">
-                თანხა და სტეიბლკოინები
+              <p className="mt-4 text-[11px] text-muted">საერთო ლიკვიდობა</p>
+              <p className="numeric mt-1 text-sm">{money(s.liquidity)}</p>
+              <p className="numeric mt-1 text-[10px] text-muted">
+                {percentage(liquidityShare)}
               </p>
-              <p className="numeric mt-1 text-sm">{money(s.reserve)}</p>
             </div>
+          </div>
+          <div className="mb-5 grid grid-cols-2 gap-2">
+            <LiquidityMetric
+              label="ნაღდი ფული"
+              value={s.cash}
+              share={cashShare}
+              tone="bg-sky-300"
+            />
+            <LiquidityMetric
+              label="სტეიბლკოინები"
+              value={s.stablecoinValue}
+              share={stablecoinShare}
+              tone="bg-emerald-300"
+            />
           </div>
           <div className="space-y-3">
             {s.positions.slice(0, 3).map((p, i) => (
@@ -167,10 +189,6 @@ export function Overview({
                 </span>
               </div>
             ))}
-            <div className="flex justify-between border-t border-line pt-3 text-xs text-muted">
-              <span>თანხის ნაშთი</span>
-              <span className="numeric">{money(s.cash)}</span>
-            </div>
           </div>
         </section>
       </div>
@@ -214,6 +232,28 @@ export function Overview({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+function LiquidityMetric({
+  label,
+  value,
+  share,
+  tone,
+}: {
+  label: string;
+  value: string | null;
+  share: string | null;
+  tone: string;
+}) {
+  return (
+    <div className="rounded-lg border border-line bg-raised/35 p-3">
+      <p className="flex items-center gap-2 text-[10px] text-muted">
+        <span className={`size-1.5 rounded-full ${tone}`} />
+        {label}
+      </p>
+      <p className="numeric mt-2 text-sm font-medium">{money(value)}</p>
+      <p className="numeric mt-1 text-[10px] text-muted">{percentage(share)}</p>
     </div>
   );
 }
