@@ -30,7 +30,7 @@ function Sparkline({ values }: { values: number[] }) {
   const up = sampled[sampled.length - 1] >= sampled[0];
   return (
     <svg viewBox="0 0 92 34" className="h-8 w-24" role="img" aria-label="7 დღის ფასის გრაფიკი">
-      <polyline fill="none" stroke={up ? "#65d9ac" : "#ff8495"} strokeWidth="2" points={points} />
+      <polyline fill="none" stroke={up ? "var(--positive)" : "var(--negative)"} strokeWidth="2" points={points} />
     </svg>
   );
 }
@@ -167,5 +167,5 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
 export function StatisticsWorkspace({ market, macro, summary, selectedAssetIds, base }: { market: MarketStatistics; macro: MacroStatistics; summary: PortfolioSummary; selectedAssetIds: string[]; base: string }) {
   const [tab, setTab] = useState<Tab>("market");
   const owned = new Map(summary.positions.filter((position) => position.quantity !== "0").map((position) => [position.asset.id, position.allocation]));
-  return <div><div className="mb-7 flex gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-1">{([ ["market", "კრიპტო ბაზარი"], ["macro", "მაკრო"], ["portfolio", "ჩემი პორტფელი"] ] as const).map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`min-w-max rounded-lg px-5 py-3 text-xs transition ${tab === id ? "bg-brand text-[#181126]" : "text-muted hover:bg-raised hover:text-foreground"}`}>{label}</button>)}</div>{tab === "market" && <MarketTab data={market} owned={owned} selected={new Set(selectedAssetIds)} base={base} />}{tab === "macro" && <MacroTab data={macro} />}{tab === "portfolio" && <PortfolioTab summary={summary} />}</div>;
+  return <div><div className="mb-7 flex gap-1 overflow-x-auto rounded-lg border border-line bg-surface p-1">{([ ["market", "კრიპტო ბაზარი"], ["macro", "მაკრო"], ["portfolio", "ჩემი პორტფელი"] ] as const).map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`min-w-max rounded-md px-5 py-3 text-xs transition ${tab === id ? "bg-brand text-background" : "text-muted hover:bg-raised hover:text-foreground"}`}>{label}</button>)}</div>{tab === "market" && <MarketTab data={market} owned={owned} selected={new Set(selectedAssetIds)} base={base} />}{tab === "macro" && <MacroTab data={macro} />}{tab === "portfolio" && <PortfolioTab summary={summary} />}</div>;
 }

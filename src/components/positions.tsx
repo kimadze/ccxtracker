@@ -4,12 +4,12 @@ import type { ValuedPosition } from "@/domain/types";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
 
 const colors = [
-  "#c4a875",
-  "#aaa2df",
-  "#89c6bd",
-  "#aa91ff",
-  "#8eabc9",
-  "#cf9fb9",
+  "var(--gold)",
+  "var(--violet)",
+  "var(--teal)",
+  "var(--green)",
+  "var(--blue)",
+  "var(--grey)",
 ];
 export function AssetIcon({
   symbol,
@@ -23,8 +23,8 @@ export function AssetIcon({
       className="flex size-9 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold"
       style={{
         color: colors[index % colors.length],
-        borderColor: `${colors[index % colors.length]}30`,
-        background: `${colors[index % colors.length]}12`,
+        borderColor: `color-mix(in srgb, ${colors[index % colors.length]} 25%, transparent)`,
+        background: `color-mix(in srgb, ${colors[index % colors.length]} 12%, transparent)`,
       }}
     >
       {symbol.slice(0, 3)}
@@ -81,7 +81,7 @@ export function PositionsTable({
           </thead>
           <tbody>
             {positions.map((p, i) => (
-              <tr key={p.assetId} className="hover:bg-white/2">
+              <tr key={p.assetId} className="hover:bg-raised">
                 <td className="table-cell pl-6! text-left!">
                   <div className="flex items-center gap-3">
                     <AssetIcon symbol={p.asset.symbol} index={i} />

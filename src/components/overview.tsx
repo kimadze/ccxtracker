@@ -50,13 +50,13 @@ export function Overview({
         </p>
       )}
       <section className="panel overflow-hidden">
-        <div className="grid xl:grid-cols-[1.25fr_1fr]">
-          <div className="relative border-b border-line p-6 sm:p-8 xl:border-r xl:border-b-0">
+        <div>
+          <div className="relative border-b border-line p-6 sm:p-7">
             <div className="flex items-center gap-2 text-xs text-muted">
               <Wallet size={15} />
               პორტფელის ღირებულება
             </div>
-            <div className="numeric mt-5 text-4xl font-medium sm:text-5xl">
+            <div className="numeric mt-4 text-4xl font-semibold sm:text-[46px]">
               {money(s.value)}
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2.5">
@@ -82,7 +82,7 @@ export function Overview({
                   : "დაიწყეთ თქვენი პირველი პოზიციით"}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-5 gap-y-7 p-6 sm:p-8">
+          <div className="grid grid-cols-2 divide-x divide-y divide-line sm:grid-cols-4 sm:divide-y-0">
             <Metric
               label="ჯამური შეტანები"
               value={money(s.contributions)}
@@ -107,7 +107,7 @@ export function Overview({
         </div>
       </section>
       <div className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
-        <section className="panel min-w-0 p-6">
+        <section className="panel min-w-0 p-6 sm:p-7">
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h2 className="text-sm font-medium">პორტფელის დინამიკა</h2>
@@ -143,8 +143,8 @@ export function Overview({
               <ArrowUpRight size={17} />
             </Link>
           </div>
-          <div className="my-6 flex items-center gap-5">
-            <AllocationRing summary={s} />
+          <div className="my-6">
+            <div className="flex items-end justify-between gap-4">
             <div>
               <p className="numeric text-3xl font-medium">
                 {s.positions.length.toString().padStart(2, "0")}
@@ -155,20 +155,21 @@ export function Overview({
               <p className="numeric mt-1 text-[10px] text-muted">
                 {percentage(liquidityShare)}
               </p>
-            </div>
+            </div><p className="numeric text-sm text-muted">{percentage(liquidityShare)}</p></div>
+            <AllocationBar summary={s} />
           </div>
           <div className="mb-5 grid grid-cols-2 gap-2">
             <LiquidityMetric
               label="ნაღდი ფული"
               value={s.cash}
               share={cashShare}
-              tone="bg-sky-300"
+              tone="bg-[var(--grey)]"
             />
             <LiquidityMetric
               label="სტეიბლკოინები"
               value={s.stablecoinValue}
               share={stablecoinShare}
-              tone="bg-emerald-300"
+              tone="bg-[var(--teal)]"
             />
           </div>
           <div className="space-y-3">
@@ -180,7 +181,7 @@ export function Overview({
                 <span className="flex items-center gap-2.5">
                   <span
                     className="size-2 rounded-full"
-                    style={{ background: ["#aa91ff", "#72628e", "#cfbfe9"][i] }}
+                    style={{ background: ["var(--gold)", "var(--violet)", "var(--green)"][i] }}
                   />
                   {p.asset.symbol}
                 </span>
@@ -269,7 +270,7 @@ export function Metric({
   tone?: string;
 }) {
   return (
-    <div>
+    <div className="min-w-0 p-5 sm:p-6">
       <p className="max-w-48 text-[11px] leading-5 text-muted" title={hint}>
         {label}
       </p>
@@ -279,25 +280,4 @@ export function Metric({
     </div>
   );
 }
-function AllocationRing({ summary }: { summary: PortfolioSummary }) {
-  const p = summary.positions.slice(0, 3).map((p) => Number(p.allocation ?? 0));
-  const reserve = summary.value
-    ? Number(percent(summary.cash, summary.value) ?? 0)
-    : 0;
-  const gradient =
-    p.length && summary.complete
-      ? `conic-gradient(#aa91ff 0% ${p[0]}%, #72628e ${p[0]}% ${p[0] + (p[1] ?? 0)}%, #cfbfe9 ${p[0] + (p[1] ?? 0)}% ${p.reduce((a, b) => a + b, 0)}%, #494454 ${p.reduce((a, b) => a + b, 0)}% ${100 - reserve}%, #30333f ${100 - reserve}% 100%)`
-      : "conic-gradient(#30333f 0% 100%)";
-  return (
-    <div
-      aria-hidden="true"
-      className="flex size-32 shrink-0 items-center justify-center rounded-full"
-      style={{ background: gradient }}
-    >
-      <div className="flex size-[104px] flex-col items-center justify-center rounded-full bg-surface">
-        <span className="text-xs font-medium">CCX</span>
-        <span className="mt-1 text-[9px] text-muted">პორტფელი</span>
-      </div>
-    </div>
-  );
-}
+function AllocationBar({summary}:{summary:PortfolioSummary}){const colors=["var(--gold)","var(--violet)","var(--green)","var(--blue)","var(--teal)"];const cash=summary.value?Number(percent(summary.cash,summary.value)??0):0;return <div className="mt-5 flex h-2.5 overflow-hidden rounded-sm border border-line bg-raised" aria-label="აქტივების განაწილება">{summary.positions.map((p,i)=><span key={p.assetId} style={{width:`${p.allocation??0}%`,background:colors[i%colors.length]}} title={`${p.asset.symbol} ${percentage(p.allocation)}`}/>)}<span style={{width:`${cash}%`,background:"var(--grey)"}} title={`ნაღდი ფული ${percentage(String(cash))}`}/></div>}

@@ -35,6 +35,16 @@ test("anonymous portfolio routes require sign-in", async ({ page }) => {
     page.getByRole("button", { name: "Google-ით შესვლა" }),
   ).toBeVisible();
 });
+test("theme toggle applies and persists the light theme", async ({ page }) => {
+  await page.goto("/preview");
+  await page.evaluate(() => localStorage.setItem("ccx-theme", "dark"));
+  await page.reload();
+  await page.getByRole("button", { name: "ღია თემაზე გადასვლა" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.getByRole("button", { name: "მუქ თემაზე გადასვლა" })).toBeVisible();
+});
 test("statistics preview hydrates without client/server text mismatches", async ({
   page,
 }) => {

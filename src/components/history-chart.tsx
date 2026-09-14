@@ -49,13 +49,13 @@ export function HistoryChart({
           >
             <defs>
               <linearGradient id="historyFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#aa91ff" stopOpacity={0.22} />
-                <stop offset="100%" stopColor="#aa91ff" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.28} />
+                <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
               vertical={false}
-              stroke="#2b2d38"
+              stroke="var(--border-soft)"
               strokeDasharray="3 5"
             />
             <XAxis
@@ -64,7 +64,7 @@ export function HistoryChart({
               axisLine={false}
               tickLine={false}
               minTickGap={32}
-              tick={{ fill: "#8e91a3", fontSize: 10 }}
+              tick={{ fill: "var(--text-low)", fontSize: 11 }}
               dy={8}
             />
             <YAxis
@@ -72,7 +72,7 @@ export function HistoryChart({
               tickFormatter={(v) => money(String(v), true)}
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "#8e91a3", fontSize: 10 }}
+              tick={{ fill: "var(--text-low)", fontSize: 11 }}
               width={62}
               domain={["auto", "auto"]}
             />
@@ -80,8 +80,8 @@ export function HistoryChart({
               labelFormatter={(v) => dateTime(Number(v))}
               formatter={(v) => [money(String(v)), "ღირებულება"]}
               contentStyle={{
-                background: "#1e2028",
-                border: "1px solid #393642",
+                background: "var(--surface-raised)",
+                border: "1px solid var(--border)",
                 borderRadius: 10,
                 fontSize: 11,
               }}
@@ -89,7 +89,7 @@ export function HistoryChart({
             <Area
               dataKey="value"
               type="linear"
-              stroke="#aa91ff"
+              stroke="var(--gold)"
               strokeWidth={2}
               fill="url(#historyFill)"
               isAnimationActive={false}

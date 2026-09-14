@@ -21,7 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ka">
+    <html lang="ka" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{__html:`(function(){try{var t=localStorage.getItem('ccx-theme');if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='dark'}})()`}} /></head>
       <body>
         <a
           href="#main"

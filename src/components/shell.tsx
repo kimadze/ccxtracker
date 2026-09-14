@@ -13,17 +13,15 @@ import {
   Settings2,
   Eye,
   LineChart,
-  Menu,
   ChevronDown,
   Plus,
   ArrowUpRight,
 } from "lucide-react";
-import { useState } from "react";
 import { clsx } from "clsx";
 import { Brand } from "./brand";
-import { Modal } from "./ui";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
+import { ThemeToggle } from "./theme-toggle";
 
 const navigation = [
   ["", "მიმოხილვა", LayoutDashboard],
@@ -47,9 +45,7 @@ export function Shell({
   userName: string;
   preview?: boolean;
 }) {
-  const path = usePathname(),
-    router = useRouter();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const path = usePathname(), router = useRouter();
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
   const base = preview ? "/preview" : `/portfolios/${activeId}`;
   const sidebar = (
@@ -64,7 +60,6 @@ export function Shell({
             aria-label="პორტფელის არჩევა"
             value={preview ? "preview" : (activeId ?? "")}
             onChange={(e) => {
-              setMobileOpen(false);
               router.push(`/portfolios/${e.target.value}`);
             }}
             disabled={preview}
@@ -93,7 +88,6 @@ export function Shell({
             <Link
               key={segment}
               href={href}
-              onClick={() => setMobileOpen(false)}
               aria-current={active ? "page" : undefined}
               className={clsx(
                 "flex items-center gap-3 rounded-lg px-3 py-3 text-[12px] transition-colors",
@@ -114,7 +108,6 @@ export function Shell({
       <div className="mt-auto space-y-1 pt-8">
         <Link
           href={`${base}/watchlist`}
-          onClick={() => setMobileOpen(false)}
           className="flex items-center gap-3 rounded-lg px-3 py-3 text-xs text-muted hover:bg-raised"
         >
           <Eye size={17} />
@@ -122,14 +115,13 @@ export function Shell({
         </Link>
         <Link
           href={`${base}/settings`}
-          onClick={() => setMobileOpen(false)}
           className="flex items-center gap-3 rounded-lg px-3 py-3 text-xs text-muted hover:bg-raised"
         >
           <Settings2 size={17} />
           პარამეტრები
         </Link>
         {!preview && (
-          <PortfolioCreate compact onCreated={() => setMobileOpen(false)} />
+          <PortfolioCreate compact />
         )}
         <div className="mt-5 flex items-center gap-3 border-t border-line px-2 pt-5">
           <span className="flex size-8 items-center justify-center rounded-full bg-brand/15 text-xs text-brand">
@@ -148,19 +140,16 @@ export function Shell({
   );
   return (
     <div className="min-h-dvh">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-line bg-[#131419] px-5 py-6 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r border-line bg-surface px-4 py-5 min-[981px]:flex">
         {sidebar}
       </aside>
-      <div className="lg:pl-[232px]">
-        <header className="flex h-[76px] items-center justify-between border-b border-line px-5 sm:px-9">
+      <div className="min-[981px]:pl-[264px]">
+        <div className="flex items-center gap-1 overflow-x-auto border-b border-line bg-surface px-3 py-2 min-[981px]:hidden">
+          <Brand compact />
+          {navigation.map(([segment,label,Icon])=>{const href=`${base}${segment?`/${segment}`:""}`;const active=path===href||(segment==="positions"&&path.startsWith(`${href}/`));return <Link key={segment} href={href} className={clsx("flex min-w-max items-center gap-2 rounded-md border-b-2 px-3 py-2 text-xs",active?"border-brand bg-brand/10 text-foreground":"border-transparent text-muted")}><Icon size={15}/>{label}</Link>})}
+        </div>
+        <header className="flex h-[64px] items-center justify-between border-b border-line px-5 sm:px-9">
           <div className="flex items-center gap-3">
-            <button
-              aria-label="მენიუს გახსნა"
-              className="p-2 text-muted lg:hidden"
-              onClick={() => setMobileOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
             <span className="text-xs text-muted">პორტფელი</span>
             <span className="text-line">/</span>
             <span className="hidden text-xs sm:inline">
@@ -168,7 +157,8 @@ export function Shell({
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-md border border-line px-2 py-1 text-[10px] tracking-wider text-muted sm:block">
+            <ThemeToggle />
+            <span className="numeric hidden rounded-md border border-line bg-surface px-3 py-1.5 text-xs text-muted sm:block">
               USD
             </span>
             {preview ? (
@@ -191,7 +181,7 @@ export function Shell({
         )}
         <main
           id="main"
-          className="mx-auto max-w-[1600px] px-5 py-7 sm:px-9 sm:py-9"
+          className="mx-auto max-w-[1440px] px-5 py-7 sm:px-9 sm:py-9"
         >
           {children}
         </main>
@@ -200,14 +190,6 @@ export function Shell({
           <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
         </footer>
       </div>
-      <Modal
-        open={mobileOpen}
-        onOpenChange={setMobileOpen}
-        title="ნავიგაცია"
-        description="აირჩიეთ სამუშაო სივრცე"
-      >
-        <div className="flex min-h-[550px] flex-col">{sidebar}</div>
-      </Modal>
     </div>
   );
 }
