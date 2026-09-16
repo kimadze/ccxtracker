@@ -236,7 +236,7 @@ export function PageHeading({
         <h1 className="text-2xl font-semibold tracking-[-.035em] sm:text-[28px]">
           {title}
         </h1>
-        <p className="mt-2 max-w-2xl text-xs leading-6 text-muted">{description}</p>
+        <div className="mt-2 max-w-2xl text-xs leading-6 text-muted">{description}</div>
       </div>
       {action}
     </div>
