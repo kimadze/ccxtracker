@@ -28,8 +28,8 @@ export function DecodeQuote() {
           setFinished(false);
           line = 0;
           character = 0;
-          timer = window.setTimeout(type, 800);
-        }, 3600);
+          timer = window.setTimeout(type, 250);
+        }, 5000);
         return;
       }
       setActiveLine(line);
@@ -41,9 +41,10 @@ export function DecodeQuote() {
         return next;
       });
       if (character >= lines[line].length) {
+        const isLastLine = line === lines.length - 1;
         line += 1;
         character = 0;
-        timer = window.setTimeout(type, 1100);
+        timer = window.setTimeout(type, isLastLine ? 0 : 1100);
       } else {
         timer = window.setTimeout(type, 125);
       }
