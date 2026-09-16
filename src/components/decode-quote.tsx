@@ -81,5 +81,13 @@ export function DecodeQuote() {
     };
   }, []);
 
-  return <p ref={root} className="decode-quote" aria-label={lines.join(" ")} />;
+  return (
+    <p ref={root} className="decode-quote" aria-label={lines.join(" ")}>
+      {lines.map((line) => (
+        <span className="decode-line decode-fallback" key={line}>
+          {line}
+        </span>
+      ))}
+    </p>
+  );
 }
