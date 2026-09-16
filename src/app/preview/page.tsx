@@ -3,6 +3,7 @@ import { Overview } from "@/components/overview";
 import { demoSummary, demoHistory } from "@/domain/demo";
 import { HistoryChart } from "@/components/history-chart";
 import Link from "next/link";
+import { DecodeQuote } from "@/components/decode-quote";
 export default function Preview() {
   return (
     <Shell
@@ -13,7 +14,7 @@ export default function Preview() {
       <PageHeading
         eyebrow="მთავარი პორტფელი"
         title="პორტფელის მიმოხილვა"
-        description="თქვენი ინვესტიციები — ერთიან და მკაფიო სურათში."
+        description={<DecodeQuote />}
         action={
           <Link className="button-primary" href="/login">
             საკუთარი პორტფელის შექმნა

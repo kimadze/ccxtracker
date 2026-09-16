@@ -13,6 +13,7 @@ import type { PortfolioSummary } from "@/domain/types";
 import { money, percentage, pnlClass } from "@/lib/formatters";
 import { percent } from "@/domain/decimal";
 import { PositionsTable } from "./positions";
+import { OverviewQuote } from "./overview-quote";
 
 export function Overview({
   summary: s,
@@ -52,6 +53,7 @@ export function Overview({
           ძველია.
         </p>
       )}
+      <OverviewQuote />
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardMetric icon={<Wallet size={19} />} label="პორტფელის ღირებულება" value={money(s.value)} change="სრული პერიოდი" positive={s.totalPnl !== null && Number(s.totalPnl) >= 0} />
         <DashboardMetric icon={<TrendingUp size={19} />} label="არარეალიზებული მოგება" value={money(s.unrealizedPnl)} change="მიმდინარე შედეგი" positive={s.unrealizedPnl !== null && Number(s.unrealizedPnl) >= 0} />

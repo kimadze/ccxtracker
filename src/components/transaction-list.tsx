@@ -47,7 +47,8 @@ export function TransactionList({
   const currentPage = Math.min(page, pages - 1);
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap gap-3">
+      <div className="rounded-xl border border-line bg-surface p-4">
+      <div className="flex flex-wrap items-end gap-3">
         <input
           className="max-w-sm"
           aria-label="ტრანზაქციების ძიება"
@@ -96,12 +97,14 @@ export function TransactionList({
             }}
           />
         </label>
-      </div>
-      <div className="panel divide-y divide-line">
+      </div></div>
+      <div className="panel overflow-hidden">
+        <div className="flex items-center justify-between border-b border-line px-5 py-4"><div><h2 className="text-sm font-semibold">ტრანზაქციების ისტორია</h2><p className="mt-1 text-[10px] text-muted">ყიდვა, გაყიდვა, შეტანა, გატანა და საკომისიოები</p></div><span className="rounded-md bg-raised px-2 py-1 text-[10px] text-muted">{filtered.length}</span></div>
+        <div className="divide-y divide-line">
         {filtered.slice(currentPage * 20, (currentPage + 1) * 20).map((e) => (
           <div
             key={e.id}
-            className="flex flex-wrap items-center justify-between gap-4 p-5"
+            className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-raised/40"
           >
             <div className="flex items-center gap-3">
               <span className="rounded-lg bg-raised p-2 text-brand">
@@ -153,7 +156,7 @@ export function TransactionList({
           <p className="px-5 py-20 text-center text-sm text-muted">
             ტრანზაქციები ვერ მოიძებნა.
           </p>
-        )}
+        )}</div>
       </div>
       <div className="flex items-center justify-between text-xs text-muted">
         <span>{filtered.length} ტრანზაქცია</span>

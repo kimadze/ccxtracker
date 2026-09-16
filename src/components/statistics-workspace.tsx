@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { MacroIndicators } from "./macro-indicators";
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ExternalLink, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, BarChart3, ExternalLink, Search } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import type {
   MacroStatistics,
@@ -37,9 +37,10 @@ function Sparkline({ values }: { values: number[] }) {
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="panel min-w-0 p-5">
-      <p className="text-[11px] text-muted">{label}</p>
-      <p className="numeric mt-2 truncate text-xl font-semibold">{value}</p>
+    <div className="panel min-w-0 p-4 sm:p-5">
+      <span className="flex size-9 items-center justify-center rounded-xl bg-raised text-brand"><BarChart3 size={17}/></span>
+      <p className="mt-4 text-[11px] text-muted">{label}</p>
+      <p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.04em]">{value}</p>
       {hint && <p className="mt-2 truncate text-[10px] text-muted">{hint}</p>}
     </div>
   );
@@ -167,5 +168,5 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
 export function StatisticsWorkspace({ market, macro, summary, selectedAssetIds, base }: { market: MarketStatistics; macro: MacroStatistics; summary: PortfolioSummary; selectedAssetIds: string[]; base: string }) {
   const [tab, setTab] = useState<Tab>("market");
   const owned = new Map(summary.positions.filter((position) => position.quantity !== "0").map((position) => [position.asset.id, position.allocation]));
-  return <div><div className="mb-7 flex gap-1 overflow-x-auto rounded-lg border border-line bg-surface p-1">{([ ["market", "კრიპტო ბაზარი"], ["macro", "მაკრო"], ["portfolio", "ჩემი პორტფელი"] ] as const).map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`min-w-max rounded-md px-5 py-3 text-xs transition ${tab === id ? "bg-brand text-background" : "text-muted hover:bg-raised hover:text-foreground"}`}>{label}</button>)}</div>{tab === "market" && <MarketTab data={market} owned={owned} selected={new Set(selectedAssetIds)} base={base} />}{tab === "macro" && <MacroTab data={macro} />}{tab === "portfolio" && <PortfolioTab summary={summary} />}</div>;
+  return <div><div className="mb-7 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-3"><div><p className="text-sm font-semibold">Market intelligence</p><p className="mt-1 text-[10px] text-muted">კრიპტო ბაზარი, მაკრო და თქვენი პორტფელი</p></div><div className="flex gap-1 overflow-x-auto rounded-lg bg-raised/70 p-1">{([ ["market", "კრიპტო ბაზარი"], ["macro", "მაკრო"], ["portfolio", "ჩემი პორტფელი"] ] as const).map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`min-w-max rounded-md px-4 py-2 text-[11px] font-medium transition ${tab === id ? "bg-brand text-white" : "text-muted hover:bg-surface hover:text-foreground"}`}>{label}</button>)}</div></div>{tab === "market" && <MarketTab data={market} owned={owned} selected={new Set(selectedAssetIds)} base={base} />}{tab === "macro" && <MacroTab data={macro} />}{tab === "portfolio" && <PortfolioTab summary={summary} />}</div>;
 }
