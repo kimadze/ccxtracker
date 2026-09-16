@@ -12,6 +12,7 @@ export function DecodeQuote() {
   const [written, setWritten] = useState(["", "", ""]);
   const [activeLine, setActiveLine] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [fading, setFading] = useState(false);
 
   useEffect(() => {
     let line = 0;
@@ -23,12 +24,16 @@ export function DecodeQuote() {
       if (line >= lines.length) {
         setFinished(true);
         pause = window.setTimeout(() => {
-          setWritten(["", "", ""]);
-          setActiveLine(0);
-          setFinished(false);
-          line = 0;
-          character = 0;
-          timer = window.setTimeout(type, 250);
+          setFading(true);
+          timer = window.setTimeout(() => {
+            setWritten(["", "", ""]);
+            setActiveLine(0);
+            setFinished(false);
+            setFading(false);
+            line = 0;
+            character = 0;
+            timer = window.setTimeout(type, 350);
+          }, 700);
         }, 5000);
         return;
       }
@@ -58,7 +63,7 @@ export function DecodeQuote() {
   }, []);
 
   return (
-    <div className="decode-quote" aria-label={lines.join(" ")}>
+    <div className={`decode-quote ${fading ? "decode-fade" : ""}`} aria-label={lines.join(" ")}>
       {lines.map((line, index) => (
         <span className="decode-line" key={line}>
           {written[index]}
