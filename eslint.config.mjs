@@ -6,6 +6,7 @@ export default defineConfig([
   ...nextTs,
   globalIgnores([
     ".next/**",
+    "free-nextjs-admin-dashboard-main/**",
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",

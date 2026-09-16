@@ -49,8 +49,8 @@ export function HistoryChart({
           >
             <defs>
               <linearGradient id="historyFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.28} />
-                <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--blue)" stopOpacity={0.34} />
+                <stop offset="100%" stopColor="var(--blue)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -89,7 +89,7 @@ export function HistoryChart({
             <Area
               dataKey="value"
               type="linear"
-              stroke="var(--gold)"
+              stroke="var(--blue)"
               strokeWidth={2}
               fill="url(#historyFill)"
               isAnimationActive={false}

@@ -6,12 +6,12 @@ export function Brand({ compact = false }: { compact?: boolean }) {
       className="flex items-center gap-3"
       aria-label="Crypto Collective X — მთავარი"
     >
-      <span className="numeric flex size-8 items-center justify-center rounded-md bg-gradient-to-br from-brand to-[var(--gold-deep)] text-xs font-bold text-background">
+      <span className="numeric flex size-8 items-center justify-center rounded-lg bg-brand text-xs font-bold text-white">
         CX
       </span>
       {!compact && (
-        <span className="text-[13px] font-semibold leading-[1.45]">
-          Crypto Collective X<br/><span className="text-[11px] font-normal text-muted">პორტფელის მართვა</span>
+        <span className="text-[14px] font-semibold leading-[1.45]">
+          Crypto Collective X<br/><span className="text-[10px] font-normal text-muted">Portfolio Intelligence</span>
         </span>
       )}
     </Link>

@@ -28,21 +28,21 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-[#101828]/70 backdrop-blur-sm" />
         <Dialog.Content
           className={clsx(
-            "fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-2xl sm:p-8",
+            "fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-line bg-surface p-6 sm:p-7",
             wide ? "max-w-2xl" : "max-w-lg",
           )}
         >
-          <Dialog.Title className="pr-8 text-lg font-semibold">
+          <Dialog.Title className="pr-8 text-base font-semibold tracking-tight">
             {title}
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-xs leading-6 text-muted">
             {description}
           </Dialog.Description>
           <Dialog.Close
-            className="absolute right-5 top-5 rounded p-1 text-muted hover:text-foreground"
+            className="absolute right-5 top-5 rounded-lg border border-transparent p-1 text-muted hover:border-line hover:text-foreground"
             aria-label="დახურვა"
           >
             <X size={18} />
