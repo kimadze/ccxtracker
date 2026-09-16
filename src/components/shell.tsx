@@ -161,7 +161,7 @@ export function Shell({
   );
   return (
     <div className="min-h-dvh">
-      <aside className={clsx("fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-line bg-[#111a2b] py-5 transition-[width] duration-300 min-[981px]:flex",collapsed ? "w-[88px] px-3" : "w-[264px] px-4")}>
+      <aside className={clsx("fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-line bg-surface py-5 transition-[width] duration-300 min-[981px]:flex",collapsed ? "w-[88px] px-3" : "w-[264px] px-4")}>
         {collapsed ? compactSidebar : sidebar}
       </aside>
       <div className={clsx("transition-[padding] duration-300",collapsed ? "min-[981px]:pl-[88px]" : "min-[981px]:pl-[264px]")}>
