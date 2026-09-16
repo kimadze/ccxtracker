@@ -55,20 +55,20 @@ export function DecodeQuote() {
           if (char.classList.contains("decode-space")) return;
           let cycles = 0;
           const scramble = () => {
-            if (cancelled || cycles > 5) return;
+          if (cancelled || cycles > 9) return;
             char.textContent = alphabet[Math.floor(Math.random() * alphabet.length)];
             cycles += 1;
-            later(scramble, 34 + index * 2);
+            later(scramble, 62);
           };
-          later(scramble, index * 16);
+          later(scramble, index * 48);
           later(() => {
             char.textContent = char.dataset.target ?? "";
             char.classList.add("decode-locked");
-          }, 90 + index * 20);
+          }, 220 + index * 58);
         });
 
         lineIndex += 1;
-        later(writeLine, 180 + chars.length * 20);
+        later(writeLine, 520 + chars.length * 58);
       };
 
       writeLine();
