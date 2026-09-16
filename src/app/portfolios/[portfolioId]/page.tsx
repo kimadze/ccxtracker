@@ -6,6 +6,7 @@ import { getDb } from "@/server/db";
 import { snapshots } from "@/server/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { HistoryChart } from "@/components/history-chart";
+import { DecodeQuote } from "@/components/decode-quote";
 export default async function Page({
   params,
 }: {
@@ -23,7 +24,7 @@ export default async function Page({
       <PageHeading
         eyebrow={w.portfolio.name}
         title="პორტფელის მიმოხილვა"
-        description="თქვენი ინვესტიციები — ერთიან და მკაფიო სურათში."
+        description={<DecodeQuote />}
         action={
           <TransactionForm
             portfolioId={portfolioId}

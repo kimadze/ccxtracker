@@ -1,93 +1,71 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 const lines = [
   "ამაოება ამაოებათა, ყოველივე ამაოა“ —",
   "ყველაფერი უკიდურესად წარმავალია",
   "რა რჩება მაშინ, როცა ყველაფერი გადის?",
 ];
-const alphabet = "აეიოუაბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ·—";
 
 export function DecodeQuote() {
-  const root = useRef<HTMLParagraphElement>(null);
+  const [written, setWritten] = useState(["", "", ""]);
+  const [activeLine, setActiveLine] = useState(0);
+  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    const node = root.current;
-    if (!node) return;
-    let cancelled = false;
-    const timers: number[] = [];
-    const later = (callback: () => void, delay: number) => {
-      const timer = window.setTimeout(callback, delay);
-      timers.push(timer);
+    let line = 0;
+    let character = 0;
+    let timer: number;
+    let pause: number;
+
+    const type = () => {
+      if (line >= lines.length) {
+        setFinished(true);
+        pause = window.setTimeout(() => {
+          setWritten(["", "", ""]);
+          setActiveLine(0);
+          setFinished(false);
+          line = 0;
+          character = 0;
+          timer = window.setTimeout(type, 500);
+        }, 2600);
+        return;
+      }
+      setActiveLine(line);
+      character += 1;
+      const currentLine = line;
+      setWritten((value) => {
+        const next = [...value];
+        next[currentLine] = lines[currentLine].slice(0, character);
+        return next;
+      });
+      if (character >= lines[line].length) {
+        line += 1;
+        character = 0;
+        timer = window.setTimeout(type, 720);
+      } else {
+        timer = window.setTimeout(type, 85);
+      }
     };
 
-    const run = () => {
-      if (cancelled) return;
-      node.replaceChildren();
-      const allChars: HTMLElement[] = [];
-      let lineIndex = 0;
-
-      const writeLine = () => {
-        if (cancelled || lineIndex >= lines.length) {
-          const hold = 1500;
-          later(() => allChars.forEach((char, index) => {
-            later(() => char.classList.add("decode-dissolve"), index * 14);
-          }), hold);
-          later(run, hold + allChars.length * 14 + 900);
-          return;
-        }
-
-        const line = document.createElement("span");
-        line.className = "decode-line";
-        node.appendChild(line);
-        const chars = Array.from(lines[lineIndex]).map((character) => {
-          const span = document.createElement("span");
-          span.className = character === " " ? "decode-space" : "decode-char";
-          span.dataset.target = character;
-          span.textContent = character;
-          line.appendChild(span);
-          if (character !== " ") allChars.push(span);
-          return span;
-        });
-
-        chars.forEach((char, index) => {
-          if (char.classList.contains("decode-space")) return;
-          let cycles = 0;
-          const scramble = () => {
-          if (cancelled || cycles > 9) return;
-            char.textContent = alphabet[Math.floor(Math.random() * alphabet.length)];
-            cycles += 1;
-            later(scramble, 62);
-          };
-          later(scramble, index * 48);
-          later(() => {
-            char.textContent = char.dataset.target ?? "";
-            char.classList.add("decode-locked");
-          }, 220 + index * 58);
-        });
-
-        lineIndex += 1;
-        later(writeLine, 520 + chars.length * 58);
-      };
-
-      writeLine();
-    };
-
-    run();
+    timer = window.setTimeout(type, 350);
     return () => {
-      cancelled = true;
-      timers.forEach((timer) => window.clearTimeout(timer));
+      window.clearTimeout(timer);
+      window.clearTimeout(pause);
     };
   }, []);
 
   return (
-    <p ref={root} className="decode-quote" aria-label={lines.join(" ")}>
-      {lines.map((line) => (
-        <span className="decode-line decode-fallback" key={line}>
-          {line}
+    <div className="decode-quote" aria-label={lines.join(" ")}>
+      {lines.map((line, index) => (
+        <span className="decode-line" key={line}>
+          {written[index]}
+          {activeLine === index && !finished && (
+            <span className="decode-caret" aria-hidden="true" />
+          )}
         </span>
       ))}
-    </p>
+    </div>
   );
 }
