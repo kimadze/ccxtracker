@@ -18,4 +18,4 @@ input,select,textarea{width:100%;border:1px solid var(--border);border-radius:8p
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 .decode-line{display:block;min-height:1.8em;white-space:nowrap;font-size:clamp(10px,1.15vw,12px)}
 .decode-caret{display:inline-block;width:1px;height:1em;margin-left:3px;vertical-align:-.12em;background:var(--brand,var(--gold));animation:quote-caret 1s steps(1,end) infinite}
-.decode-quote{transition:opacity .7s ease,transform .7s ease}.decode-quote.decode-fade{opacity:0;transform:translateY(-4px)}
+.decode-quote{position:relative;transition:opacity .7s ease,transform .7s ease}.decode-quote.decode-fade{opacity:0;transform:translateY(-4px)}

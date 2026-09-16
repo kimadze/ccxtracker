@@ -2,76 +2,60 @@
 
 import { useEffect, useState } from "react";
 
-const lines = [
-  "ამაოება ამაოებათა, ყოველივე ამაოა“ —",
-  "ყველაფერი უკიდურესად წარმავალია",
-  "რა რჩება მაშინ, როცა ყველაფერი გადის?",
-];
+const opening =
+  "ამაოება ამაოებათა, ყოველივე ამაოა, ყველაფერი უკიდურესად წარმავალია,";
+const question = "რა რჩება მაშინ, როცა ყველაფერი გადის?";
 
 export function DecodeQuote() {
-  const [written, setWritten] = useState(["", "", ""]);
-  const [activeLine, setActiveLine] = useState(0);
-  const [finished, setFinished] = useState(false);
+  const [text, setText] = useState("");
   const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    let line = 0;
-    let character = 0;
-    let timer: number;
-    let pause: number;
-
-    const type = () => {
-      if (line >= lines.length) {
-        setFinished(true);
-        pause = window.setTimeout(() => {
-          setFading(true);
-          timer = window.setTimeout(() => {
-            setWritten(["", "", ""]);
-            setActiveLine(0);
-            setFinished(false);
-            setFading(false);
-            line = 0;
-            character = 0;
-            timer = window.setTimeout(type, 350);
-          }, 700);
-        }, 5000);
-        return;
-      }
-      setActiveLine(line);
-      character += 1;
-      const currentLine = line;
-      setWritten((value) => {
-        const next = [...value];
-        next[currentLine] = lines[currentLine].slice(0, character);
-        return next;
-      });
-      if (character >= lines[line].length) {
-        const isLastLine = line === lines.length - 1;
-        line += 1;
-        character = 0;
-        timer = window.setTimeout(type, isLastLine ? 0 : 1100);
-      } else {
-        timer = window.setTimeout(type, 125);
-      }
+    const timers: number[] = [];
+    let stopped = false;
+    const later = (callback: () => void, delay: number) => {
+      const timer = window.setTimeout(() => !stopped && callback(), delay);
+      timers.push(timer);
     };
-
-    timer = window.setTimeout(type, 650);
+    const type = (value: string, index: number, done: () => void) => {
+      setText(value.slice(0, index));
+      if (index > value.length) return done();
+      later(() => type(value, index + 1, done), 110);
+    };
+    const erase = (value: string, index: number, done: () => void) => {
+      setText(value.slice(0, index));
+      if (index < 0) return done();
+      later(() => erase(value, index - 1, done), 52);
+    };
+    const run = () => {
+      setFading(false);
+      type(opening, 1, () => {
+        later(() => erase(opening, opening.length - 1, () => {
+          later(() => type(question, 1, () => {
+            later(() => {
+              setFading(true);
+              later(() => {
+                setText("");
+                run();
+              }, 700);
+            }, 5000);
+          }), 450);
+        }), 900);
+      });
+    };
+    later(run, 450);
     return () => {
-      window.clearTimeout(timer);
-      window.clearTimeout(pause);
+      stopped = true;
+      timers.forEach((timer) => window.clearTimeout(timer));
     };
   }, []);
 
   return (
-    <div className={`decode-quote ${fading ? "decode-fade" : ""}`} aria-label={lines.join(" ")}>
-      {lines.map((line, index) => (
-        <span className="decode-line" key={line}>
-          {written[index]}
-          {activeLine === index && !finished && (
-            <span className="decode-caret" aria-hidden="true" />
-          )}
-        </span>
-      ))}
+    <div className={`decode-quote ${fading ? "decode-fade" : ""}`} aria-label={`${opening} ${question}`}>
+      <span className="decode-line">
+        {text}
+        {!fading && <span className="decode-caret" aria-hidden="true" />}
+      </span>
     </div>
   );
 }
