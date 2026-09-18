@@ -59,7 +59,7 @@ export function PositionsTable({
     <>
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full">
-          <thead>
+          <thead className="bg-raised/35">
             <tr>
               {[
                 "აქტივი",
@@ -81,7 +81,7 @@ export function PositionsTable({
           </thead>
           <tbody>
             {positions.map((p, i) => (
-              <tr key={p.assetId} className="hover:bg-raised">
+              <tr key={p.assetId} className="transition-colors hover:bg-raised/55">
                 <td className="table-cell pl-6! text-left!">
                   <div className="flex items-center gap-3">
                     <AssetIcon symbol={p.asset.symbol} index={i} />
@@ -136,7 +136,7 @@ export function PositionsTable({
                   <div>{percentage(p.allocation)}</div>
                   <div className="ml-auto mt-2 h-1 w-12 rounded-full bg-line">
                     <div
-                      className="h-full rounded-full bg-brand/60"
+                      className="h-full rounded-full bg-brand"
                       style={{
                         width: `${Math.min(Number(p.allocation ?? 0), 100)}%`,
                       }}

@@ -39,9 +39,9 @@ export function PositionsWorkspace({
     current = Math.min(page, pages - 1);
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap gap-3">
+      <div className="panel flex flex-wrap items-center gap-3 p-3">
         <input
-          className="max-w-sm"
+          className="min-w-[220px] max-w-sm"
           aria-label="პოზიციების ძიება"
           placeholder="აქტივის ძიება…"
           value={search}
@@ -63,6 +63,9 @@ export function PositionsWorkspace({
           <option value="profit">მოგებით</option>
           <option value="loss">ზარალით</option>
         </select>
+        <span className="ml-auto hidden rounded-md bg-raised px-2 py-1 text-[10px] text-muted sm:inline-block">
+          {filtered.length} პოზიცია
+        </span>
         <select
           aria-label="პოზიციების დალაგება"
           className="max-w-48"

@@ -52,7 +52,7 @@ export function Overview({
           ძველია.
         </p>
       )}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardMetric icon={<Wallet size={19} />} label="პორტფელის ღირებულება" value={money(s.value)} change="სრული პერიოდი" positive={s.totalPnl !== null && Number(s.totalPnl) >= 0} />
         <DashboardMetric icon={<TrendingUp size={19} />} label="არარეალიზებული მოგება" value={money(s.unrealizedPnl)} change="მიმდინარე შედეგი" positive={s.unrealizedPnl !== null && Number(s.unrealizedPnl) >= 0} />
         <DashboardMetric icon={<Landmark size={19} />} label="ნაღდი და სტეიბლები" value={money(s.liquidity)} change={percentage(liquidityShare)} positive />
@@ -70,7 +70,7 @@ export function Overview({
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2.5">
               <span
-                className={`rounded-md bg-white/4 px-2 py-1 text-xs ${pnlClass(s.totalPnl)}`}
+                className={`rounded-md bg-raised px-2 py-1 text-xs ${pnlClass(s.totalPnl)}`}
               >
                 {s.totalPnl && Number(s.totalPnl) > 0 ? "+" : ""}
                 {money(s.totalPnl)}
@@ -79,7 +79,7 @@ export function Overview({
                 ჯამური მოგება / ზარალი
               </span>
             </div>
-            <div className="absolute right-7 top-7 hidden size-10 items-center justify-center rounded-lg border border-brand/25 bg-brand/10 text-brand sm:flex">
+            <div className="absolute right-7 top-7 hidden size-10 items-center justify-center rounded-md border border-brand/25 bg-brand/10 text-brand sm:flex">
               <ArrowUpRight size={18} />
             </div>
             <div className="mt-7 flex items-center gap-2 text-[10px] text-muted">
@@ -291,5 +291,5 @@ export function Metric({
 }
 function AllocationBar({summary}:{summary:PortfolioSummary}){const colors=["var(--gold)","var(--violet)","var(--green)","var(--blue)","var(--teal)"];const cash=summary.value?Number(percent(summary.cash,summary.value)??0):0;return <div className="mt-5 flex h-2.5 overflow-hidden rounded-sm border border-line bg-raised" aria-label="აქტივების განაწილება">{summary.positions.map((p,i)=><span key={p.assetId} style={{width:`${p.allocation??0}%`,background:colors[i%colors.length]}} title={`${p.asset.symbol} ${percentage(p.allocation)}`}/>)}<span style={{width:`${cash}%`,background:"var(--grey)"}} title={`ნაღდი ფული ${percentage(String(cash))}`}/></div>}
 function DashboardMetric({icon,label,value,change,positive}:{icon:React.ReactNode;label:string;value:string;change:string;positive:boolean}) {
-  return <article className="panel p-4 sm:p-5"><span className="flex size-10 items-center justify-center rounded-xl bg-raised text-brand">{icon}</span><div className="mt-4 flex items-end justify-between gap-3"><div className="min-w-0"><p className="text-[11px] text-muted">{label}</p><p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.05em]">{value}</p></div><span className={positive ? "shrink-0 rounded-full bg-positive/12 px-2 py-1 text-[10px] font-medium text-positive" : "shrink-0 rounded-full bg-negative/12 px-2 py-1 text-[10px] font-medium text-negative"}>{change}</span></div></article>
+  return <article className="panel p-4 sm:p-5"><div className="flex items-center justify-between"><span className="flex size-9 items-center justify-center rounded-md bg-raised text-brand">{icon}</span><span className={positive ? "rounded-md bg-positive/10 px-2 py-1 text-[10px] font-medium text-positive" : "rounded-md bg-negative/10 px-2 py-1 text-[10px] font-medium text-negative"}>{change}</span></div><div className="mt-4"><p className="text-[11px] text-muted">{label}</p><p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.05em]">{value}</p></div></article>
 }
