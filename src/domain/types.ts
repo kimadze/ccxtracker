@@ -1,4 +1,4 @@
-export type TransactionKind = "buy" | "sell" | "deposit" | "withdrawal" | "fee";
+export type TransactionKind = "buy" | "sell" | "deposit" | "withdrawal" | "fee" | "airdrop";
 export interface LedgerEntry {
   id: string;
   assetId: string;
@@ -9,6 +9,9 @@ export interface LedgerEntry {
   occurredAt: string;
   sequence: number;
   notes?: string;
+  airdropSource?: string | null;
+  airdropNetwork?: string | null;
+  airdropStatus?: "received" | "locked" | null;
 }
 export interface Holding {
   assetId: string;

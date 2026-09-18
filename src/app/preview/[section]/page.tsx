@@ -16,6 +16,7 @@ import { AllocationWorkspace } from "@/components/allocation-workspace";
 import { Watchlist } from "@/components/watchlist";
 import { Settings } from "@/components/settings";
 import { StatisticsWorkspace } from "@/components/statistics-workspace";
+import { AirdropWorkspace } from "@/components/airdrop-workspace";
 const titles: Record<string, string> = {
   positions: "პოზიციები",
   transactions: "ტრანზაქციები",
@@ -27,6 +28,7 @@ const titles: Record<string, string> = {
   journal: "საინვესტიციო ჟურნალი",
   watchlist: "დაკვირვების სია",
   settings: "პარამეტრები",
+  airdrops: "Airdrops",
 };
 export default async function Page({
   params,
@@ -193,6 +195,16 @@ export default async function Page({
             ანგარიშში შესვლა
           </Link>
         </div>
+      )}
+      {section === "airdrops" && (
+        <AirdropWorkspace
+          entries={[...demoEntries, { id: "demo-airdrop", assetId: "chainlink", kind: "airdrop", quantity: "120", price: "12.5", fee: "0", occurredAt: "2026-06-01T12:00:00.000Z", sequence: 999, notes: "", airdropSource: "Chainlink", airdropNetwork: "Ethereum", airdropStatus: "received" }]}
+          assets={assets}
+          summary={demoSummary}
+          portfolioId="preview"
+          revision={0}
+          preview
+        />
       )}
     </Shell>
   );

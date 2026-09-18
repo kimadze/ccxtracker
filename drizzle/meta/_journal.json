@@ -50,6 +50,13 @@
       "when": 1789069283396,
       "tag": "0006_misty_scrambler",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789737085066,
+      "tag": "0007_wooden_loa",
+      "breakpoints": true
     }
   ]
 }

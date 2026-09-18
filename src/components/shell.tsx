@@ -19,6 +19,7 @@ import {
   Bell,
   Menu,
   Search,
+  Gift,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useState } from "react";
@@ -37,6 +38,7 @@ const navigation = [
   ["allocation", "განაწილება", PieChart],
   ["strategy", "სტრატეგია", Route],
   ["journal", "ჟურნალი", BookOpen],
+  ["airdrops", "Airdrops", Gift],
 ] as const;
 export function Shell({
   children,

@@ -41,6 +41,13 @@ describe("canonical ledger", () => {
     expect(r.holdings[0].costBasis).toBe("405");
     expect(r.holdings[0].averagePrice).toBe("135");
   });
+  it("records an airdrop without treating it as a cash contribution", () => {
+    const r = replayLedger([entry("airdrop", "jup", "100", "0.5")]);
+    expect(r.cash).toBe("0");
+    expect(r.contributions).toBe("0");
+    expect(r.holdings[0].quantity).toBe("100");
+    expect(r.holdings[0].costBasis).toBe("50");
+  });
   it("realizes partial sale profit net of fees and preserves remaining basis", () => {
     const r = replayLedger([
       fund(),
@@ -142,6 +149,16 @@ describe("canonical ledger", () => {
         occurredAt: "2099-01-01T00:00:00Z",
       }).success,
     ).toBe(false);
+  });
+  it("requires a receipt price for airdrops and rejects USD", () => {
+    const input = {
+      ...entry("airdrop", "jup", "1", "1"),
+      id: crypto.randomUUID(),
+      portfolioId: crypto.randomUUID(),
+      notes: "",
+    };
+    expect(transactionSchema.safeParse({ ...input, price: null }).success).toBe(false);
+    expect(transactionSchema.safeParse({ ...input, assetId: "USD" }).success).toBe(false);
   });
 });
 describe("valuation", () => {

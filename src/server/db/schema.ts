@@ -131,7 +131,7 @@ export const transactions = pgTable(
       .notNull()
       .references(() => assets.id),
     kind: text("kind", {
-      enum: ["buy", "sell", "deposit", "withdrawal", "fee"],
+      enum: ["buy", "sell", "deposit", "withdrawal", "fee", "airdrop"],
     }).notNull(),
     quantity: financial("quantity").notNull(),
     price: financial("price"),
@@ -139,6 +139,9 @@ export const transactions = pgTable(
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
     sequence: integer("sequence").notNull(),
     notes: text("notes").default("").notNull(),
+    airdropSource: text("airdrop_source"),
+    airdropNetwork: text("airdrop_network"),
+    airdropStatus: text("airdrop_status", { enum: ["received", "locked"] }),
     ...times(),
   },
   (t) => [
@@ -152,7 +155,7 @@ export const transactions = pgTable(
     check("transaction_fee_nonnegative", sql`${t.fee} >= 0`),
     check(
       "transaction_kind_valid",
-      sql`${t.kind} IN ('buy', 'sell', 'deposit', 'withdrawal', 'fee')`,
+      sql`${t.kind} IN ('buy', 'sell', 'deposit', 'withdrawal', 'fee', 'airdrop')`,
     ),
   ],
 );

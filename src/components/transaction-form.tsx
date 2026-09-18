@@ -12,6 +12,7 @@ export const kindLabels: Record<TransactionKind, string> = {
   deposit: "შეტანა",
   withdrawal: "გატანა",
   fee: "საკომისიო",
+  airdrop: "Airdrop მიღება",
 };
 export function TransactionForm({
   portfolioId,
@@ -22,6 +23,7 @@ export function TransactionForm({
   opening = false,
   draft,
   triggerLabel,
+  initialKind,
 }: {
   portfolioId: string;
   revision: number;
@@ -31,10 +33,11 @@ export function TransactionForm({
   opening?: boolean;
   draft?: { quantity: string; price: string; fee: string };
   triggerLabel?: string;
+  initialKind?: TransactionKind;
 }) {
   const [open, setOpen] = useState(false),
     [kind, setKind] = useState<TransactionKind>(
-      entry?.kind ?? (opening ? "deposit" : "buy"),
+      entry?.kind ?? initialKind ?? (opening ? "deposit" : "buy"),
     ),
     [assetId, setAssetId] = useState(
       entry?.assetId ?? initialAsset ?? (opening ? "bitcoin" : "bitcoin"),
@@ -114,6 +117,9 @@ export function TransactionForm({
                     String(form.get("occurredAt")),
                   ).toISOString(),
                   notes: String(form.get("notes") ?? ""),
+                  airdropSource: kind === "airdrop" ? String(form.get("airdropSource") ?? "") : "",
+                  airdropNetwork: kind === "airdrop" ? String(form.get("airdropNetwork") ?? "") : "",
+                  airdropStatus: kind === "airdrop" ? String(form.get("airdropStatus") ?? "received") : null,
                 },
                 entry ? "update" : "create",
                 revision,
@@ -204,12 +210,12 @@ export function TransactionForm({
               />
             </Field>
             {!isCash &&
-              (kind === "buy" || kind === "sell" || kind === "deposit") && (
+              (kind === "buy" || kind === "sell" || kind === "deposit" || kind === "airdrop") && (
                 <Field
                   label={
                     kind === "deposit"
                       ? "საშუალო თვითღირებულება (USD)"
-                      : "ერთეულის ფასი (USD)"
+                      : kind === "airdrop" ? "მიღების მომენტში ფასი (USD)" : "ერთეულის ფასი (USD)"
                   }
                 >
                   <input
@@ -248,6 +254,25 @@ export function TransactionForm({
               თუ თვითღირებულება უცნობია, დატოვეთ ცარიელი. შესაბამისი მოგება /
               ზარალი არ გამოითვლება.
             </p>
+          )}
+          {kind === "airdrop" && (
+            <>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field label="პროექტი / წყარო">
+                  <input name="airdropSource" defaultValue={entry?.airdropSource ?? ""} placeholder="მაგ. Jupiter" />
+                </Field>
+                <Field label="ქსელი">
+                  <input name="airdropNetwork" defaultValue={entry?.airdropNetwork ?? ""} placeholder="მაგ. Solana" />
+                </Field>
+                <Field label="სტატუსი">
+                  <select name="airdropStatus" defaultValue={entry?.airdropStatus ?? "received"}>
+                    <option value="received">მიღებული</option>
+                    <option value="locked">დაბლოკილი</option>
+                  </select>
+                </Field>
+              </div>
+              <p className="text-xs leading-6 text-muted">Airdrop პორტფელში დაემატება თანხის ნაშთის შემცირების გარეშე. მიღების ფასი გახდება მისი საწყისი თვითღირებულება.</p>
+            </>
           )}
           <Field label="შენიშვნა">
             <textarea

@@ -60,16 +60,17 @@ export function replayLedger(entries: LedgerEntry[]): LedgerResult {
         basis: new D(0),
         realized: new D(0),
       };
-      if (entry.kind === "buy" || entry.kind === "deposit") {
-        if (entry.kind === "buy" && (!price || price.lte(0)))
+      if (entry.kind === "buy" || entry.kind === "deposit" || entry.kind === "airdrop") {
+        if ((entry.kind === "buy" || entry.kind === "airdrop") && (!price || price.lte(0)))
           throw new LedgerError("INVALID_TRANSACTION");
         const basis = price?.mul(q) ?? null;
         if (entry.kind === "buy") cash = cash.minus(basis!).minus(fee);
-        else {
+        else if (entry.kind === "deposit") {
           if (basis === null) unknownContributions = true;
           contributions = contributions.plus(basis ?? 0);
           cash = cash.minus(fee);
         }
+        else cash = cash.minus(fee);
         s.basis =
           s.basis === null || basis === null
             ? null
