@@ -20,9 +20,11 @@ import {
   Menu,
   Search,
   Gift,
+  Command,
+  X,
 } from "lucide-react";
 import { clsx } from "clsx";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
@@ -53,15 +55,37 @@ export function Shell({
 }) {
   const path = usePathname(), router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
   const base = preview ? "/preview" : `/portfolios/${activeId}`;
+  const commandItems = useMemo(
+    () => [
+      ...navigation.map(([segment, label, Icon]) => ({ label, Icon, href: `${base}${segment ? `/${segment}` : ""}` })),
+      { label: "დაკვირვების სია", Icon: Eye, href: `${base}/watchlist` },
+      { label: "პარამეტრები", Icon: Settings2, href: `${base}/settings` },
+    ],
+    [base],
+  );
+  const matches = commandItems.filter((item) => item.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandOpen((value) => !value);
+      }
+      if (event.key === "Escape") setCommandOpen(false);
+    };
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, []);
   const sidebar = (
     <>
-      <div className="px-3 pb-8 pt-2">
+      <div className="px-3 pb-7 pt-1">
         <Brand />
       </div>
-      <div className="mb-7 rounded-lg border border-line bg-raised/35 p-3">
-        <div className="mb-2 text-[10px] font-semibold tracking-wide text-muted">აქტიური პორტფელი</div>
+      <div className="mb-7 rounded-lg border border-line bg-raised/25 p-3">
+        <div className="mb-2 text-[10px] font-medium tracking-wide text-muted">აქტიური პორტფელი</div>
         <div className="relative">
           <select
             aria-label="პორტფელის არჩევა"
@@ -84,7 +108,7 @@ export function Shell({
           />
         </div>
       </div>
-      <p className="eyebrow mb-3 px-3">MENU</p>
+      <p className="eyebrow mb-3 px-3">პორტფელი</p>
       <nav className="space-y-1">
         {navigation.map(([segment, label, Icon]) => {
           const href = `${base}${segment ? `/${segment}` : ""}`;
@@ -97,10 +121,10 @@ export function Shell({
               href={href}
               aria-current={active ? "page" : undefined}
               className={clsx(
-                "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[12px] transition-colors",
+                "flex items-center gap-3 rounded-md border px-3 py-2.5 text-[12px] transition-colors",
                 active
-                  ? "border-brand/25 bg-brand/15 font-medium text-brand"
-                  : "border-transparent text-muted hover:bg-raised hover:text-foreground",
+                  ? "border-transparent bg-raised font-medium text-foreground"
+                  : "border-transparent text-muted hover:bg-raised/60 hover:text-foreground",
               )}
             >
               <Icon size={17} strokeWidth={1.65} />
@@ -113,6 +137,7 @@ export function Shell({
         })}
       </nav>
       <div className="mt-auto space-y-1 pt-8">
+        <p className="eyebrow mb-2 px-3">სამუშაო სივრცე</p>
         <Link
           href={`${base}/watchlist`}
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs text-muted hover:bg-raised"
@@ -171,12 +196,12 @@ export function Shell({
           <Brand compact />
           {navigation.map(([segment,label,Icon])=>{const href=`${base}${segment?`/${segment}`:""}`;const active=path===href||(segment==="positions"&&path.startsWith(`${href}/`));return <Link key={segment} href={href} className={clsx("flex min-w-max items-center gap-2 rounded-md border-b-2 px-3 py-2 text-xs",active?"border-brand bg-brand/10 text-foreground":"border-transparent text-muted")}><Icon size={15}/>{label}</Link>})}
         </div>
-        <header className="flex h-[72px] items-center justify-between border-b border-line bg-surface/65 px-5 backdrop-blur sm:px-9">
+        <header className="flex h-16 items-center justify-between border-b border-line bg-surface/85 px-5 backdrop-blur sm:px-9">
           <div className="flex min-w-0 items-center gap-3">
             <button onClick={() => setCollapsed((value) => !value)} className="hidden size-10 place-items-center rounded-lg border border-line bg-raised text-muted hover:text-foreground min-[981px]:grid" aria-label="მენიუს შეცვლა"><Menu size={18}/></button>
-            <div className="hidden h-10 min-w-[260px] items-center gap-2 rounded-lg border border-line bg-raised/45 px-3 text-[11px] text-muted md:flex">
-              <Search size={16}/><span>ძებნა ან ბრძანება...</span><kbd className="ml-auto rounded border border-line px-1.5 py-0.5 text-[9px]">⌘ K</kbd>
-            </div>
+            <button onClick={() => setCommandOpen(true)} className="hidden h-9 min-w-[280px] items-center gap-2 rounded-md border border-line bg-raised/35 px-3 text-left text-[11px] text-muted hover:bg-raised md:flex">
+              <Search size={15}/><span>ძებნა ან ბრძანება...</span><kbd className="ml-auto rounded border border-line bg-surface px-1.5 py-0.5 text-[9px]">⌘ K</kbd>
+            </button>
             <div className="min-w-0 md:hidden">
               <span className="text-xs text-muted">პორტფელი</span>
               <span className="ml-2 text-xs">{preview ? "დემო" : "სამუშაო სივრცე"}</span>
@@ -217,6 +242,18 @@ export function Shell({
           <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
         </footer>
       </div>
+      {commandOpen && (
+        <div className="fixed inset-0 z-[70] grid place-items-start bg-black/50 px-4 pt-[12dvh] backdrop-blur-sm" onMouseDown={() => setCommandOpen(false)}>
+          <div className="w-full max-w-xl overflow-hidden rounded-xl border border-line bg-surface shadow-2xl" role="dialog" aria-modal="true" aria-label="ბრძანებების ძიება" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="flex items-center gap-3 border-b border-line px-4"><Command size={18} className="text-muted"/><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="მოძებნეთ გვერდი ან მოქმედება..." className="border-0 bg-transparent px-0 py-4 text-sm shadow-none focus:outline-none"/><button onClick={() => setCommandOpen(false)} className="text-muted hover:text-foreground" aria-label="დახურვა"><X size={17}/></button></div>
+            <div className="max-h-[50dvh] overflow-y-auto p-2">
+              <p className="px-2 py-2 text-[10px] font-medium uppercase tracking-wider text-muted">ნავიგაცია</p>
+              {matches.map(({ label, Icon, href }) => <button key={href} onClick={() => { router.push(href); setCommandOpen(false); setQuery(""); }} className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-xs hover:bg-raised"><Icon size={16} className="text-muted"/>{label}</button>)}
+              {!matches.length && <p className="px-3 py-8 text-center text-xs text-muted">შედეგი ვერ მოიძებნა.</p>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
