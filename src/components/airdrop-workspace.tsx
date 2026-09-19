@@ -2,6 +2,7 @@ import type { Asset, LedgerEntry, PortfolioSummary } from "@/domain/types";
 import { amount, decimal } from "@/domain/decimal";
 import { dateTime, money, pnlClass, quantity } from "@/lib/formatters";
 import { TransactionForm } from "./transaction-form";
+import { AssetIcon } from "./positions";
 
 export function AirdropWorkspace({
   entries,
@@ -67,7 +68,7 @@ export function AirdropWorkspace({
               <div key={entry.id} className="flex flex-wrap items-center justify-between gap-5 px-5 py-4 hover:bg-raised/35">
                 <div className="min-w-48">
                   <div className="flex items-center gap-2">
-                    <span className="grid size-7 place-items-center rounded-full bg-brand/12 text-[10px] font-bold text-brand">{asset?.symbol.slice(0, 2) ?? "?"}</span>
+                    <AssetIcon symbol={asset?.symbol ?? "?"} logoUrl={asset?.logoUrl} />
                     <div><p className="text-xs font-semibold">{asset?.symbol ?? entry.assetId}</p><p className="text-[10px] text-muted">{entry.airdropSource || "წყარო მითითებული არ არის"}{entry.airdropNetwork ? ` · ${entry.airdropNetwork}` : ""}</p></div>
                   </div>
                   <p className="mt-2 text-[10px] text-muted">{dateTime(entry.occurredAt, true)} · {entry.airdropStatus === "locked" ? "დაბლოკილი" : "მიღებული"}</p>

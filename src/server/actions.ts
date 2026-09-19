@@ -133,6 +133,8 @@ export async function searchAssets(query: string) {
         .where(eq(assets.id, asset.id));
       if (!existing)
         await getDb().insert(assets).values(asset).onConflictDoNothing();
+      else if (asset.logoUrl && existing.logoUrl !== asset.logoUrl)
+        await getDb().update(assets).set({ logoUrl: asset.logoUrl, updatedAt: new Date() }).where(eq(assets.id, asset.id));
     }
     return { ok: true as const, assets: matches };
   } catch (e) {

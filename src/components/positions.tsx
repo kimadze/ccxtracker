@@ -13,9 +13,11 @@ const colors = [
 ];
 export function AssetIcon({
   symbol,
+  logoUrl,
   index = 0,
 }: {
   symbol: string;
+  logoUrl?: string | null;
   index?: number;
 }) {
   return (
@@ -27,7 +29,7 @@ export function AssetIcon({
         background: `color-mix(in srgb, ${colors[index % colors.length]} 12%, transparent)`,
       }}
     >
-      {symbol.slice(0, 3)}
+      {logoUrl ? <img src={logoUrl} alt="" className="size-full rounded-full object-cover" /> : symbol.slice(0, 3)}
     </span>
   );
 }
@@ -84,7 +86,7 @@ export function PositionsTable({
               <tr key={p.assetId} className="transition-colors hover:bg-raised/55">
                 <td className="table-cell pl-6! text-left!">
                   <div className="flex items-center gap-3">
-                    <AssetIcon symbol={p.asset.symbol} index={i} />
+                    <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
                     <div>
                       {preview ? (
                         <span className="text-xs font-medium">
@@ -153,7 +155,7 @@ export function PositionsTable({
           <div key={p.assetId} className="p-5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <AssetIcon symbol={p.asset.symbol} index={i} />
+                <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
                 <div>
                   <p className="text-sm font-medium">{p.asset.symbol}</p>
                   <p className="mt-1 text-xs text-muted">

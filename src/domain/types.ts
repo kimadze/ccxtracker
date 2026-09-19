@@ -33,6 +33,7 @@ export interface Asset {
   symbol: string;
   name: string;
   providerId: string;
+  logoUrl?: string | null;
   isStablecoin: boolean;
   category?: string;
 }

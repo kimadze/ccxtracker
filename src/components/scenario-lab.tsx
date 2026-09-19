@@ -126,7 +126,7 @@ export function ScenarioLab({
                 className="grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]"
               >
                 <div className="flex items-center gap-3">
-                  <AssetIcon symbol={p.asset.symbol} index={i} />
+                  <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
                   <div>
                     <p className="text-xs font-medium">{p.asset.symbol}</p>
                     <p className="mt-1 text-[10px] text-muted">

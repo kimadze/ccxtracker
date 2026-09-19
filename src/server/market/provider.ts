@@ -11,6 +11,7 @@ const coinSchema = z.object({
   id: z.string().max(120),
   symbol: z.string().max(30),
   name: z.string().max(150),
+  thumb: z.string().url().nullable().optional(),
 });
 const quoteSchema = z.record(
   z.string(),
@@ -43,6 +44,7 @@ export class CoinGeckoProvider implements MarketPriceProvider {
       providerId: c.id,
       symbol: c.symbol.toUpperCase(),
       name: c.name,
+      logoUrl: c.thumb ?? null,
       isStablecoin: false,
       category: "other",
     }));

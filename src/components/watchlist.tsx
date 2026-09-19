@@ -63,7 +63,7 @@ export function Watchlist({
               className="flex flex-wrap items-center justify-between gap-5 p-6"
             >
               <div className="flex items-center gap-3">
-                <AssetIcon symbol={item.asset.symbol} index={i} />
+                <AssetIcon symbol={item.asset.symbol} logoUrl={item.asset.logoUrl} index={i} />
                 <div>
                   <p className="text-sm font-medium">
                     {item.asset.name}{" "}
