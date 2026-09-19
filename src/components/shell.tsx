@@ -54,7 +54,7 @@ export function Shell({
   preview?: boolean;
 }) {
   const path = usePathname(), router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [commandOpen, setCommandOpen] = useState(false);
   const [query, setQuery] = useState("");
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;

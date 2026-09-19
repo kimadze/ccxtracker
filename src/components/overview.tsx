@@ -52,37 +52,42 @@ export function Overview({
           ძველია.
         </p>
       )}
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="overview-stage grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_390px]">
+      <section className="order-2 grid content-start gap-3 sm:grid-cols-2 xl:grid-cols-2">
         <DashboardMetric icon={<Wallet size={19} />} label="პორტფელის ღირებულება" value={money(s.value)} change="სრული პერიოდი" positive={s.totalPnl !== null && Number(s.totalPnl) >= 0} />
         <DashboardMetric icon={<TrendingUp size={19} />} label="არარეალიზებული მოგება" value={money(s.unrealizedPnl)} change="მიმდინარე შედეგი" positive={s.unrealizedPnl !== null && Number(s.unrealizedPnl) >= 0} />
         <DashboardMetric icon={<Landmark size={19} />} label="ნაღდი და სტეიბლები" value={money(s.liquidity)} change={percentage(liquidityShare)} positive />
         <DashboardMetric icon={<ChartNoAxesCombined size={19} />} label="აქტიური პოზიციები" value={String(s.positions.length).padStart(2, "0")} change={largest ? largest.asset.symbol + " უდიდესი წილი" : "პორტფელი ცარიელია"} positive />
       </section>
-      <section className="panel signal-hero overflow-hidden">
+      <section className="panel signal-hero order-1 overflow-hidden">
         <div>
-          <div className="relative border-b border-line p-5 sm:p-7">
-            <div className="flex items-center gap-2 text-xs text-muted">
-              <Wallet size={15} />
-              პორტფელის ღირებულება
+          <div className="relative min-h-[286px] border-b border-line p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs text-muted">
+                <span className="grid size-8 place-items-center rounded-xl border border-brand/25 bg-brand/10 text-brand"><Wallet size={15} /></span>
+                Portfolio pulse
+              </div>
+              <span className="rounded-full border border-positive/25 bg-positive/10 px-2.5 py-1 text-[10px] font-semibold text-positive">Live valuation</span>
             </div>
-            <div className="numeric mt-4 text-4xl font-semibold tracking-[-.055em] sm:text-[46px]">
+            <p className="mt-8 text-[11px] font-medium uppercase tracking-[.18em] text-muted">სრული პორტფელის ღირებულება</p>
+            <div className="numeric mt-2 text-5xl font-semibold tracking-[-.07em] sm:text-[58px]">
               {money(s.value)}
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-2.5">
+            <div className="mt-5 flex flex-wrap items-center gap-2.5">
               <span
-                className={`rounded-md bg-raised px-2 py-1 text-xs ${pnlClass(s.totalPnl)}`}
+                className={`rounded-full bg-raised px-3 py-1.5 text-xs font-semibold ${pnlClass(s.totalPnl)}`}
               >
                 {s.totalPnl && Number(s.totalPnl) > 0 ? "+" : ""}
                 {money(s.totalPnl)}
               </span>
               <span className="text-[11px] text-muted">
-                ჯამური მოგება / ზარალი
+                ყველა დროის შედეგი
               </span>
             </div>
-            <div className="absolute right-7 top-7 hidden size-10 items-center justify-center rounded-md border border-brand/25 bg-brand/10 text-brand sm:flex">
+            <div className="absolute right-7 top-7 hidden size-10 items-center justify-center rounded-xl border border-brand/25 bg-brand/10 text-brand sm:flex">
               <ArrowUpRight size={18} />
             </div>
-            <div className="mt-7 flex items-center gap-2 text-[10px] text-muted">
+            <div className="mt-9 flex items-center gap-2 text-[10px] text-muted">
               <span className="size-1.5 rounded-full bg-brand" />
               {preview
                 ? "სადემონსტრაციო მონაცემები"
@@ -114,6 +119,7 @@ export function Overview({
             />
           </div>
         </div>
+      </section>
       </section>
       <div className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
         <section className="panel min-w-0 p-6 sm:p-7">
