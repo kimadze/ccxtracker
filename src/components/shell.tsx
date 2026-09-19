@@ -99,7 +99,7 @@ export function Shell({
               href={href}
               aria-current={active ? "page" : undefined}
               className={clsx(
-                "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-[12px] transition-colors",
+                "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[12px] transition-colors",
                 active
                   ? "border-brand bg-gradient-to-r from-violet-600/80 to-indigo-800/70 font-semibold text-white"
                   : "border-transparent text-muted hover:bg-raised/75 hover:text-foreground",
@@ -118,14 +118,14 @@ export function Shell({
         <p className="eyebrow mb-2 px-3">სამუშაო სივრცე</p>
         <Link
           href={`${base}/watchlist`}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-muted hover:bg-raised"
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs text-muted hover:bg-raised"
         >
           <Eye size={17} />
           დაკვირვების სია
         </Link>
         <Link
           href={`${base}/settings`}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-muted hover:bg-raised"
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs text-muted hover:bg-raised"
         >
           <Settings2 size={17} />
           პარამეტრები
@@ -145,7 +145,7 @@ export function Shell({
         {navigation.map(([segment, label, Icon]) => {
           const href = `${base}${segment ? `/${segment}` : ""}`;
           const active = path === href || (segment === "positions" && path.startsWith(`${href}/`));
-          return <Link key={segment} href={href} aria-label={label} title={label} className={clsx("grid size-10 place-items-center rounded-xl border", active ? "border-brand bg-brand text-[var(--bg)]" : "border-transparent text-muted hover:bg-raised hover:text-foreground")}><Icon size={18}/></Link>;
+          return <Link key={segment} href={href} aria-label={label} title={label} className={clsx("grid size-10 place-items-center rounded-lg border", active ? "border-brand bg-brand text-[var(--bg)]" : "border-transparent text-muted hover:bg-raised hover:text-foreground")}><Icon size={18}/></Link>;
         })}
       </nav>
       <div className="mt-auto flex flex-col gap-2">
@@ -156,15 +156,15 @@ export function Shell({
   );
   return (
     <div className="min-h-dvh overflow-x-hidden">
-      <aside className={clsx("fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-line bg-surface/95 py-5 backdrop-blur-xl transition-[width] duration-300 min-[981px]:flex",collapsed ? "w-[76px] px-2" : "w-[226px] px-3")}>
+      <aside className={clsx("ccx-sidebar fixed inset-y-0 left-0 z-30 hidden flex-col overflow-y-auto border-r border-line bg-surface/95 py-5 backdrop-blur-xl transition-[width] duration-300 min-[981px]:flex",collapsed ? "w-[76px] px-2" : "w-[226px] px-3")}>
         {collapsed ? compactSidebar : sidebar}
       </aside>
       <div className={clsx("transition-[padding] duration-300",collapsed ? "min-[981px]:pl-[76px]" : "min-[981px]:pl-[226px]")}>
-        <header className="flex h-[60px] items-center justify-between border-b border-line bg-surface/75 px-5 backdrop-blur-xl sm:px-7">
+        <header className="ccx-topbar flex h-[60px] items-center justify-between border-b border-line bg-surface/75 px-4 backdrop-blur-xl sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <button onClick={() => setCollapsed((value) => !value)} className="hidden size-10 place-items-center rounded-xl border border-line bg-raised/65 text-muted hover:text-foreground min-[981px]:grid" aria-label="მენიუს შეცვლა"><Menu size={18}/></button>
+            <button onClick={() => setCollapsed((value) => !value)} className="ccx-icon-button hidden size-9 place-items-center border border-line bg-raised/65 text-muted hover:text-foreground min-[981px]:grid" aria-label="მენიუს შეცვლა"><Menu size={18}/></button>
             <button onClick={() => setMobileOpen(true)} className="grid size-9 place-items-center rounded-lg border border-line bg-raised/65 text-muted min-[981px]:hidden" aria-label="მენიუს გახსნა"><Menu size={18}/></button>
-            <button onClick={() => setCommandOpen(true)} className="hidden h-9 min-w-[410px] items-center gap-2 rounded-lg border border-line bg-raised/35 px-3 text-left text-[11px] text-muted hover:bg-raised md:flex">
+            <button onClick={() => setCommandOpen(true)} className="ccx-search hidden h-9 items-center gap-2 border border-line bg-raised/35 px-3 text-left text-[11px] text-muted hover:bg-raised md:flex">
               <Search size={15}/><span>მოძებნე მონეტა, გვერდი ან ფუნქცია...</span><kbd className="ml-auto rounded border border-line bg-surface px-1.5 py-0.5 text-[9px]">⌘ K</kbd>
             </button>
             <div className="min-w-0 md:hidden">
@@ -174,8 +174,8 @@ export function Shell({
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <button className="grid size-10 place-items-center rounded-xl border border-line bg-raised/45 text-muted hover:text-foreground" aria-label="შეტყობინებები"><Bell size={16}/></button>
-            <span className="numeric hidden rounded-xl border border-line bg-raised/35 px-3 py-1.5 text-xs text-muted sm:block">
+            <button className="ccx-icon-button grid size-9 place-items-center border border-line bg-raised/45 text-muted hover:text-foreground" aria-label="შეტყობინებები"><Bell size={16}/></button>
+            <span className="numeric hidden rounded-lg border border-line bg-raised/35 px-3 py-1.5 text-xs text-muted sm:block">
               USD
             </span>
             <span className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-semibold text-white">{userName.charAt(0)}</span>
@@ -194,7 +194,7 @@ export function Shell({
         </header>
         <main
           id="main"
-          className="mx-auto max-w-[1640px] px-5 py-7 sm:px-8 sm:py-9"
+          className="ccx-main mx-auto max-w-[1640px] px-5 py-7 sm:px-8 sm:py-9"
         >
           {children}
         </main>

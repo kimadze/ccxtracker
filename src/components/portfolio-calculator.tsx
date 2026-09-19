@@ -20,7 +20,7 @@ export function PortfolioCalculator({ positions }: { positions: ValuedPosition[]
   return (
     <section className="panel dashboard-calculator p-4">
       <h2 className="text-[15px] font-semibold">პოტენციური P/L</h2>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+      <div className="calculator-fields mt-4 grid gap-3">
         <label className="text-[10px] text-muted">აირჩიეთ აქტივი
           <select className="mt-1.5" value={position.assetId} onChange={(event) => {
             setAssetId(event.target.value);
