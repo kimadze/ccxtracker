@@ -150,9 +150,9 @@ export function PositionsTable({
           </tbody>
         </table>
       </div>
-      <div className="divide-y divide-line md:hidden">
+      <div className="dashboard-position-cards md:hidden">
         {positions.map((p, i) => (
-          <div key={p.assetId} className="p-5">
+          <div key={p.assetId} className="dashboard-position-card">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />

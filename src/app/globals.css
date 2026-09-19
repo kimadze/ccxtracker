@@ -98,3 +98,53 @@ html[data-theme="light"]{--bg:#f4f3fb;--surface:#fff;--surface-raised:#eeecf8;--
   .ccx-topbar .ccx-icon-button{width:34px;height:34px}.ccx-topbar>div:last-child>span.numeric{display:none}
   .ccx-main{padding-right:10px;padding-left:10px}.dashboard-space{margin-right:-10px;margin-left:-10px}
 }
+
+/* Overview: one visual rhythm, no inherited page dividers */
+.ccx-main:has(.dashboard-space){max-width:none;padding-top:0;padding-bottom:0}
+.ccx-main:has(.dashboard-space)+footer{display:none}
+.dashboard-space{gap:16px;padding-bottom:54px}
+.dashboard-space .panel{border-color:rgba(104,126,187,.22);background:linear-gradient(145deg,rgba(18,27,51,.98),rgba(8,14,29,.98))}
+.dashboard-hero{border-bottom:0;background:linear-gradient(90deg,#080c1c 0%,#101735 54%,#0a0d20 100%)}
+.dashboard-metrics,.dashboard-middle,.dashboard-lower{gap:16px;padding-right:20px;padding-left:20px}
+.dashboard-metric{min-height:120px;border-color:rgba(104,126,187,.2)}
+.dashboard-metric>span{border:1px solid rgba(142,103,255,.24);background:linear-gradient(135deg,rgba(133,79,255,.34),rgba(49,105,255,.13))}
+.dashboard-chart-panel,.dashboard-allocation{height:288px}
+.dashboard-chart-panel>header,.dashboard-allocation>header{padding-bottom:11px;border-bottom:1px solid rgba(104,126,187,.14)}
+.dashboard-chart-panel .chart-periods{margin-top:10px}
+.dashboard-chart-panel .h-56{height:196px}
+.dashboard-allocation .allocation-body{height:216px}
+.dashboard-lower{align-items:start}
+.dashboard-side-stack{align-self:start;grid-template-rows:auto auto}
+.dashboard-calculator{display:flex;min-height:0;flex-direction:column}
+.dashboard-calculator>div:last-of-type{margin-top:12px}
+.dashboard-actions{padding:15px!important}
+.dashboard-actions h2{padding-bottom:10px;border-bottom:1px solid rgba(104,126,187,.14)}
+.dashboard-actions>div{margin-top:10px}
+.dashboard-positions>header{min-height:59px;padding:14px 16px;border-bottom:1px solid rgba(104,126,187,.14)}
+.dashboard-positions table thead{background:transparent}
+.dashboard-positions table .table-head{border-top:0;border-bottom:1px solid rgba(104,126,187,.14);background:rgba(31,43,76,.34);padding-top:10px;padding-bottom:10px;font-weight:600;letter-spacing:.02em;text-transform:none}
+.dashboard-positions table .table-cell{border-top:0;border-bottom:1px solid rgba(104,126,187,.1);padding-top:11px;padding-bottom:11px}
+.dashboard-positions table tbody tr:last-child .table-cell{border-bottom:0}
+.dashboard-positions table tbody tr:hover{background:rgba(84,70,177,.09)}
+.live-ticker{border-top-color:rgba(104,126,187,.22);background:rgba(7,11,24,.98)}
+.live-ticker>div{border-right-color:rgba(104,126,187,.18)}
+html[data-theme="light"] .dashboard-space .panel{border-color:rgba(78,61,145,.16);background:linear-gradient(145deg,#fff,#f8f7fd)}
+html[data-theme="light"] .dashboard-chart-panel>header,html[data-theme="light"] .dashboard-allocation>header,html[data-theme="light"] .dashboard-actions h2,html[data-theme="light"] .dashboard-positions>header{border-bottom-color:rgba(78,61,145,.12)}
+html[data-theme="light"] .dashboard-positions table .table-head{background:rgba(111,84,203,.06);border-bottom-color:rgba(78,61,145,.12)}
+html[data-theme="light"] .dashboard-positions table .table-cell{border-bottom-color:rgba(78,61,145,.08)}
+
+.dashboard-position-cards{display:grid;gap:10px;padding:10px}
+.dashboard-position-card{border:1px solid rgba(104,126,187,.16);border-radius:9px;background:rgba(19,28,53,.45);padding:14px}
+html[data-theme="light"] .dashboard-position-card{border-color:rgba(78,61,145,.12);background:rgba(111,84,203,.04)}
+@media(min-width:768px){.dashboard-position-cards{display:none!important}}
+@media(max-width:767px){.dashboard-positions>div.hidden{display:none!important}.dashboard-position-cards{display:grid!important}}
+@container dashboard (max-width:980px){
+  .dashboard-metrics,.dashboard-middle,.dashboard-lower{padding-right:14px;padding-left:14px}
+  .dashboard-chart-panel,.dashboard-allocation{height:auto}
+  .dashboard-chart-panel .h-56{height:240px}
+  .dashboard-side-stack{grid-template-rows:auto;grid-template-columns:1fr}
+}
+@container dashboard (max-width:430px){
+  .dashboard-metrics,.dashboard-middle,.dashboard-lower{padding-right:10px;padding-left:10px}
+  .dashboard-position-cards{gap:8px;padding:8px}.dashboard-position-card{padding:13px}
+}
