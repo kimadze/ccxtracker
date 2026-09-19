@@ -17,13 +17,12 @@ export function HistoryChart({
   snapshots: Pick<Snapshot, "capturedAt" | "value">[];
   illustrative?: boolean;
 }) {
-  if (snapshots.length < 2)
+  if (!snapshots.length)
     return (
       <div className="flex h-56 flex-col items-center justify-center text-center">
         <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
         <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
-          გრაფიკისთვის საჭიროა მინიმუმ ორი შენახული შეფასება. ისტორია
-          ყოველდღიურად გროვდება.
+          პირველი შეფასება ყოველდღიური განახლების შემდეგ გამოჩნდება.
         </p>
       </div>
     );
@@ -93,10 +92,17 @@ export function HistoryChart({
               strokeWidth={2}
               fill="url(#historyFill)"
               isAnimationActive={false}
+              dot={{ r: snapshots.length === 1 ? 4 : 0, fill: "var(--blue)", strokeWidth: 0 }}
+              activeDot={{ r: 4, fill: "var(--blue)", strokeWidth: 0 }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      {snapshots.length === 1 && (
+        <p className="mt-3 rounded-md border border-brand/15 bg-brand/5 px-3 py-2 text-[10px] leading-5 text-muted">
+          საწყისი შეფასება შენახულია. მომდევნო ყოველდღიური შეფასების შემდეგ აქ გამოჩნდება ცვლილების ხაზი.
+        </p>
+      )}
       <details className="mt-3 text-[10px] text-muted">
         <summary>მონაცემების ცხრილი</summary>
         <div className="mt-2 max-h-40 overflow-auto">
