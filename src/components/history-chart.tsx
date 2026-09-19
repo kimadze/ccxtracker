@@ -20,11 +20,23 @@ export function HistoryChart({
 }) {
   const [period, setPeriod] = useState<"7D" | "1M" | "3M" | "1Y" | "ALL">("1M");
   const points = useMemo(() => {
-    const days = { "7D": 7, "1M": 30, "3M": 90, "1Y": 365, ALL: Infinity }[period];
-    const last = Math.max(0, ...snapshots.map((item) => Date.parse(item.capturedAt)));
-    return snapshots.filter((item) => days === Infinity || Date.parse(item.capturedAt) >= last - days * 86400000).map((s) => ({
-      time: Date.parse(s.capturedAt), value: Number(s.value),
-    }));
+    const days = { "7D": 7, "1M": 30, "3M": 90, "1Y": 365, ALL: Infinity }[
+      period
+    ];
+    const last = Math.max(
+      0,
+      ...snapshots.map((item) => Date.parse(item.capturedAt)),
+    );
+    return snapshots
+      .filter(
+        (item) =>
+          days === Infinity ||
+          Date.parse(item.capturedAt) >= last - days * 86400000,
+      )
+      .map((s) => ({
+        time: Date.parse(s.capturedAt),
+        value: Number(s.value),
+      }));
   }, [snapshots, period]);
   if (!snapshots.length)
     return (
@@ -37,7 +49,18 @@ export function HistoryChart({
     );
   return (
     <div>
-      <div className="chart-periods" aria-label="გრაფიკის პერიოდი">{(["7D","1M","3M","1Y","ALL"] as const).map((item) => <button key={item} type="button" className={period === item ? "active" : ""} onClick={() => setPeriod(item)}>{item}</button>)}</div>
+      <div className="chart-periods" aria-label="გრაფიკის პერიოდი">
+        {(["7D", "1M", "3M", "1Y", "ALL"] as const).map((item) => (
+          <button
+            key={item}
+            type="button"
+            className={period === item ? "active" : ""}
+            onClick={() => setPeriod(item)}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
       <div
         className="h-56 w-full"
         role="img"
@@ -49,13 +72,17 @@ export function HistoryChart({
       >
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <AreaChart
-              data={points}
+            data={points}
             margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient id="historyFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--blue)" stopOpacity={0.34} />
-                <stop offset="100%" stopColor="var(--blue)" stopOpacity={0} />
+                <stop
+                  offset="0%"
+                  stopColor="var(--violet)"
+                  stopOpacity={0.36}
+                />
+                <stop offset="100%" stopColor="var(--violet)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -94,19 +121,29 @@ export function HistoryChart({
             <Area
               dataKey="value"
               type="linear"
-              stroke="var(--blue)"
+              stroke="var(--violet)"
               strokeWidth={2}
               fill="url(#historyFill)"
               isAnimationActive={false}
-              dot={{ r: snapshots.length === 1 ? 4 : 0, fill: "var(--blue)", strokeWidth: 0 }}
-              activeDot={{ r: 4, fill: "var(--blue)", strokeWidth: 0 }}
+              dot={{
+                r: snapshots.length === 1 ? 4 : 0,
+                fill: "var(--violet)",
+                strokeWidth: 0,
+              }}
+              activeDot={{
+                r: 4,
+                fill: "var(--violet)",
+                stroke: "#e7dcff",
+                strokeWidth: 2,
+              }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
       {snapshots.length === 1 && (
         <p className="mt-3 rounded-md border border-brand/15 bg-brand/5 px-3 py-2 text-[10px] leading-5 text-muted">
-          საწყისი შეფასება შენახულია. მომდევნო ყოველდღიური შეფასების შემდეგ აქ გამოჩნდება ცვლილების ხაზი.
+          საწყისი შეფასება შენახულია. მომდევნო ყოველდღიური შეფასების შემდეგ აქ
+          გამოჩნდება ცვლილების ხაზი.
         </p>
       )}
       <details className="mt-3 text-[10px] text-muted">
