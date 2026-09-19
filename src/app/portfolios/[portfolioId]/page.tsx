@@ -25,6 +25,7 @@ export default async function Page({
         action={<TransactionForm portfolioId={portfolioId} revision={w.portfolio.revision} assets={w.assets} />}
         history={
           <HistoryChart
+            compact
             snapshots={history
               .slice(-30)
               .map((s) => ({ ...s, capturedAt: s.capturedAt.toISOString() }))}

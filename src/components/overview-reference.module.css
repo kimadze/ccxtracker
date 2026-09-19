@@ -40,7 +40,66 @@
   box-shadow: inset 0 1px 0 rgba(194, 154, 255, 0.08);
 }
 .root .donut {
+  position: relative;
   box-shadow: 0 0 18px rgba(255, 159, 64, 0.035);
+}
+.donut::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(
+    from 15deg,
+    rgba(255, 255, 255, 0.13),
+    transparent 30%,
+    rgba(255, 255, 255, 0.15) 48%,
+    transparent 65%
+  );
+  mask: radial-gradient(circle, transparent 41%, #000 42%);
+}
+.root .legend > div {
+  grid-template-columns: 24px 1fr auto;
+  font-size: 13px;
+}
+.legend :global(.size-9) {
+  width: 24px;
+  height: 24px;
+  font-size: 8px;
+}
+.root .performerAsset {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 12px 0 7px;
+}
+.root .positions :global(.table-cell.text-positive) {
+  color: var(--positive);
+}
+.root .positions :global(.table-cell.text-negative) {
+  color: var(--negative);
+}
+.root .positions :global(.table-cell.text-muted) {
+  color: #9ca5ba;
+}
+@media (min-width: 1150px) {
+  .root .right {
+    margin-top: -70px;
+  }
+  .root .heading {
+    padding-right: 30%;
+  }
+  .root .metricText strong {
+    font-size: 23px;
+  }
+  .root .metricText p {
+    white-space: normal;
+  }
+  .root .positions :global(.table-cell) {
+    font-size: 13px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
 }
 .root .performerBest {
   border-color: #233e3e;
@@ -106,9 +165,64 @@
   box-shadow: none;
 }
 .chart {
+  position: relative;
   min-width: 0;
   overflow: hidden;
   padding: 19px 23px 13px;
+}
+.calculator > summary {
+  cursor: pointer;
+  color: #b9b0ce;
+  font-size: 12px;
+}
+@media (min-width: 1150px) {
+  .root .heading {
+    min-height: 94px;
+  }
+  .root .chart {
+    height: 235px;
+    padding: 27px;
+  }
+  .root .chartHead {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .root .chartHead strong {
+    font-size: clamp(36px, 3vw, 48px);
+    margin-top: 17px;
+  }
+  .root .change {
+    margin-top: 12px;
+    font-size: 20px;
+  }
+  .chart :global(.history-compact) {
+    position: absolute;
+    inset: 30px 26px 18px 38%;
+  }
+  .root .chart :global(.history-compact .h-56) {
+    height: 175px;
+  }
+  .root .chart :global(.history-compact .chart-periods) {
+    position: absolute;
+    top: 130px;
+    right: calc(100% + 50px);
+    margin: 0;
+  }
+  .chart :global(.history-compact details) {
+    position: relative;
+    z-index: 2;
+    text-align: right;
+  }
+  .chart :global(.history-compact details[open]) {
+    padding: 8px;
+    border: 1px solid #303440;
+    border-radius: 8px;
+    background: #14171f;
+  }
+  .root .metric {
+    min-height: 118px;
+  }
 }
 .chartHead {
   display: flex;

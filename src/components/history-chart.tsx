@@ -14,9 +14,11 @@ import { useMemo, useState } from "react";
 export function HistoryChart({
   snapshots,
   illustrative = false,
+  compact = false,
 }: {
   snapshots: Pick<Snapshot, "capturedAt" | "value">[];
   illustrative?: boolean;
+  compact?: boolean;
 }) {
   const [period, setPeriod] = useState<"7D" | "1M" | "3M" | "1Y" | "ALL">("1M");
   const points = useMemo(() => {
@@ -48,7 +50,7 @@ export function HistoryChart({
       </div>
     );
   return (
-    <div>
+    <div className={compact ? "history-compact" : undefined}>
       <div className="chart-periods" aria-label="გრაფიკის პერიოდი">
         {(["7D", "1M", "3M", "1Y", "ALL"] as const).map((item) => (
           <button
@@ -91,6 +93,7 @@ export function HistoryChart({
               strokeDasharray="3 5"
             />
             <XAxis
+              hide={compact}
               dataKey="time"
               tickFormatter={(v) => dateTime(Number(v), true)}
               axisLine={false}
@@ -100,6 +103,7 @@ export function HistoryChart({
               dy={8}
             />
             <YAxis
+              hide={compact}
               orientation="right"
               tickFormatter={(v) => money(String(v), true)}
               axisLine={false}
