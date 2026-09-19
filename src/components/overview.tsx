@@ -65,11 +65,11 @@ export function Overview({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs text-muted">
                 <span className="grid size-8 place-items-center rounded-xl border border-brand/25 bg-brand/10 text-brand"><Wallet size={15} /></span>
-                Portfolio pulse
+                Track. Analyze. Grow.
               </div>
               <span className="rounded-full border border-positive/25 bg-positive/10 px-2.5 py-1 text-[10px] font-semibold text-positive">Live valuation</span>
             </div>
-            <p className="mt-8 text-[11px] font-medium uppercase tracking-[.18em] text-muted">სრული პორტფელის ღირებულება</p>
+            <p className="mt-8 text-[11px] font-medium uppercase tracking-[.18em] text-muted">სრული პორტფელის ღირებულება · თქვენი კრიპტო ხედვა</p>
             <div className="numeric mt-2 text-5xl font-semibold tracking-[-.07em] sm:text-[58px]">
               {money(s.value)}
             </div>

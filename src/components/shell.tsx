@@ -54,7 +54,7 @@ export function Shell({
   preview?: boolean;
 }) {
   const path = usePathname(), router = useRouter();
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [query, setQuery] = useState("");
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
@@ -188,15 +188,15 @@ export function Shell({
   );
   return (
     <div className="min-h-dvh overflow-x-hidden">
-      <aside className={clsx("fixed inset-y-3 left-3 z-30 hidden flex-col rounded-[24px] border border-line bg-surface/90 py-5 backdrop-blur-xl transition-[width] duration-300 min-[981px]:flex",collapsed ? "w-[76px] px-2" : "w-[274px] px-4")}>
+      <aside className={clsx("fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-line bg-surface/95 py-5 backdrop-blur-xl transition-[width] duration-300 min-[981px]:flex",collapsed ? "w-[76px] px-2" : "w-[226px] px-3")}>
         {collapsed ? compactSidebar : sidebar}
       </aside>
-      <div className={clsx("transition-[padding] duration-300",collapsed ? "min-[981px]:pl-[100px]" : "min-[981px]:pl-[298px]")}>
+      <div className={clsx("transition-[padding] duration-300",collapsed ? "min-[981px]:pl-[76px]" : "min-[981px]:pl-[226px]")}>
         <div className="flex items-center gap-1 overflow-x-auto border-b border-line bg-surface/95 px-3 py-2 backdrop-blur min-[981px]:hidden">
           <Brand compact />
           {navigation.map(([segment,label,Icon])=>{const href=`${base}${segment?`/${segment}`:""}`;const active=path===href||(segment==="positions"&&path.startsWith(`${href}/`));return <Link key={segment} href={href} className={clsx("flex min-w-max items-center gap-2 rounded-md border-b-2 px-3 py-2 text-xs",active?"border-brand bg-brand/10 text-foreground":"border-transparent text-muted")}><Icon size={15}/>{label}</Link>})}
         </div>
-        <header className="mx-3 mt-3 flex h-16 items-center justify-between rounded-[20px] border border-line bg-surface/80 px-5 backdrop-blur-xl sm:px-7">
+        <header className="flex h-[70px] items-center justify-between border-b border-line bg-surface/75 px-5 backdrop-blur-xl sm:px-7">
           <div className="flex min-w-0 items-center gap-3">
             <button onClick={() => setCollapsed((value) => !value)} className="hidden size-10 place-items-center rounded-xl border border-line bg-raised/65 text-muted hover:text-foreground min-[981px]:grid" aria-label="მენიუს შეცვლა"><Menu size={18}/></button>
             <button onClick={() => setCommandOpen(true)} className="hidden h-10 min-w-[310px] items-center gap-2 rounded-xl border border-line bg-raised/35 px-3 text-left text-[11px] text-muted hover:bg-raised md:flex">
