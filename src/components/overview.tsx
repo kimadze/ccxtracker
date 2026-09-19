@@ -1,276 +1,79 @@
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  Wallet,
-  ShieldCheck,
-  ArrowDownLeft,
-  CircleHelp,
-  Landmark,
-  TrendingUp,
-  ChartNoAxesCombined,
-} from "lucide-react";
+import Image from "next/image";
+import { ArrowLeftRight, CalendarDays, Coins, Pencil, Plus, Target, Wallet } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { money, percentage, pnlClass } from "@/lib/formatters";
 import { percent } from "@/domain/decimal";
-import { AssetIcon, PositionsTable } from "./positions";
+import { PositionsTable } from "./positions";
+import { PortfolioCalculator } from "./portfolio-calculator";
 
-export function Overview({
-  summary: s,
-  base,
-  preview = false,
-  history,
-}: {
+export function Overview({ summary: s, base, preview = false, history, action }: {
   summary: PortfolioSummary;
   base: string;
   preview?: boolean;
   history?: React.ReactNode;
+  action?: React.ReactNode;
 }) {
-  const cashShare = s.value ? percent(s.cash, s.value) : null;
-  const stablecoinShare =
-    s.value && s.stablecoinValue !== null
-      ? percent(s.stablecoinValue, s.value)
-      : null;
-  const liquidityShare =
-    s.value && s.liquidity !== null ? percent(s.liquidity, s.value) : null;
-  const largest = [...s.positions].sort(
-    (a, b) => Number(b.value ?? 0) - Number(a.value ?? 0),
-  )[0];
-  return (
-    <div className="space-y-6">
-      {!s.complete && (
-        <div
-          role="status"
-          className="rounded-lg border border-brand/25 bg-brand/5 p-4 text-xs leading-6 text-brand"
-        >
-          ზოგიერთი აქტივის ფასი მიუწვდომელია. სრული ღირებულება და მასზე
-          დამოკიდებული მაჩვენებლები ფასების მიღების შემდეგ გამოჩნდება.
-        </div>
-      )}
-      {s.stale && (
-        <p role="status" className="text-xs text-muted">
-          ნაჩვენებია ბოლო ხელმისაწვდომი ფასები. ზოგიერთი მათგანი 15 წუთზე
-          ძველია.
-        </p>
-      )}
-      <section className="reference-banner">
-        <div className="reference-banner-copy">
-          <p className="text-sm text-[var(--violet)]">Crypto Collective X</p>
-          <h2>Track. <span>Analyze.</span> <strong>Grow.</strong></h2>
-          <p className="mt-2 text-sm text-muted">თქვენი კრიპტო პორტფელი ერთ მკაფიო სამუშაო სივრცეში</p>
-        </div>
-        <div className="reference-banner-mark" aria-hidden="true">CX</div>
-      </section>
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <DashboardMetric icon={<Wallet size={19} />} label="პორტფელის ღირებულება" value={money(s.value)} change="სრული პერიოდი" positive={s.totalPnl !== null && Number(s.totalPnl) >= 0} />
-        <DashboardMetric icon={<TrendingUp size={19} />} label="არარეალიზებული მოგება" value={money(s.unrealizedPnl)} change="მიმდინარე შედეგი" positive={s.unrealizedPnl !== null && Number(s.unrealizedPnl) >= 0} />
-        <DashboardMetric icon={<Landmark size={19} />} label="ნაღდი და სტეიბლები" value={money(s.liquidity)} change={percentage(liquidityShare)} positive />
-        <DashboardMetric icon={<ChartNoAxesCombined size={19} />} label="აქტიური პოზიციები" value={String(s.positions.length).padStart(2, "0")} change={largest ? largest.asset.symbol + " უდიდესი წილი" : "პორტფელი ცარიელია"} positive />
-      </section>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
-      <section className="panel signal-hero overflow-hidden">
-        <div>
-          <div className="relative min-h-[286px] border-b border-line p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <span className="grid size-8 place-items-center rounded-xl border border-brand/25 bg-brand/10 text-brand"><Wallet size={15} /></span>
-                Track. Analyze. Grow.
-              </div>
-              <span className="rounded-full border border-positive/25 bg-positive/10 px-2.5 py-1 text-[10px] font-semibold text-positive">Live valuation</span>
-            </div>
-            <p className="mt-8 text-[11px] font-medium uppercase tracking-[.18em] text-muted">სრული პორტფელის ღირებულება · თქვენი კრიპტო ხედვა</p>
-            <div className="numeric mt-2 text-5xl font-semibold tracking-[-.07em] sm:text-[58px]">
-              {money(s.value)}
-            </div>
-            <div className="mt-5 flex flex-wrap items-center gap-2.5">
-              <span
-                className={`rounded-full bg-raised px-3 py-1.5 text-xs font-semibold ${pnlClass(s.totalPnl)}`}
-              >
-                {s.totalPnl && Number(s.totalPnl) > 0 ? "+" : ""}
-                {money(s.totalPnl)}
-              </span>
-              <span className="text-[11px] text-muted">
-                ყველა დროის შედეგი
-              </span>
-            </div>
-            <div className="absolute right-7 top-7 hidden size-10 items-center justify-center rounded-xl border border-brand/25 bg-brand/10 text-brand sm:flex">
-              <ArrowUpRight size={18} />
-            </div>
-            <div className="mt-9 flex items-center gap-2 text-[10px] text-muted">
-              <span className="size-1.5 rounded-full bg-brand" />
-              {preview
-                ? "სადემონსტრაციო მონაცემები"
-                : s.positions.length
-                  ? "შეფასება ბოლო ხელმისაწვდომი ფასებით"
-                  : "დაიწყეთ თქვენი პირველი პოზიციით"}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 divide-x divide-y divide-line bg-raised/20 sm:grid-cols-4 sm:divide-y-0">
-            <Metric
-              label="ჯამური შეტანები"
-              value={money(s.contributions)}
-              hint="თანხა და აქტივების შეტანილი თვითღირებულება"
-            />
-            <Metric
-              label="მიმდინარე თვითღირებულება"
-              value={money(s.costBasis)}
-              hint="დარჩენილი პოზიციების ღირებულებითი საფუძველი"
-            />
-            <Metric
-              label="არარეალიზებული მოგება / ზარალი"
-              value={money(s.unrealizedPnl)}
-              tone={pnlClass(s.unrealizedPnl)}
-            />
-            <Metric
-              label="რეალიზებული მოგება / ზარალი"
-              value={money(s.realizedPnl)}
-              tone={pnlClass(s.realizedPnl)}
-            />
-          </div>
-        </div>
-      </section>
-      <section className="panel action-console p-5 sm:p-6">
-        <p className="eyebrow">პორტფელის მოქმედებები</p>
-        <h2 className="mt-2 text-lg font-semibold">სწრაფი კონტროლი</h2>
-        <p className="mt-2 text-xs leading-6 text-muted">განაახლეთ პოზიციები, შეამოწმეთ განაწილება და გამოიყენეთ სცენარები.</p>
-        <div className="mt-6 grid gap-2">
-          <Link href={`${base}/transactions`} className="button-primary">ტრანზაქციის დამატება <ArrowUpRight size={15}/></Link>
-          <Link href={`${base}/scenarios`} className="button-secondary">სცენარების ლაბორატორია</Link>
-          <Link href={`${base}/allocation`} className="button-secondary">განაწილების მართვა</Link>
-        </div>
-        <div className="mt-6 rounded-xl border border-line bg-raised/30 p-4">
-          <p className="text-[10px] text-muted">ლიკვიდობის რეზერვი</p>
-          <p className="numeric mt-2 text-2xl font-semibold text-positive">{percentage(liquidityShare)}</p>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface"><div className="h-full rounded-full bg-brand" style={{width:`${Math.min(Number(liquidityShare?.replace("%", "") ?? 0),100)}%`}} /></div>
-        </div>
-      </section>
+  const positions = [...s.positions].sort((a, b) => Number(b.allocation ?? 0) - Number(a.allocation ?? 0));
+  const liquidityShare = s.value && s.liquidity !== null ? percent(s.liquidity, s.value) : null;
+  const colors = ["var(--orange)", "var(--blue)", "var(--violet)", "var(--teal)", "var(--indigo)", "var(--grey)"];
+  const cashAllocation = s.value ? Number(percent(s.cash, s.value) ?? 0) : 0;
+  const slices = [...positions.map((position, index) => ({ label: position.asset.symbol, value: Number(position.allocation ?? 0), color: colors[index % colors.length] })), { label: "ნაღდი", value: cashAllocation, color: "var(--grey)" }].filter((item) => item.value > 0);
+  let cursor = 0;
+  const gradient = slices.map((slice) => { const start = cursor; cursor += slice.value; return `${slice.color} ${start}% ${cursor}%`; }).join(",");
+
+  return <div className="dashboard-space">
+    {!s.complete && <div role="status" className="dashboard-alert">ზოგიერთი ფასი მიუწვდომელია — ნაჩვენებია ცნობილი ღირებულება.</div>}
+    <section className="dashboard-hero">
+      <div className="dashboard-hero-copy">
+        <h1>Track. <span>Analyze.</span> <strong>Grow.</strong></h1>
+        <p>Your simple crypto portfolio tracker</p>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
-        <section className="panel min-w-0 p-6 sm:p-7">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-medium">პორტფელის დინამიკა</h2>
-              <p className="mt-1.5 text-[11px] text-muted">
-                ღირებულების ცვლილება დროში
-              </p>
-            </div>
-            <span className="rounded-md border border-line px-2.5 py-1 text-[10px] text-muted">
-              USD
-            </span>
-          </div>
-          {history ?? (
-            <div className="flex h-52 flex-col items-center justify-center rounded-lg border border-dashed border-line text-center">
-              <ArrowDownLeft size={23} className="mb-3 text-brand" />
-              <p className="text-xs text-muted">
-                ისტორია ჯერ არ არის დაგროვებული
-              </p>
-              <p className="mt-2 max-w-xs text-[11px] leading-5 text-muted">
-                გრაფიკი გამოჩნდება რეალური ისტორიული მონაცემების დაგროვების
-                შემდეგ.
-              </p>
-            </div>
-          )}
-        </section>
-        <PortfolioAllocation
-          summary={s}
-          base={base}
-          cashShare={cashShare}
-          stablecoinShare={stablecoinShare}
-          liquidityShare={liquidityShare}
-        />
-      </div>
-      <section className="panel">
-        <div className="flex items-center justify-between px-6 pt-6 pb-3">
-          <div className="flex items-center gap-3">
-            <h2 className="text-sm font-medium">თქვენი პოზიციები</h2>
-            <span className="rounded-md bg-raised px-2 py-0.5 text-[10px] text-muted">
-              {s.positions.length}
-            </span>
-          </div>
-          <Link
-            href={`${base}/positions`}
-            className="flex items-center gap-1 text-[11px] text-brand"
-          >
-            ყველას ნახვა <ArrowUpRight size={13} />
-          </Link>
-        </div>
-        <PositionsTable positions={s.positions} base={base} preview={preview} />
+      <Image src="/ccx-mountain-hero.png" alt="" aria-hidden="true" width={900} height={300} priority />
+      <div className="dashboard-hero-motto"><span>One Portfolio</span><br/>A Bigger Tomorrow</div>
+      <div className="dashboard-hero-brand" aria-hidden="true">X</div>
+    </section>
+
+    <section className="dashboard-metrics">
+      <DashboardMetric icon={<Wallet size={20}/>} label="სრული პორტფელი" value={money(s.value)} change={`${money(s.totalPnl)}  ${percentage(s.value && s.totalPnl ? percent(s.totalPnl, s.value) : null, true)}`} />
+      <DashboardMetric icon={<CalendarDays size={20}/>} label="ლიკვიდობის რეზერვი" value={money(s.liquidity)} change={percentage(liquidityShare)} />
+      <DashboardMetric icon={<Target size={20}/>} label="რეალიზებული P/L" value={money(s.realizedPnl)} change="დახურული პოზიციები" />
+      <DashboardMetric icon={<Coins size={20}/>} label="აქტიური მონეტები" value={String(s.positions.length).padStart(2, "0")} change={`${positions.length} შეფასებული აქტივი`} />
+    </section>
+
+    <section className="dashboard-middle">
+      <section className="panel dashboard-chart-panel">
+        <header><div><h2>პორტფელის ღირებულება</h2><p>ღირებულების ცვლილება დროში</p></div><div className={pnlClass(s.totalPnl)}><strong>{percentage(s.value && s.totalPnl ? percent(s.totalPnl, s.value) : null, true)}</strong><span>{money(s.totalPnl)}</span></div></header>
+        {history ?? <div className="dashboard-empty">ისტორიისთვის საჭიროა შენახული შეფასებები.</div>}
       </section>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex items-start gap-4 rounded-xl border border-line p-5">
-          <ShieldCheck size={20} className="mt-1 shrink-0 text-brand" />
-          <div>
-            <h3 className="text-xs font-medium">კონცენტრაციის მონიტორინგი</h3>
-            <p className="mt-2 text-xs leading-6 text-muted">
-              {largest
-                ? `${largest.asset.symbol} პორტფელის ${percentage(largest.allocation)}-ს შეადგენს. განაწილების ცვლილება აქვე აისახება.`
-                : "პოზიციების დამატების შემდეგ აქ გამოჩნდება ყველაზე დიდი პოზიციის წილი."}
-            </p>
-          </div>
+      <section className="panel dashboard-allocation">
+        <header><h2>აქტივების განაწილება</h2><Link href={`${base}/allocation`}>USD</Link></header>
+        <div className="allocation-body">
+          <div className="allocation-donut" style={{ background: gradient ? `conic-gradient(${gradient})` : "var(--surface-raised)" }}><div><strong>{money(s.value, true)}</strong><span>სრული ღირებულება</span></div></div>
+          <div className="allocation-legend">{slices.slice(0, 6).map((slice) => <div key={slice.label}><i style={{background:slice.color}}/><span>{slice.label}</span><strong>{percentage(String(slice.value))}</strong></div>)}</div>
         </div>
-        <div className="flex items-start gap-4 rounded-xl border border-line p-5">
-          <CircleHelp size={20} className="mt-1 shrink-0 text-brand" />
-          <div>
-            <h3 className="text-xs font-medium">ერთი პორტფელი, სრული სურათი</h3>
-            <p className="mt-2 text-xs leading-6 text-muted">
-              შესყიდვები, გაყიდვები და საკომისიოები საერთო ისტორიაში ინახება.
-              გამოთვლები ამ მონაცემებს ეყრდნობა.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+      </section>
+    </section>
+
+    <section className="dashboard-lower">
+      <section className="panel dashboard-positions">
+        <header><h2>ჩემი აქტივები</h2><div>{action ?? <Link className="button-primary" href={preview ? "/login" : `${base}/transactions`}><Plus size={15}/> ახალი აქტივი</Link>}</div></header>
+        <PositionsTable positions={s.positions} base={base} preview={preview}/>
+      </section>
+      <aside className="dashboard-side-stack">
+        <PortfolioCalculator positions={s.positions}/>
+        <section className="panel dashboard-actions p-4"><h2>სწრაფი ქმედებები</h2><div><Link href={`${base}/transactions`}><Plus size={16}/> ახალი აქტივი</Link><Link href={`${base}/positions`}><Pencil size={16}/> აქტივის რედაქტირება</Link><Link href={`${base}/transactions`}><ArrowLeftRight size={16}/> ტრანზაქცია</Link><Link href={`${base}/settings`} className="danger">პარამეტრები</Link></div></section>
+      </aside>
+    </section>
+
+    <footer className="live-ticker"><span>Live Prices:</span>{positions.slice(0,5).map((position) => <div key={position.assetId}><strong>{position.asset.symbol}</strong><span>{money(position.quote?.price ?? null)}</span><i className={pnlClass(position.quote?.change24h ?? null)}>{percentage(position.quote?.change24h ?? null, true)}</i></div>)}<small><b/>Market data: {s.stale ? "Delayed" : "Live"}</small></footer>
+  </div>;
 }
-export function Metric({
-  label,
-  value,
-  hint,
-  tone = "text-foreground",
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  tone?: string;
-}) {
-  return (
-    <div className="min-w-0 p-5 sm:p-6">
-      <p className="max-w-48 text-[11px] leading-5 text-muted" title={hint}>
-        {label}
-      </p>
-      <p className={`numeric mt-2 text-xl font-medium sm:text-2xl ${tone}`}>
-        {value}
-      </p>
-    </div>
-  );
+
+function DashboardMetric({ icon, label, value, change }: { icon: React.ReactNode; label: string; value: string; change: string }) {
+  return <article className="panel dashboard-metric"><span>{icon}</span><div><p>{label}</p><strong className="numeric">{value}</strong><small>{change}</small></div></article>;
 }
-function PortfolioAllocation({ summary, base, cashShare, stablecoinShare, liquidityShare }: { summary: PortfolioSummary; base: string; cashShare: string | null; stablecoinShare: string | null; liquidityShare: string | null }) {
-  const positions = [...summary.positions].sort((a, b) => Number(b.allocation ?? 0) - Number(a.allocation ?? 0));
-  const colors = ["var(--gold)", "var(--violet)", "var(--teal)", "var(--green)", "var(--blue)"];
-  const cash = summary.value ? Number(percent(summary.cash, summary.value) ?? 0) : 0;
-  return <section className="panel allocation-map overflow-hidden">
-    <div className="flex items-center justify-between border-b border-line px-5 py-4">
-      <div><p className="eyebrow">პორტფელის რუკა</p><h2 className="mt-1 text-sm font-semibold">აქტივების განაწილება</h2></div>
-      <Link href={`${base}/allocation`} className="flex items-center gap-1 rounded-md border border-line px-2 py-1.5 text-[10px] text-muted hover:bg-raised hover:text-foreground">სრულად <ArrowUpRight size={13} /></Link>
-    </div>
-    <div className="p-5">
-      <div className="rounded-lg border border-line bg-raised/35 p-4">
-        <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] text-muted">დომინანტი პოზიცია</p><p className="mt-1 text-lg font-semibold">{positions[0]?.asset.symbol ?? "—"}</p></div><span className="numeric rounded-md bg-surface px-2 py-1 text-xs text-brand">{percentage(positions[0]?.allocation ?? null)}</span></div>
-        <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-surface" aria-label="აქტივების განაწილება">
-          {positions.map((position, index) => <span key={position.assetId} title={`${position.asset.symbol} ${percentage(position.allocation)}`} style={{ width: `${position.allocation ?? 0}%`, background: colors[index % colors.length] }} />)}
-          <span title={`ნაღდი ფული ${percentage(String(cash))}`} style={{ width: `${cash}%`, background: "var(--grey)" }} />
-        </div>
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="rounded-lg border border-line p-3"><p className="text-[10px] text-muted">ნაღდი ფული</p><p className="numeric mt-1 text-sm font-medium">{money(summary.cash)}</p><p className="numeric mt-1 text-[10px] text-muted">{percentage(cashShare)}</p></div>
-        <div className="rounded-lg border border-line p-3"><p className="text-[10px] text-muted">სტეიბლკოინები</p><p className="numeric mt-1 text-sm font-medium">{money(summary.stablecoinValue)}</p><p className="numeric mt-1 text-[10px] text-muted">{percentage(stablecoinShare)}</p></div>
-      </div>
-      <div className="mt-5 flex items-center justify-between"><p className="text-[11px] font-medium">ტოპ პოზიციები</p><span className="numeric text-[10px] text-muted">ლიკვიდობა {percentage(liquidityShare)}</span></div>
-      <div className="mt-3 space-y-3">
-        {positions.slice(0, 4).map((position, index) => <div key={position.assetId} className="group"><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-2"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} index={index} /><span className="text-xs font-medium">{position.asset.symbol}</span></div><div className="text-right"><p className="numeric text-xs">{percentage(position.allocation)}</p><p className="numeric mt-0.5 text-[9px] text-muted">{money(position.value)}</p></div></div><div className="mt-2 h-1 overflow-hidden rounded-full bg-raised"><div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${position.allocation ?? 0}%`, background: colors[index % colors.length] }} /></div></div>)}
-      </div>
-    </div>
-  </section>;
-}
-function DashboardMetric({icon,label,value,change,positive}:{icon:React.ReactNode;label:string;value:string;change:string;positive:boolean}) {
-  return <article className="panel signal-card p-4 sm:p-5"><div className="flex items-center justify-between"><span className="flex size-10 items-center justify-center rounded-xl border border-line bg-raised text-brand">{icon}</span><span className={positive ? "rounded-full bg-positive/10 px-2.5 py-1 text-[10px] font-semibold text-positive" : "rounded-full bg-negative/10 px-2.5 py-1 text-[10px] font-semibold text-negative"}>{change}</span></div><div className="mt-5"><p className="text-[11px] text-muted">{label}</p><p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.05em]">{value}</p></div></article>
+
+export function Metric({ label, value, hint, tone = "text-foreground" }: { label: string; value: string; hint?: string; tone?: string }) {
+  return <div className="min-w-0 p-5 sm:p-6"><p className="max-w-48 text-[11px] leading-5 text-muted" title={hint}>{label}</p><p className={`numeric mt-2 text-xl font-medium sm:text-2xl ${tone}`}>{value}</p></div>;
 }

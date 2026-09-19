@@ -4,6 +4,7 @@ import { getDb } from "@/server/db";
 import { snapshots } from "@/server/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { HistoryChart } from "@/components/history-chart";
+import { TransactionForm } from "@/components/transaction-form";
 export default async function Page({
   params,
 }: {
@@ -21,6 +22,7 @@ export default async function Page({
       <Overview
         summary={w.summary}
         base={`/portfolios/${portfolioId}`}
+        action={<TransactionForm portfolioId={portfolioId} revision={w.portfolio.revision} assets={w.assets} />}
         history={
           <HistoryChart
             snapshots={history

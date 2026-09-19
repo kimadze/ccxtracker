@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { money, dateTime } from "@/lib/formatters";
 import type { Snapshot } from "@/domain/analytics";
+import { useMemo, useState } from "react";
 export function HistoryChart({
   snapshots,
   illustrative = false,
@@ -17,6 +18,14 @@ export function HistoryChart({
   snapshots: Pick<Snapshot, "capturedAt" | "value">[];
   illustrative?: boolean;
 }) {
+  const [period, setPeriod] = useState<"7D" | "1M" | "3M" | "1Y" | "ALL">("1M");
+  const points = useMemo(() => {
+    const days = { "7D": 7, "1M": 30, "3M": 90, "1Y": 365, ALL: Infinity }[period];
+    const last = Math.max(0, ...snapshots.map((item) => Date.parse(item.capturedAt)));
+    return snapshots.filter((item) => days === Infinity || Date.parse(item.capturedAt) >= last - days * 86400000).map((s) => ({
+      time: Date.parse(s.capturedAt), value: Number(s.value),
+    }));
+  }, [snapshots, period]);
   if (!snapshots.length)
     return (
       <div className="flex h-56 flex-col items-center justify-center text-center">
@@ -26,12 +35,9 @@ export function HistoryChart({
         </p>
       </div>
     );
-  const points = snapshots.map((s) => ({
-    time: Date.parse(s.capturedAt),
-    value: Number(s.value),
-  }));
   return (
     <div>
+      <div className="chart-periods" aria-label="გრაფიკის პერიოდი">{(["7D","1M","3M","1Y","ALL"] as const).map((item) => <button key={item} type="button" className={period === item ? "active" : ""} onClick={() => setPeriod(item)}>{item}</button>)}</div>
       <div
         className="h-56 w-full"
         role="img"
@@ -43,7 +49,7 @@ export function HistoryChart({
       >
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <AreaChart
-            data={points}
+              data={points}
             margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
           >
             <defs>

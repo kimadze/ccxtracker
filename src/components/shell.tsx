@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -55,6 +56,7 @@ export function Shell({
 }) {
   const path = usePathname(), router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [query, setQuery] = useState("");
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
@@ -84,31 +86,7 @@ export function Shell({
       <div className="px-3 pb-6 pt-2">
         <Brand />
       </div>
-      <div className="mb-7 rounded-2xl border border-line bg-raised/35 p-3.5">
-        <div className="mb-2 text-[10px] font-medium tracking-wide text-muted">აქტიური პორტფელი</div>
-        <div className="relative">
-          <select
-            aria-label="პორტფელის არჩევა"
-            value={preview ? "preview" : (activeId ?? "")}
-            onChange={(e) => {
-              router.push(`/portfolios/${e.target.value}`);
-            }}
-            disabled={preview}
-            className="appearance-none border-0 bg-transparent py-1 pl-0 pr-6 text-xs font-medium"
-          >
-            {portfolios.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            className="pointer-events-none absolute right-0 top-2 text-muted"
-            size={14}
-          />
-        </div>
-      </div>
-      <p className="eyebrow mb-3 px-3">პორტფელი</p>
+      <p className="eyebrow mb-3 mt-5 px-3">პორტფელი</p>
       <nav className="space-y-1">
         {navigation.map(([segment, label, Icon]) => {
           const href = `${base}${segment ? `/${segment}` : ""}`;
@@ -123,7 +101,7 @@ export function Shell({
               className={clsx(
                 "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-[12px] transition-colors",
                 active
-                  ? "border-brand bg-brand font-semibold text-[var(--bg)]"
+                  ? "border-brand bg-gradient-to-r from-violet-600/80 to-indigo-800/70 font-semibold text-white"
                   : "border-transparent text-muted hover:bg-raised/75 hover:text-foreground",
               )}
             >
@@ -155,17 +133,7 @@ export function Shell({
         {!preview && (
           <PortfolioCreate compact />
         )}
-        <div className="mt-5 flex items-center gap-3 border-t border-line px-2 pt-5">
-          <span className="flex size-8 items-center justify-center rounded-full bg-brand/15 text-xs text-brand">
-            {userName.charAt(0)}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-xs">{userName}</p>
-            <p className="mt-1 text-[10px] text-muted">
-              {preview ? "სადემონსტრაციო სივრცე" : "პირადი სივრცე"}
-            </p>
-          </div>
-        </div>
+        <div className="sidebar-promo"><div><em>Better Investors</em><strong>Build Freedom.</strong></div><Image src="/ccx-mountain-hero.png" alt="" width={320} height={110}/><small>‹　Crypto Collective X</small></div>
         {!preview && <LogoutButton />}
       </div>
     </>
@@ -192,15 +160,12 @@ export function Shell({
         {collapsed ? compactSidebar : sidebar}
       </aside>
       <div className={clsx("transition-[padding] duration-300",collapsed ? "min-[981px]:pl-[76px]" : "min-[981px]:pl-[226px]")}>
-        <div className="flex items-center gap-1 overflow-x-auto border-b border-line bg-surface/95 px-3 py-2 backdrop-blur min-[981px]:hidden">
-          <Brand compact />
-          {navigation.map(([segment,label,Icon])=>{const href=`${base}${segment?`/${segment}`:""}`;const active=path===href||(segment==="positions"&&path.startsWith(`${href}/`));return <Link key={segment} href={href} className={clsx("flex min-w-max items-center gap-2 rounded-md border-b-2 px-3 py-2 text-xs",active?"border-brand bg-brand/10 text-foreground":"border-transparent text-muted")}><Icon size={15}/>{label}</Link>})}
-        </div>
-        <header className="flex h-[70px] items-center justify-between border-b border-line bg-surface/75 px-5 backdrop-blur-xl sm:px-7">
+        <header className="flex h-[60px] items-center justify-between border-b border-line bg-surface/75 px-5 backdrop-blur-xl sm:px-7">
           <div className="flex min-w-0 items-center gap-3">
             <button onClick={() => setCollapsed((value) => !value)} className="hidden size-10 place-items-center rounded-xl border border-line bg-raised/65 text-muted hover:text-foreground min-[981px]:grid" aria-label="მენიუს შეცვლა"><Menu size={18}/></button>
-            <button onClick={() => setCommandOpen(true)} className="hidden h-10 min-w-[310px] items-center gap-2 rounded-xl border border-line bg-raised/35 px-3 text-left text-[11px] text-muted hover:bg-raised md:flex">
-              <Search size={15}/><span>ძებნა, გვერდი ან ბრძანება...</span><kbd className="ml-auto rounded-lg border border-line bg-surface px-1.5 py-0.5 text-[9px]">⌘ K</kbd>
+            <button onClick={() => setMobileOpen(true)} className="grid size-9 place-items-center rounded-lg border border-line bg-raised/65 text-muted min-[981px]:hidden" aria-label="მენიუს გახსნა"><Menu size={18}/></button>
+            <button onClick={() => setCommandOpen(true)} className="hidden h-9 min-w-[410px] items-center gap-2 rounded-lg border border-line bg-raised/35 px-3 text-left text-[11px] text-muted hover:bg-raised md:flex">
+              <Search size={15}/><span>მოძებნე მონეტა, გვერდი ან ფუნქცია...</span><kbd className="ml-auto rounded border border-line bg-surface px-1.5 py-0.5 text-[9px]">⌘ K</kbd>
             </button>
             <div className="min-w-0 md:hidden">
               <span className="text-xs text-muted">პორტფელი</span>
@@ -213,6 +178,8 @@ export function Shell({
             <span className="numeric hidden rounded-xl border border-line bg-raised/35 px-3 py-1.5 text-xs text-muted sm:block">
               USD
             </span>
+            <span className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-semibold text-white">{userName.charAt(0)}</span>
+            <div className="relative hidden lg:block"><select aria-label="პორტფელის არჩევა" value={preview ? "preview" : (activeId ?? "")} disabled={preview} onChange={(event) => router.push(`/portfolios/${event.target.value}`)} className="w-40 appearance-none border-0 bg-transparent py-1 pl-1 pr-6 text-[10px] font-medium">{portfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}</select><ChevronDown className="pointer-events-none absolute right-0 top-2 text-muted" size={13}/></div>
             {preview ? (
               <Link className="text-xs text-brand" href="/login">
                 შესვლა <ArrowUpRight className="inline" size={14} />
@@ -225,12 +192,6 @@ export function Shell({
             )}
           </div>
         </header>
-        {preview && (
-          <div className="mx-3 mt-3 rounded-xl border border-brand/20 bg-brand/5 px-5 py-2.5 text-center text-[11px] leading-5 text-brand">
-            სადემონსტრაციო რეჟიმი · ნაჩვენები თანხები და ფასები გამოგონილია ·
-            რეალური მონაცემები არ ინახება
-          </div>
-        )}
         <main
           id="main"
           className="mx-auto max-w-[1640px] px-5 py-7 sm:px-8 sm:py-9"
@@ -242,6 +203,7 @@ export function Shell({
           <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
         </footer>
       </div>
+      {mobileOpen && <div className="fixed inset-0 z-[60] bg-black/55 backdrop-blur-sm min-[981px]:hidden" onMouseDown={() => setMobileOpen(false)}><aside className="flex h-full w-[270px] flex-col overflow-y-auto border-r border-line bg-surface px-3 py-5" onMouseDown={(event) => event.stopPropagation()}><button onClick={() => setMobileOpen(false)} className="ml-auto mb-2 grid size-9 place-items-center rounded-lg border border-line text-muted" aria-label="მენიუს დახურვა"><X size={17}/></button>{sidebar}</aside></div>}
       {commandOpen && (
         <div className="fixed inset-0 z-[70] grid place-items-start bg-black/50 px-4 pt-[12dvh] backdrop-blur-sm" onMouseDown={() => setCommandOpen(false)}>
           <div className="w-full max-w-xl overflow-hidden rounded-[20px] border border-line bg-surface" role="dialog" aria-modal="true" aria-label="ბრძანებების ძიება" onMouseDown={(event) => event.stopPropagation()}>
