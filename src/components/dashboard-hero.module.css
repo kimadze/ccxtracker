@@ -1,0 +1,149 @@
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: 114px;
+  padding: 18px 32px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 68% -30%, #43337999, transparent 58%),
+    linear-gradient(100deg, #080e1c, #0d132d 68%, #080b19);
+  color: #f5f5ff;
+}
+.landscape {
+  position: absolute;
+  z-index: -2;
+  inset: -40px 13% -48px 34%;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 18%,
+    black 88%,
+    transparent
+  );
+}
+.landscape img {
+  object-fit: cover;
+  object-position: 50% 37%;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #080e1cf0, transparent 57%),
+    linear-gradient(0deg, #080d1bb3, transparent 60%);
+}
+.copy {
+  flex-shrink: 0;
+}
+.copy h1 {
+  margin: 0;
+  font-size: clamp(28px, 3.35cqi, 44px);
+  font-weight: 750;
+  line-height: 1.16;
+  letter-spacing: -0.045em;
+}
+.copy h1 span {
+  color: #a466ff;
+}
+.copy h1 strong {
+  color: #4375ff;
+  font-weight: inherit;
+}
+.copy > p {
+  margin: 7px 0 0;
+  color: #999dce;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+}
+.signature {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding-left: 24px;
+}
+.signature p {
+  position: relative;
+  z-index: 1;
+  margin: 0 -16px 0 0;
+  color: #dccdff;
+  font-family: "Segoe Script", "Brush Script MT", cursive;
+  font-size: clamp(17px, 1.65cqi, 23px);
+  line-height: 1.15;
+  font-style: italic;
+  transform: rotate(-8deg);
+  white-space: nowrap;
+}
+.signature p span {
+  display: block;
+  padding-left: 16px;
+}
+.mark {
+  width: 94px;
+  height: 78px;
+  flex-shrink: 0;
+}
+.discipline {
+  margin: 0 0 0 22px;
+  color: #a5a1d5;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  line-height: 2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.discipline span {
+  display: block;
+  color: #dfdcff;
+}
+@container dashboard (max-width: 1100px) {
+  .discipline {
+    display: none;
+  }
+  .copy > p {
+    font-size: 14px;
+  }
+}
+@container dashboard (max-width: 800px) {
+  .hero {
+    padding: 22px 20px;
+  }
+  .signature {
+    display: none;
+  }
+  .landscape {
+    inset: -25px -12% -40px 36%;
+    opacity: 0.85;
+  }
+  .copy h1 {
+    font-size: clamp(26px, 5.5cqi, 38px);
+  }
+}
+@container dashboard (max-width: 450px) {
+  .hero {
+    min-height: 166px;
+    align-items: flex-start;
+    padding: 24px 20px;
+  }
+  .copy h1 {
+    font-size: clamp(23px, 7.4cqi, 32px);
+  }
+  .copy > p {
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .landscape {
+    inset: 45px -22% -45px 10%;
+    opacity: 0.9;
+  }
+  .hero::after {
+    background: linear-gradient(180deg, #080e1c, #080e1c22 70%);
+  }
+}

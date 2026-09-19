@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { DashboardHero } from "./dashboard-hero";
 import { ArrowLeftRight, CalendarDays, Coins, Pencil, Plus, Target, Wallet } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { money, percentage, pnlClass } from "@/lib/formatters";
@@ -31,15 +31,7 @@ export function Overview({ summary: s, base, preview = false, history, action }:
 
   return <div className="dashboard-space">
     {!s.complete && <div role="status" className="dashboard-alert">ზოგიერთი ფასი მიუწვდომელია — ნაჩვენებია ცნობილი ღირებულება.</div>}
-    <section className="dashboard-hero">
-      <div className="dashboard-hero-copy">
-        <h1>Track. <span>Analyze.</span> <strong>Grow.</strong></h1>
-        <p>Your simple crypto portfolio tracker</p>
-      </div>
-      <Image src="/ccx-mountain-hero.png" alt="" aria-hidden="true" width={900} height={300} priority />
-      <div className="dashboard-hero-motto"><span>One Portfolio</span><br/>A Bigger Tomorrow</div>
-      <div className="dashboard-hero-brand" aria-hidden="true">X</div>
-    </section>
+    <DashboardHero />
 
     <section className="dashboard-metrics">
       <DashboardMetric icon={<Wallet size={20}/>} label="სრული პორტფელი" value={money(s.value)} change={`${money(s.totalPnl)}  ${percentage(s.value && s.totalPnl ? percent(s.totalPnl, s.value) : null, true)}`} />
