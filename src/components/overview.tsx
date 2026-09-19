@@ -52,14 +52,22 @@ export function Overview({
           ძველია.
         </p>
       )}
-      <section className="overview-stage grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_390px]">
-      <section className="order-2 grid content-start gap-3 sm:grid-cols-2 xl:grid-cols-2">
+      <section className="reference-banner">
+        <div className="reference-banner-copy">
+          <p className="text-sm text-[var(--violet)]">Crypto Collective X</p>
+          <h2>Track. <span>Analyze.</span> <strong>Grow.</strong></h2>
+          <p className="mt-2 text-sm text-muted">თქვენი კრიპტო პორტფელი ერთ მკაფიო სამუშაო სივრცეში</p>
+        </div>
+        <div className="reference-banner-mark" aria-hidden="true">CX</div>
+      </section>
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardMetric icon={<Wallet size={19} />} label="პორტფელის ღირებულება" value={money(s.value)} change="სრული პერიოდი" positive={s.totalPnl !== null && Number(s.totalPnl) >= 0} />
         <DashboardMetric icon={<TrendingUp size={19} />} label="არარეალიზებული მოგება" value={money(s.unrealizedPnl)} change="მიმდინარე შედეგი" positive={s.unrealizedPnl !== null && Number(s.unrealizedPnl) >= 0} />
         <DashboardMetric icon={<Landmark size={19} />} label="ნაღდი და სტეიბლები" value={money(s.liquidity)} change={percentage(liquidityShare)} positive />
         <DashboardMetric icon={<ChartNoAxesCombined size={19} />} label="აქტიური პოზიციები" value={String(s.positions.length).padStart(2, "0")} change={largest ? largest.asset.symbol + " უდიდესი წილი" : "პორტფელი ცარიელია"} positive />
       </section>
-      <section className="panel signal-hero order-1 overflow-hidden">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
+      <section className="panel signal-hero overflow-hidden">
         <div>
           <div className="relative min-h-[286px] border-b border-line p-6 sm:p-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -120,8 +128,23 @@ export function Overview({
           </div>
         </div>
       </section>
+      <section className="panel action-console p-5 sm:p-6">
+        <p className="eyebrow">პორტფელის მოქმედებები</p>
+        <h2 className="mt-2 text-lg font-semibold">სწრაფი კონტროლი</h2>
+        <p className="mt-2 text-xs leading-6 text-muted">განაახლეთ პოზიციები, შეამოწმეთ განაწილება და გამოიყენეთ სცენარები.</p>
+        <div className="mt-6 grid gap-2">
+          <Link href={`${base}/transactions`} className="button-primary">ტრანზაქციის დამატება <ArrowUpRight size={15}/></Link>
+          <Link href={`${base}/scenarios`} className="button-secondary">სცენარების ლაბორატორია</Link>
+          <Link href={`${base}/allocation`} className="button-secondary">განაწილების მართვა</Link>
+        </div>
+        <div className="mt-6 rounded-xl border border-line bg-raised/30 p-4">
+          <p className="text-[10px] text-muted">ლიკვიდობის რეზერვი</p>
+          <p className="numeric mt-2 text-2xl font-semibold text-positive">{percentage(liquidityShare)}</p>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface"><div className="h-full rounded-full bg-brand" style={{width:`${Math.min(Number(liquidityShare?.replace("%", "") ?? 0),100)}%`}} /></div>
+        </div>
       </section>
-      <div className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
+      </div>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
         <section className="panel min-w-0 p-6 sm:p-7">
           <div className="mb-6 flex items-center justify-between">
             <div>
