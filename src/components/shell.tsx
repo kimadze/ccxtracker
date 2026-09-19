@@ -58,6 +58,7 @@ export function Shell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
   const base = preview ? "/preview" : `/portfolios/${activeId}`;
@@ -174,7 +175,7 @@ export function Shell({
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <button className="ccx-icon-button grid size-9 place-items-center border border-line bg-raised/45 text-muted hover:text-foreground" aria-label="შეტყობინებები"><Bell size={16}/></button>
+            <button onClick={() => setNotificationsOpen((value) => !value)} className="ccx-icon-button grid size-9 place-items-center border border-line bg-raised/45 text-muted hover:text-foreground" aria-label="შეტყობინებები" aria-expanded={notificationsOpen}><Bell size={16}/></button>
             <span className="numeric hidden rounded-lg border border-line bg-raised/35 px-3 py-1.5 text-xs text-muted sm:block">
               USD
             </span>
@@ -204,6 +205,7 @@ export function Shell({
         </footer>
       </div>
       {mobileOpen && <div className="fixed inset-0 z-[60] bg-black/55 backdrop-blur-sm min-[981px]:hidden" onMouseDown={() => setMobileOpen(false)}><aside className="flex h-full w-[270px] flex-col overflow-y-auto border-r border-line bg-surface px-3 py-5" onMouseDown={(event) => event.stopPropagation()}><button onClick={() => setMobileOpen(false)} className="ml-auto mb-2 grid size-9 place-items-center rounded-lg border border-line text-muted" aria-label="მენიუს დახურვა"><X size={17}/></button>{sidebar}</aside></div>}
+      {notificationsOpen && <div className="notification-popover" role="dialog" aria-label="შეტყობინებები"><div><strong>შეტყობინებები</strong><button onClick={() => setNotificationsOpen(false)} aria-label="შეტყობინებების დახურვა"><X size={15}/></button></div><p>ყველა მაჩვენებელი განახლებულია.</p><small>ახალი შეტყობინებები ამჟამად არ არის.</small></div>}
       {commandOpen && (
         <div className="fixed inset-0 z-[70] grid place-items-start bg-black/50 px-4 pt-[12dvh] backdrop-blur-sm" onMouseDown={() => setCommandOpen(false)}>
           <div className="w-full max-w-xl overflow-hidden rounded-[20px] border border-line bg-surface" role="dialog" aria-modal="true" aria-label="ბრძანებების ძიება" onMouseDown={(event) => event.stopPropagation()}>

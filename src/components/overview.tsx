@@ -17,10 +17,17 @@ export function Overview({ summary: s, base, preview = false, history, action }:
   const positions = [...s.positions].sort((a, b) => Number(b.allocation ?? 0) - Number(a.allocation ?? 0));
   const liquidityShare = s.value && s.liquidity !== null ? percent(s.liquidity, s.value) : null;
   const colors = ["var(--orange)", "var(--blue)", "var(--violet)", "var(--teal)", "var(--indigo)", "var(--grey)"];
-  const cashAllocation = s.value ? Number(percent(s.cash, s.value) ?? 0) : 0;
-  const slices = [...positions.map((position, index) => ({ label: position.asset.symbol, value: Number(position.allocation ?? 0), color: colors[index % colors.length] })), { label: "ნაღდი", value: cashAllocation, color: "var(--grey)" }].filter((item) => item.value > 0);
-  let cursor = 0;
-  const gradient = slices.map((slice) => { const start = cursor; cursor += slice.value; return `${slice.color} ${start}% ${cursor}%`; }).join(",");
+  const allocationPositions = positions.filter((position) => !position.asset.isStablecoin && Number(position.value ?? 0) > 0);
+  const allocationValue = allocationPositions.reduce((total, position) => total + Number(position.value ?? 0), 0);
+  const slices = allocationPositions.map((position, index) => ({
+    label: position.asset.symbol,
+    value: allocationValue ? (Number(position.value ?? 0) / allocationValue) * 100 : 0,
+    color: colors[index % colors.length],
+  }));
+  const gradient = slices.map((slice, index) => {
+    const start = slices.slice(0, index).reduce((total, item) => total + item.value, 0);
+    return `${slice.color} ${start}% ${start + slice.value}%`;
+  }).join(",");
 
   return <div className="dashboard-space">
     {!s.complete && <div role="status" className="dashboard-alert">ზოგიერთი ფასი მიუწვდომელია — ნაჩვენებია ცნობილი ღირებულება.</div>}
@@ -47,9 +54,9 @@ export function Overview({ summary: s, base, preview = false, history, action }:
         {history ?? <div className="dashboard-empty">ისტორიისთვის საჭიროა შენახული შეფასებები.</div>}
       </section>
       <section className="panel dashboard-allocation">
-        <header><h2>აქტივების განაწილება</h2><Link href={`${base}/allocation`}>USD</Link></header>
+        <header><h2>კრიპტო აქტივების განაწილება</h2><Link href={`${base}/allocation`}>ნახვა</Link></header>
         <div className="allocation-body">
-          <div className="allocation-donut" style={{ background: gradient ? `conic-gradient(${gradient})` : "var(--surface-raised)" }}><div><strong>{money(s.value, true)}</strong><span>სრული ღირებულება</span></div></div>
+          <div className="allocation-donut" style={{ background: gradient ? `conic-gradient(${gradient})` : "var(--surface-raised)" }}><div><strong>{money(String(allocationValue), true)}</strong><span>კრიპტო აქტივები</span></div></div>
           <div className="allocation-legend">{slices.slice(0, 6).map((slice) => <div key={slice.label}><i style={{background:slice.color}}/><span>{slice.label}</span><strong>{percentage(String(slice.value))}</strong></div>)}</div>
         </div>
       </section>
