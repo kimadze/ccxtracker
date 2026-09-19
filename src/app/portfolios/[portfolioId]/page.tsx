@@ -1,7 +1,5 @@
 import { loadWorkspace } from "@/server/workspace";
 import { Overview } from "@/components/overview";
-import { PageHeading } from "@/components/shell";
-import { TransactionForm } from "@/components/transaction-form";
 import { getDb } from "@/server/db";
 import { snapshots } from "@/server/db/schema";
 import { eq, asc } from "drizzle-orm";
@@ -20,18 +18,6 @@ export default async function Page({
     .orderBy(asc(snapshots.capturedAt));
   return (
     <>
-      <PageHeading
-        eyebrow={w.portfolio.name}
-        title="პორტფელის მიმოხილვა"
-        description={null}
-        action={
-          <TransactionForm
-            portfolioId={portfolioId}
-            revision={w.portfolio.revision}
-            assets={w.assets}
-          />
-        }
-      />
       <Overview
         summary={w.summary}
         base={`/portfolios/${portfolioId}`}
