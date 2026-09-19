@@ -64,6 +64,13 @@
       "when": 1789812000000,
       "tag": "0008_seed_coingecko_icons",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789898400000,
+      "tag": "0009_backfill_active_asset_icons",
+      "breakpoints": true
     }
   ]
 }
