@@ -58,7 +58,7 @@ export function Overview({
         <DashboardMetric icon={<Landmark size={19} />} label="ნაღდი და სტეიბლები" value={money(s.liquidity)} change={percentage(liquidityShare)} positive />
         <DashboardMetric icon={<ChartNoAxesCombined size={19} />} label="აქტიური პოზიციები" value={String(s.positions.length).padStart(2, "0")} change={largest ? largest.asset.symbol + " უდიდესი წილი" : "პორტფელი ცარიელია"} positive />
       </section>
-      <section className="panel overflow-hidden">
+      <section className="panel signal-hero overflow-hidden">
         <div>
           <div className="relative border-b border-line p-5 sm:p-7">
             <div className="flex items-center gap-2 text-xs text-muted">
@@ -218,7 +218,7 @@ function PortfolioAllocation({ summary, base, cashShare, stablecoinShare, liquid
   const positions = [...summary.positions].sort((a, b) => Number(b.allocation ?? 0) - Number(a.allocation ?? 0));
   const colors = ["var(--gold)", "var(--violet)", "var(--teal)", "var(--green)", "var(--blue)"];
   const cash = summary.value ? Number(percent(summary.cash, summary.value) ?? 0) : 0;
-  return <section className="panel overflow-hidden">
+  return <section className="panel allocation-map overflow-hidden">
     <div className="flex items-center justify-between border-b border-line px-5 py-4">
       <div><p className="eyebrow">პორტფელის რუკა</p><h2 className="mt-1 text-sm font-semibold">აქტივების განაწილება</h2></div>
       <Link href={`${base}/allocation`} className="flex items-center gap-1 rounded-md border border-line px-2 py-1.5 text-[10px] text-muted hover:bg-raised hover:text-foreground">სრულად <ArrowUpRight size={13} /></Link>
@@ -243,5 +243,5 @@ function PortfolioAllocation({ summary, base, cashShare, stablecoinShare, liquid
   </section>;
 }
 function DashboardMetric({icon,label,value,change,positive}:{icon:React.ReactNode;label:string;value:string;change:string;positive:boolean}) {
-  return <article className="panel p-4 sm:p-5"><div className="flex items-center justify-between"><span className="flex size-9 items-center justify-center rounded-md bg-raised text-brand">{icon}</span><span className={positive ? "rounded-md bg-positive/10 px-2 py-1 text-[10px] font-medium text-positive" : "rounded-md bg-negative/10 px-2 py-1 text-[10px] font-medium text-negative"}>{change}</span></div><div className="mt-4"><p className="text-[11px] text-muted">{label}</p><p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.05em]">{value}</p></div></article>
+  return <article className="panel signal-card p-4 sm:p-5"><div className="flex items-center justify-between"><span className="flex size-10 items-center justify-center rounded-xl border border-line bg-raised text-brand">{icon}</span><span className={positive ? "rounded-full bg-positive/10 px-2.5 py-1 text-[10px] font-semibold text-positive" : "rounded-full bg-negative/10 px-2.5 py-1 text-[10px] font-semibold text-negative"}>{change}</span></div><div className="mt-5"><p className="text-[11px] text-muted">{label}</p><p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.05em]">{value}</p></div></article>
 }
