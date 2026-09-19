@@ -41,8 +41,8 @@ export default async function Login({
           Google-ის პაროლი ამ პლატფორმაზე არ ინახება.
         </p>
       </div>
-      <Link href="/preview" className="mt-7 text-xs text-brand">
-        სადემონსტრაციო სივრცის ნახვა →
+      <Link href="/" className="mt-7 text-xs text-brand">
+        მთავარ გვერდზე დაბრუნება →
       </Link>
     </main>
   );

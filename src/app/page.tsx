@@ -39,9 +39,6 @@ export default function Home() {
               <Link className="button-primary" href="/login">
                 პორტფელის შექმნა <ArrowRight size={16} />
               </Link>
-              <Link className="button-secondary" href="/preview">
-                დიზაინის ნახვა <ArrowUpRight size={16} />
-              </Link>
             </div>
             <p className="mt-5 text-[11px] text-muted">
               ქართულენოვანი სამუშაო სივრცე · თქვენი მონაცემები, თქვენი კონტროლი

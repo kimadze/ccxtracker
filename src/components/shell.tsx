@@ -16,7 +16,6 @@ import {
   LineChart,
   ChevronDown,
   Plus,
-  ArrowUpRight,
   Bell,
   Menu,
   Search,
@@ -47,12 +46,10 @@ export function Shell({
   children,
   portfolios,
   userName,
-  preview = false,
 }: {
   children: React.ReactNode;
   portfolios: { id: string; name: string }[];
   userName: string;
-  preview?: boolean;
 }) {
   const path = usePathname(), router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -61,7 +58,7 @@ export function Shell({
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
-  const base = preview ? "/preview" : `/portfolios/${activeId}`;
+  const base = `/portfolios/${activeId}`;
   const commandItems = useMemo(
     () => [
       ...navigation.map(([segment, label, Icon]) => ({ label, Icon, href: `${base}${segment ? `/${segment}` : ""}` })),
@@ -131,11 +128,9 @@ export function Shell({
           <Settings2 size={17} />
           პარამეტრები
         </Link>
-        {!preview && (
-          <PortfolioCreate compact />
-        )}
+        <PortfolioCreate compact />
         <div className="sidebar-promo"><div><em>Better Investors</em><strong>Build Freedom.</strong></div><Image src="/ccx-mountain-hero.png" alt="" width={320} height={110}/><small>‹　Crypto Collective X</small></div>
-        {!preview && <LogoutButton />}
+        <LogoutButton />
       </div>
     </>
   );
@@ -170,7 +165,7 @@ export function Shell({
             </button>
             <div className="min-w-0 md:hidden">
               <span className="text-xs text-muted">პორტფელი</span>
-              <span className="ml-2 text-xs">{preview ? "დემო" : "სამუშაო სივრცე"}</span>
+              <span className="ml-2 text-xs">სამუშაო სივრცე</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -180,17 +175,11 @@ export function Shell({
               USD
             </span>
             <span className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-semibold text-white">{userName.charAt(0)}</span>
-            <div className="relative hidden lg:block"><select aria-label="პორტფელის არჩევა" value={preview ? "preview" : (activeId ?? "")} disabled={preview} onChange={(event) => router.push(`/portfolios/${event.target.value}`)} className="w-40 appearance-none border-0 bg-transparent py-1 pl-1 pr-6 text-[10px] font-medium">{portfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}</select><ChevronDown className="pointer-events-none absolute right-0 top-2 text-muted" size={13}/></div>
-            {preview ? (
-              <Link className="text-xs text-brand" href="/login">
-                შესვლა <ArrowUpRight className="inline" size={14} />
-              </Link>
-            ) : (
-              <span className="flex items-center gap-2 text-[10px] text-muted">
-                <span className="size-1.5 rounded-full bg-positive" />
-                {userName}
-              </span>
-            )}
+            <div className="relative hidden lg:block"><select aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={(event) => router.push(`/portfolios/${event.target.value}`)} className="w-40 appearance-none border-0 bg-transparent py-1 pl-1 pr-6 text-[10px] font-medium">{portfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}</select><ChevronDown className="pointer-events-none absolute right-0 top-2 text-muted" size={13}/></div>
+            <span className="flex items-center gap-2 text-[10px] text-muted">
+              <span className="size-1.5 rounded-full bg-positive" />
+              {userName}
+            </span>
           </div>
         </header>
         <main

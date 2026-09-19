@@ -29,7 +29,7 @@ npm run db:migrate
 npm run dev
 ```
 
-Open `http://localhost:3000`. `/preview` contains explicitly fictional fixtures and works without service credentials; an authenticated portfolio starts empty. Preview pages never write data. Real sign-in requires configured services.
+Open `http://localhost:3000`. Real sign-in requires configured services; each user works only with their own portfolio data.
 
 ## Environment
 
