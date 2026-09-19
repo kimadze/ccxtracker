@@ -12,7 +12,7 @@ import {
 import type { PortfolioSummary } from "@/domain/types";
 import { money, percentage, pnlClass } from "@/lib/formatters";
 import { percent } from "@/domain/decimal";
-import { PositionsTable } from "./positions";
+import { AssetIcon, PositionsTable } from "./positions";
 
 export function Overview({
   summary: s,
@@ -141,66 +141,13 @@ export function Overview({
             </div>
           )}
         </section>
-        <section className="panel p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium">აქტივების განაწილება</h2>
-            <Link
-              href={`${base}/allocation`}
-              className="text-muted hover:text-brand"
-              aria-label="განაწილების ნახვა"
-            >
-              <ArrowUpRight size={17} />
-            </Link>
-          </div>
-          <div className="my-6">
-            <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="numeric text-3xl font-medium">
-                {s.positions.length.toString().padStart(2, "0")}
-              </p>
-              <p className="mt-1 text-[11px] text-muted">აქტიური პოზიცია</p>
-              <p className="mt-4 text-[11px] text-muted">საერთო ლიკვიდობა</p>
-              <p className="numeric mt-1 text-sm">{money(s.liquidity)}</p>
-              <p className="numeric mt-1 text-[10px] text-muted">
-                {percentage(liquidityShare)}
-              </p>
-            </div><p className="numeric text-sm text-muted">{percentage(liquidityShare)}</p></div>
-            <AllocationBar summary={s} />
-          </div>
-          <div className="mb-5 grid grid-cols-2 gap-2">
-            <LiquidityMetric
-              label="ნაღდი ფული"
-              value={s.cash}
-              share={cashShare}
-              tone="bg-[var(--grey)]"
-            />
-            <LiquidityMetric
-              label="სტეიბლკოინები"
-              value={s.stablecoinValue}
-              share={stablecoinShare}
-              tone="bg-[var(--teal)]"
-            />
-          </div>
-          <div className="space-y-3">
-            {s.positions.slice(0, 3).map((p, i) => (
-              <div
-                key={p.assetId}
-                className="flex items-center justify-between text-xs"
-              >
-                <span className="flex items-center gap-2.5">
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ background: ["var(--gold)", "var(--violet)", "var(--green)"][i] }}
-                  />
-                  {p.asset.symbol}
-                </span>
-                <span className="numeric text-muted">
-                  {percentage(p.allocation)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
+        <PortfolioAllocation
+          summary={s}
+          base={base}
+          cashShare={cashShare}
+          stablecoinShare={stablecoinShare}
+          liquidityShare={liquidityShare}
+        />
       </div>
       <section className="panel">
         <div className="flex items-center justify-between px-6 pt-6 pb-3">
@@ -245,28 +192,6 @@ export function Overview({
     </div>
   );
 }
-function LiquidityMetric({
-  label,
-  value,
-  share,
-  tone,
-}: {
-  label: string;
-  value: string | null;
-  share: string | null;
-  tone: string;
-}) {
-  return (
-    <div className="rounded-lg border border-line bg-raised/35 p-3">
-      <p className="flex items-center gap-2 text-[10px] text-muted">
-        <span className={`size-1.5 rounded-full ${tone}`} />
-        {label}
-      </p>
-      <p className="numeric mt-2 text-sm font-medium">{money(value)}</p>
-      <p className="numeric mt-1 text-[10px] text-muted">{percentage(share)}</p>
-    </div>
-  );
-}
 export function Metric({
   label,
   value,
@@ -289,7 +214,34 @@ export function Metric({
     </div>
   );
 }
-function AllocationBar({summary}:{summary:PortfolioSummary}){const colors=["var(--gold)","var(--violet)","var(--green)","var(--blue)","var(--teal)"];const cash=summary.value?Number(percent(summary.cash,summary.value)??0):0;return <div className="mt-5 flex h-2.5 overflow-hidden rounded-sm border border-line bg-raised" aria-label="აქტივების განაწილება">{summary.positions.map((p,i)=><span key={p.assetId} style={{width:`${p.allocation??0}%`,background:colors[i%colors.length]}} title={`${p.asset.symbol} ${percentage(p.allocation)}`}/>)}<span style={{width:`${cash}%`,background:"var(--grey)"}} title={`ნაღდი ფული ${percentage(String(cash))}`}/></div>}
+function PortfolioAllocation({ summary, base, cashShare, stablecoinShare, liquidityShare }: { summary: PortfolioSummary; base: string; cashShare: string | null; stablecoinShare: string | null; liquidityShare: string | null }) {
+  const positions = [...summary.positions].sort((a, b) => Number(b.allocation ?? 0) - Number(a.allocation ?? 0));
+  const colors = ["var(--gold)", "var(--violet)", "var(--teal)", "var(--green)", "var(--blue)"];
+  const cash = summary.value ? Number(percent(summary.cash, summary.value) ?? 0) : 0;
+  return <section className="panel overflow-hidden">
+    <div className="flex items-center justify-between border-b border-line px-5 py-4">
+      <div><p className="eyebrow">პორტფელის რუკა</p><h2 className="mt-1 text-sm font-semibold">აქტივების განაწილება</h2></div>
+      <Link href={`${base}/allocation`} className="flex items-center gap-1 rounded-md border border-line px-2 py-1.5 text-[10px] text-muted hover:bg-raised hover:text-foreground">სრულად <ArrowUpRight size={13} /></Link>
+    </div>
+    <div className="p-5">
+      <div className="rounded-lg border border-line bg-raised/35 p-4">
+        <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] text-muted">დომინანტი პოზიცია</p><p className="mt-1 text-lg font-semibold">{positions[0]?.asset.symbol ?? "—"}</p></div><span className="numeric rounded-md bg-surface px-2 py-1 text-xs text-brand">{percentage(positions[0]?.allocation ?? null)}</span></div>
+        <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-surface" aria-label="აქტივების განაწილება">
+          {positions.map((position, index) => <span key={position.assetId} title={`${position.asset.symbol} ${percentage(position.allocation)}`} style={{ width: `${position.allocation ?? 0}%`, background: colors[index % colors.length] }} />)}
+          <span title={`ნაღდი ფული ${percentage(String(cash))}`} style={{ width: `${cash}%`, background: "var(--grey)" }} />
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="rounded-lg border border-line p-3"><p className="text-[10px] text-muted">ნაღდი ფული</p><p className="numeric mt-1 text-sm font-medium">{money(summary.cash)}</p><p className="numeric mt-1 text-[10px] text-muted">{percentage(cashShare)}</p></div>
+        <div className="rounded-lg border border-line p-3"><p className="text-[10px] text-muted">სტეიბლკოინები</p><p className="numeric mt-1 text-sm font-medium">{money(summary.stablecoinValue)}</p><p className="numeric mt-1 text-[10px] text-muted">{percentage(stablecoinShare)}</p></div>
+      </div>
+      <div className="mt-5 flex items-center justify-between"><p className="text-[11px] font-medium">ტოპ პოზიციები</p><span className="numeric text-[10px] text-muted">ლიკვიდობა {percentage(liquidityShare)}</span></div>
+      <div className="mt-3 space-y-3">
+        {positions.slice(0, 4).map((position, index) => <div key={position.assetId} className="group"><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-2"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} index={index} /><span className="text-xs font-medium">{position.asset.symbol}</span></div><div className="text-right"><p className="numeric text-xs">{percentage(position.allocation)}</p><p className="numeric mt-0.5 text-[9px] text-muted">{money(position.value)}</p></div></div><div className="mt-2 h-1 overflow-hidden rounded-full bg-raised"><div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${position.allocation ?? 0}%`, background: colors[index % colors.length] }} /></div></div>)}
+      </div>
+    </div>
+  </section>;
+}
 function DashboardMetric({icon,label,value,change,positive}:{icon:React.ReactNode;label:string;value:string;change:string;positive:boolean}) {
   return <article className="panel p-4 sm:p-5"><div className="flex items-center justify-between"><span className="flex size-9 items-center justify-center rounded-md bg-raised text-brand">{icon}</span><span className={positive ? "rounded-md bg-positive/10 px-2 py-1 text-[10px] font-medium text-positive" : "rounded-md bg-negative/10 px-2 py-1 text-[10px] font-medium text-negative"}>{change}</span></div><div className="mt-4"><p className="text-[11px] text-muted">{label}</p><p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.05em]">{value}</p></div></article>
 }
