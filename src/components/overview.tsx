@@ -3,7 +3,7 @@ import { ArrowUpRight, Wallet } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
 import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
-import { PositionsTable } from "./positions";
+import { AssetIcon, PositionsTable } from "./positions";
 import { PortfolioCalculator } from "./portfolio-calculator";
 
 export function Overview({ summary: s, base, portfolioName, history, action }: {
@@ -18,14 +18,11 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
   const cryptoTotal = crypto.reduce((sum, p) => sum.plus(p.value ?? 0), decimal(0));
   const colors = ["var(--orange)", "var(--blue)", "var(--violet)", "var(--teal)", "var(--indigo)", "var(--grey)"];
   const slices = crypto.map((p, index) => ({
+    position: p,
     label: p.asset.symbol,
     share: cryptoTotal.gt(0) ? percent(p.value ?? "0", cryptoTotal.toString()) : null,
     color: colors[index % colors.length],
   }));
-  const gradient = slices.reduce<{ end: number; stops: string[] }>((acc, slice, index) => {
-    const end = index === slices.length - 1 ? 100 : acc.end + Number(slice.share ?? 0);
-    return { end, stops: [...acc.stops, slice.color + " " + acc.end + "% " + end + "%"] };
-  }, { end: 0, stops: [] }).stops.join(", ");
   const netCapital = s.contributions !== null && s.withdrawals !== null
     ? decimal(s.contributions).minus(s.withdrawals).toString()
     : null;
@@ -70,13 +67,27 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
       </div>
       {!s.complete ? <div className="dashboard-empty">ყველა აქტივის ფასის მიღების შემდეგ განაწილება სრულად გამოჩნდება.</div>
         : !crypto.length ? <div className="dashboard-empty">არასტეიბლ კრიპტოაქტივები ჯერ არ გაქვთ.</div>
-        : <div className="allocation-body">
-          <div className="allocation-donut" style={{ background: "conic-gradient(" + gradient + ")" }}>
-            <div><strong className="numeric">{money(cryptoTotal.toString(), true)}</strong><span>კრიპტო აქტივები</span></div>
+        : <div className="crypto-distribution">
+          <div className="crypto-distribution-summary">
+            <div><span>კრიპტო აქტივების ღირებულება</span><strong className="numeric">{money(cryptoTotal.toString())}</strong></div>
+            <span className="crypto-distribution-count">{crypto.length} აქტივი</span>
           </div>
-          <div className="allocation-legend max-h-[210px] overflow-y-auto">
-            {slices.map((slice) => <div key={slice.label}><i style={{ background: slice.color }} /><span title={slice.label}>{slice.label}</span><strong className="numeric">{percentage(slice.share)}</strong></div>)}
+          <div className="crypto-distribution-spectrum" aria-hidden="true">
+            {slices.map((slice) => <span key={slice.position.assetId} style={{ flexGrow: Number(slice.share), background: slice.color }} />)}
           </div>
+          <div className="crypto-distribution-labels"><span>აქტივი / ღირებულება</span><span>წილი კრიპტოში</span></div>
+          <ul className="crypto-distribution-list">
+            {slices.map((slice, index) => <li key={slice.position.assetId}>
+              <Link href={`${base}/positions/${slice.position.assetId}`} className="crypto-distribution-asset">
+                <AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} />
+                <div className="crypto-distribution-identity"><strong>{slice.label}</strong><span title={slice.position.asset.name}>{slice.position.asset.name}</span></div>
+                <div className="crypto-distribution-value"><strong className="numeric">{percentage(slice.share)}</strong><span className="numeric">{money(slice.position.value)}</span></div>
+                <ArrowUpRight size={14} className="crypto-distribution-arrow" />
+                <div className="crypto-distribution-track" aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, Number(slice.share)))}%`, background: slice.color }} /></div>
+              </Link>
+            </li>)}
+          </ul>
+          <p className="crypto-distribution-note">წილები დათვლილია მხოლოდ არასტეიბლ კრიპტოაქტივების ღირებულებიდან.</p>
         </div>}
     </section>
 
