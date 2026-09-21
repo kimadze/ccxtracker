@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowUpRight, Layers3 } from "lucide-react";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
+import { BalanceValue } from "./ui";
 
 const colors = [
   "var(--accent)",
@@ -124,12 +125,11 @@ export function PositionsTable({
                   </div>
                 </td>
                 <td className="table-cell numeric text-sm font-medium">
-                  {money(p.value)}
+                  <BalanceValue>{money(p.value)}</BalanceValue>
                 </td>
                 <td className={`table-cell ${pnlClass(p.unrealizedPnl)}`}>
                   <div className="numeric text-xs">
-                    {p.unrealizedPnl && Number(p.unrealizedPnl) > 0 ? "+" : ""}
-                    {money(p.unrealizedPnl)}
+                    <BalanceValue>{p.unrealizedPnl && Number(p.unrealizedPnl) > 0 ? "+" : ""}{money(p.unrealizedPnl)}</BalanceValue>
                   </div>
                   <div className="mt-1 text-[10px]">
                     {percentage(p.returnPercent, true)}
@@ -163,7 +163,7 @@ export function PositionsTable({
                 </div>
               </div>
               <div className="text-right">
-                <p className="numeric font-medium">{money(p.value)}</p>
+                <p className="numeric font-medium"><BalanceValue>{money(p.value)}</BalanceValue></p>
                 <p className="mt-1 text-xs text-muted">პორტფელის {percentage(p.allocation)}</p>
               </div>
             </div>
@@ -172,7 +172,7 @@ export function PositionsTable({
               <div><dt className="text-muted">საშუალო ფასი</dt><dd className="numeric mt-1">{money(p.averagePrice)}</dd></div>
               <div><dt className="text-muted">მიმდინარე ფასი</dt><dd className="numeric mt-1">{money(p.quote?.price ?? null)}</dd></div>
               <div><dt className="text-muted">24 საათი</dt><dd className={`numeric mt-1 ${pnlClass(p.quote?.change24h ?? null)}`}>{percentage(p.quote?.change24h ?? null, true)}</dd></div>
-              <div className="col-span-2"><dt className="text-muted">არარეალიზებული P/L</dt><dd className={`numeric mt-1 ${pnlClass(p.unrealizedPnl)}`}>{money(p.unrealizedPnl)} · {percentage(p.returnPercent, true)}</dd></div>
+              <div className="col-span-2"><dt className="text-muted">არარეალიზებული P/L</dt><dd className={`numeric mt-1 ${pnlClass(p.unrealizedPnl)}`}><BalanceValue>{money(p.unrealizedPnl)}</BalanceValue> · {percentage(p.returnPercent, true)}</dd></div>
             </dl>
             <div className="mt-4 flex justify-end text-xs text-muted">
               {!preview && (

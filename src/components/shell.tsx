@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
@@ -71,42 +71,13 @@ function Navigation({ base, path, compact, onNavigate }: {
 
 function BalancePrivacyToggle() {
   const hidden = useSyncExternalStore(subscribePrivacy, readPrivacy, serverPrivacy);
-  const originals = useRef(new Map<Text, string>());
 
   useEffect(() => {
-    const mask = (value: string) => value.replace(/(?:[+-]\s*)?\$[\d\s\u00a0.,]+(?:\s*(?:მლნ|მლრდ|ათ\.|ტრილ\.))?/g, "••••••");
-    const restore = () => {
-      for (const [node, value] of originals.current) {
-        if (node.isConnected && node.nodeValue === mask(value)) node.nodeValue = value;
-        if (!node.isConnected) originals.current.delete(node);
-      }
-    };
     if (!hidden) {
       document.documentElement.removeAttribute("data-balance-privacy");
-      restore();
       return;
     }
     document.documentElement.setAttribute("data-balance-privacy", "hidden");
-    const maskNode = (node: Text) => {
-      const value = node.nodeValue ?? "";
-      if (!value.includes("$")) return;
-      const previous = originals.current.get(node);
-      if (previous === undefined || value !== mask(previous)) originals.current.set(node, value);
-      node.nodeValue = mask(value);
-    };
-    const maskBalances = () => {
-      const nodes = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      let node: Node | null;
-      while ((node = nodes.nextNode())) {
-        const parent = node.parentElement;
-        if (parent?.closest("script, style, [data-privacy-ignore]")) continue;
-        maskNode(node as Text);
-      }
-    };
-    maskBalances();
-    const observer = new MutationObserver(maskBalances);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
   }, [hidden]);
 
   return <button

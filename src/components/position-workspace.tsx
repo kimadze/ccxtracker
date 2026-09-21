@@ -52,7 +52,7 @@ export function PositionWorkspace({
       {tab === "overview" && (
         <div className="panel grid grid-cols-2 gap-7 p-7 xl:grid-cols-4">
           <Metric label="რაოდენობა" value={quantity(p.quantity)} />
-          <Metric label="მიმდინარე ღირებულება" value={money(p.value)} />
+          <Metric label="მიმდინარე ღირებულება" value={money(p.value)} sensitive />
           <Metric
             label="საშუალო შესყიდვის ფასი"
             value={money(p.averagePrice)}
@@ -61,8 +61,9 @@ export function PositionWorkspace({
             label="შემოსავალი / დანახარჯი"
             value={money(p.unrealizedPnl)}
             tone={pnlClass(p.unrealizedPnl)}
+            sensitive
           />
-          <Metric label="თვითღირებულება" value={money(p.costBasis)} />
+          <Metric label="თვითღირებულება" value={money(p.costBasis)} sensitive />
           <Metric
             label="მიმდინარე ფასი"
             value={money(p.quote?.price ?? null)}

@@ -56,9 +56,11 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
-  await expect(page.locator("main")).toContainText("••••••");
+  await expect(page.locator("html")).toHaveAttribute("data-balance-privacy", "hidden");
+  await expect(page.locator(".balance-value").first()).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  await expect(page.getByRole("cell", { name: "$50 000,00", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
-  await expect(page.locator("main")).not.toContainText("••••••");
+  await expect(page.locator("html")).not.toHaveAttribute("data-balance-privacy");
   await page.goto(`${portfolioUrl}/settings`);
   await page
     .getByRole("checkbox", { name: /მხოლოდ კრიპტოაქტივების ღირებულება/ })

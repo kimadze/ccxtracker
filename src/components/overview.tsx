@@ -5,6 +5,7 @@ import { decimal, percent } from "@/domain/decimal";
 import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon, PositionsTable } from "./positions";
 import { PortfolioCalculator } from "./portfolio-calculator";
+import { BalanceValue } from "./ui";
 
 export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = false, history, action }: {
   summary: PortfolioSummary;
@@ -64,14 +65,14 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="portfolio-value-title" className="text-sm font-semibold">{cryptoOnlyValue ? "კრიპტოაქტივების ღირებულება" : "პორტფელის ღირებულება"}</h2>
-          <p className="dashboard-value numeric mt-3">{money(displayedValue)}</p>
+          <p className="dashboard-value numeric mt-3"><BalanceValue>{money(displayedValue)}</BalanceValue></p>
           <p className="mt-1 text-xs text-muted">{cryptoOnlyValue
             ? `ნაღდი ფულისა და სტეიბლკოინების გარეშე${s.complete ? "" : " · შეფასება არასრულია"}`
             : s.complete ? "მთლიანი შეფასება" : "ცნობილი ღირებულება · შეფასება არასრულია"}</p>
         </div>
         <div className="text-left sm:text-right">
           <p className="text-xs text-muted">მთლიანი მოგება / ზარალი</p>
-          <p className={`numeric mt-2 text-xl font-semibold ${pnlClass(s.totalPnl)}`}>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</p>
+          <p className={`numeric mt-2 text-xl font-semibold ${pnlClass(s.totalPnl)}`}><BalanceValue>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</BalanceValue></p>
           <p className="mt-1 text-xs text-muted">სრული პერიოდი · თანხის შეტანა/გატანის გარეშე</p>
         </div>
       </div>
@@ -92,7 +93,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
           <div className="crypto-distribution-layout">
             <div className="crypto-distribution-chart">
               <div className="crypto-distribution-ring" style={{ background: `conic-gradient(${allocationGradient})` }}>
-                <div><span>სულ</span><strong className="numeric">{money(cryptoTotal.toString(), true)}</strong><small>{crypto.length} აქტივი</small></div>
+                <div><span>სულ</span><strong className="numeric"><BalanceValue>{money(cryptoTotal.toString(), true)}</BalanceValue></strong><small>{crypto.length} აქტივი</small></div>
               </div>
               <div className="crypto-distribution-spectrum" aria-hidden="true">
                 {slices.map((slice) => <span key={slice.position.assetId} style={{ flexGrow: Number(slice.share), background: slice.color }} />)}
@@ -104,7 +105,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
                 {primarySlices.map((slice, index) => <li key={slice.position.assetId}>
                   <Link href={`${base}/positions/${slice.position.assetId}`} className="crypto-distribution-asset">
                     <AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} />
-                    <div className="crypto-distribution-identity"><strong>{slice.label}</strong><span className="numeric">{money(slice.position.value)}</span></div>
+                    <div className="crypto-distribution-identity"><strong>{slice.label}</strong><span className="numeric"><BalanceValue>{money(slice.position.value)}</BalanceValue></span></div>
                     <strong className="crypto-distribution-share numeric">{percentage(slice.share)}</strong>
                     <ArrowUpRight size={13} className="crypto-distribution-arrow" />
                   </Link>
@@ -112,7 +113,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
                 {remainingSlices.length > 0 && <li>
                   <div className="crypto-distribution-asset crypto-distribution-other">
                     <span className="crypto-distribution-other-icon">+{remainingSlices.length}</span>
-                    <div className="crypto-distribution-identity"><strong>სხვა აქტივები</strong><span className="numeric">{money(remainingValue.toString())}</span></div>
+                    <div className="crypto-distribution-identity"><strong>სხვა აქტივები</strong><span className="numeric"><BalanceValue>{money(remainingValue.toString())}</BalanceValue></span></div>
                     <strong className="crypto-distribution-share numeric">{percentage(remainingShare.toString())}</strong>
                   </div>
                 </li>}
@@ -127,9 +128,9 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     </section>
 
     <section className="dashboard-metrics" aria-label="პორტფელის მაჩვენებლები">
-      <DashboardMetric label="წმინდა შეტანილი კაპიტალი" value={money(netCapital)} hint="შეტანები მინუს გატანები" />
-      <DashboardMetric label="რეალიზებული P/L" value={money(s.realizedPnl)} tone={pnlClass(s.realizedPnl)} hint="დახურული გარიგებების შედეგი" />
-      <DashboardMetric label="არარეალიზებული P/L" value={money(s.unrealizedPnl)} tone={pnlClass(s.unrealizedPnl)} hint="მიმდინარე პოზიციების შედეგი" />
+      <DashboardMetric label="წმინდა შეტანილი კაპიტალი" value={money(netCapital)} hint="შეტანები მინუს გატანები" sensitive />
+      <DashboardMetric label="რეალიზებული P/L" value={money(s.realizedPnl)} tone={pnlClass(s.realizedPnl)} hint="დახურული გარიგებების შედეგი" sensitive />
+      <DashboardMetric label="არარეალიზებული P/L" value={money(s.unrealizedPnl)} tone={pnlClass(s.unrealizedPnl)} hint="მიმდინარე პოზიციების შედეგი" sensitive />
       <DashboardMetric label="აქტიური პოზიციები" value={String(positions.length)} hint="მიმდინარე აქტივები" />
     </section>
 
@@ -141,12 +142,12 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     <aside className="dashboard-side-stack" aria-label="პორტფელის დამატებითი ინფორმაცია">
       <section className="panel">
         <div className="mb-4 flex items-center gap-2"><Wallet size={17} className="text-brand" /><h2>ლიკვიდობა</h2></div>
-        <p className="numeric text-2xl font-semibold">{money(s.liquidity)}</p>
+        <p className="numeric text-2xl font-semibold"><BalanceValue>{money(s.liquidity)}</BalanceValue></p>
         <p className="mt-1 text-xs text-muted">პორტფელის {percentage(s.value && s.liquidity !== null ? percent(s.liquidity, s.value) : null)}</p>
         <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-raised"><div className="h-full rounded-full bg-brand" style={{ width: Math.max(0, Math.min(100, Number(s.value && s.liquidity !== null ? percent(s.liquidity, s.value) : 0))) + "%" }} /></div>
         <div className="mt-4 grid grid-cols-2 gap-4 border-t border-line pt-4 text-xs">
-          <div><p className="text-muted">ნაღდი ფული</p><strong className="numeric mt-1 block text-sm">{money(s.cash)}</strong></div>
-          <div><p className="text-muted">სტეიბლკოინები</p><strong className="numeric mt-1 block text-sm">{money(s.stablecoinValue)}</strong></div>
+          <div><p className="text-muted">ნაღდი ფული</p><strong className="numeric mt-1 block text-sm"><BalanceValue>{money(s.cash)}</BalanceValue></strong></div>
+          <div><p className="text-muted">სტეიბლკოინები</p><strong className="numeric mt-1 block text-sm"><BalanceValue>{money(s.stablecoinValue)}</BalanceValue></strong></div>
         </div>
       </section>
       <section className="panel">
@@ -200,14 +201,14 @@ function MoverEntry({ label, base, position, value }: {
   </Link>;
 }
 
-function DashboardMetric({ label, value, hint, tone = "text-foreground" }: {
-  label: string; value: string; hint: string; tone?: string;
+function DashboardMetric({ label, value, hint, tone = "text-foreground", sensitive = false }: {
+  label: string; value: string; hint: string; tone?: string; sensitive?: boolean;
 }) {
-  return <article className="panel dashboard-metric"><p>{label}</p><strong className={`numeric ${tone}`}>{value}</strong><small>{hint}</small></article>;
+  return <article className="panel dashboard-metric"><p>{label}</p><strong className={`numeric ${tone}`}>{sensitive ? <BalanceValue>{value}</BalanceValue> : value}</strong><small>{hint}</small></article>;
 }
 
-export function Metric({ label, value, hint, tone = "text-foreground" }: {
-  label: string; value: string; hint?: string; tone?: string;
+export function Metric({ label, value, hint, tone = "text-foreground", sensitive = false }: {
+  label: string; value: string; hint?: string; tone?: string; sensitive?: boolean;
 }) {
-  return <div className="min-w-0 p-5"><p className="text-xs leading-5 text-muted" title={hint}>{label}</p><p className={`numeric mt-2 text-xl font-semibold ${tone}`}>{value}</p></div>;
+  return <div className="min-w-0 p-5"><p className="text-xs leading-5 text-muted" title={hint}>{label}</p><p className={`numeric mt-2 text-xl font-semibold ${tone}`}>{sensitive ? <BalanceValue>{value}</BalanceValue> : value}</p></div>;
 }

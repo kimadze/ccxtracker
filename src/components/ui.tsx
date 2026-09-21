@@ -10,6 +10,10 @@ import {
   type ReactElement,
 } from "react";
 
+export function BalanceValue({ children }: { children: ReactNode }) {
+  return <span className="balance-value">{children}</span>;
+}
+
 export function Modal({
   open,
   onOpenChange,
