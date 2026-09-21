@@ -27,6 +27,10 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
     const end = index === slices.length - 1 ? 100 : acc.end + Number(slice.share ?? 0);
     return { end, stops: [...acc.stops, `${slice.color} ${acc.end}% ${end}%`] };
   }, { end: 0, stops: [] }).stops.join(", ");
+  const primarySlices = slices.length > 5 ? slices.slice(0, 4) : slices;
+  const remainingSlices = slices.length > 5 ? slices.slice(4) : [];
+  const remainingValue = remainingSlices.reduce((sum, slice) => sum.plus(slice.position.value ?? 0), decimal(0));
+  const remainingShare = remainingSlices.reduce((sum, slice) => sum + Number(slice.share ?? 0), 0);
   const netCapital = s.contributions !== null && s.withdrawals !== null
     ? decimal(s.contributions).minus(s.withdrawals).toString()
     : null;
@@ -84,7 +88,7 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
             <div className="crypto-distribution-assets">
               <div className="crypto-distribution-labels"><span>აქტივი</span><span>წილი</span></div>
               <ul className="crypto-distribution-list">
-                {slices.map((slice, index) => <li key={slice.position.assetId}>
+                {primarySlices.map((slice, index) => <li key={slice.position.assetId}>
                   <Link href={`${base}/positions/${slice.position.assetId}`} className="crypto-distribution-asset">
                     <AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} />
                     <div className="crypto-distribution-identity"><strong>{slice.label}</strong><span className="numeric">{money(slice.position.value)}</span></div>
@@ -92,6 +96,13 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
                     <ArrowUpRight size={13} className="crypto-distribution-arrow" />
                   </Link>
                 </li>)}
+                {remainingSlices.length > 0 && <li>
+                  <div className="crypto-distribution-asset crypto-distribution-other">
+                    <span className="crypto-distribution-other-icon">+{remainingSlices.length}</span>
+                    <div className="crypto-distribution-identity"><strong>სხვა აქტივები</strong><span className="numeric">{money(remainingValue.toString())}</span></div>
+                    <strong className="crypto-distribution-share numeric">{percentage(remainingShare.toString())}</strong>
+                  </div>
+                </li>}
               </ul>
             </div>
           </div>
