@@ -427,5 +427,8 @@ export const userSettings = pgTable("user_settings", {
     .references(() => users.id, { onDelete: "cascade" }),
   timezone: text("timezone").default("Asia/Tbilisi").notNull(),
   displayCurrency: text("display_currency").default("USD").notNull(),
+  cryptoOnlyPortfolioValue: boolean("crypto_only_portfolio_value")
+    .default(false)
+    .notNull(),
   ...times(),
 });

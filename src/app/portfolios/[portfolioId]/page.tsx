@@ -22,6 +22,7 @@ export default async function Page({
       <Overview
         summary={w.summary}
         portfolioName={w.portfolio.name}
+        cryptoOnlyValue={w.settings.cryptoOnlyPortfolioValue}
         base={`/portfolios/${portfolioId}`}
         action={<TransactionForm portfolioId={portfolioId} revision={w.portfolio.revision} assets={w.assets} />}
         history={

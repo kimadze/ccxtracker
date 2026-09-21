@@ -16,7 +16,7 @@ export function Settings({
 }: {
   portfolioId: string;
   portfolioName: string;
-  user: { name: string; email: string };
+  user: { name: string; email: string; cryptoOnlyPortfolioValue: boolean };
   marketConfigured: boolean;
   lastQuote: string | null;
   preview?: boolean;
@@ -57,9 +57,13 @@ export function Settings({
           onSubmit={async (e) => {
             e.preventDefault();
             if (preview) return;
-            const name = new FormData(e.currentTarget).get("name");
+            const form = new FormData(e.currentTarget);
+            const name = form.get("name");
             await perform(
-              () => updateProfile({ name }),
+              () => updateProfile({
+                name,
+                cryptoOnlyPortfolioValue: form.get("cryptoOnlyPortfolioValue") === "on",
+              }),
               "პროფილი განახლებულია.",
             );
           }}
@@ -80,6 +84,18 @@ export function Settings({
           <p className="text-xs text-muted">
             ელფოსტა დაკავშირებულია თქვენს Google ანგარიშთან.
           </p>
+          <label className="profile-value-option">
+            <input
+              type="checkbox"
+              name="cryptoOnlyPortfolioValue"
+              defaultChecked={user.cryptoOnlyPortfolioValue}
+              disabled={preview}
+            />
+            <span>
+              <strong>მხოლოდ კრიპტოაქტივების ღირებულება</strong>
+              <small>მთავარ თანხაში არ ჩაითვლება ნაღდი ფული და სტეიბლკოინები.</small>
+            </span>
+          </label>
           {!preview && (
             <button className="button-secondary" disabled={pending}>
               პროფილის შენახვა

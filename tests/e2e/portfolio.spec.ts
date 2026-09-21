@@ -55,6 +55,16 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByLabel("ერთეულის ფასი (USD)", { exact: true }).fill("50000");
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
+  await page.goto(`${portfolioUrl}/settings`);
+  await page
+    .getByRole("checkbox", { name: /მხოლოდ კრიპტოაქტივების ღირებულება/ })
+    .check();
+  await page.getByRole("button", { name: "პროფილის შენახვა" }).click();
+  await expect(page.getByText("პროფილი განახლებულია.")).toBeVisible();
+  await page.goto(portfolioUrl);
+  await expect(
+    page.getByRole("heading", { name: "კრიპტოაქტივების ღირებულება" }),
+  ).toBeVisible();
   await page.goto(`${portfolioUrl}/positions/bitcoin`);
   await expect(
     page.getByRole("heading", { name: "Bitcoin", exact: true }),

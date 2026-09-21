@@ -40,6 +40,7 @@ export async function updateProfile(input: unknown): Promise<ActionResult> {
           .trim()
           .min(1, "სახელი აუცილებელია.")
           .max(80, "სახელი არ უნდა აღემატებოდეს 80 სიმბოლოს."),
+        cryptoOnlyPortfolioValue: z.boolean().default(false),
       })
       .parse(input);
     await getDb().transaction(async (tx) => {
@@ -49,8 +50,17 @@ export async function updateProfile(input: unknown): Promise<ActionResult> {
         .where(eq(users.id, user.id));
       await tx
         .insert(userSettings)
-        .values({ userId: user.id })
-        .onConflictDoNothing();
+        .values({
+          userId: user.id,
+          cryptoOnlyPortfolioValue: data.cryptoOnlyPortfolioValue,
+        })
+        .onConflictDoUpdate({
+          target: userSettings.userId,
+          set: {
+            cryptoOnlyPortfolioValue: data.cryptoOnlyPortfolioValue,
+            updatedAt: new Date(),
+          },
+        });
     });
     revalidatePath("/portfolios", "layout");
     return { ok: true };

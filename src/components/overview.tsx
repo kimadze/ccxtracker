@@ -6,16 +6,18 @@ import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon, PositionsTable } from "./positions";
 import { PortfolioCalculator } from "./portfolio-calculator";
 
-export function Overview({ summary: s, base, portfolioName, history, action }: {
+export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = false, history, action }: {
   summary: PortfolioSummary;
   base: string;
   portfolioName: string;
+  cryptoOnlyValue?: boolean;
   history?: React.ReactNode;
   action?: React.ReactNode;
 }) {
   const positions = [...s.positions].sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0));
   const crypto = positions.filter((p) => !p.asset.isStablecoin && Number(p.value ?? 0) > 0);
   const cryptoTotal = crypto.reduce((sum, p) => sum.plus(p.value ?? 0), decimal(0));
+  const displayedValue = cryptoOnlyValue ? cryptoTotal.toString() : (s.value ?? s.knownValue);
   const colors = ["var(--orange)", "var(--blue)", "var(--violet)", "var(--teal)", "var(--indigo)", "var(--grey)"];
   const slices = crypto.map((p, index) => ({
     position: p,
@@ -55,9 +57,11 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
     <section className="panel dashboard-chart-panel" aria-labelledby="portfolio-value-title">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id="portfolio-value-title" className="text-sm font-semibold">პორტფელის ღირებულება</h2>
-          <p className="dashboard-value numeric mt-3">{money(s.value ?? s.knownValue)}</p>
-          <p className="mt-1 text-xs text-muted">{s.complete ? "მთლიანი შეფასება" : "ცნობილი ღირებულება · შეფასება არასრულია"}</p>
+          <h2 id="portfolio-value-title" className="text-sm font-semibold">{cryptoOnlyValue ? "კრიპტოაქტივების ღირებულება" : "პორტფელის ღირებულება"}</h2>
+          <p className="dashboard-value numeric mt-3">{money(displayedValue)}</p>
+          <p className="mt-1 text-xs text-muted">{cryptoOnlyValue
+            ? `ნაღდი ფულისა და სტეიბლკოინების გარეშე${s.complete ? "" : " · შეფასება არასრულია"}`
+            : s.complete ? "მთლიანი შეფასება" : "ცნობილი ღირებულება · შეფასება არასრულია"}</p>
         </div>
         <div className="text-left sm:text-right">
           <p className="text-xs text-muted">მთლიანი მოგება / ზარალი</p>
@@ -65,7 +69,10 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
           <p className="mt-1 text-xs text-muted">სრული პერიოდი · თანხის შეტანა/გატანის გარეშე</p>
         </div>
       </div>
-      <div className="mt-5 border-t border-line pt-3">{history ?? <div className="dashboard-empty">ისტორიისთვის საჭიროა შენახული შეფასებები.</div>}</div>
+      <div className="mt-5 border-t border-line pt-3">
+        {cryptoOnlyValue && <p className="mb-2 text-[11px] text-muted">ისტორიის გრაფიკი სრული პორტფელის შენახულ შეფასებებს აჩვენებს.</p>}
+        {history ?? <div className="dashboard-empty">ისტორიისთვის საჭიროა შენახული შეფასებები.</div>}
+      </div>
     </section>
 
     <section className="panel dashboard-allocation" aria-labelledby="allocation-title">

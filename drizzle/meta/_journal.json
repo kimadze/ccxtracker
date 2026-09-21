@@ -71,6 +71,13 @@
       "when": 1789898400000,
       "tag": "0009_backfill_active_asset_icons",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790017725693,
+      "tag": "0010_crypto_only_portfolio_value",
+      "breakpoints": true
     }
   ]
 }

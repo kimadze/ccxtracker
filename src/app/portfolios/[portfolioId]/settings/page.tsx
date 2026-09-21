@@ -23,7 +23,11 @@ export default async function Page({
       <Settings
         portfolioId={portfolioId}
         portfolioName={w.portfolio.name}
-        user={{ name: user.name, email: user.email }}
+        user={{
+          name: user.name,
+          email: user.email,
+          cryptoOnlyPortfolioValue: w.settings.cryptoOnlyPortfolioValue,
+        }}
         marketConfigured={!!process.env.COINGECKO_DEMO_API_KEY}
         lastQuote={dates.at(-1) ?? null}
       />

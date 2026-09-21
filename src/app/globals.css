@@ -104,6 +104,11 @@ input:focus, select:focus, textarea:focus {
 input::placeholder, textarea::placeholder { color: var(--text-low); }
 input[type="checkbox"] { min-height: auto; width: auto; accent-color: var(--accent); }
 .field-label { display: block; margin-bottom: 8px; color: var(--text-mid); font-size: 12px; font-weight: 600; }
+.profile-value-option { display: grid; grid-template-columns: 18px minmax(0,1fr); align-items: start; gap: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); padding: 14px; cursor: pointer; }
+.profile-value-option:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.profile-value-option input { width: 18px; height: 18px; margin-top: 1px; }
+.profile-value-option strong { display: block; font-size: 13px; font-weight: 650; }
+.profile-value-option small { display: block; margin-top: 5px; color: var(--text-mid); font-size: 11px; line-height: 1.65; }
 .button-primary, .button-secondary, .button-danger {
   display: inline-flex;
   min-height: 40px;

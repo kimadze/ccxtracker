@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { ZodError } from "zod";
 import { requireUser } from "./auth";
 import { getDb } from "./db";
-import { assets } from "./db/schema";
+import { assets, userSettings } from "./db/schema";
+import { eq } from "drizzle-orm";
 import { portfolioService, AccessError } from "./services/portfolio";
 import { getQuotes } from "./market";
 import { replayLedger } from "@/domain/ledger";
@@ -17,9 +18,10 @@ export const loadWorkspace = cache(async (id: string) => {
     if (error instanceof AccessError || error instanceof ZodError) notFound();
     throw error;
   });
-  const [entries, allAssets] = await Promise.all([
+  const [entries, allAssets, settings] = await Promise.all([
     service.entries(id),
     getDb().select().from(assets),
+    getDb().select().from(userSettings).where(eq(userSettings.userId, user.id)).limit(1),
   ]);
   const ledger = replayLedger(entries);
   const quotes = await getQuotes(
@@ -32,5 +34,8 @@ export const loadWorkspace = cache(async (id: string) => {
     entries,
     assets: allAssets,
     summary: valuePortfolio(ledger, allAssets, quotes),
+    settings: {
+      cryptoOnlyPortfolioValue: settings[0]?.cryptoOnlyPortfolioValue ?? false,
+    },
   };
 });
