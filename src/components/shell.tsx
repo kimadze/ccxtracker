@@ -28,7 +28,7 @@ const groups: { title: string; links: NavItem[] }[] = [
     ["", "მიმოხილვა", LayoutDashboard],
     ["positions", "პოზიციები", Wallet],
     ["transactions", "ტრანზაქციები", ArrowLeftRight],
-    ["airdrops", "ეირდროპები", Gift],
+    ["airdrops", "Airdrop", Gift],
   ] },
   { title: "კვლევა", links: [
     ["analytics", "ანალიტიკა", ChartNoAxesCombined],
