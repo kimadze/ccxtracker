@@ -119,7 +119,6 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
               </ul>
             </div>
           </div>
-          <p className="crypto-distribution-note">განაწილება მხოლოდ არასტეიბლ კრიპტოაქტივებს მოიცავს.</p>
           <div className="crypto-movers" aria-label="აქტივების შედეგების ლიდერები">
             <PortfolioMover title="Top Gainer" subtitle="საუკეთესო შედეგი" tone="positive" base={base} daily={dailyGainer} allTime={allTimeGainer} />
             <PortfolioMover title="Top Loser" subtitle="ყველაზე სუსტი შედეგი" tone="negative" base={base} daily={dailyLoser} allTime={allTimeLoser} />

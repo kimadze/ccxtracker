@@ -216,6 +216,7 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 }
 .ccx-search { width: min(32vw, 420px); gap: 10px; padding: 0 12px; text-align: left; font-size: 12px; }
 .ccx-icon-button { min-width: 40px; justify-content: center; }
+.ccx-privacy-toggle[aria-pressed="true"] { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); background: var(--accent-soft); color: var(--accent); }
 .ccx-icon-button.mobile-menu-trigger { display: none; }
 .ccx-search:hover, .ccx-icon-button:hover { border-color: var(--accent); color: var(--text-hi); }
 

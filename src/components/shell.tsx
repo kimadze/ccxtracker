@@ -5,17 +5,24 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight, BookOpen, ChartNoAxesCombined, ChevronDown, Command,
-  Eye, FlaskConical, Gift, LayoutDashboard, LineChart, Menu, PieChart,
+  Eye, EyeOff, FlaskConical, Gift, LayoutDashboard, LineChart, Menu, PieChart,
   Plus, Route, Search, Settings2, Wallet, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
 
 type NavItem = [string, string, LucideIcon];
+const privacyEvent = "ccx-balance-privacy";
+const subscribePrivacy = (callback: () => void) => {
+  window.addEventListener(privacyEvent, callback);
+  return () => window.removeEventListener(privacyEvent, callback);
+};
+const readPrivacy = () => window.localStorage.getItem("ccx-hide-balances") === "true";
+const serverPrivacy = () => false;
 const groups: { title: string; links: NavItem[] }[] = [
   { title: "პორტფელი", links: [
     ["", "მიმოხილვა", LayoutDashboard],
@@ -60,6 +67,61 @@ function Navigation({ base, path, compact, onNavigate }: {
       })}</div>
     </div>)}
   </nav>;
+}
+
+function BalancePrivacyToggle() {
+  const hidden = useSyncExternalStore(subscribePrivacy, readPrivacy, serverPrivacy);
+  const originals = useRef(new Map<Text, string>());
+
+  useEffect(() => {
+    const mask = (value: string) => value.replace(/(?:[+-]\s*)?\$[\d\s\u00a0.,]+(?:\s*(?:მლნ|მლრდ|ათ\.|ტრილ\.))?/g, "••••••");
+    const restore = () => {
+      for (const [node, value] of originals.current) {
+        if (node.isConnected && node.nodeValue === mask(value)) node.nodeValue = value;
+        if (!node.isConnected) originals.current.delete(node);
+      }
+    };
+    if (!hidden) {
+      document.documentElement.removeAttribute("data-balance-privacy");
+      restore();
+      return;
+    }
+    document.documentElement.setAttribute("data-balance-privacy", "hidden");
+    const maskNode = (node: Text) => {
+      const value = node.nodeValue ?? "";
+      if (!value.includes("$")) return;
+      const previous = originals.current.get(node);
+      if (previous === undefined || value !== mask(previous)) originals.current.set(node, value);
+      node.nodeValue = mask(value);
+    };
+    const maskBalances = () => {
+      const nodes = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = nodes.nextNode())) {
+        const parent = node.parentElement;
+        if (parent?.closest("script, style, [data-privacy-ignore]")) continue;
+        maskNode(node as Text);
+      }
+    };
+    maskBalances();
+    const observer = new MutationObserver(maskBalances);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [hidden]);
+
+  return <button
+    type="button"
+    className="ccx-icon-button ccx-privacy-toggle"
+    aria-pressed={hidden}
+    aria-label={hidden ? "თანხების ჩვენება" : "თანხების დამალვა"}
+    title={hidden ? "თანხების ჩვენება" : "თანხების დამალვა"}
+    onClick={() => {
+      window.localStorage.setItem("ccx-hide-balances", String(!hidden));
+      window.dispatchEvent(new Event(privacyEvent));
+    }}
+  >
+    {hidden ? <EyeOff size={17} /> : <Eye size={17} />}
+  </button>;
 }
 
 export function Shell({ children, portfolios, userName }: {
@@ -145,6 +207,7 @@ export function Shell({ children, portfolios, userName }: {
           </Dialog.Root>
         </div>
         <div className="flex min-w-0 items-center gap-3">
+          <BalancePrivacyToggle />
           <label className="relative block w-[clamp(126px,17vw,220px)] min-w-0">
             <span className="sr-only">პორტფელის არჩევა</span>
             <select aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={(event) => router.push("/portfolios/" + event.target.value)} className="min-w-0 appearance-none pr-8 text-xs">

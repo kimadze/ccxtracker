@@ -55,6 +55,10 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByLabel("ერთეულის ფასი (USD)", { exact: true }).fill("50000");
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
+  await page.getByRole("button", { name: "თანხების დამალვა" }).click();
+  await expect(page.locator("main")).toContainText("••••••");
+  await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
+  await expect(page.locator("main")).not.toContainText("••••••");
   await page.goto(`${portfolioUrl}/settings`);
   await page
     .getByRole("checkbox", { name: /მხოლოდ კრიპტოაქტივების ღირებულება/ })
