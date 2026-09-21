@@ -23,6 +23,10 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
     share: cryptoTotal.gt(0) ? percent(p.value ?? "0", cryptoTotal.toString()) : null,
     color: colors[index % colors.length],
   }));
+  const allocationGradient = slices.reduce<{ end: number; stops: string[] }>((acc, slice, index) => {
+    const end = index === slices.length - 1 ? 100 : acc.end + Number(slice.share ?? 0);
+    return { end, stops: [...acc.stops, `${slice.color} ${acc.end}% ${end}%`] };
+  }, { end: 0, stops: [] }).stops.join(", ");
   const netCapital = s.contributions !== null && s.withdrawals !== null
     ? decimal(s.contributions).minus(s.withdrawals).toString()
     : null;
@@ -68,26 +72,30 @@ export function Overview({ summary: s, base, portfolioName, history, action }: {
       {!s.complete ? <div className="dashboard-empty">ყველა აქტივის ფასის მიღების შემდეგ განაწილება სრულად გამოჩნდება.</div>
         : !crypto.length ? <div className="dashboard-empty">არასტეიბლ კრიპტოაქტივები ჯერ არ გაქვთ.</div>
         : <div className="crypto-distribution">
-          <div className="crypto-distribution-summary">
-            <div><span>კრიპტო აქტივების ღირებულება</span><strong className="numeric">{money(cryptoTotal.toString())}</strong></div>
-            <span className="crypto-distribution-count">{crypto.length} აქტივი</span>
+          <div className="crypto-distribution-layout">
+            <div className="crypto-distribution-chart">
+              <div className="crypto-distribution-ring" style={{ background: `conic-gradient(${allocationGradient})` }}>
+                <div><span>სულ</span><strong className="numeric">{money(cryptoTotal.toString(), true)}</strong><small>{crypto.length} აქტივი</small></div>
+              </div>
+              <div className="crypto-distribution-spectrum" aria-hidden="true">
+                {slices.map((slice) => <span key={slice.position.assetId} style={{ flexGrow: Number(slice.share), background: slice.color }} />)}
+              </div>
+            </div>
+            <div className="crypto-distribution-assets">
+              <div className="crypto-distribution-labels"><span>აქტივი</span><span>წილი</span></div>
+              <ul className="crypto-distribution-list">
+                {slices.map((slice, index) => <li key={slice.position.assetId}>
+                  <Link href={`${base}/positions/${slice.position.assetId}`} className="crypto-distribution-asset">
+                    <AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} />
+                    <div className="crypto-distribution-identity"><strong>{slice.label}</strong><span className="numeric">{money(slice.position.value)}</span></div>
+                    <strong className="crypto-distribution-share numeric">{percentage(slice.share)}</strong>
+                    <ArrowUpRight size={13} className="crypto-distribution-arrow" />
+                  </Link>
+                </li>)}
+              </ul>
+            </div>
           </div>
-          <div className="crypto-distribution-spectrum" aria-hidden="true">
-            {slices.map((slice) => <span key={slice.position.assetId} style={{ flexGrow: Number(slice.share), background: slice.color }} />)}
-          </div>
-          <div className="crypto-distribution-labels"><span>აქტივი / ღირებულება</span><span>წილი კრიპტოში</span></div>
-          <ul className="crypto-distribution-list">
-            {slices.map((slice, index) => <li key={slice.position.assetId}>
-              <Link href={`${base}/positions/${slice.position.assetId}`} className="crypto-distribution-asset">
-                <AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} />
-                <div className="crypto-distribution-identity"><strong>{slice.label}</strong><span title={slice.position.asset.name}>{slice.position.asset.name}</span></div>
-                <div className="crypto-distribution-value"><strong className="numeric">{percentage(slice.share)}</strong><span className="numeric">{money(slice.position.value)}</span></div>
-                <ArrowUpRight size={14} className="crypto-distribution-arrow" />
-                <div className="crypto-distribution-track" aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, Number(slice.share)))}%`, background: slice.color }} /></div>
-              </Link>
-            </li>)}
-          </ul>
-          <p className="crypto-distribution-note">წილები დათვლილია მხოლოდ არასტეიბლ კრიპტოაქტივების ღირებულებიდან.</p>
+          <p className="crypto-distribution-note">განაწილება მხოლოდ არასტეიბლ კრიპტოაქტივებს მოიცავს.</p>
         </div>}
     </section>
 
