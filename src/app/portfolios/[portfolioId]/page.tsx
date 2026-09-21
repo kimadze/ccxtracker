@@ -21,13 +21,12 @@ export default async function Page({
     <>
       <Overview
         summary={w.summary}
+        portfolioName={w.portfolio.name}
         base={`/portfolios/${portfolioId}`}
         action={<TransactionForm portfolioId={portfolioId} revision={w.portfolio.revision} assets={w.assets} />}
         history={
           <HistoryChart
-            snapshots={history
-              .slice(-30)
-              .map((s) => ({ ...s, capturedAt: s.capturedAt.toISOString() }))}
+            snapshots={history.map((s) => ({ ...s, capturedAt: s.capturedAt.toISOString() }))}
           />
         }
       />

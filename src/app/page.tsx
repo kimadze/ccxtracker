@@ -45,7 +45,6 @@ export default function Home() {
             </p>
           </div>
           <div className="relative">
-            <div className="absolute -inset-8 -z-10 rounded-full bg-brand/5 blur-3xl" />
             <div className="panel overflow-hidden">
               <div className="flex items-center justify-between border-b border-line px-6 py-4">
                 <span className="text-[11px] text-muted">
@@ -69,8 +68,8 @@ export default function Home() {
                 >
                   <defs>
                     <linearGradient id="hero-fill" x1="0" y1="0" x2="0" y2="1">
-                      <stop stopColor="var(--gold)" stopOpacity=".2" />
-                      <stop offset="1" stopColor="var(--gold)" stopOpacity="0" />
+                      <stop stopColor="var(--accent)" stopOpacity=".2" />
+                      <stop offset="1" stopColor="var(--accent)" stopOpacity="0" />
                     </linearGradient>
                   </defs>
                   {[30, 70, 110].map((y) => (
@@ -88,7 +87,7 @@ export default function Home() {
                   <path
                     d="M0 112L30 102L54 110L81 85L112 92L147 65L176 76L200 49L232 59L264 31L298 45L326 21L353 31L400 7"
                     fill="none"
-                    stroke="var(--gold)"
+                    stroke="var(--accent)"
                     strokeWidth="2"
                   />
                 </svg>

@@ -1,7 +1,6 @@
 export default function Loading() {
   return (
-    <main
-      id="main"
+    <div
       aria-busy="true"
       aria-label="იტვირთება"
       className="mx-auto max-w-6xl space-y-6 p-8"
@@ -12,6 +11,6 @@ export default function Loading() {
         <div className="h-64 animate-pulse rounded-xl bg-surface" />
         <div className="h-64 animate-pulse rounded-xl bg-surface" />
       </div>
-    </main>
+    </div>
   );
 }

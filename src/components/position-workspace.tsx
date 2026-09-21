@@ -31,7 +31,7 @@ export function PositionWorkspace({
   const [tab, setTab] = useState("overview");
   return (
     <>
-      <div className="mb-6 flex flex-wrap gap-2 border-b border-line pb-4">
+      <div className="ccx-tabs mb-6">
         {[
           ["overview", "მიმოხილვა"],
           ["transactions", "ტრანზაქციები"],
@@ -43,7 +43,7 @@ export function PositionWorkspace({
             key={key}
             aria-pressed={tab === key}
             onClick={() => setTab(key)}
-            className={`rounded-lg px-4 py-2.5 text-xs ${tab === key ? "bg-brand/10 text-brand" : "text-muted hover:bg-raised"}`}
+            className="text-xs"
           >
             {label}
           </button>

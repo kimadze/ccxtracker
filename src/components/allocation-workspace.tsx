@@ -75,7 +75,7 @@ export function AllocationWorkspace({
   const symbol = (id: string) =>
     id === "USD" ? "USD" : (assets.find((a) => a.id === id)?.symbol ?? id);
   return (
-    <div className="space-y-6">
+    <div className="allocation-layout">
       <section className="panel p-6">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>

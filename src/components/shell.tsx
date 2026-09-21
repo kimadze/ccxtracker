@@ -1,244 +1,192 @@
 "use client";
+
+import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Layers3,
-  ArrowLeftRight,
-  ChartNoAxesCombined,
-  FlaskConical,
-  PieChart,
-  Route,
-  BookOpen,
-  Settings2,
-  Eye,
-  LineChart,
-  ChevronDown,
-  Plus,
-  Bell,
-  Menu,
-  Search,
-  Gift,
-  Command,
-  X,
+  ArrowLeftRight, BookOpen, ChartNoAxesCombined, ChevronDown, Command,
+  Eye, FlaskConical, Gift, LayoutDashboard, LineChart, Menu, PieChart,
+  Plus, Route, Search, Settings2, Wallet, X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
-import { ThemeToggle } from "./theme-toggle";
 
-const navigation = [
-  ["", "მიმოხილვა", LayoutDashboard],
-  ["positions", "პოზიციები", Layers3],
-  ["transactions", "ტრანზაქციები", ArrowLeftRight],
-  ["analytics", "ანალიტიკა", ChartNoAxesCombined],
-  ["statistics", "სტატისტიკა", LineChart],
-  ["scenarios", "სცენარების ლაბორატორია", FlaskConical],
-  ["allocation", "განაწილება", PieChart],
-  ["strategy", "სტრატეგია", Route],
-  ["journal", "ჟურნალი", BookOpen],
-  ["airdrops", "Airdrops", Gift],
-] as const;
-export function Shell({
-  children,
-  portfolios,
-  userName,
-}: {
+type NavItem = [string, string, LucideIcon];
+const groups: { title: string; links: NavItem[] }[] = [
+  { title: "პორტფელი", links: [
+    ["", "მიმოხილვა", LayoutDashboard],
+    ["positions", "პოზიციები", Wallet],
+    ["transactions", "ტრანზაქციები", ArrowLeftRight],
+    ["airdrops", "ეირდროპები", Gift],
+  ] },
+  { title: "კვლევა", links: [
+    ["analytics", "ანალიტიკა", ChartNoAxesCombined],
+    ["statistics", "სტატისტიკა", LineChart],
+    ["watchlist", "დაკვირვების სია", Eye],
+  ] },
+  { title: "დაგეგმვა", links: [
+    ["allocation", "განაწილება", PieChart],
+    ["strategy", "სტრატეგია", Route],
+    ["scenarios", "სცენარები", FlaskConical],
+    ["journal", "ჟურნალი", BookOpen],
+  ] },
+  { title: "ანგარიში", links: [["settings", "პარამეტრები", Settings2]] },
+];
+
+function Navigation({ base, path, compact, onNavigate }: {
+  base: string;
+  path: string;
+  compact: boolean;
+  onNavigate?: () => void;
+}) {
+  return <nav aria-label="მთავარი ნავიგაცია" className="flex-1 space-y-2">
+    {groups.map((group) => <div key={group.title}>
+      <p className="ccx-section-label nav-label">{group.title}</p>
+      <div className="space-y-1">{group.links.map(([segment, label, Icon]) => {
+        const href = base + (segment ? "/" + segment : "");
+        const active = path === href || (segment === "positions" && path.startsWith(href + "/"));
+        return <Link
+          key={segment} href={href} aria-current={active ? "page" : undefined}
+          aria-label={compact ? label : undefined} title={compact ? label : undefined}
+          onClick={onNavigate}
+          className={clsx("ccx-nav-link", compact && "justify-center")}
+        ><Icon aria-hidden="true" size={18} strokeWidth={1.75} className="shrink-0" />
+          <span className="nav-label truncate">{label}</span>
+        </Link>;
+      })}</div>
+    </div>)}
+  </nav>;
+}
+
+export function Shell({ children, portfolios, userName }: {
   children: React.ReactNode;
   portfolios: { id: string; name: string }[];
   userName: string;
 }) {
-  const path = usePathname(), router = useRouter();
+  const path = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
-  const base = `/portfolios/${activeId}`;
-  const commandItems = useMemo(
-    () => [
-      ...navigation.map(([segment, label, Icon]) => ({ label, Icon, href: `${base}${segment ? `/${segment}` : ""}` })),
-      { label: "დაკვირვების სია", Icon: Eye, href: `${base}/watchlist` },
-      { label: "პარამეტრები", Icon: Settings2, href: `${base}/settings` },
-    ],
-    [base],
-  );
-  const matches = commandItems.filter((item) => item.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+  const base = "/portfolios/" + activeId;
+  const currentSection = groups.flatMap((group) => group.links)
+    .find(([segment]) => path === base + (segment ? "/" + segment : "")
+      || (segment === "positions" && path.startsWith(base + "/positions/")))?.[1] ?? "პორტფელი";
+  const items = useMemo(() => groups.flatMap((group) => group.links.map(([segment, label, Icon]) => ({
+    label, Icon, href: base + (segment ? "/" + segment : ""),
+  }))), [base]);
+  const matches = items.filter((item) => item.label.toLocaleLowerCase("ka").includes(query.trim().toLocaleLowerCase("ka")));
+
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setCommandOpen((value) => !value);
+        setCommandOpen((open) => !open);
       }
-      if (event.key === "Escape") setCommandOpen(false);
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
   }, []);
-  const sidebar = (
-    <>
-      <div className="px-3 pb-6 pt-2">
-        <Brand />
+
+  return <div className="ccx-shell">
+    <aside className={clsx("ccx-sidebar overflow-y-auto px-3 py-5", collapsed && "compact")} aria-label="გვერდითი მენიუ">
+      <div className="mb-5 flex items-center justify-between px-1">
+        <Brand compact={collapsed} />
+        <button type="button" className="ccx-icon-button sidebar-collapse" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"}><Menu size={17} /></button>
       </div>
-      <p className="eyebrow mb-3 mt-5 px-3">პორტფელი</p>
-      <nav className="space-y-1">
-        {navigation.map(([segment, label, Icon]) => {
-          const href = `${base}${segment ? `/${segment}` : ""}`;
-          const active =
-            path === href ||
-            (segment === "positions" && path.startsWith(`${href}/`));
-          return (
-            <Link
-              key={segment}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={clsx(
-                "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[12px] transition-colors",
-                active
-                  ? "border-brand bg-gradient-to-r from-violet-600/80 to-indigo-800/70 font-semibold text-white"
-                  : "border-transparent text-muted hover:bg-raised/75 hover:text-foreground",
-              )}
-            >
-              <Icon size={17} strokeWidth={1.65} />
-              {label}
-              {active && (
-                <span className="ml-auto size-1.5 rounded-full bg-[var(--bg)]" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="mt-auto space-y-1 pt-8">
-        <p className="eyebrow mb-2 px-3">სამუშაო სივრცე</p>
-        <Link
-          href={`${base}/watchlist`}
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs text-muted hover:bg-raised"
-        >
-          <Eye size={17} />
-          დაკვირვების სია
-        </Link>
-        <Link
-          href={`${base}/settings`}
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs text-muted hover:bg-raised"
-        >
-          <Settings2 size={17} />
-          პარამეტრები
-        </Link>
-        <PortfolioCreate compact />
-        <div className="sidebar-promo"><div><em>Better Investors</em><strong>Build Freedom.</strong></div><Image src="/ccx-mountain-hero.png" alt="" width={320} height={110}/><small>‹　Crypto Collective X</small></div>
-        <LogoutButton />
+      <Navigation base={base} path={path} compact={collapsed} />
+      <div className="mt-5 border-t border-line pt-4">
+        {!collapsed && <div className="nav-label"><PortfolioCreate compact /></div>}
+        <div className="nav-label"><LogoutButton /></div>
+        <p className="nav-label mt-4 px-3 text-xs text-muted">Crypto Collective X</p>
       </div>
-    </>
-  );
-  const compactSidebar = (
-    <div className="flex h-full flex-col items-center">
-      <Brand compact />
-      <nav className="mt-10 flex flex-col gap-2">
-        {navigation.map(([segment, label, Icon]) => {
-          const href = `${base}${segment ? `/${segment}` : ""}`;
-          const active = path === href || (segment === "positions" && path.startsWith(`${href}/`));
-          return <Link key={segment} href={href} aria-label={label} title={label} className={clsx("grid size-10 place-items-center rounded-lg border", active ? "border-brand bg-brand text-[var(--bg)]" : "border-transparent text-muted hover:bg-raised hover:text-foreground")}><Icon size={18}/></Link>;
-        })}
-      </nav>
-      <div className="mt-auto flex flex-col gap-2">
-        <Link href={`${base}/watchlist`} aria-label="დაკვირვების სია" className="grid size-10 place-items-center rounded-lg text-muted hover:bg-raised"><Eye size={18}/></Link>
-        <Link href={`${base}/settings`} aria-label="პარამეტრები" className="grid size-10 place-items-center rounded-lg text-muted hover:bg-raised"><Settings2 size={18}/></Link>
-      </div>
-    </div>
-  );
-  return (
-    <div className="min-h-dvh overflow-x-hidden">
-      <aside className={clsx("ccx-sidebar fixed inset-y-0 left-0 z-30 hidden flex-col overflow-y-auto border-r border-line bg-surface/95 py-5 backdrop-blur-xl transition-[width] duration-300 min-[981px]:flex",collapsed ? "w-[76px] px-2" : "w-[226px] px-3")}>
-        {collapsed ? compactSidebar : sidebar}
-      </aside>
-      <div className={clsx("transition-[padding] duration-300",collapsed ? "min-[981px]:pl-[76px]" : "min-[981px]:pl-[226px]")}>
-        <header className="ccx-topbar flex h-[60px] items-center justify-between border-b border-line bg-surface/75 px-4 backdrop-blur-xl sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <button onClick={() => setCollapsed((value) => !value)} className="ccx-icon-button hidden size-9 place-items-center border border-line bg-raised/65 text-muted hover:text-foreground min-[981px]:grid" aria-label="მენიუს შეცვლა"><Menu size={18}/></button>
-            <button onClick={() => setMobileOpen(true)} className="grid size-9 place-items-center rounded-lg border border-line bg-raised/65 text-muted min-[981px]:hidden" aria-label="მენიუს გახსნა"><Menu size={18}/></button>
-            <button onClick={() => setCommandOpen(true)} className="ccx-search hidden h-9 items-center gap-2 border border-line bg-raised/35 px-3 text-left text-[11px] text-muted hover:bg-raised md:flex">
-              <Search size={15}/><span>მოძებნე მონეტა, გვერდი ან ფუნქცია...</span><kbd className="ml-auto rounded border border-line bg-surface px-1.5 py-0.5 text-[9px]">⌘ K</kbd>
-            </button>
-            <div className="min-w-0 md:hidden">
-              <span className="text-xs text-muted">პორტფელი</span>
-              <span className="ml-2 text-xs">სამუშაო სივრცე</span>
-            </div>
+    </aside>
+    <div className={clsx("ccx-content", collapsed && "compact")}>
+      <header className="ccx-topbar">
+        <div className="flex min-w-0 items-center gap-3">
+          <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
+            <Dialog.Trigger asChild><button type="button" className="ccx-icon-button mobile-menu-trigger" aria-label="მენიუს გახსნა"><Menu size={19} /></button></Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
+              <Dialog.Content className="ccx-sidebar mobile fixed z-[51] overflow-y-auto px-3 py-5" aria-describedby={undefined}>
+                <div className="mb-5 flex items-center justify-between px-1">
+                  <Dialog.Title className="sr-only">მთავარი მენიუ</Dialog.Title>
+                  <Brand />
+                  <Dialog.Close className="ccx-icon-button" aria-label="მენიუს დახურვა"><X size={18} /></Dialog.Close>
+                </div>
+                <Navigation base={base} path={path} compact={false} onNavigate={() => setMobileOpen(false)} />
+                <div className="mt-5 border-t border-line pt-4"><PortfolioCreate compact onCreated={() => setMobileOpen(false)} /><LogoutButton /></div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
+          <div className="breadcrumb min-w-0 text-xs text-muted">
+            <span>პორტფელი</span><span className="mx-2 text-foreground/30">/</span>
+            <span className="truncate text-foreground">{currentSection}</span>
           </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <button onClick={() => setNotificationsOpen((value) => !value)} className="ccx-icon-button grid size-9 place-items-center border border-line bg-raised/45 text-muted hover:text-foreground" aria-label="შეტყობინებები" aria-expanded={notificationsOpen}><Bell size={16}/></button>
-            <span className="numeric hidden rounded-lg border border-line bg-raised/35 px-3 py-1.5 text-xs text-muted sm:block">
-              USD
-            </span>
-            <span className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-semibold text-white">{userName.charAt(0)}</span>
-            <div className="relative hidden lg:block"><select aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={(event) => router.push(`/portfolios/${event.target.value}`)} className="w-40 appearance-none border-0 bg-transparent py-1 pl-1 pr-6 text-[10px] font-medium">{portfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}</select><ChevronDown className="pointer-events-none absolute right-0 top-2 text-muted" size={13}/></div>
-            <span className="flex items-center gap-2 text-[10px] text-muted">
-              <span className="size-1.5 rounded-full bg-positive" />
-              {userName}
-            </span>
-          </div>
-        </header>
-        <main
-          id="main"
-          className="ccx-main mx-auto max-w-[1640px] px-5 py-7 sm:px-8 sm:py-9"
-        >
-          {children}
-        </main>
-        <footer className="mx-5 flex flex-wrap justify-between gap-3 border-t border-line py-5 text-[10px] text-muted sm:mx-8">
-          <span>© {new Date().getFullYear()} Crypto Collective X</span>
-          <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
-        </footer>
-      </div>
-      {mobileOpen && <div className="fixed inset-0 z-[60] bg-black/55 backdrop-blur-sm min-[981px]:hidden" onMouseDown={() => setMobileOpen(false)}><aside className="flex h-full w-[270px] flex-col overflow-y-auto border-r border-line bg-surface px-3 py-5" onMouseDown={(event) => event.stopPropagation()}><button onClick={() => setMobileOpen(false)} className="ml-auto mb-2 grid size-9 place-items-center rounded-lg border border-line text-muted" aria-label="მენიუს დახურვა"><X size={17}/></button>{sidebar}</aside></div>}
-      {notificationsOpen && <div className="notification-popover" role="dialog" aria-label="შეტყობინებები"><div><strong>შეტყობინებები</strong><button onClick={() => setNotificationsOpen(false)} aria-label="შეტყობინებების დახურვა"><X size={15}/></button></div><p>ყველა მაჩვენებელი განახლებულია.</p><small>ახალი შეტყობინებები ამჟამად არ არის.</small></div>}
-      {commandOpen && (
-        <div className="fixed inset-0 z-[70] grid place-items-start bg-black/50 px-4 pt-[12dvh] backdrop-blur-sm" onMouseDown={() => setCommandOpen(false)}>
-          <div className="w-full max-w-xl overflow-hidden rounded-[20px] border border-line bg-surface" role="dialog" aria-modal="true" aria-label="ბრძანებების ძიება" onMouseDown={(event) => event.stopPropagation()}>
-            <div className="flex items-center gap-3 border-b border-line px-4"><Command size={18} className="text-muted"/><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="მოძებნეთ გვერდი ან მოქმედება..." className="border-0 bg-transparent px-0 py-4 text-sm shadow-none focus:outline-none"/><button onClick={() => setCommandOpen(false)} className="text-muted hover:text-foreground" aria-label="დახურვა"><X size={17}/></button></div>
-            <div className="max-h-[50dvh] overflow-y-auto p-2">
-              <p className="px-2 py-2 text-[10px] font-medium uppercase tracking-wider text-muted">ნავიგაცია</p>
-              {matches.map(({ label, Icon, href }) => <button key={href} onClick={() => { router.push(href); setCommandOpen(false); setQuery(""); }} className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-xs hover:bg-raised"><Icon size={16} className="text-muted"/>{label}</button>)}
-              {!matches.length && <p className="px-3 py-8 text-center text-xs text-muted">შედეგი ვერ მოიძებნა.</p>}
-            </div>
-          </div>
+          <Dialog.Root open={commandOpen} onOpenChange={(open) => { setCommandOpen(open); if (!open) setQuery(""); }}>
+            <Dialog.Trigger asChild><button type="button" className="ccx-search" aria-label="გვერდების ძიება"><Search size={17} aria-hidden="true" /><span className="truncate">მოძებნეთ გვერდი...</span><kbd className="ml-auto rounded border border-line px-1.5 py-0.5 text-xs">Ctrl K</kbd></button></Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
+              <Dialog.Content className="fixed left-1/2 top-[12dvh] z-[51] w-[calc(100%-32px)] max-w-xl -translate-x-1/2 overflow-hidden rounded-xl border border-line bg-surface" aria-describedby={undefined}>
+                <Dialog.Title className="sr-only">გვერდების ძიება</Dialog.Title>
+                <div className="flex items-center gap-3 border-b border-line px-4"><Command size={18} className="text-muted" /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="მოძებნეთ გვერდი..." aria-label="გვერდის სახელი" className="border-0 bg-transparent focus:outline-none" /><Dialog.Close aria-label="დახურვა" className="ccx-icon-button"><X size={17} /></Dialog.Close></div>
+                <div className="max-h-[55dvh] overflow-y-auto p-2">
+                  {matches.map(({ label, Icon, href }) => <button key={href} type="button" onClick={() => { router.push(href); setCommandOpen(false); }} className="ccx-nav-link w-full text-left"><Icon size={17} />{label}</button>)}
+                  {!matches.length && <p className="p-6 text-center text-xs text-muted">შედეგი ვერ მოიძებნა.</p>}
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
         </div>
-      )}
+        <div className="flex min-w-0 items-center gap-3">
+          <label className="relative block w-[clamp(126px,17vw,220px)] min-w-0">
+            <span className="sr-only">პორტფელის არჩევა</span>
+            <select aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={(event) => router.push("/portfolios/" + event.target.value)} className="min-w-0 appearance-none pr-8 text-xs">
+              {portfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}
+            </select>
+            <ChevronDown aria-hidden="true" size={14} className="pointer-events-none absolute right-2 top-3 text-muted" />
+          </label>
+          <details className="relative">
+            <summary className="flex min-h-10 max-w-40 items-center gap-2 rounded-lg border border-line bg-raised px-2 text-xs" aria-label="მომხმარებლის მენიუ">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand/15 font-semibold text-brand">{userName.charAt(0)}</span>
+              <span className="hidden truncate sm:block">{userName}</span><ChevronDown size={13} className="text-muted" />
+            </summary>
+            <div className="absolute right-0 top-12 z-40 w-48 rounded-xl border border-line bg-surface p-2">
+              <Link href={base + "/settings"} className="ccx-nav-link"><Settings2 size={16} /> პარამეტრები</Link>
+              <LogoutButton />
+            </div>
+          </details>
+        </div>
+      </header>
+      <main id="main" className="ccx-main">{children}</main>
+      <footer className="mx-4 flex flex-wrap justify-between gap-3 border-t border-line py-5 text-xs text-muted sm:mx-6">
+        <span>© {new Date().getFullYear()} Crypto Collective X</span>
+        <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
+      </footer>
     </div>
-  );
+  </div>;
 }
-export function PageHeading({
-  eyebrow,
-  title,
-  description,
-  action,
-}: {
+
+export function PageHeading({ eyebrow, title, description, action }: {
   eyebrow: string;
   title: string;
   description: React.ReactNode;
   action?: React.ReactNode;
 }) {
-  return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
-      <div>
-        <p className="eyebrow mb-3 inline-flex rounded-full border border-line bg-surface/65 px-2.5 py-1">პორტფელი / {eyebrow}</p>
-        <h1 className="text-3xl font-semibold tracking-[-.045em] sm:text-[34px]">
-          {title}
-        </h1>
-        <div className="mt-2 max-w-2xl text-xs leading-6 text-muted">{description}</div>
-      </div>
-      {action}
-    </div>
-  );
+  return <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div><p className="eyebrow mb-2">პორტფელი / {eyebrow}</p>
+      <h1 className="text-[clamp(24px,2.3vw,28px)] font-semibold tracking-tight">{title}</h1>
+      <div className="mt-2 max-w-2xl text-sm leading-6 text-muted">{description}</div>
+    </div>{action}
+  </div>;
 }
+
 export function AddButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="button-primary">
-      <Plus size={16} />
-      ტრანზაქციის დამატება
-    </button>
-  );
+  return <button type="button" onClick={onClick} className="button-primary"><Plus size={16} />ტრანზაქციის დამატება</button>;
 }

@@ -168,5 +168,15 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
 export function StatisticsWorkspace({ market, macro, summary, selectedAssetIds, base }: { market: MarketStatistics; macro: MacroStatistics; summary: PortfolioSummary; selectedAssetIds: string[]; base: string }) {
   const [tab, setTab] = useState<Tab>("market");
   const owned = new Map(summary.positions.filter((position) => position.quantity !== "0").map((position) => [position.asset.id, position.allocation]));
-  return <div><div className="mb-7 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-3"><div><p className="text-sm font-semibold">Market intelligence</p><p className="mt-1 text-[10px] text-muted">კრიპტო ბაზარი, მაკრო და თქვენი პორტფელი</p></div><div className="flex gap-1 overflow-x-auto rounded-lg bg-raised/70 p-1">{([ ["market", "კრიპტო ბაზარი"], ["macro", "მაკრო"], ["portfolio", "ჩემი პორტფელი"] ] as const).map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`min-w-max rounded-md px-4 py-2 text-[11px] font-medium transition ${tab === id ? "bg-brand text-white" : "text-muted hover:bg-surface hover:text-foreground"}`}>{label}</button>)}</div></div>{tab === "market" && <MarketTab data={market} owned={owned} selected={new Set(selectedAssetIds)} base={base} />}{tab === "macro" && <MacroTab data={macro} />}{tab === "portfolio" && <PortfolioTab summary={summary} />}</div>;
+  return <div>
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div><p className="text-sm font-semibold">ბაზრის მიმოხილვა</p><p className="mt-1 text-xs text-muted">კრიპტო ბაზარი, მაკრო და თქვენი პორტფელი</p></div>
+      <div className="ccx-tabs overflow-x-auto" role="group" aria-label="სტატისტიკის კატეგორია">
+        {([["market", "კრიპტო ბაზარი"], ["macro", "მაკრო"], ["portfolio", "ჩემი პორტფელი"]] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)} className="min-w-max">{label}</button>)}
+      </div>
+    </div>
+    {tab === "market" && <MarketTab data={market} owned={owned} selected={new Set(selectedAssetIds)} base={base} />}
+    {tab === "macro" && <MacroTab data={macro} />}
+    {tab === "portfolio" && <PortfolioTab summary={summary} />}
+  </div>;
 }

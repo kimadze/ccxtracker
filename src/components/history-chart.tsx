@@ -14,18 +14,20 @@ import { useMemo, useState } from "react";
 export function HistoryChart({
   snapshots,
   illustrative = false,
+  showPeriodControls = true,
 }: {
   snapshots: Pick<Snapshot, "capturedAt" | "value">[];
   illustrative?: boolean;
+  showPeriodControls?: boolean;
 }) {
-  const [period, setPeriod] = useState<"7D" | "1M" | "3M" | "1Y" | "ALL">("1M");
+  const [period, setPeriod] = useState<"1D" | "7D" | "1M" | "3M" | "1Y" | "ALL">("1M");
   const points = useMemo(() => {
-    const days = { "7D": 7, "1M": 30, "3M": 90, "1Y": 365, ALL: Infinity }[period];
+    const days = showPeriodControls ? { "1D": 1, "7D": 7, "1M": 30, "3M": 90, "1Y": 365, ALL: Infinity }[period] : Infinity;
     const last = Math.max(0, ...snapshots.map((item) => Date.parse(item.capturedAt)));
     return snapshots.filter((item) => days === Infinity || Date.parse(item.capturedAt) >= last - days * 86400000).map((s) => ({
       time: Date.parse(s.capturedAt), value: Number(s.value),
     }));
-  }, [snapshots, period]);
+  }, [snapshots, period, showPeriodControls]);
   if (!snapshots.length)
     return (
       <div className="flex h-56 flex-col items-center justify-center text-center">
@@ -37,9 +39,10 @@ export function HistoryChart({
     );
   return (
     <div>
-      <div className="chart-periods" aria-label="გრაფიკის პერიოდი">{(["7D","1M","3M","1Y","ALL"] as const).map((item) => <button key={item} type="button" className={period === item ? "active" : ""} onClick={() => setPeriod(item)}>{item}</button>)}</div>
+      {showPeriodControls && <div className="chart-periods mb-3" role="group" aria-label="გრაფიკის პერიოდი">{(["1D","7D","1M","3M","1Y","ALL"] as const).map((item) => <button key={item} type="button" aria-pressed={period === item} className={period === item ? "active" : ""} onClick={() => setPeriod(item)}>{item}</button>)}</div>}
+      {points.length < 2 && <p role="status" className="mb-2 text-xs text-muted">{points.length ? "ამ პერიოდში მხოლოდ ერთი შენახული შეფასებაა. ხაზისთვის ორი შეფასებაა საჭირო." : "ამ პერიოდისთვის შეფასებები არ მოიძებნა."}</p>}
       <div
-        className="h-56 w-full"
+        className="dashboard-chart h-56 w-full"
         role="img"
         aria-label={
           illustrative
@@ -54,8 +57,8 @@ export function HistoryChart({
           >
             <defs>
               <linearGradient id="historyFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--blue)" stopOpacity={0.34} />
-                <stop offset="100%" stopColor="var(--blue)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.23} />
+                <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -78,14 +81,14 @@ export function HistoryChart({
               axisLine={false}
               tickLine={false}
               tick={{ fill: "var(--text-low)", fontSize: 11 }}
-              width={62}
+              width={80}
               domain={["auto", "auto"]}
             />
             <Tooltip
               labelFormatter={(v) => dateTime(Number(v))}
               formatter={(v) => [money(String(v)), "ღირებულება"]}
               contentStyle={{
-                background: "var(--surface-raised)",
+                background: "var(--surface-2)",
                 border: "1px solid var(--border)",
                 borderRadius: 10,
                 fontSize: 11,
@@ -94,12 +97,12 @@ export function HistoryChart({
             <Area
               dataKey="value"
               type="linear"
-              stroke="var(--blue)"
+              stroke="var(--accent)"
               strokeWidth={2}
               fill="url(#historyFill)"
               isAnimationActive={false}
-              dot={{ r: snapshots.length === 1 ? 4 : 0, fill: "var(--blue)", strokeWidth: 0 }}
-              activeDot={{ r: 4, fill: "var(--blue)", strokeWidth: 0 }}
+              dot={{ r: points.length === 1 ? 4 : 0, fill: "var(--accent)", strokeWidth: 0 }}
+              activeDot={{ r: 4, fill: "var(--accent)", strokeWidth: 0 }}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -120,7 +123,7 @@ export function HistoryChart({
               </tr>
             </thead>
             <tbody>
-              {snapshots.map((s) => (
+              {snapshots.filter((s) => points.some((point) => point.time === Date.parse(s.capturedAt))).map((s) => (
                 <tr key={s.capturedAt}>
                   <td className="py-1">{dateTime(s.capturedAt, true)}</td>
                   <td className="text-right">{money(s.value)}</td>

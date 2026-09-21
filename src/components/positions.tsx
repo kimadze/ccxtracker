@@ -1,13 +1,14 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Layers3 } from "lucide-react";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
 
 const colors = [
-  "var(--gold)",
+  "var(--accent)",
   "var(--violet)",
   "var(--teal)",
-  "var(--green)",
+  "var(--orange)",
   "var(--blue)",
   "var(--grey)",
 ];
@@ -29,7 +30,7 @@ export function AssetIcon({
         background: `color-mix(in srgb, ${colors[index % colors.length]} 12%, transparent)`,
       }}
     >
-      {logoUrl ? <img src={logoUrl} alt="" className="size-full rounded-full object-cover" /> : symbol.slice(0, 3)}
+      {logoUrl ? <Image unoptimized src={logoUrl} alt="" width={36} height={36} className="size-full rounded-full object-cover" /> : symbol.slice(0, 3)}
     </span>
   );
 }
@@ -158,26 +159,28 @@ export function PositionsTable({
                 <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
                 <div>
                   <p className="text-sm font-medium">{p.asset.symbol}</p>
-                  <p className="mt-1 text-xs text-muted">
-                    {quantity(p.quantity)}
-                  </p>
+                  <p className="mt-1 text-xs text-muted">{p.asset.name}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="numeric font-medium">{money(p.value)}</p>
-                <p className={`mt-1 text-xs ${pnlClass(p.unrealizedPnl)}`}>
-                  {money(p.unrealizedPnl)} · {percentage(p.returnPercent, true)}
-                </p>
+                <p className="mt-1 text-xs text-muted">პორტფელის {percentage(p.allocation)}</p>
               </div>
             </div>
-            <div className="mt-4 flex justify-between text-[11px] text-muted">
-              <span>წილი: {percentage(p.allocation)}</span>
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 text-xs">
+              <div><dt className="text-muted">რაოდენობა</dt><dd className="numeric mt-1">{quantity(p.quantity)}</dd></div>
+              <div><dt className="text-muted">საშუალო ფასი</dt><dd className="numeric mt-1">{money(p.averagePrice)}</dd></div>
+              <div><dt className="text-muted">მიმდინარე ფასი</dt><dd className="numeric mt-1">{money(p.quote?.price ?? null)}</dd></div>
+              <div><dt className="text-muted">24 საათი</dt><dd className={`numeric mt-1 ${pnlClass(p.quote?.change24h ?? null)}`}>{percentage(p.quote?.change24h ?? null, true)}</dd></div>
+              <div className="col-span-2"><dt className="text-muted">არარეალიზებული P/L</dt><dd className={`numeric mt-1 ${pnlClass(p.unrealizedPnl)}`}>{money(p.unrealizedPnl)} · {percentage(p.returnPercent, true)}</dd></div>
+            </dl>
+            <div className="mt-4 flex justify-end text-xs text-muted">
               {!preview && (
                 <Link
                   href={`${base}/positions/${p.assetId}`}
-                  className="text-brand"
+                  className="button-secondary"
                 >
-                  დეტალები <ArrowUpRight className="inline" size={12} />
+                  დეტალები <ArrowUpRight size={14} />
                 </Link>
               )}
             </div>

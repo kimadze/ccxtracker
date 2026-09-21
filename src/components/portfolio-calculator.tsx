@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { ValuedPosition } from "@/domain/types";
-import { money, percentage } from "@/lib/formatters";
+import { money, percentage, pnlClass } from "@/lib/formatters";
 
 export function PortfolioCalculator({ positions }: { positions: ValuedPosition[] }) {
   const [assetId, setAssetId] = useState(positions[0]?.assetId ?? "");
@@ -12,9 +12,10 @@ export function PortfolioCalculator({ positions }: { positions: ValuedPosition[]
     if (!position?.costBasis) return null;
     return Number(target || 0) * Number(position.quantity) - Number(position.costBasis);
   }, [position, target]);
-  const resultPercent = position?.costBasis && result !== null
+  const resultPercent = position?.costBasis && Number(position.costBasis) > 0 && result !== null
     ? (result / Number(position.costBasis)) * 100
     : null;
+  const resultTone = pnlClass(result === null ? null : String(result));
 
   if (!position) return null;
   return (
@@ -34,9 +35,9 @@ export function PortfolioCalculator({ positions }: { positions: ValuedPosition[]
           <input className="numeric mt-1.5" type="number" min="0" step="any" value={target} onChange={(event) => setTarget(event.target.value)} />
         </label>
       </div>
-      <div className="mt-3 rounded-lg border border-positive/20 bg-positive/8 p-4">
+      <div className="mt-3 rounded-lg border border-line bg-raised p-4">
         <p className="text-[10px] text-muted">პოტენციური მოგება / ზარალი</p>
-        <div className="mt-1 flex items-end justify-between gap-3 text-positive">
+        <div className={`mt-1 flex items-end justify-between gap-3 ${resultTone}`}>
           <strong className="numeric text-xl">{result === null ? "—" : money(String(result))}</strong>
           <span className="numeric text-sm">{resultPercent === null ? "—" : percentage(String(resultPercent), true)}</span>
         </div>

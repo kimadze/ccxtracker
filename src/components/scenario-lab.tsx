@@ -110,7 +110,7 @@ export function ScenarioLab({
           ახალი სცენარი
         </button>
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
         <section className="panel p-6">
           <div className="mb-6">
             <h2 className="text-sm font-medium">რა მოხდება, თუ…</h2>
