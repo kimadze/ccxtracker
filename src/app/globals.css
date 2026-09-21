@@ -309,6 +309,40 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .crypto-mover-period { color: var(--text-mid); font-size: 10px; }
 .crypto-mover-empty { display: flex; min-height: 34px; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); padding: 6px 0; color: var(--text-mid); font-size: 10px; }
 .crypto-mover-empty small { font-size: 10px; }
+
+/* Bubble map */
+.bubble-map-space { display: grid; gap: 16px; }
+.bubble-map-panel { overflow: hidden; }
+.bubble-map-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--border); padding: 20px; }
+.bubble-map-header h2, .bubble-map-selection h2, .bubble-map-empty h2 { font-size: 16px; font-weight: 680; }
+.bubble-map-header p { max-width: 580px; margin-top: 5px; color: var(--text-mid); font-size: 12px; line-height: 1.7; }
+.bubble-map-legend { display: flex; flex-wrap: wrap; gap: 10px; color: var(--text-mid); font-size: 11px; }
+.bubble-map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.bubble-map-legend i { width: 8px; height: 8px; border-radius: 50%; }
+.bubble-map-legend .positive { background: var(--positive); }
+.bubble-map-legend .negative { background: var(--negative); }
+.bubble-map-legend .neutral { background: var(--accent); }
+.bubble-map-canvas { aspect-ratio: 1.72 / 1; min-height: 300px; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 45%), var(--surface); }
+.bubble-map-canvas svg { display: block; width: 100%; height: 100%; }
+.bubble-map-node { cursor: pointer; outline: none; }
+.bubble-map-node circle { fill: color-mix(in srgb, var(--accent) 15%, var(--surface-2)); stroke: color-mix(in srgb, var(--accent) 58%, var(--border)); stroke-width: 2; transition: stroke-width .18s, fill .18s; }
+.bubble-map-node:hover circle, .bubble-map-node.active circle, .bubble-map-node:focus circle { stroke-width: 4; fill: color-mix(in srgb, var(--accent) 23%, var(--surface-2)); }
+.bubble-map-positive circle { fill: color-mix(in srgb, var(--positive) 13%, var(--surface-2)); stroke: color-mix(in srgb, var(--positive) 58%, var(--border)); }
+.bubble-map-positive:hover circle, .bubble-map-positive.active circle, .bubble-map-positive:focus circle { fill: color-mix(in srgb, var(--positive) 22%, var(--surface-2)); }
+.bubble-map-negative circle { fill: color-mix(in srgb, var(--negative) 13%, var(--surface-2)); stroke: color-mix(in srgb, var(--negative) 58%, var(--border)); }
+.bubble-map-negative:hover circle, .bubble-map-negative.active circle, .bubble-map-negative:focus circle { fill: color-mix(in srgb, var(--negative) 22%, var(--surface-2)); }
+.bubble-map-symbol { fill: var(--text-hi); font-size: 16px; font-weight: 700; pointer-events: none; }
+.bubble-map-share { fill: var(--text-mid); font-size: 12px; pointer-events: none; }
+.bubble-map-selection { display: grid; grid-template-columns: 44px minmax(0,1fr) minmax(330px,1.5fr); align-items: center; gap: 14px; padding: 16px 20px; }
+.bubble-map-selection-mark { display: grid; width: 44px; height: 44px; place-items: center; overflow: hidden; border: 1px solid var(--border); border-radius: 50%; background: var(--surface-2); color: var(--accent); font-size: 12px; font-weight: 700; }
+.bubble-map-selection-mark img { width: 100%; height: 100%; object-fit: cover; }
+.bubble-map-selection h2 { margin-top: 3px; }
+.bubble-map-selection h2 span { margin-left: 5px; color: var(--text-mid); font-size: 12px; font-weight: 500; }
+.bubble-map-selection dl { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.bubble-map-selection dt { color: var(--text-mid); font-size: 11px; }
+.bubble-map-selection dd { margin-top: 4px; font-size: 14px; font-weight: 680; }
+.bubble-map-empty { display: grid; min-height: 300px; place-items: center; padding: 32px; text-align: center; }
+.bubble-map-empty p { max-width: 330px; margin-top: 8px; color: var(--text-mid); font-size: 12px; line-height: 1.7; }
 .dashboard-positions { min-width: 0; overflow: hidden; }
 .dashboard-positions > header { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--border); }
 .dashboard-positions table { width: 100%; }
@@ -350,6 +384,8 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .dashboard-position-cards { display: grid; gap: 10px; padding: 12px; }
   .dashboard-positions > .desktop-table { display: none; }
   .dashboard-side-stack { grid-template-columns: 1fr; }
+  .bubble-map-selection { grid-template-columns: 44px minmax(0,1fr); }
+  .bubble-map-selection dl { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0,1fr)); border-top: 1px solid var(--border); padding-top: 14px; }
 }
 @media (max-width: 520px) {
   .ccx-search { width: 40px; justify-content: center; }
@@ -365,6 +401,9 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .crypto-distribution-asset > span:first-child { width: 28px; height: 28px; }
   .crypto-distribution-arrow { display: none; }
   .crypto-movers { grid-template-columns: 1fr; }
+  .bubble-map-header { padding: 16px; }
+  .bubble-map-canvas { min-height: 230px; }
+  .bubble-map-selection { padding: 14px 16px; }
 }
 @media (max-width: 400px) {
   .dashboard-metrics { grid-template-columns: 1fr 1fr; }

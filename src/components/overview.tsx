@@ -85,7 +85,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     <section className="panel dashboard-allocation" aria-labelledby="allocation-title">
       <div className="flex items-center justify-between gap-2 border-b border-line pb-4">
         <div><h2 id="allocation-title">კრიპტო აქტივების განაწილება</h2><p className="mt-1 text-xs text-muted">სტეიბლკოინებისა და ნაღდი ფულის გარეშე</p></div>
-        <Link href={base + "/allocation"} className="button-secondary shrink-0">დეტალები <ArrowUpRight size={14} /></Link>
+        <Link href={base + "/bubble-map"} className="button-secondary shrink-0">დეტალები <ArrowUpRight size={14} /></Link>
       </div>
       {!s.complete ? <div className="dashboard-empty">ყველა აქტივის ფასის მიღების შემდეგ განაწილება სრულად გამოჩნდება.</div>
         : !crypto.length ? <div className="dashboard-empty">არასტეიბლ კრიპტოაქტივები ჯერ არ გაქვთ.</div>
