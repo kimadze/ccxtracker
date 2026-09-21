@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, Wallet } from "lucide-react";
-import type { PortfolioSummary } from "@/domain/types";
+import type { PortfolioSummary, ValuedPosition } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
 import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon, PositionsTable } from "./positions";
@@ -37,6 +37,12 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     ? decimal(s.contributions).minus(s.withdrawals).toString()
     : null;
   const largest = crypto[0];
+  const daily = crypto.filter((position) => position.quote?.change24h !== null);
+  const allTime = crypto.filter((position) => position.returnPercent !== null);
+  const dailyGainer = [...daily].filter((position) => decimal(position.quote!.change24h!).gt(0)).sort((a, b) => decimal(b.quote!.change24h!).cmp(decimal(a.quote!.change24h!)))[0];
+  const dailyLoser = [...daily].filter((position) => decimal(position.quote!.change24h!).lt(0)).sort((a, b) => decimal(a.quote!.change24h!).cmp(decimal(b.quote!.change24h!)))[0];
+  const allTimeGainer = [...allTime].filter((position) => decimal(position.returnPercent!).gt(0)).sort((a, b) => decimal(b.returnPercent!).cmp(decimal(a.returnPercent!)))[0];
+  const allTimeLoser = [...allTime].filter((position) => decimal(position.returnPercent!).lt(0)).sort((a, b) => decimal(a.returnPercent!).cmp(decimal(b.returnPercent!)))[0];
   const freshness = positions.length === 0 ? "ფასის შეფასება ჯერ არ არის საჭირო"
     : s.stale ? "ფასების ნაწილი დაგვიანებულია"
     : s.complete ? "არსებული ფასები განახლებულია" : "ზოგი ფასი მიუწვდომელია";
@@ -114,6 +120,10 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
             </div>
           </div>
           <p className="crypto-distribution-note">განაწილება მხოლოდ არასტეიბლ კრიპტოაქტივებს მოიცავს.</p>
+          <div className="crypto-movers" aria-label="აქტივების შედეგების ლიდერები">
+            <PortfolioMover title="Top Gainer" subtitle="საუკეთესო შედეგი" tone="positive" base={base} daily={dailyGainer} allTime={allTimeGainer} />
+            <PortfolioMover title="Top Loser" subtitle="ყველაზე სუსტი შედეგი" tone="negative" base={base} daily={dailyLoser} allTime={allTimeLoser} />
+          </div>
         </div>}
     </section>
 
@@ -152,6 +162,43 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
       <PortfolioCalculator positions={s.positions} />
     </aside>
   </div>;
+}
+
+function PortfolioMover({
+  title,
+  subtitle,
+  tone,
+  base,
+  daily,
+  allTime,
+}: {
+  title: string;
+  subtitle: string;
+  tone: "positive" | "negative";
+  base: string;
+  daily?: ValuedPosition;
+  allTime?: ValuedPosition;
+}) {
+  return <section className={`crypto-mover crypto-mover-${tone}`}>
+    <header><div><strong>{title}</strong><span>{subtitle}</span></div><span className="crypto-mover-pulse" aria-hidden="true" /></header>
+    <MoverEntry label="დღეს" base={base} position={daily} value={daily?.quote?.change24h ?? null} />
+    <MoverEntry label="სულ" base={base} position={allTime} value={allTime?.returnPercent ?? null} />
+  </section>;
+}
+
+function MoverEntry({ label, base, position, value }: {
+  label: string;
+  base: string;
+  position?: ValuedPosition;
+  value: string | null;
+}) {
+  if (!position) return <div className="crypto-mover-empty"><span>{label}</span><small>მონაცემი მიუწვდომელია</small></div>;
+  return <Link href={`${base}/positions/${position.assetId}`} className="crypto-mover-entry">
+    <span className="crypto-mover-period">{label}</span>
+    <AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} />
+    <strong title={position.asset.name}>{position.asset.symbol}</strong>
+    <span className={`numeric ${pnlClass(value)}`}>{percentage(value, true)}</span>
+  </Link>;
 }
 
 function DashboardMetric({ label, value, hint, tone = "text-foreground" }: {
