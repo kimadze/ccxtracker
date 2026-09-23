@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, ArrowLeftRight } from "lucide-react";
+import { Trash2, ArrowLeftRight, RotateCcw, Search } from "lucide-react";
 import type { Asset, LedgerEntry } from "@/domain/types";
 import { dateTime, money, quantity } from "@/lib/formatters";
 import { deleteTransaction } from "@/server/actions";
@@ -45,12 +45,13 @@ export function TransactionList({
     );
   const pages = Math.max(1, Math.ceil(filtered.length / 20));
   const currentPage = Math.min(page, pages - 1);
+  const hasFilters = Boolean(search || kind || from || to);
+  const resetFilters = () => { setSearch(""); setKind(""); setFrom(""); setTo(""); setPage(0); };
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-line bg-surface p-4">
+      <div className="panel ledger-toolbar">
       <div className="flex flex-wrap items-end gap-3">
-        <input
-          className="max-w-sm"
+        <label className="positions-search max-w-sm"><Search size={16} aria-hidden="true" /><span className="sr-only">ტრანზაქციების ძიება</span><input
           aria-label="ტრანზაქციების ძიება"
           placeholder="აქტივის ან შენიშვნის ძიება…"
           value={search}
@@ -58,7 +59,7 @@ export function TransactionList({
             setSearch(e.target.value);
             setPage(0);
           }}
-        />
+        /></label>
         <select
           className="max-w-48"
           aria-label="ტრანზაქციის ტიპი"
@@ -97,6 +98,7 @@ export function TransactionList({
             }}
           />
         </label>
+        {hasFilters && <button type="button" className="button-secondary" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
       </div></div>
       <div className="panel overflow-hidden">
         <div className="flex items-center justify-between border-b border-line px-5 py-4"><div><h2 className="text-sm font-semibold">ტრანზაქციების ისტორია</h2><p className="mt-1 text-[10px] text-muted">ყიდვა, გაყიდვა, შეტანა, გატანა და საკომისიოები</p></div><span className="rounded-md bg-raised px-2 py-1 text-[10px] text-muted">{filtered.length}</span></div>

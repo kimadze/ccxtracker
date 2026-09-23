@@ -39,10 +39,12 @@ export function PositionsTable({
   positions,
   base,
   preview = false,
+  view = "auto",
 }: {
   positions: ValuedPosition[];
   base: string;
   preview?: boolean;
+  view?: "auto" | "cards";
 }) {
   if (!positions.length)
     return (
@@ -61,7 +63,7 @@ export function PositionsTable({
     );
   return (
     <>
-      <div className="hidden overflow-x-auto md:block">
+      <div className={view === "cards" ? "hidden" : "hidden overflow-x-auto md:block"}>
         <table className="w-full">
           <thead className="bg-raised/35">
             <tr>
@@ -151,7 +153,7 @@ export function PositionsTable({
           </tbody>
         </table>
       </div>
-      <div className="dashboard-position-cards md:hidden">
+      <div className={view === "cards" ? "positions-card-grid" : "dashboard-position-cards md:hidden"}>
         {positions.map((p, i) => (
           <div key={p.assetId} className="dashboard-position-card">
             <div className="flex items-center justify-between gap-3">

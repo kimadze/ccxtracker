@@ -137,19 +137,15 @@ export function TransactionForm({
             }
           }}
         >
+          <div>
+            <p className="field-label">ტრანზაქციის ტიპი</p>
+            <div className="transaction-kind-selector" role="group" aria-label="ტრანზაქციის ტიპი">
+              {Object.entries(kindLabels).map(([value, label]) => (
+                <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value as TransactionKind)}>{label}</button>
+              ))}
+            </div>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="ტრანზაქციის ტიპი">
-              <select
-                value={kind}
-                onChange={(e) => setKind(e.target.value as TransactionKind)}
-              >
-                {Object.entries(kindLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </Field>
             <Field label="აქტივი">
               <select
                 value={assetId}
@@ -185,7 +181,7 @@ export function TransactionForm({
                         (a) => !current.some((c) => c.id === a.id),
                       ),
                     ]);
-                    if (result.assets[0]) setAssetId(result.assets[0].id);
+                    if (result.assets[0]) { setAssetId(result.assets[0].id); setQuery(""); }
                     else setError("აქტივი ვერ მოიძებნა.");
                   } else setError(result.error);
                 } catch {

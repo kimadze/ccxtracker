@@ -58,7 +58,7 @@ function Navigation({ base, path, compact, onNavigate }: {
         const active = path === href || (segment === "positions" && path.startsWith(href + "/"));
         return <Link
           key={segment} href={href} aria-current={active ? "page" : undefined}
-          aria-label={compact ? label : undefined} title={compact ? label : undefined}
+          aria-label={label} title={label}
           onClick={onNavigate}
           className={clsx("ccx-nav-link", compact && "justify-center")}
         ><Icon aria-hidden="true" size={18} strokeWidth={1.75} className="shrink-0" />
@@ -129,9 +129,8 @@ export function Shell({ children, portfolios, userName }: {
 
   return <div className="ccx-shell">
     <aside className={clsx("ccx-sidebar overflow-y-auto px-3 py-5", collapsed && "compact")} aria-label="გვერდითი მენიუ">
-      <div className="mb-5 flex items-center justify-between px-1">
+      <div className="mb-5 flex items-center px-1">
         <Brand compact={collapsed} />
-        <button type="button" className="ccx-icon-button sidebar-collapse" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"}><Menu size={17} /></button>
       </div>
       <Navigation base={base} path={path} compact={collapsed} />
       <div className="mt-5 border-t border-line pt-4">
@@ -143,6 +142,7 @@ export function Shell({ children, portfolios, userName }: {
     <div className={clsx("ccx-content", collapsed && "compact")}>
       <header className="ccx-topbar">
         <div className="flex min-w-0 items-center gap-3">
+          <button type="button" className="ccx-icon-button desktop-menu-trigger" aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"} aria-expanded={!collapsed} onClick={() => setCollapsed((value) => !value)}><Menu size={18} /></button>
           <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
             <Dialog.Trigger asChild><button type="button" className="ccx-icon-button mobile-menu-trigger" aria-label="მენიუს გახსნა"><Menu size={19} /></button></Dialog.Trigger>
             <Dialog.Portal>
@@ -213,7 +213,7 @@ export function PageHeading({ eyebrow, title, description, action }: {
   description: React.ReactNode;
   action?: React.ReactNode;
 }) {
-  return <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+  return <div className="workspace-heading mb-7 flex flex-wrap items-end justify-between gap-4">
     <div><p className="eyebrow mb-2">პორტფელი / {eyebrow}</p>
       <h1 className="text-[clamp(24px,2.3vw,28px)] font-semibold tracking-tight">{title}</h1>
       <div className="mt-2 max-w-2xl text-sm leading-6 text-muted">{description}</div>

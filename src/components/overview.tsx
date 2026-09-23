@@ -38,7 +38,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     ? decimal(s.contributions).minus(s.withdrawals).toString()
     : null;
   const largest = crypto[0];
-  const daily = crypto.filter((position) => position.quote?.change24h !== null);
+  const daily = crypto.filter((position) => position.quote?.change24h != null);
   const allTime = crypto.filter((position) => position.returnPercent !== null);
   const dailyGainer = [...daily].filter((position) => decimal(position.quote!.change24h!).gt(0)).sort((a, b) => decimal(b.quote!.change24h!).cmp(decimal(a.quote!.change24h!)))[0];
   const dailyLoser = [...daily].filter((position) => decimal(position.quote!.change24h!).lt(0)).sort((a, b) => decimal(a.quote!.change24h!).cmp(decimal(b.quote!.change24h!)))[0];
@@ -57,7 +57,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
         <h1>პორტფელის მიმოხილვა</h1>
         <p className="mt-2 text-xs text-muted">{freshness}{updatedAt ? " · " + dateTime(updatedAt) : ""}</p>
       </div>
-      {action}
+      <div className="dashboard-actions">{action}<Link href={base + "/positions"} className="button-secondary">პოზიციების მართვა <ArrowUpRight size={15} /></Link></div>
     </header>
     {!s.complete && <p role="status" className="dashboard-alert">ზოგიერთი ფასი მიუწვდომელია — ნაჩვენებია მხოლოდ ცნობილი ღირებულება; მთლიანი შედეგი არ გამოითვლება.</p>}
 

@@ -14,7 +14,7 @@ export default async function Page({
       <PageHeading
         eyebrow={w.portfolio.name}
         title="პოზიციები"
-        description="აქტივები, თვითღირებულება და მიმდინარე შედეგები."
+        description="მოძებნეთ, შეადარეთ და მართეთ ყველა ღია პოზიცია ერთ სამუშაო სივრცეში."
         action={
           <TransactionForm
             portfolioId={portfolioId}

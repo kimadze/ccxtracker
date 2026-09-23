@@ -37,9 +37,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await page
     .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
     .click();
-  await dialog
-    .getByLabel("ტრანზაქციის ტიპი", { exact: true })
-    .selectOption("deposit");
+  await dialog.getByRole("button", { name: "შეტანა", exact: true }).click();
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("USD");
   await dialog.getByLabel("თანხა (USD)", { exact: true }).fill("10000");
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
@@ -47,9 +45,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await page
     .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
     .click();
-  await dialog
-    .getByLabel("ტრანზაქციის ტიპი", { exact: true })
-    .selectOption("buy");
+  await dialog.getByRole("button", { name: "შესყიდვა", exact: true }).click();
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("bitcoin");
   await dialog.getByLabel("რაოდენობა", { exact: true }).fill("0,1");
   await dialog.getByLabel("ერთეულის ფასი (USD)", { exact: true }).fill("50000");
