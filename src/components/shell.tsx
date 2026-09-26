@@ -115,6 +115,12 @@ export function Shell({ children, portfolios, userName }: {
     label, Icon, href: base + (segment ? "/" + segment : ""),
   }))), [base]);
   const matches = items.filter((item) => item.label.toLocaleLowerCase("ka").includes(query.trim().toLocaleLowerCase("ka")));
+  const mobileLinks: NavItem[] = [
+    ["", "მიმოხილვა", LayoutDashboard],
+    ["positions", "პოზიციები", Wallet],
+    ["transactions", "ტრანზაქციები", ArrowLeftRight],
+    ["analytics", "ანალიტიკა", ChartNoAxesCombined],
+  ];
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
@@ -199,6 +205,16 @@ export function Shell({ children, portfolios, userName }: {
         </div>
       </header>
       <main id="main" className="ccx-main">{children}</main>
+      <nav className="mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
+        {mobileLinks.map(([segment, label, Icon]) => {
+          const href = base + (segment ? "/" + segment : "");
+          const active = path === href || (segment === "positions" && path.startsWith(href + "/"));
+          return <Link key={String(segment)} href={href} aria-current={active ? "page" : undefined} aria-label={String(label)} className="mobile-bottom-link"><Icon size={19} /><span>{label}</span></Link>;
+        })}
+        <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
+          <Dialog.Trigger asChild><button type="button" className="mobile-bottom-link" aria-label="მეტი გვერდი"><Menu size={19} /><span>მეტი</span></button></Dialog.Trigger>
+        </Dialog.Root>
+      </nav>
       <footer className="mx-4 flex flex-wrap justify-between gap-3 border-t border-line py-5 text-xs text-muted sm:mx-6">
         <span>© {new Date().getFullYear()} Crypto Collective X</span>
         <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
