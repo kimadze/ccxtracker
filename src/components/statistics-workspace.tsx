@@ -99,7 +99,7 @@ function MarketTab({ data, owned, selected, base }: {
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="BTC ან Bitcoin" className="pl-9" />
           </label>
         </div>
-        <div className="overflow-x-auto">
+        <div className="desktop-market-table overflow-x-auto">
           <table className="w-full min-w-[930px] text-xs">
             <thead><tr>
               <th className="table-head text-left">აქტივი</th>
@@ -130,6 +130,16 @@ function MarketTab({ data, owned, selected, base }: {
               </tr>;
             })}</tbody>
           </table>
+        </div>
+        <div className="mobile-market-list">
+          {rows.map((asset) => {
+            const allocation = owned.get(asset.id);
+            return <article key={asset.id} className="mobile-market-card">
+              <div className="mobile-market-primary"><span className="mobile-market-rank">#{asset.rank ?? "—"}</span><span className="mobile-market-symbol">{asset.symbol.slice(0, 2)}</span><div><strong>{asset.symbol}</strong><small>{asset.name}</small></div><div className="mobile-market-price"><strong className="numeric">{money(asset.price)}</strong><small className={pnlClass(asset.change24h)}>{percentage(asset.change24h, true)} · 24სთ</small></div></div>
+              <div className="mobile-market-details"><span><small>1სთ</small><strong className={pnlClass(asset.change1h)}>{percentage(asset.change1h, true)}</strong></span><span><small>7დღ</small><strong className={pnlClass(asset.change7d)}>{percentage(asset.change7d, true)}</strong></span><span><small>Market cap</small><strong>{compact(asset.marketCap)}</strong></span><Sparkline values={asset.sparkline7d} /></div>
+              {(allocation !== undefined || selected.has(asset.id)) && <p className="mobile-market-context">{allocation !== undefined ? `პორტფელშია${allocation ? ` · ${percentage(allocation)}` : ""}` : "დაკვირვების სიაშია"}</p>}
+            </article>;
+          })}
         </div>
         {!rows.length && <p className="p-12 text-center text-xs text-muted">შესაბამისი მონეტა ვერ მოიძებნა.</p>}
         <div className="border-t border-line p-4 text-right"><Link href={`${base}/watchlist`} className="text-xs text-brand">დაკვირვების სიის მართვა <ExternalLink className="inline" size={13} /></Link></div>

@@ -42,7 +42,7 @@ export function AirdropWorkspace({
   const movement = estimated === null ? null : amount(decimal(estimated).minus(received));
 
   return (
-    <div className="space-y-6">
+    <div className="airdrop-workspace space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
         <Metric label="მიღებული Airdrop-ები" value={String(rows.length)} hint="ყველა მიღება" />
         <Metric label="ღირებულება მიღებისას" value={money(received)} hint="საწყისი თვითღირებულება" />

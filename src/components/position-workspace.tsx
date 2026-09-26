@@ -30,7 +30,7 @@ export function PositionWorkspace({
 }) {
   const [tab, setTab] = useState("overview");
   return (
-    <>
+    <div className="position-workspace">
       <div className="ccx-tabs mb-6">
         {[
           ["overview", "მიმოხილვა"],
@@ -100,6 +100,6 @@ export function PositionWorkspace({
           {attachments}
         </div>
       )}
-    </>
+    </div>
   );
 }

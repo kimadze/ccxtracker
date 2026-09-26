@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, ArrowLeftRight, RotateCcw, Search } from "lucide-react";
+import { Trash2, ArrowLeftRight, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import type { Asset, LedgerEntry } from "@/domain/types";
 import { dateTime, money, quantity } from "@/lib/formatters";
 import { deleteTransaction } from "@/server/actions";
 import { TransactionForm, kindLabels } from "./transaction-form";
 import { Message, Modal } from "./ui";
+import { MobileBottomSheet } from "./mobile-components";
 
 export function TransactionList({
   entries,
@@ -48,7 +49,7 @@ export function TransactionList({
   const hasFilters = Boolean(search || kind || from || to);
   const resetFilters = () => { setSearch(""); setKind(""); setFrom(""); setTo(""); setPage(0); };
   return (
-    <div className="space-y-5">
+    <div className="transaction-workspace space-y-5">
       <div className="panel ledger-toolbar">
       <div className="flex flex-wrap items-end gap-3">
         <label className="positions-search max-w-sm"><Search size={16} aria-hidden="true" /><span className="sr-only">ტრანზაქციების ძიება</span><input
@@ -60,8 +61,7 @@ export function TransactionList({
             setPage(0);
           }}
         /></label>
-        <select
-          className="max-w-48"
+        <select className="desktop-ledger-filter"
           aria-label="ტრანზაქციის ტიპი"
           value={kind}
           onChange={(e) => {
@@ -76,7 +76,7 @@ export function TransactionList({
             </option>
           ))}
         </select>
-        <label className="max-w-44 text-[10px] text-muted">
+        <label className="desktop-ledger-filter max-w-44 text-[10px] text-muted">
           თარიღიდან (თბილისი)
           <input
             type="date"
@@ -87,7 +87,7 @@ export function TransactionList({
             }}
           />
         </label>
-        <label className="max-w-44 text-[10px] text-muted">
+        <label className="desktop-ledger-filter max-w-44 text-[10px] text-muted">
           თარიღამდე (თბილისი)
           <input
             type="date"
@@ -98,7 +98,12 @@ export function TransactionList({
             }}
           />
         </label>
-        {hasFilters && <button type="button" className="button-secondary" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
+        <div className="mobile-ledger-filter"><MobileBottomSheet title="ტრანზაქციების ფილტრი" trigger={<button type="button" className="button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
+          <label className="mobile-filter-select"><span>ტრანზაქციის ტიპი</span><select value={kind} onChange={(event) => { setKind(event.target.value); setPage(0); }}><option value="">ყველა ტიპი</option>{Object.entries(kindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <div className="mobile-ledger-dates"><label><span>თარიღიდან</span><input type="date" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0); }} /></label><label><span>თარიღამდე</span><input type="date" value={to} onChange={(event) => { setTo(event.target.value); setPage(0); }} /></label></div>
+          {hasFilters && <button type="button" className="button-secondary w-full" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
+        </MobileBottomSheet></div>
+        {hasFilters && <button type="button" className="desktop-ledger-filter button-secondary" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
       </div></div>
       <div className="panel overflow-hidden">
         <div className="flex items-center justify-between border-b border-line px-5 py-4"><div><h2 className="text-sm font-semibold">ტრანზაქციების ისტორია</h2><p className="mt-1 text-[10px] text-muted">ყიდვა, გაყიდვა, შეტანა, გატანა და საკომისიოები</p></div><span className="rounded-md bg-raised px-2 py-1 text-[10px] text-muted">{filtered.length}</span></div>
