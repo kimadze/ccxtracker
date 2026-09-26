@@ -6,6 +6,7 @@ import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon, PositionsTable } from "./positions";
 import { PortfolioCalculator } from "./portfolio-calculator";
 import { BalanceValue } from "./ui";
+import { MobileMetricCard } from "./mobile-components";
 
 export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = false, history, action }: {
   summary: PortfolioSummary;
@@ -50,7 +51,21 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
   const quoteDates = positions.map((position) => position.quote?.updatedAt).filter((date): date is string => !!date);
   const updatedAt = quoteDates.length ? quoteDates.sort().at(-1) : undefined;
 
-  return <div className="dashboard-space">
+  return <>
+  <div className="mobile-overview-app">
+    <section className="mobile-health-card">
+      <div className="mobile-health-heading"><div><p className="eyebrow">{portfolioName}</p><h1>პორტფელის მდგომარეობა</h1></div><span className={s.complete ? "mobile-status-dot ready" : "mobile-status-dot warning"} /></div>
+      <p className="mobile-health-value numeric"><BalanceValue>{money(displayedValue)}</BalanceValue></p>
+      <p className="mobile-health-label">{freshness}</p>
+      <div className="mobile-health-pnl"><span>მთლიანი P/L</span><strong className={pnlClass(s.totalPnl)}><BalanceValue>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</BalanceValue></strong></div>
+    </section>
+    <div className="mobile-quick-actions">{action}<Link href={base + "/positions"} className="button-secondary">პოზიციები <ArrowUpRight size={15} /></Link></div>
+    <div className="mobile-health-metrics"><MobileMetricCard label="ლიკვიდობა" value={money(s.liquidity)} hint="Cash + Stablecoins" /><MobileMetricCard label="აქტიური პოზიციები" value={String(positions.length)} hint="მიმდინარე აქტივები" /><MobileMetricCard label="არარეალიზებული P/L" value={money(s.unrealizedPnl)} tone={pnlClass(s.unrealizedPnl)} /><MobileMetricCard label="რეალიზებული P/L" value={money(s.realizedPnl)} tone={pnlClass(s.realizedPnl)} /></div>
+    <section className="mobile-overview-section"><div className="mobile-section-heading"><h2>შედეგის დინამიკა</h2><span>{updatedAt ? dateTime(updatedAt, true) : "ჯერ არ არის"}</span></div><div className="mobile-chart-slot">{history ?? <span>ისტორიისთვის საჭიროა მინიმუმ ორი შეფასება.</span>}</div></section>
+    <section className="mobile-overview-section"><div className="mobile-section-heading"><h2>აქტივების განაწილება</h2><Link href={base + "/bubble-map"}>რუკა <ArrowUpRight size={13} /></Link></div><div className="mobile-allocation-strip">{slices.map((slice) => <span key={slice.position.assetId} title={slice.label} style={{ flexGrow: Number(slice.share ?? 0), background: slice.color }} />)}</div><div className="mobile-allocation-list">{slices.slice(0, 5).map((slice, index) => <Link key={slice.position.assetId} href={`${base}/positions/${slice.position.assetId}`}><AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} /><span>{slice.label}</span><strong>{percentage(slice.share)}</strong></Link>)}</div></section>
+    <section className="mobile-overview-section"><div className="mobile-section-heading"><h2>ჩემი აქტივები</h2><Link href={base + "/positions"}>ყველა <ArrowUpRight size={13} /></Link></div><div className="mobile-position-list">{positions.slice(0, 5).map((position, index) => <Link key={position.assetId} href={`${base}/positions/${position.assetId}`}><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} index={index} /><div><strong>{position.asset.symbol}</strong><span>{position.asset.name}</span></div><div className="mobile-position-value"><strong className="numeric"><BalanceValue>{money(position.value)}</BalanceValue></strong><span className={pnlClass(position.unrealizedPnl)}>{percentage(position.returnPercent, true)}</span></div></Link>)}</div></section>
+  </div>
+  <div className="dashboard-space">
     <header className="dashboard-header">
       <div>
         <p className="eyebrow mb-1">{portfolioName}</p>
@@ -161,7 +176,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
       </section>
       <PortfolioCalculator positions={s.positions} />
     </aside>
-  </div>;
+  </div></>;
 }
 
 function PortfolioMover({
