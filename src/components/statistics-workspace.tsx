@@ -66,7 +66,7 @@ function MarketTab({ data, owned, selected, base }: {
   const movers = topMovers(data.assets);
   const overview = data.overview;
   return (
-    <div className="space-y-7">
+    <div className="statistics-workspace space-y-7">
       {overview ? (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">

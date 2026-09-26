@@ -104,6 +104,7 @@ export function Shell({ children, portfolios, userName }: {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [query, setQuery] = useState("");
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
@@ -121,6 +122,10 @@ export function Shell({ children, portfolios, userName }: {
     ["transactions", "ტრანზაქციები", ArrowLeftRight],
     ["analytics", "ანალიტიკა", ChartNoAxesCombined],
   ];
+  const moreGroups = groups.map((group) => ({
+    ...group,
+    links: group.links.filter(([segment]) => !mobileLinks.some(([mobileSegment]) => mobileSegment === segment)),
+  })).filter((group) => group.links.length);
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
@@ -212,8 +217,28 @@ export function Shell({ children, portfolios, userName }: {
           const active = path === href || (segment === "positions" && path.startsWith(href + "/"));
           return <Link key={String(segment)} href={href} aria-current={active ? "page" : undefined} aria-label={String(label)} className="mobile-bottom-link"><Icon size={19} /><span>{label}</span></Link>;
         })}
-        <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
+        <Dialog.Root open={moreOpen} onOpenChange={setMoreOpen}>
           <Dialog.Trigger asChild><button type="button" className="mobile-bottom-link" aria-label="მეტი გვერდი"><Menu size={19} /><span>მეტი</span></button></Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className="mobile-sheet-overlay" />
+            <Dialog.Content className="mobile-bottom-sheet mobile-more-sheet" aria-describedby={undefined}>
+              <div className="mobile-sheet-handle" aria-hidden="true" />
+              <div className="mobile-sheet-heading">
+                <div><Dialog.Title>ყველა ხელსაწყო</Dialog.Title><p>კვლევა, დაგეგმვა და ანგარიშის მართვა</p></div>
+                <Dialog.Close className="mobile-sheet-close" aria-label="დახურვა"><X size={18} /></Dialog.Close>
+              </div>
+              <div className="mobile-more-grid">
+                {moreGroups.flatMap((group) => group.links).map(([segment, label, Icon]) => {
+                  const href = base + "/" + segment;
+                  const active = path === href;
+                  return <Link key={segment} href={href} aria-current={active ? "page" : undefined} onClick={() => setMoreOpen(false)}>
+                    <span><Icon size={19} /></span><strong>{label}</strong>
+                  </Link>;
+                })}
+              </div>
+              <div className="mobile-more-account"><PortfolioCreate compact onCreated={() => setMoreOpen(false)} /><LogoutButton /></div>
+            </Dialog.Content>
+          </Dialog.Portal>
         </Dialog.Root>
       </nav>
       <footer className="mx-4 flex flex-wrap justify-between gap-3 border-t border-line py-5 text-xs text-muted sm:mx-6">

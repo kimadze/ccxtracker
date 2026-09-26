@@ -47,7 +47,7 @@ export function StrategyWorkspace({
       </div>
     );
   return (
-    <div className="space-y-6">
+    <div className="strategy-workspace space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <select
           className="max-w-xs"

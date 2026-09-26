@@ -44,7 +44,7 @@ export function Analytics({
     .filter((p) => p.returnPercent !== null)
     .sort((a, b) => Number(b.returnPercent) - Number(a.returnPercent));
   return (
-    <div className="space-y-6">
+    <div className="analytics-workspace space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-3">
         <div>
           <p className="text-sm font-semibold">შედეგების ანალიზი</p>

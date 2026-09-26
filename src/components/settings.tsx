@@ -49,7 +49,7 @@ export function Settings({
     }
   }
   return (
-    <div className="space-y-6">
+    <div className="settings-workspace space-y-6">
       {message && <Message error={error}>{message}</Message>}
       <div className="grid gap-6 lg:grid-cols-2">
         <form

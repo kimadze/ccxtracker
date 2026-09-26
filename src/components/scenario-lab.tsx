@@ -90,7 +90,7 @@ export function ScenarioLab({
     }
   }
   return (
-    <div className="space-y-6">
+    <div className="scenario-lab space-y-6">
       <div className="flex flex-wrap gap-3">
         <select
           aria-label="შენახული სცენარი"

@@ -4,6 +4,7 @@ import { Grid2X2, List, RotateCcw, Search, SlidersHorizontal } from "lucide-reac
 import type { ValuedPosition } from "@/domain/types";
 import { decimal } from "@/domain/decimal";
 import { PositionsTable } from "./positions";
+import { MobileBottomSheet } from "./mobile-components";
 export function PositionsWorkspace({
   positions,
   base,
@@ -65,7 +66,7 @@ export function PositionsWorkspace({
           }}
           />
         </label>
-        <div className="positions-filter"><SlidersHorizontal size={15} aria-hidden="true" /><select
+        <div className="positions-filter desktop-position-filter"><SlidersHorizontal size={15} aria-hidden="true" /><select
           aria-label="შედეგის ფილტრი"
           className="max-w-44"
           value={filter}
@@ -79,9 +80,8 @@ export function PositionsWorkspace({
           <option value="loss">ზარალით</option>
           <option value="unpriced">ფასის გარეშე</option>
         </select></div>
-        <select
+        <select className="desktop-position-filter max-w-48"
           aria-label="პოზიციების დალაგება"
-          className="max-w-48"
           value={sort}
           onChange={(e) => setSort(e.target.value)}
         >
@@ -89,11 +89,20 @@ export function PositionsWorkspace({
           <option value="return">შემოსავლიანობით</option>
           <option value="name">სახელით</option>
         </select>
-        <div className="view-switcher" role="group" aria-label="პოზიციების ხედი">
+        <div className="view-switcher desktop-position-filter" role="group" aria-label="პოზიციების ხედი">
           <button type="button" className={view === "table" ? "active" : ""} onClick={() => setView("table")} aria-label="ცხრილის ხედი"><List size={16} /></button>
           <button type="button" className={view === "cards" ? "active" : ""} onClick={() => setView("cards")} aria-label="ბარათების ხედი"><Grid2X2 size={16} /></button>
         </div>
-        {(search || filter !== "all" || sort !== "value") && <button type="button" className="toolbar-reset" onClick={reset}><RotateCcw size={14} /> გასუფთავება</button>}
+        <div className="mobile-position-filter">
+          <MobileBottomSheet title="პოზიციების ფილტრი" trigger={<button type="button" className="button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
+            <div className="mobile-filter-options" role="group" aria-label="შედეგის ფილტრი">
+              {[["all", "ყველა", positions.length], ["profit", "მოგებაში", profitable], ["loss", "ზარალში", losing], ["unpriced", "ფასის გარეშე", unpriced]].map(([value, label, count]) => <button key={String(value)} type="button" className={filter === value ? "active" : ""} onClick={() => { setFilter(String(value)); setPage(0); }}><span>{String(label)}</span><strong>{String(count)}</strong></button>)}
+            </div>
+            <label className="mobile-filter-select"><span>დალაგება</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="value">ღირებულებით</option><option value="return">შემოსავლიანობით</option><option value="name">სახელით</option></select></label>
+            {(search || filter !== "all" || sort !== "value") && <button type="button" className="button-secondary w-full" onClick={reset}><RotateCcw size={15} /> ფილტრების გასუფთავება</button>}
+          </MobileBottomSheet>
+        </div>
+        {(search || filter !== "all" || sort !== "value") && <button type="button" className="toolbar-reset desktop-position-filter" onClick={reset}><RotateCcw size={14} /> გასუფთავება</button>}
       </div>
       <div className="positions-result-meta"><span><strong>{filtered.length}</strong> შედეგი</span>{search && <span>ძიება: “{search}”</span>}</div>
       <section className="panel positions-results">
