@@ -148,6 +148,7 @@ export function Shell({ children, portfolios, userName }: {
     <div className={clsx("ccx-content", collapsed && "compact")}>
       <header className="ccx-topbar">
         <div className="flex min-w-0 items-center gap-3">
+          <div className="mobile-topbar-brand"><Brand compact /></div>
           <button type="button" className="ccx-icon-button desktop-menu-trigger" aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"} aria-expanded={!collapsed} onClick={() => setCollapsed((value) => !value)}><Menu size={18} /></button>
           <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
             <Dialog.Trigger asChild><button type="button" className="ccx-icon-button mobile-menu-trigger" aria-label="მენიუს გახსნა"><Menu size={19} /></button></Dialog.Trigger>

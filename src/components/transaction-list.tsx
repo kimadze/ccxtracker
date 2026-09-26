@@ -106,7 +106,7 @@ export function TransactionList({
         {filtered.slice(currentPage * 20, (currentPage + 1) * 20).map((e) => (
           <div
             key={e.id}
-            className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-raised/40"
+            className="transaction-row flex flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-raised/40"
           >
             <div className="flex items-center gap-3">
               <span className="rounded-lg bg-raised p-2 text-brand">

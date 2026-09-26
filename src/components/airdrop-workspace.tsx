@@ -65,7 +65,7 @@ export function AirdropWorkspace({
         ) : (
           <div className="divide-y divide-line">
             {rows.map(({ entry, asset, receivedValue, movement }) => (
-              <div key={entry.id} className="flex flex-wrap items-center justify-between gap-5 px-5 py-4 hover:bg-raised/35">
+              <div key={entry.id} className="airdrop-row flex flex-wrap items-center justify-between gap-5 px-5 py-4 hover:bg-raised/35">
                 <div className="min-w-48">
                   <div className="flex items-center gap-2">
                     <AssetIcon symbol={asset?.symbol ?? "?"} logoUrl={asset?.logoUrl} />
