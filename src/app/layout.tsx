@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 
 export const metadata: Metadata = {
   title: {
@@ -8,6 +9,9 @@ export const metadata: Metadata = {
   },
   description:
     "თქვენი კრიპტოპორტფელი ერთ სივრცეში — მონიტორინგი, ანალიტიკა და სტრატეგიის დაგეგმვა.",
+  applicationName: "Crypto Collective X",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "CCX Portfolio", statusBarStyle: "black-translucent" },
   openGraph: {
     title: "Crypto Collective X",
     description: "გააზრებული გადაწყვეტილებები იწყება სრული სურათით.",
@@ -30,6 +34,7 @@ export default function RootLayout({
           შინაარსზე გადასვლა
         </a>
         {children}
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );
