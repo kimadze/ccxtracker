@@ -13,7 +13,13 @@ export function money(value: string | null, compact = false) {
     return `${sign}$${formatted(absolute.div(1000000).toFixed(), 1, true)} მლნ`;
   if (compact && absolute.gte(1000))
     return `${sign}$${formatted(absolute.div(1000).toFixed(), 1, true)} ათ.`;
-  return `${sign}$${formatted(absolute.toFixed(), 2)}`;
+  const places = absolute.gt(0) && absolute.lt("0.01") ? 8 : 2;
+  return `${sign}$${formatted(absolute.toFixed(), places, places > 2)}`;
+}
+export function inputNumber(value: string | null) {
+  if (value === null) return "";
+  const raw = decimal(value).toFixed(18);
+  return raw.includes(".") ? raw.replace(/0+$/, "").replace(/\.$/, "") : raw;
 }
 export function compactMoney(value: string | null) {
   if (value === null) return "—";

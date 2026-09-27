@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { Asset, ValuedPosition } from "@/domain/types";
 import { calculateDca, calculateExit, type ExitLevel } from "@/domain/planning";
-import { money, percentage, quantity } from "@/lib/formatters";
+import { inputNumber, money, percentage, quantity } from "@/lib/formatters";
 import { saveExitPlan } from "@/server/strategy-actions";
 import { Field, Message } from "./ui";
 import { Metric } from "./overview";
@@ -150,7 +150,7 @@ export function ExitPlanner({
   preview?: boolean;
 }) {
   const [levels, setLevels] = useState<ExitLevel[]>(
-      initial?.levels ?? [{ price: "", percentage: "25" }],
+      initial?.levels.map((level) => ({ price: inputNumber(level.price), percentage: inputNumber(level.percentage) })) ?? [{ price: "", percentage: "25" }],
     ),
     [feePercent, setFee] = useState(initial?.feePercent ?? "0"),
     [message, setMessage] = useState(""),
@@ -175,9 +175,9 @@ export function ExitPlanner({
     setMessage("");
   }
   return (
-    <div className="space-y-6">
-      <section className="panel p-6">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div className="exit-planner">
+      <section className="panel exit-editor">
+        <div className="exit-editor-heading">
           <div>
             <h2 className="text-sm font-medium">გაყიდვის ეტაპები</h2>
             <p className="mt-2 text-xs leading-6 text-muted">
@@ -185,7 +185,7 @@ export function ExitPlanner({
               {position.asset.symbol}-იდან. ფასები ეტაპობრივად უნდა იზრდებოდეს.
             </p>
           </div>
-          <div className="w-40">
+          <div className="exit-fee-field">
             <Field label="საკომისიო (%)">
               <input
                 value={feePercent}
@@ -198,13 +198,14 @@ export function ExitPlanner({
             </Field>
           </div>
         </div>
-        <div className="space-y-4">
+        <div className="exit-levels" role="table" aria-label="გაყიდვის ეტაპები">
+          <div className="exit-level-head" role="row"><span>ეტაპი</span><span>სამიზნე ფასი</span><span>გასაყიდი %</span><span>რაოდენობა</span><span>შემოსავალი</span><span /></div>
           {levels.map((level, i) => (
             <div
               key={i}
-              className="grid grid-cols-[40px_1fr_1fr_32px] items-end gap-3"
+              className="exit-level-row"
             >
-              <span className="pb-3 text-xs text-brand">TP{i + 1}</span>
+              <span className="exit-level-name">TP{i + 1}</span>
               <Field label="სამიზნე ფასი (USD)">
                 <input
                   value={level.price}
@@ -220,6 +221,8 @@ export function ExitPlanner({
                   onChange={(e) => update(i, "percentage", e.target.value)}
                 />
               </Field>
+              <span className="exit-level-quantity">{result?.levels[i] ? quantity(result.levels[i].quantity) : "—"}</span>
+              <span className="exit-level-revenue">{result?.levels[i] ? money(result.levels[i].revenue) : "—"}</span>
               <button
                 className="mb-2 rounded p-2 text-muted hover:text-negative"
                 aria-label={`TP${i + 1}-ის წაშლა`}
@@ -234,8 +237,8 @@ export function ExitPlanner({
             </div>
           ))}
         </div>
-        <button
-          className="button-secondary mt-5"
+        <div className="exit-editor-actions"><button
+          className="button-secondary"
           disabled={levels.length >= 12}
           onClick={() =>
             setLevels((l) => [...l, { price: "", percentage: "10" }])
@@ -243,11 +246,16 @@ export function ExitPlanner({
         >
           <Plus size={15} />
           ეტაპის დამატება
-        </button>
+        </button>{!preview && <button className="button-primary" disabled={!result || pending} onClick={async () => {
+          setPending(true);
+          try { const response = await saveExitPlan({ portfolioId, assetId: position.assetId, feePercent, levels }); setError(!response.ok); setMessage(response.ok ? "გასვლის გეგმა შენახულია." : response.error); }
+          catch { setError(true); setMessage("შენახვა ვერ მოხერხდა."); }
+          finally { setPending(false); }
+        }}>{pending ? "ინახება…" : "გეგმის შენახვა"}</button>}</div>
       </section>
       {result ? (
-        <>
-          <div className="panel grid grid-cols-2 gap-6 p-6 lg:grid-cols-4">
+        <aside className="exit-results">
+          <div className="panel exit-summary">
             <Metric
               label="მოსალოდნელი წმინდა შემოსავალი"
               value={money(result.revenue)}
@@ -262,7 +270,7 @@ export function ExitPlanner({
               value={money(result.weightedExitPrice)}
             />
           </div>
-          <section className="panel p-6">
+          <section className="panel exit-recovery">
             <h2 className="text-sm font-medium">კაპიტალის ამოღება</h2>
             <p className="mt-3 text-xs leading-7 text-muted">
               აღსადგენი თვითღირებულება: {money(position.costBasis)}.{" "}
@@ -288,7 +296,7 @@ export function ExitPlanner({
               ))}
             </div>
           </section>
-        </>
+        </aside>
       ) : (
         <Message>
           შეიყვანეთ ზრდადი დადებითი ფასები. წილების ჯამი არ უნდა აღემატებოდეს
@@ -296,37 +304,6 @@ export function ExitPlanner({
         </Message>
       )}
       {message && <Message error={error}>{message}</Message>}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-xs text-muted">გეგმა სავაჭრო დავალებას არ ქმნის.</p>
-        {!preview && (
-          <button
-            className="button-primary"
-            disabled={!result || pending}
-            onClick={async () => {
-              setPending(true);
-              try {
-                const response = await saveExitPlan({
-                  portfolioId,
-                  assetId: position.assetId,
-                  feePercent,
-                  levels,
-                });
-                setError(!response.ok);
-                setMessage(
-                  response.ok ? "გასვლის გეგმა შენახულია." : response.error,
-                );
-              } catch {
-                setError(true);
-                setMessage("შენახვა ვერ მოხერხდა.");
-              } finally {
-                setPending(false);
-              }
-            }}
-          >
-            {pending ? "ინახება…" : "გეგმის შენახვა"}
-          </button>
-        )}
-      </div>
     </div>
   );
 }

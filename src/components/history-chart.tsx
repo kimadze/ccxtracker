@@ -30,7 +30,7 @@ export function HistoryChart({
   }, [snapshots, period, showPeriodControls]);
   if (!snapshots.length)
     return (
-      <div className="flex h-56 flex-col items-center justify-center text-center">
+      <div className="history-empty flex flex-col items-start justify-center text-left">
         <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
         <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
           პირველი შეფასება ყოველდღიური განახლების შემდეგ გამოჩნდება.

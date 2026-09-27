@@ -70,30 +70,30 @@ export function Analytics({
         ))}
         </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="analytics-metrics grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <AnalyticsMetric icon={<TrendingUp size={18}/>} label="პერიოდის შემოსავლიანობა" value={percentage(performance.returnPercent, true)} tone="brand" result={performance.returnPercent} />
         <AnalyticsMetric icon={<TrendingDown size={18}/>} label="მაქსიმალური ვარდნა" value={percentage(performance.maxDrawdown)} tone="brand" result={performance.maxDrawdown} />
         <AnalyticsMetric icon={<ChartNoAxesCombined size={18}/>} label="რეალიზებული P&L" value={money(summary.realizedPnl)} tone="brand" result={summary.realizedPnl} />
         <AnalyticsMetric icon={<Activity size={18}/>} label="არარეალიზებული P&L" value={money(summary.unrealizedPnl)} tone="brand" result={summary.unrealizedPnl} />
       </div>
-      <section className="panel overflow-hidden">
+      <section className="panel analytics-history overflow-hidden">
         <div className="flex items-center justify-between border-b border-line p-5">
           <div><h2 className="text-sm font-semibold">ღირებულების ისტორია</h2><p className="mt-1 text-[10px] text-muted">არჩეული პერიოდის პორტფელის დინამიკა</p></div>
           <span className="rounded-md border border-line px-2 py-1 text-xs text-muted">შენახული ისტორია</span>
         </div>
         <div className="p-5">
         <HistoryChart snapshots={selected} showPeriodControls={false} />
-        <p className="mt-5 text-[11px] leading-6 text-muted">
+        <details className="analytics-method mt-4 text-[11px] leading-6 text-muted"><summary>გამოთვლის შესახებ</summary><p className="mt-2">
           შემოსავლიანობა და ვარდნა მიახლოებითი შეფასებებია: ყოველდღიური
           მონაცემები თანხის შეტანა-გატანის გათვალისწინებით მუშავდება (Modified
           Dietz). აქტივის გადატანის ან ისტორიის მნიშვნელოვანი გამოტოვების
           შემთხვევაში შეფასება არ გამოითვლება. ღირებულების გრაფიკი თანხის
           შეტანებსაც ასახავს.
-        </p>
+        </p></details>
         </div>
       </section>
       <PerformanceAttribution attribution={attribution} />
-      <section className="panel overflow-hidden">
+      <section className="panel analytics-health overflow-hidden">
         <div className="border-b border-line p-5"><h2 className="text-sm font-semibold">პორტფელის მდგომარეობა</h2><p className="mt-1 text-[10px] text-muted">კონცენტრაციისა და რეზერვის სწრაფი კონტროლი</p></div>
         <div className="p-5">
         {health ? (
@@ -133,13 +133,13 @@ export function Analytics({
               {health.largestSymbol} პორტფელის {percentage(health.largest)}-ს
               შეადგენს.
             </p>
-            <p className="mt-4 text-[11px] leading-6 text-muted">
+            <details className="mt-3 text-[11px] leading-6 text-muted"><summary>მაჩვენებლის განმარტება</summary><p className="mt-2">
               კონცენტრაციის საზღვრები: 30%-ზე ნაკლები — დაბალი; 30–50% —
               საშუალო; 50%-დან — მაღალი. ეფექტური რაოდენობა წილების კვადრატების
               ჯამის შებრუნებული მნიშვნელობაა და USD-ის ნაშთსაც მოიცავს. ეს
               მაჩვენებლები პორტფელის სტრუქტურას აღწერს და ფასების ცვლილებას არ
               პროგნოზირებს. სტეიბლკოინებსაც აქვთ რისკი.
-            </p>
+            </p></details>
           </>
         ) : (
           <p className="mt-6 text-xs leading-6 text-muted">
