@@ -36,7 +36,7 @@ export function HistoryChart({
       <div className="history-empty flex flex-col items-start justify-center text-left">
         <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
         <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
-          პირველი შეფასება შეგიძლიათ ახლავე შეინახოთ, ან დაელოდოთ ყოველდღიურ განახლებას.
+          მიმდინარე შეფასება ავტომატურად შეინახება და ყოველდღიური განახლებები მას გააგრძელებს.
         </p>
         {emptyAction && <div className="mt-4">{emptyAction}</div>}
       </div>
