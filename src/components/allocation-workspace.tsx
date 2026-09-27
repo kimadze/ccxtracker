@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { Asset, PortfolioSummary, Quote } from "@/domain/types";
 import { calculateDeployment, validateWeights } from "@/domain/allocation";
 import { decimal } from "@/domain/decimal";
-import { money, percentage, quantity } from "@/lib/formatters";
+import { inputNumber, money, percentage, quantity } from "@/lib/formatters";
 import { saveAllocation } from "@/server/allocation-actions";
 import { Field, Message } from "./ui";
 import { Metric } from "./overview";
@@ -94,11 +94,11 @@ export function AllocationWorkspace({
           {rows.map((r) => (
             <Field
               key={r.assetId}
-              label={`${symbol(r.assetId)} — მიზნობრივი წილი (%)`}
+              label={symbol(r.assetId)}
             >
               <input
                 inputMode="decimal"
-                value={weights[r.assetId]}
+                value={inputNumber(weights[r.assetId])}
                 onChange={(e) => {
                   setWeights((w) => ({ ...w, [r.assetId]: e.target.value }));
                   setMessage("");
@@ -197,11 +197,11 @@ export function AllocationWorkspace({
             {rows.map((r) => (
               <Field
                 key={r.assetId}
-                label={`${symbol(r.assetId)} — თანხა (USD)`}
+                label={symbol(r.assetId)}
               >
                 <input
                   inputMode="decimal"
-                  value={custom[r.assetId] ?? ""}
+                  value={inputNumber(custom[r.assetId] ?? "")}
                   onChange={(e) =>
                     setCustom((c) => ({ ...c, [r.assetId]: e.target.value }))
                   }
