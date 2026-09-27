@@ -11,6 +11,26 @@ import { userError, type ActionResult } from "./errors";
 import { consumeRateLimit } from "./rate-limit";
 import { journalAttachments } from "./db/schema";
 import { del } from "@vercel/blob";
+import { capturePortfolioSnapshot } from "./snapshots";
+
+export async function captureInitialSnapshot(
+  portfolioId: string,
+): Promise<ActionResult> {
+  const user = await requireUser();
+  try {
+    await portfolioService(getDb(), user.id).owned(portfolioId);
+    const result = await capturePortfolioSnapshot(portfolioId);
+    if (result.reason === "INCOMPLETE_VALUATION")
+      return {
+        ok: false,
+        error: "ყველა აქტივის მიმდინარე ფასი ჯერ მიუწვდომელია. განაახლეთ ფასები და სცადეთ ხელახლა.",
+      };
+    revalidatePath(`/portfolios/${portfolioId}`);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: userError(error) };
+  }
+}
 
 export async function createPortfolio(input: unknown): Promise<ActionResult> {
   const user = await requireUser();

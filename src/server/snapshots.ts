@@ -13,6 +13,61 @@ import { toLedger } from "./services/portfolio";
 import { replayLedger } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
 
+type SnapshotDependencies = {
+  db?: Database;
+  loadQuotes?: typeof getQuotes;
+};
+
+/** Capture one portfolio without the scheduled-job lease. Used for a user's first chart point. */
+export async function capturePortfolioSnapshot(
+  portfolioId: string,
+  dependencies: SnapshotDependencies = {},
+) {
+  const db = dependencies.db ?? getDb();
+  const [portfolio] = await db
+    .select()
+    .from(portfolios)
+    .where(eq(portfolios.id, portfolioId));
+  if (!portfolio) throw new Error("RESOURCE_NOT_FOUND");
+
+  const allAssets = await db.select().from(assets);
+  const quotes = await (dependencies.loadQuotes ?? getQuotes)(allAssets);
+  return db.transaction(async (tx) => {
+    const [locked] = await tx
+      .select()
+      .from(portfolios)
+      .where(eq(portfolios.id, portfolioId))
+      .for("update");
+    if (!locked) throw new Error("RESOURCE_NOT_FOUND");
+    const entries = (
+      await tx
+        .select()
+        .from(transactions)
+        .where(eq(transactions.portfolioId, portfolioId))
+    ).map(toLedger);
+    const summary = valuePortfolio(replayLedger(entries), allAssets, quotes);
+    if (!summary.complete || summary.stale || summary.value === null)
+      return { created: false, reason: "INCOMPLETE_VALUATION" as const };
+
+    const capturedAt = new Date();
+    const [created] = await tx
+      .insert(snapshots)
+      .values({
+        portfolioId,
+        day: capturedAt.toISOString().slice(0, 10),
+        capturedAt,
+        value: summary.value,
+        cash: summary.cash,
+        realizedPnl: summary.realizedPnl,
+        unrealizedPnl: summary.unrealizedPnl,
+        revision: locked.revision,
+      })
+      .onConflictDoNothing()
+      .returning({ id: snapshots.id });
+    return { created: Boolean(created), reason: null };
+  });
+}
+
 export async function runSnapshots(dependencies?: {
   db: Database;
   loadQuotes: typeof getQuotes;

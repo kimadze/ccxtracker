@@ -5,6 +5,7 @@ import { snapshots } from "@/server/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { HistoryChart } from "@/components/history-chart";
 import { TransactionForm } from "@/components/transaction-form";
+import { CaptureInitialSnapshot } from "@/components/capture-initial-snapshot";
 export default async function Page({
   params,
 }: {
@@ -28,6 +29,7 @@ export default async function Page({
         history={
           <HistoryChart
             snapshots={history.map((s) => ({ ...s, capturedAt: s.capturedAt.toISOString() }))}
+            emptyAction={<CaptureInitialSnapshot portfolioId={portfolioId} />}
           />
         }
       />

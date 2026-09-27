@@ -10,7 +10,7 @@ import { scenarioService } from "@/server/services/scenarios";
 import { allocationService } from "@/server/services/allocation";
 import { strategyService } from "@/server/services/strategy";
 import { watchlistService } from "@/server/services/watchlist";
-import { runSnapshots } from "@/server/snapshots";
+import { capturePortfolioSnapshot, runSnapshots } from "@/server/snapshots";
 
 const client = new PGlite();
 const testDb = drizzle(client, { schema });
@@ -48,6 +48,40 @@ function transaction(portfolioId: string, fields = {}) {
   };
 }
 describe("protected portfolio service against real PostgreSQL semantics", () => {
+  it("captures an on-demand baseline snapshot once per day", async () => {
+    const service = portfolioService(db, "alice"),
+      p = await service.create({ name: "Manual snapshot test" });
+    await service.mutateTransaction(
+      transaction(p.id, { assetId: "btc", quantity: "2", price: "100" }),
+      "create",
+      0,
+    );
+    const quote = {
+      assetId: "btc",
+      price: "175",
+      change24h: null,
+      updatedAt: new Date().toISOString(),
+      stale: false,
+    };
+    expect(
+      await capturePortfolioSnapshot(p.id, {
+        db,
+        loadQuotes: async () => [quote],
+      }),
+    ).toMatchObject({ created: true });
+    expect(
+      await capturePortfolioSnapshot(p.id, {
+        db,
+        loadQuotes: async () => [quote],
+      }),
+    ).toMatchObject({ created: false, reason: null });
+    const rows = await testDb
+      .select()
+      .from(schema.snapshots)
+      .where(eq(schema.snapshots.portfolioId, p.id));
+    expect(rows).toHaveLength(1);
+    expect(Number(rows[0].value)).toBe(350);
+  });
   it("writes one daily snapshot and skips missing or stale valuations", async () => {
     const service = portfolioService(db, "alice"),
       p = await service.create({ name: "Snapshot test" });

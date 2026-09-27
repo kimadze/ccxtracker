@@ -11,14 +11,17 @@ import {
 import { money, dateTime } from "@/lib/formatters";
 import type { Snapshot } from "@/domain/analytics";
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 export function HistoryChart({
   snapshots,
   illustrative = false,
   showPeriodControls = true,
+  emptyAction,
 }: {
   snapshots: Pick<Snapshot, "capturedAt" | "value">[];
   illustrative?: boolean;
   showPeriodControls?: boolean;
+  emptyAction?: ReactNode;
 }) {
   const [period, setPeriod] = useState<"1D" | "7D" | "1M" | "3M" | "1Y" | "ALL">("1M");
   const points = useMemo(() => {
@@ -33,8 +36,9 @@ export function HistoryChart({
       <div className="history-empty flex flex-col items-start justify-center text-left">
         <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
         <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
-          პირველი შეფასება ყოველდღიური განახლების შემდეგ გამოჩნდება.
+          პირველი შეფასება შეგიძლიათ ახლავე შეინახოთ, ან დაელოდოთ ყოველდღიურ განახლებას.
         </p>
+        {emptyAction && <div className="mt-4">{emptyAction}</div>}
       </div>
     );
   return (
