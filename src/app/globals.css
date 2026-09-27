@@ -419,6 +419,30 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .positions-result-meta { display: flex; min-height: 22px; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-low); font-size: 11px; }
 .positions-result-meta strong { color: var(--text-hi); }
 .positions-results { overflow: hidden; }
+.positions-command-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
+.positions-command-grid .positions-results { min-width: 0; }
+.positions-results table { border-collapse: collapse; }
+.positions-results .table-head { height: 42px; padding-top: 0; padding-bottom: 0; color: var(--text-low); font-size: 10px; letter-spacing: .02em; }
+.positions-results .table-cell { height: 70px; padding-top: 8px; padding-bottom: 8px; }
+.positions-results tbody tr { cursor: pointer; }
+.positions-results tbody tr.position-selected { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); box-shadow: inset 2px 0 var(--accent); }
+.position-brief { overflow: hidden; }
+.position-brief > header { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--border-soft); padding: 14px; }
+.position-brief > header .button-secondary { min-height: 30px; padding: 0 9px; font-size: 10px; }
+.position-brief-asset { display: flex; min-width: 0; align-items: center; gap: 9px; }
+.position-brief-asset h2 { margin: 0; color: var(--text-hi); font-size: 16px; font-weight: 700; }
+.position-brief-asset span { display: block; overflow: hidden; max-width: 140px; margin-top: 2px; color: var(--text-low); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.position-brief-price { border-bottom: 1px solid var(--border-soft); padding: 16px 14px; }
+.position-brief-price > span, .position-brief-grid span, .position-brief-pnl span { display: block; color: var(--text-low); font-size: 10px; }
+.position-brief-price strong { display: block; margin-top: 5px; color: var(--text-hi); font-size: 26px; font-weight: 700; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.position-brief-price b { display: block; margin-top: 5px; font-size: 11px; }
+.position-brief-grid { display: grid; grid-template-columns: 1fr 1fr; margin: 14px; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; }
+.position-brief-grid > div { min-height: 61px; padding: 10px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.position-brief-grid > div:nth-child(even) { border-right: 0; }.position-brief-grid > div:nth-last-child(-n + 2) { border-bottom: 0; }
+.position-brief-grid b { display: block; margin-top: 5px; color: var(--text-hi); font-size: 11px; font-variant-numeric: tabular-nums; }
+.position-brief-pnl { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px; margin: 0 14px; border-top: 1px solid var(--border-soft); padding: 13px 0; }
+.position-brief-pnl strong { color: var(--text-hi); font-size: 17px; font-variant-numeric: tabular-nums; }.position-brief-pnl b { font-size: 12px; text-align: right; }.position-brief-pnl.positive strong,.position-brief-pnl.positive b { color: var(--positive); }.position-brief-pnl.negative strong,.position-brief-pnl.negative b { color: var(--negative); }
+.position-brief-actions { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; border-top: 1px solid var(--border-soft); padding: 14px; }.position-brief-actions a { min-height: 36px; font-size: 11px; }
 .positions-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 12px; }
 .positions-card-grid .dashboard-position-card { min-width: 0; }
 .mobile-position-filter { display: none; }
@@ -857,6 +881,9 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .positions-filter, .positions-filter select, .positions-toolbar > select { width: 100%; max-width: none; }
   .view-switcher { margin-left: auto; }
   .positions-card-grid { grid-template-columns: 1fr; }
+  .positions-command-grid { grid-template-columns: 1fr; }
+  .position-brief { display: none; }
+  .positions-card-grid .dashboard-position-card.position-selected { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); background: var(--accent-soft); }
   .transaction-kind-selector { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 @media (max-width: 520px) {

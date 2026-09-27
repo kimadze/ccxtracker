@@ -40,11 +40,15 @@ export function PositionsTable({
   base,
   preview = false,
   view = "auto",
+  selectedAssetId,
+  onSelect,
 }: {
   positions: ValuedPosition[];
   base: string;
   preview?: boolean;
   view?: "auto" | "cards";
+  selectedAssetId?: string;
+  onSelect?: (assetId: string) => void;
 }) {
   if (!positions.length)
     return (
@@ -87,7 +91,7 @@ export function PositionsTable({
           </thead>
           <tbody>
             {positions.map((p, i) => (
-              <tr key={p.assetId} className="transition-colors hover:bg-raised/55">
+              <tr key={p.assetId} onClick={() => onSelect?.(p.assetId)} className={`transition-colors hover:bg-raised/55 ${selectedAssetId === p.assetId ? "position-selected" : ""}`}>
                 <td className="table-cell pl-6! text-left!">
                   <div className="flex items-center gap-3">
                     <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
@@ -155,7 +159,7 @@ export function PositionsTable({
       </div>
       <div className={view === "cards" ? "positions-card-grid" : "dashboard-position-cards md:hidden"}>
         {positions.map((p, i) => (
-          <div key={p.assetId} className="dashboard-position-card">
+          <div key={p.assetId} onClick={() => onSelect?.(p.assetId)} className={`dashboard-position-card ${selectedAssetId === p.assetId ? "position-selected" : ""}`}>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />

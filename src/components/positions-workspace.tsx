@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
 import { Grid2X2, List, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import Link from "next/link";
 import type { ValuedPosition } from "@/domain/types";
 import { decimal } from "@/domain/decimal";
-import { PositionsTable } from "./positions";
+import { money, percentage, pnlClass, quantity } from "@/lib/formatters";
+import { AssetIcon, PositionsTable } from "./positions";
+import { BalanceValue } from "./ui";
 import { MobileBottomSheet } from "./mobile-components";
 export function PositionsWorkspace({
   positions,
@@ -18,6 +21,7 @@ export function PositionsWorkspace({
     [filter, setFilter] = useState("all"),
     [sort, setSort] = useState("value"),
     [view, setView] = useState<"table" | "cards">("table"),
+    [selectedAssetId, setSelectedAssetId] = useState(positions[0]?.assetId ?? ""),
     [page, setPage] = useState(0);
   const filtered = positions
     .filter(
@@ -44,6 +48,7 @@ export function PositionsWorkspace({
   const losing = positions.filter((position) => position.unrealizedPnl !== null && decimal(position.unrealizedPnl).lt(0)).length;
   const unpriced = positions.filter((position) => position.value === null).length;
   const reset = () => { setSearch(""); setFilter("all"); setSort("value"); setPage(0); };
+  const selected = filtered.find((position) => position.assetId === selectedAssetId) ?? filtered[0] ?? positions[0];
   return (
     <div className="positions-workspace space-y-4">
       <section className="position-summary" aria-label="პოზიციების მოკლე შეჯამება">
@@ -105,14 +110,19 @@ export function PositionsWorkspace({
         {(search || filter !== "all" || sort !== "value") && <button type="button" className="toolbar-reset desktop-position-filter" onClick={reset}><RotateCcw size={14} /> გასუფთავება</button>}
       </div>
       <div className="positions-result-meta"><span><strong>{filtered.length}</strong> შედეგი</span>{search && <span>ძიება: “{search}”</span>}</div>
-      <section className="panel positions-results">
-        <PositionsTable
-          positions={filtered.slice(current * 20, current * 20 + 20)}
-          base={base}
-          preview={preview}
-          view={view === "cards" ? "cards" : "auto"}
-        />
-      </section>
+      <div className="positions-command-grid">
+        <section className="panel positions-results">
+          <PositionsTable
+            positions={filtered.slice(current * 20, current * 20 + 20)}
+            base={base}
+            preview={preview}
+            view={view === "cards" ? "cards" : "auto"}
+            selectedAssetId={selected?.assetId}
+            onSelect={setSelectedAssetId}
+          />
+        </section>
+        {selected && <PositionBrief position={selected} base={base} preview={preview} />}
+      </div>
       {filtered.length > 20 && (
         <div className="flex items-center justify-end gap-3">
           <button
@@ -136,4 +146,15 @@ export function PositionsWorkspace({
       )}
     </div>
   );
+}
+
+function PositionBrief({ position, base, preview }: { position: ValuedPosition; base: string; preview: boolean }) {
+  const positive = position.unrealizedPnl !== null && decimal(position.unrealizedPnl).gt(0);
+  return <aside className="panel position-brief" aria-label={`${position.asset.symbol} პოზიციის მოკლე ინფორმაცია`}>
+    <header><div className="position-brief-asset"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} /><div><h2>{position.asset.symbol}</h2><span>{position.asset.name}</span></div></div>{!preview && <Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>სრული გვერდი ↗</Link>}</header>
+    <div className="position-brief-price"><span>მიმდინარე ფასი</span><strong>{money(position.quote?.price ?? null)}</strong><b className={pnlClass(position.quote?.change24h ?? null)}>{percentage(position.quote?.change24h ?? null, true)} · 24სთ</b></div>
+    <div className="position-brief-grid"><div><span>რაოდენობა</span><b>{quantity(position.quantity)}</b></div><div><span>საშ. შესყიდვა</span><b>{money(position.averagePrice)}</b></div><div><span>ღირებულება</span><b><BalanceValue>{money(position.value)}</BalanceValue></b></div><div><span>პორტფელის წილი</span><b>{percentage(position.allocation)}</b></div></div>
+    <div className={`position-brief-pnl ${positive ? "positive" : "negative"}`}><span>არარეალიზებული P/L</span><strong><BalanceValue>{position.unrealizedPnl && positive ? "+" : ""}{money(position.unrealizedPnl)}</BalanceValue></strong><b>{percentage(position.returnPercent, true)}</b></div>
+    {!preview && <div className="position-brief-actions"><Link className="button-primary" href={`${base}/transactions?assetId=${position.assetId}`}>＋ ტრანზაქცია</Link><Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>მართვა</Link></div>}
+  </aside>;
 }
