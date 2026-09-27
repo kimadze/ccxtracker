@@ -40,7 +40,7 @@ export function Watchlist({
     [pending, setPending] = useState(false);
   const router = useRouter();
   return (
-    <div className="watchlist-workspace space-y-6">
+    <div className="watchlist-workspace space-y-4">
       {!preview && (
         <button
           className="button-primary"

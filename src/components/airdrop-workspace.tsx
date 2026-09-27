@@ -42,7 +42,7 @@ export function AirdropWorkspace({
   const movement = estimated === null ? null : amount(decimal(estimated).minus(received));
 
   return (
-    <div className="airdrop-workspace space-y-6">
+    <div className="airdrop-workspace space-y-4">
       <div className="grid gap-4 md:grid-cols-4">
         <Metric label="მიღებული Airdrop-ები" value={String(rows.length)} hint="ყველა მიღება" />
         <Metric label="ღირებულება მიღებისას" value={money(received)} hint="საწყისი თვითღირებულება" />
@@ -58,7 +58,7 @@ export function AirdropWorkspace({
           <span className="rounded-md bg-raised px-2 py-1 text-[10px] text-muted">{rows.length} ჩანაწერი</span>
         </div>
         {!rows.length ? (
-          <div className="px-5 py-16 text-center">
+          <div className="px-5 py-9 text-center">
             <p className="text-sm font-medium">Airdrop ჯერ არ გაქვთ დამატებული.</p>
             <p className="mt-2 text-xs text-muted">დაამატეთ მიღებული აქტივი, მიღების ფასი და წყარო.</p>
           </div>

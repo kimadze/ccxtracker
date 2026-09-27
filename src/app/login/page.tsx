@@ -13,7 +13,7 @@ export default async function Login({
   const { error } = await searchParams;
   const configured = isConfigured();
   return (
-    <main id="main" className="mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-16">
+    <main id="main" className="login-workspace mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-16">
       <div>
         <Brand />
         <p className="eyebrow mt-16">ინვესტორის სამუშაო სივრცე</p>

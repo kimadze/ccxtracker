@@ -495,6 +495,50 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .journal-workspace { padding: 18px !important; }
 .settings-workspace .panel { padding: 18px; }
 .watchlist-workspace .panel > div { padding: 14px 18px; }
+.allocation-workspace { gap: 14px; }
+.allocation-workspace > .panel, .allocation-workspace > section.panel { padding: 18px; }
+.allocation-workspace .grid.gap-4 { gap: 10px; }
+.allocation-workspace .panel .mt-5 { margin-top: 12px; }
+.allocation-workspace .panel .mt-6 { margin-top: 14px; }
+.allocation-workspace .panel .mb-6 { margin-bottom: 14px; }
+.allocation-workspace .panel .grid.grid-cols-2 { gap: 12px; }
+.airdrop-workspace { gap: 14px; }
+.airdrop-workspace > .grid { gap: 10px; }
+.airdrop-workspace .panel.p-5 { padding: 13px 14px; }
+.airdrop-workspace .panel.p-5 > p:nth-child(2) { margin-top: 5px; font-size: 17px; }
+.airdrop-workspace > .panel > div:first-child { padding: 13px 18px; }
+.airdrop-workspace > p { font-size: 11px; line-height: 1.5; }
+.journal-workspace { padding: 18px !important; }
+.journal-workspace > div > h2 { margin-bottom: 4px; }
+.journal-workspace .grid { gap: 12px; }
+.attachments-workspace { padding: 18px !important; }
+.settings-workspace { gap: 14px; }
+.settings-workspace > .grid { gap: 14px; }
+.settings-workspace .panel { padding: 18px; }
+.settings-workspace .panel.space-y-5 { gap: 14px; }
+.settings-workspace .rounded-xl.border-negative\/20 { padding: 18px; }
+.watchlist-workspace { gap: 14px; }
+.watchlist-workspace .panel > div { padding: 14px 18px; }
+.watchlist-workspace .panel > div > div:last-child { gap: 16px; }
+.login-workspace { gap: 48px; }
+.login-workspace .eyebrow.mt-16 { margin-top: 48px; }
+.login-workspace .mt-10 { margin-top: 28px; }
+.login-workspace .panel { padding: 28px; }
+.portfolio-empty-workspace .panel { padding: 28px; }
+.portfolio-empty-workspace .panel p { margin-bottom: 20px; }
+.loading-workspace > .h-52 { height: 180px; }
+.loading-workspace > .grid > div { height: 190px; }
+
+@media (max-width: 1023px) {
+  .allocation-workspace > .panel, .allocation-workspace > section.panel { padding: 14px; }
+  .airdrop-workspace { gap: 10px; }
+  .journal-workspace, .attachments-workspace { padding: 14px !important; }
+  .settings-workspace .panel { padding: 14px; }
+  .login-workspace { min-height: 100dvh; gap: 28px; padding-top: 28px; padding-bottom: 28px; }
+  .login-workspace .eyebrow.mt-16 { margin-top: 30px; }
+  .login-workspace .panel { padding: 20px; }
+  .portfolio-empty-workspace .panel { padding: 20px; }
+}
 
 
 @media (max-width: 1279px) and (min-width: 1024px) {

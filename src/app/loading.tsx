@@ -3,7 +3,7 @@ export default function Loading() {
     <div
       aria-busy="true"
       aria-label="იტვირთება"
-      className="mx-auto max-w-6xl space-y-6 p-8"
+      className="loading-workspace mx-auto max-w-6xl space-y-4 p-6"
     >
       <div className="h-8 w-60 animate-pulse rounded bg-raised" />
       <div className="h-52 animate-pulse rounded-xl bg-surface" />

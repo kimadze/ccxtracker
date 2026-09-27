@@ -11,7 +11,7 @@ export default async function Portfolios() {
   return (
     <main
       id="main"
-      className="flex min-h-dvh flex-col items-center justify-center gap-8 p-6 text-center"
+      className="portfolio-empty-workspace flex min-h-dvh flex-col items-center justify-center gap-8 p-6 text-center"
     >
       <Brand />
       <div className="panel max-w-xl p-10">

@@ -30,7 +30,7 @@ export function JournalForm({
   const router = useRouter();
   return (
     <form
-      className="journal-workspace panel space-y-6 p-6"
+      className="journal-workspace panel space-y-4 p-6"
       onSubmit={async (e) => {
         e.preventDefault();
         if (preview) return;

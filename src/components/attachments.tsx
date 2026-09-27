@@ -18,7 +18,7 @@ export function Attachments({
     [deleting, setDeleting] = useState<string | null>(null);
   const router = useRouter();
   return (
-    <section className="panel space-y-5 p-6">
+    <section className="attachments-workspace panel space-y-4 p-6">
       <h2 className="text-sm font-medium">პირადი დანართები</h2>
       <p className="text-xs leading-6 text-muted">
         PDF, PNG ან JPEG · მაქსიმუმ 2 მბ · 5 ფაილი თითო ჩანაწერზე
