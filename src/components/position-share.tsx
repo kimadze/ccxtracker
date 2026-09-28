@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, Eye, EyeOff, Share2 } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 import QRCode from "qrcode";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage } from "@/lib/formatters";
-import { Modal } from "./ui";
 
 const loadImage = (src: string, timeoutMs = 1800) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new Image();
@@ -106,8 +107,6 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
   };
   return <>
     <button type="button" className={compact ? "ccx-icon-button" : "button-secondary"} aria-label={compact ? "პოზიციის გაზიარება" : undefined} title={compact ? "პოზიციის გაზიარება" : undefined} onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი მზადდება…"); setOpen(true); }}><Share2 size={15} />{!compact && " გაზიარება"}</button>
-    <Modal open={open} onOpenChange={setOpen} wide className="position-share-modal mobile-bottom-sheet" title="პოზიციის გაზიარება" description="შექმენით CCX-ის ბარათი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.">
-      <div className="position-share-dialog"><canvas ref={canvas} className="position-share-preview" aria-label={`${position.asset.symbol} პოზიციის share ბარათი`} /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={download}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={share}><Share2 size={15} /> გაზიარება</button></div>{status && <p role="status" className="text-xs text-muted">{status}</p>}</div>
-    </Modal>
+    <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Portal><Dialog.Overlay className="ccx-modal-overlay position-share-overlay" /><Dialog.Content className="position-share-sheet" aria-describedby="position-share-description"><Dialog.Title>პოზიციის გაზიარება</Dialog.Title><Dialog.Description id="position-share-description">შექმენით CCX-ის ბარათი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.</Dialog.Description><Dialog.Close className="position-share-close" aria-label="დახურვა"><X size={18} /></Dialog.Close><div className="position-share-dialog"><canvas ref={canvas} className="position-share-preview" aria-label={`${position.asset.symbol} პოზიციის share ბარათი`} /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={download}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={share}><Share2 size={15} /> გაზიარება</button></div>{status && <p role="status" className="text-xs text-muted">{status}</p>}</div></Dialog.Content></Dialog.Portal></Dialog.Root>
   </>;
 }
