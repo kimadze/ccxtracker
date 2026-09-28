@@ -7,7 +7,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Brand } from "@/components/brand";
-import { LandingMarketReveal } from "@/components/landing-market-reveal";
 
 export default function Home() {
   return (
@@ -19,7 +18,7 @@ export default function Home() {
         </Link>
       </header>
       <main id="main">
-        <LandingMarketReveal>
+        <section className="landing-hero">
           <div>
             <p className="mb-7 flex items-center gap-2 text-xs text-brand">
               <span className="size-1.5 rounded-full bg-brand" />
@@ -103,7 +102,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </LandingMarketReveal>
+        </section>
         <section className="landing-feature-grid">
           {[
             [
