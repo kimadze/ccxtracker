@@ -39,12 +39,14 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     const glow = context.createRadialGradient(815, 430, 20, 815, 430, 430); glow.addColorStop(0, "rgba(219,65,255,.30)"); glow.addColorStop(1, "rgba(18,39,118,0)"); context.fillStyle = glow; context.fillRect(430, 0, 650, 770);
     // The complete card is painted before optional remote assets arrive.  This is
     // important on phones, where awaiting an image used to leave the preview blank.
-    context.fillStyle = "rgba(3,8,26,.84)"; context.fillRect(0, 0, W, 218);
-    context.fillStyle = "#f5f7ff"; context.font = "700 43px Inter, Arial"; context.fillText("Crypto Collective X", 210, 97);
-    context.fillStyle = "#7fa9ff"; context.font = "700 15px Inter, Arial"; context.fillText("POSITION SIGNAL", 211, 126);
-    context.fillStyle = "#87a6ff"; context.font = "600 15px Inter, Arial"; context.textAlign = "right"; context.fillText("TRACK · ANALYZE · GROW", 1022, 98); context.textAlign = "left";
-    context.beginPath(); context.arc(120, 92, 42, 0, Math.PI * 2); context.fillStyle = "#151039"; context.fill(); context.strokeStyle = "#d63dff"; context.lineWidth = 3; context.stroke();
-    context.fillStyle = "#ff9d26"; context.font = "800 26px Inter, Arial"; context.textAlign = "center"; context.fillText("CCX", 120, 101); context.textAlign = "left";
+    context.fillStyle = "rgba(3,8,26,.88)"; context.fillRect(0, 0, W, 218);
+    context.fillStyle = "#f5f7ff"; context.font = "800 48px Inter, Arial"; context.fillText("Crypto", 188, 86); context.fillText("Collective", 188, 135);
+    context.fillStyle = "#d63dff"; context.fillText("X", 440, 135);
+    context.fillStyle = "#7fa9ff"; context.font = "700 15px Inter, Arial"; context.fillText("T O G E T H E R   W E   T R A D E   S M A R T E R", 190, 172);
+    context.fillStyle = "#87a6ff"; context.font = "600 15px Inter, Arial"; context.textAlign = "right"; ["PEOPLE", "DATA", "DISCIPLINE", "HIGHER", "TOGETHER"].forEach((word, index) => context.fillText(word, 1020, 55 + index * 26)); context.textAlign = "left";
+    const brandMarkPromise = loadImage("/ccx-mark-transparent.png", 4000).then((mark) => context.drawImage(mark, 52, 39, 105, 105)).catch(() => {
+      context.beginPath(); context.arc(106, 92, 45, 0, Math.PI * 2); context.fillStyle = "#151039"; context.fill(); context.strokeStyle = "#d63dff"; context.lineWidth = 3; context.stroke(); context.fillStyle = "#ff9d26"; context.font = "800 24px Inter, Arial"; context.textAlign = "center"; context.fillText("CCX", 106, 101); context.textAlign = "left";
+    });
     context.beginPath(); context.arc(130, 325, 76, 0, Math.PI * 2); context.fillStyle = "#0b112b"; context.fill(); context.lineWidth = 5; context.strokeStyle = "#2d9cff"; context.stroke();
     context.fillStyle = "#c85cff"; context.font = "700 40px Inter, Arial"; context.textAlign = "center"; context.fillText(position.asset.symbol.slice(0, 4), 130, 339); context.textAlign = "left";
     const logoSource = position.asset.logoUrl ? `/api/asset-logo?url=${encodeURIComponent(position.asset.logoUrl)}` : null;
@@ -79,7 +81,7 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
       const qr = await loadImage(qrData); context.fillStyle = "#fff"; context.fillRect(925, 934, 100, 100); context.drawImage(qr, 931, 940, 88, 88);
     } catch { /* A QR failure must never prevent preview or mobile sharing. */ }
     // A missing remote coin logo must never block the share card on a phone.
-    await Promise.race([assetLogoPromise, new Promise<void>((resolve) => window.setTimeout(resolve, 1800))]);
+    await Promise.race([Promise.all([brandMarkPromise, assetLogoPromise]), new Promise<void>((resolve) => window.setTimeout(resolve, 1800))]);
     const image = await new Promise<Blob | null>((resolve) => target.toBlob(resolve, "image/png"));
     sharedImage.current = image;
     setReady(true);
