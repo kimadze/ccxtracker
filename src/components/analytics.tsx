@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { Activity, ChartNoAxesCombined, ShieldCheck, TrendingDown, TrendingUp } from "lucide-react";
 import type { Asset, LedgerEntry, PortfolioSummary } from "@/domain/types";
 import {
@@ -18,11 +19,13 @@ export function Analytics({
   snapshots,
   entries,
   assets,
+  portfolioId,
 }: {
   summary: PortfolioSummary;
   snapshots: Snapshot[];
   entries: LedgerEntry[];
   assets: Asset[];
+  portfolioId: string;
 }) {
   const [period, setPeriod] = useState("all");
   const latest = snapshots.length
@@ -44,6 +47,7 @@ export function Analytics({
   const performers = [...summary.positions]
     .filter((p) => isInvestableCrypto(p.asset) && p.returnPercent !== null)
     .sort((a, b) => Number(b.returnPercent) - Number(a.returnPercent));
+  const hasHistory = snapshots.length > 0;
   return (
     <div className="analytics-workspace space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-3">
@@ -77,7 +81,7 @@ export function Analytics({
         <AnalyticsMetric icon={<ChartNoAxesCombined size={18}/>} label="რეალიზებული P&L" value={money(summary.realizedPnl)} tone="brand" result={summary.realizedPnl} />
         <AnalyticsMetric icon={<Activity size={18}/>} label="არარეალიზებული P&L" value={money(summary.unrealizedPnl)} tone="brand" result={summary.unrealizedPnl} />
       </div>
-      <section className="panel analytics-history overflow-hidden">
+      {hasHistory ? <section className="panel analytics-history overflow-hidden">
         <div className="flex items-center justify-between border-b border-line p-5">
           <div><h2 className="text-sm font-semibold">ღირებულების ისტორია</h2><p className="mt-1 text-[10px] text-muted">არჩეული პერიოდის პორტფელის დინამიკა</p></div>
           <span className="rounded-md border border-line px-2 py-1 text-xs text-muted">შენახული ისტორია</span>
@@ -93,6 +97,10 @@ export function Analytics({
         </p></details>
         </div>
       </section>
+      : <section className="analytics-history-status" aria-label="პორტფელის ისტორიის სტატუსი">
+        <div><p className="analytics-status-kicker">პორტფელის ისტორია</p><h2>პირველი შეფასება ინახება ავტომატურად</h2><p>ამ დროისთვის შენახული შეფასება არ მოიძებნა. შემდეგი ფასის განახლება ამ პორტფელის ღირებულებას ავტომატურად დაამატებს ისტორიაში.</p></div>
+        <span>მონიტორინგი აქტიურია</span>
+      </section>}
       <PerformanceAttribution attribution={attribution} />
       <section className="panel analytics-health overflow-hidden">
         <div className="border-b border-line p-5"><h2 className="text-sm font-semibold">პორტფელის მდგომარეობა</h2><p className="mt-1 text-[10px] text-muted">კონცენტრაციისა და რეზერვის სწრაფი კონტროლი</p></div>
@@ -146,8 +154,8 @@ export function Analytics({
           </p>
         )}</div>
       </section>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="panel p-6">
+      {performers.length > 0 && <div className="analytics-performers">
+        <Link className="analytics-performer positive" href={`/portfolios/${portfolioId}/positions/${performers[0].assetId}`}>
           <AnalyticsMetric icon={<TrendingUp size={18}/>}
             label="საუკეთესო პოზიცია — დარჩენილი თვითღირებულების მიმართ"
             value={
@@ -157,8 +165,8 @@ export function Analytics({
             }
             tone="positive"
           />
-        </div>
-        <div className="panel p-6">
+        </Link>
+        <Link className="analytics-performer negative" href={`/portfolios/${portfolioId}/positions/${performers.at(-1)!.assetId}`}>
           <AnalyticsMetric icon={<TrendingDown size={18}/>}
             label="ყველაზე დაბალი შედეგი — დარჩენილი თვითღირებულების მიმართ"
             value={
@@ -168,8 +176,8 @@ export function Analytics({
             }
             tone="negative"
           />
-        </div>
-      </div>
+        </Link>
+      </div>}
     </div>
   );
 }

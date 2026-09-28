@@ -1936,3 +1936,38 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .airdrop-actions .text-brand { min-height: 40px; display: inline-flex; align-items: center; padding: 0 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--raised); }
   .airdrop-actions > button { width: 40px; height: 40px; }
 }
+
+.analytics-history-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 106px;
+  padding: 17px 20px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  border-radius: 12px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--brand) 8%, var(--surface)), var(--surface) 58%);
+}
+.analytics-status-kicker { margin: 0; color: var(--brand); font-size: 10px; font-weight: 750; letter-spacing: .085em; text-transform: uppercase; }
+.analytics-history-status h2 { margin: 5px 0 0; color: var(--text); font-size: 14px; font-weight: 650; }
+.analytics-history-status div > p:last-child { max-width: 600px; margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.analytics-history-status > span { flex: none; border: 1px solid color-mix(in srgb, var(--positive) 28%, var(--border)); border-radius: 99px; padding: 6px 9px; color: var(--positive); font-size: 10px; font-weight: 650; white-space: nowrap; }
+.analytics-performers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.analytics-performer { min-width: 0; border-right: 1px solid var(--border-soft); }
+.analytics-performer:last-child { border-right: 0; }
+.analytics-performer:hover { background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+.analytics-performer .analytics-metric { min-height: 80px; }
+.analytics-performer.positive .analytics-metric > span { color: var(--positive); background: color-mix(in srgb, var(--positive) 11%, transparent); }
+.analytics-performer.negative .analytics-metric > span { color: var(--negative); background: color-mix(in srgb, var(--negative) 11%, transparent); }
+@media (max-width: 1023px) {
+  .analytics-history-status { align-items: flex-start; min-height: 0; padding: 15px; }
+  .analytics-history-status > span { margin-top: 1px; }
+}
+@media (max-width: 520px) {
+  .analytics-history-status { display: grid; gap: 11px; }
+  .analytics-history-status > span { justify-self: start; }
+  .analytics-performers { grid-template-columns: 1fr; }
+  .analytics-performer { border-right: 0; border-bottom: 1px solid var(--border-soft); }
+  .analytics-performer:last-child { border-bottom: 0; }
+}
