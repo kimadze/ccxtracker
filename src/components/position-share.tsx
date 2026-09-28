@@ -39,13 +39,9 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     const glow = context.createRadialGradient(815, 430, 20, 815, 430, 430); glow.addColorStop(0, "rgba(219,65,255,.30)"); glow.addColorStop(1, "rgba(18,39,118,0)"); context.fillStyle = glow; context.fillRect(430, 0, 650, 770);
     // The complete card is painted before optional remote assets arrive.  This is
     // important on phones, where awaiting an image used to leave the preview blank.
-    context.fillStyle = "rgba(3,8,26,.88)"; context.fillRect(0, 0, W, 218);
-    context.fillStyle = "#f5f7ff"; context.font = "800 48px Inter, Arial"; context.fillText("Crypto", 188, 86); context.fillText("Collective", 188, 135);
-    context.fillStyle = "#d63dff"; context.fillText("X", 440, 135);
-    context.fillStyle = "#7fa9ff"; context.font = "700 15px Inter, Arial"; context.fillText("T O G E T H E R   W E   T R A D E   S M A R T E R", 190, 172);
-    context.fillStyle = "#87a6ff"; context.font = "600 15px Inter, Arial"; context.textAlign = "right"; ["PEOPLE", "DATA", "DISCIPLINE", "HIGHER", "TOGETHER"].forEach((word, index) => context.fillText(word, 1020, 55 + index * 26)); context.textAlign = "left";
-    const brandMarkPromise = loadImage("/ccx-mark-transparent.png", 4000).then((mark) => context.drawImage(mark, 52, 39, 105, 105)).catch(() => {
-      context.beginPath(); context.arc(106, 92, 45, 0, Math.PI * 2); context.fillStyle = "#151039"; context.fill(); context.strokeStyle = "#d63dff"; context.lineWidth = 3; context.stroke(); context.fillStyle = "#ff9d26"; context.font = "800 24px Inter, Arial"; context.textAlign = "center"; context.fillText("CCX", 106, 101); context.textAlign = "left";
+    // Reuse the approved artwork's brand header, never its sample financial data.
+    const brandMarkPromise = loadImage("/position-share-neon-reference.png", 8000).then((reference) => {
+      context.drawImage(reference, 0, 0, reference.naturalWidth, 252, 0, 0, W, 217);
     });
     context.beginPath(); context.arc(130, 325, 76, 0, Math.PI * 2); context.fillStyle = "#0b112b"; context.fill(); context.lineWidth = 5; context.strokeStyle = "#2d9cff"; context.stroke();
     context.fillStyle = "#c85cff"; context.font = "700 40px Inter, Arial"; context.textAlign = "center"; context.fillText(position.asset.symbol.slice(0, 4), 130, 339); context.textAlign = "left";
@@ -55,7 +51,7 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     }).catch(() => undefined) : Promise.resolve();
     context.fillStyle = "#f6f7ff"; context.font = "700 64px Inter, Arial"; context.fillText(position.asset.symbol, 226, 342);
     context.fillStyle = "#f6f7ff"; context.font = '700 46px "Noto Sans Georgian", Inter, Arial'; context.fillText("ჩემი პოზიცია", 56, 465);
-    const resultColor = positive ? "#46eeb2" : "#ff668b"; context.fillStyle = resultColor; context.shadowColor = resultColor; context.shadowBlur = 18; context.font = "800 108px Inter, Arial"; context.fillText(percentage(position.returnPercent, true), 52, 605); context.shadowBlur = 0;
+    const resultColor = positive ? "#46eeb2" : "#ff668b"; context.fillStyle = resultColor; context.shadowColor = resultColor; context.shadowBlur = 6; context.font = "800 108px Inter, Arial"; context.fillText(percentage(position.returnPercent, true), 52, 605); context.shadowBlur = 0;
     context.fillStyle = "#91a7de"; context.font = "700 24px Inter, Arial"; context.fillText("P & L", 60, 642);
     for (let x = 585; x <= 1015; x += 86) line(context, x, 255, x, 650, "rgba(55,120,255,.22)"); for (let y = 280; y <= 650; y += 74) line(context, 575, y, 1018, y, "rgba(55,120,255,.22)");
     context.fillStyle = "#7895dc"; context.font = "500 15px Inter, Arial"; ["180", "160", "140", "120", "100", "80"].forEach((label, index) => context.fillText(label, 1023, 286 + index * 72));
@@ -75,20 +71,21 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     for (let x = 0; x <= W; x += 54) line(context, x, 858, x, 1080, "rgba(67,132,255,.08)"); line(context, 45, 914, 1035, 914, "rgba(50,127,255,.7)", 2);
     context.fillStyle = "#287de8"; context.fillRect(58, 969, 8, 35); context.fillRect(74, 950, 8, 54); context.fillRect(90, 960, 8, 44);
     context.fillStyle = "#f3f5ff"; context.font = '700 29px "Noto Sans Georgian", Inter, Arial'; context.fillText("პორტფელის ტრეკერი", 122, 977); context.fillStyle = "#608be9"; context.font = "600 15px Inter, Arial"; context.fillText("TRACK · ANALYZE · GROW TOGETHER", 122, 1010);
-    line(context, 720, 944, 720, 1027, "rgba(125,148,218,.65)", 2); context.fillStyle = "#7792d3"; context.font = '500 16px "Noto Sans Georgian", Inter, Arial'; context.fillText("მეტი ინსაითები", 750, 970); context.fillText("იხილეთ პლატფორმაზე", 750, 996);
+    line(context, 720, 944, 720, 1027, "rgba(125,148,218,.65)", 2); context.fillStyle = "#91a7de"; context.font = '500 22px "Noto Sans Georgian", Inter, Arial'; context.fillText("მეტი", 750, 965); context.fillText("ინსაითები", 750, 996);
     try {
       const qrData = await QRCode.toDataURL("https://ccxtracker.vercel.app/", { errorCorrectionLevel: "M", margin: 1, width: 180, color: { dark: "#080d20", light: "#ffffff" } });
       const qr = await loadImage(qrData); context.fillStyle = "#fff"; context.fillRect(925, 934, 100, 100); context.drawImage(qr, 931, 940, 88, 88);
     } catch { /* A QR failure must never prevent preview or mobile sharing. */ }
     // A missing remote coin logo must never block the share card on a phone.
-    await Promise.race([Promise.all([brandMarkPromise, assetLogoPromise]), new Promise<void>((resolve) => window.setTimeout(resolve, 1800))]);
+    await Promise.all([brandMarkPromise, assetLogoPromise]);
     const image = await new Promise<Blob | null>((resolve) => target.toBlob(resolve, "image/png"));
     sharedImage.current = image;
-    setReady(true);
+    setReady(image !== null);
+    setStatus(image ? "" : "სურათის მომზადება ვერ მოხერხდა.");
   }, [hideAmounts, positive, position]);
   useEffect(() => {
     if (!open) return;
-    const frame = window.requestAnimationFrame(() => void render());
+    const frame = window.requestAnimationFrame(() => void render().catch(() => { setReady(false); setStatus("სურათის ჩატვირთვა ვერ მოხერხდა. დახურეთ და თავიდან გახსენით."); }));
     return () => window.cancelAnimationFrame(frame);
   }, [open, render]);
   const download = () => { const image = sharedImage.current; if (!image) { setStatus("ბარათი ჯერ მზადდება."); return; } const url = URL.createObjectURL(image); const link = document.createElement("a"); link.href = url; link.download = `ccx-${position.asset.symbol.toLowerCase()}-position.png`; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); };

@@ -1707,3 +1707,19 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .position-share-controls { justify-content: stretch; }
   .position-share-controls button { flex: 1 1 145px; }
 }
+
+/* Keep the exported square artwork square at every preview size. */
+.position-share-sheet .position-share-preview {
+  width: min(100%, 62dvh);
+  height: auto;
+  max-height: none;
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+@media (max-width: 1023px) {
+  .position-share-sheet .position-share-preview {
+    width: min(100%, 430px, 52dvh) !important;
+    height: auto;
+    max-height: none;
+  }
+}
