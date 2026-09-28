@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import type { Asset, Quote } from "@/domain/types";
 import { amount } from "@/domain/decimal";
+import { highResLogoUrl } from "@/lib/asset-logo";
 
 export interface MarketPriceProvider {
   search(query: string): Promise<Asset[]>;
@@ -44,7 +45,7 @@ export class CoinGeckoProvider implements MarketPriceProvider {
       providerId: c.id,
       symbol: c.symbol.toUpperCase(),
       name: c.name,
-      logoUrl: c.thumb ?? null,
+      logoUrl: highResLogoUrl(c.thumb),
       isStablecoin: false,
       category: "other",
     }));

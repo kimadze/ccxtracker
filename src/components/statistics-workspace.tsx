@@ -12,6 +12,7 @@ import type {
 import { topMovers } from "@/domain/statistics";
 import { percent } from "@/domain/decimal";
 import { compactMoney, dateTime, money, percentage, pnlClass } from "@/lib/formatters";
+import { AssetIcon } from "./positions";
 
 type Tab = "market" | "macro" | "portfolio";
 type SortKey = "rank" | "marketCap" | "price" | "change1h" | "change24h" | "change7d" | "volume24h";
@@ -116,7 +117,7 @@ function MarketTab({ data, owned, selected, base }: {
               return <tr key={asset.id} className="hover:bg-raised/40">
                 <td className="table-cell text-left"><div className="flex items-center gap-3">
                   <span className="w-6 text-right text-[10px] text-muted">{asset.rank ?? "—"}</span>
-                  <span className="flex size-7 items-center justify-center rounded-full bg-raised text-[9px] font-medium">{asset.symbol.slice(0, 2)}</span>
+                  <AssetIcon symbol={asset.symbol} logoUrl={asset.image} size={28} />
                   <div><p className="font-medium">{asset.name} <span className="ml-1 text-muted">{asset.symbol}</span></p>
                   <p className="mt-1 text-[10px] text-brand">{allocation !== undefined ? `პორტფელშია${allocation ? ` · ${percentage(allocation)}` : ""}` : selected.has(asset.id) ? "დაკვირვების სიაშია" : ""}</p></div>
                 </div></td>
@@ -135,7 +136,7 @@ function MarketTab({ data, owned, selected, base }: {
           {rows.map((asset) => {
             const allocation = owned.get(asset.id);
             return <article key={asset.id} className="mobile-market-card">
-              <div className="mobile-market-primary"><span className="mobile-market-rank">#{asset.rank ?? "—"}</span><span className="mobile-market-symbol">{asset.symbol.slice(0, 2)}</span><div><strong>{asset.symbol}</strong><small>{asset.name}</small></div><div className="mobile-market-price"><strong className="numeric">{money(asset.price)}</strong><small className={pnlClass(asset.change24h)}>{percentage(asset.change24h, true)} · 24სთ</small></div></div>
+              <div className="mobile-market-primary"><span className="mobile-market-rank">#{asset.rank ?? "—"}</span><AssetIcon symbol={asset.symbol} logoUrl={asset.image} size={32} /><div><strong>{asset.symbol}</strong><small>{asset.name}</small></div><div className="mobile-market-price"><strong className="numeric">{money(asset.price)}</strong><small className={pnlClass(asset.change24h)}>{percentage(asset.change24h, true)} · 24სთ</small></div></div>
               <div className="mobile-market-details"><span><small>1სთ</small><strong className={pnlClass(asset.change1h)}>{percentage(asset.change1h, true)}</strong></span><span><small>7დღ</small><strong className={pnlClass(asset.change7d)}>{percentage(asset.change7d, true)}</strong></span><span><small>Market cap</small><strong>{compact(asset.marketCap)}</strong></span><Sparkline values={asset.sparkline7d} /></div>
               {(allocation !== undefined || selected.has(asset.id)) && <p className="mobile-market-context">{allocation !== undefined ? `პორტფელშია${allocation ? ` · ${percentage(allocation)}` : ""}` : "დაკვირვების სიაშია"}</p>}
             </article>;
@@ -157,7 +158,7 @@ function Sortable({ label, value, current, direction, set }: { label: string; va
 }
 function Change({ value }: { value: string | null }) { return <td className={`table-cell numeric ${pnlClass(value)}`}>{percentage(value, true)}</td>; }
 function MoverBlock({ title, rows, positive = false }: { title: string; rows: MarketStatisticAsset[]; positive?: boolean }) {
-  return <div className={`market-movers ${positive ? "positive" : "negative"}`}><h3>{title}</h3><div>{rows.map((asset) => <div key={asset.id}><span>{asset.symbol} <small>#{asset.rank}</small></span><i style={{ width: `${Math.min(100, Math.max(8, Math.abs(Number(asset.change24h ?? 0))))}%` }} /><strong>{percentage(asset.change24h, true)}</strong></div>)}</div></div>;
+  return <div className={`market-movers ${positive ? "positive" : "negative"}`}><h3>{title}</h3><div>{rows.map((asset) => <div key={asset.id}><span className="market-mover-asset"><AssetIcon symbol={asset.symbol} logoUrl={asset.image} size={23} /><b>{asset.symbol}</b><small>#{asset.rank}</small></span><i style={{ width: `${Math.min(100, Math.max(8, Math.abs(Number(asset.change24h ?? 0))))}%` }} /><strong>{percentage(asset.change24h, true)}</strong></div>)}</div></div>;
 }
 
 function MacroTab({ data }: { data: MacroStatistics }) {

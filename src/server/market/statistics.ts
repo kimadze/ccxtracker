@@ -5,6 +5,7 @@ import type {
   MarketStatisticAsset,
   MarketStatistics,
 } from "@/domain/statistics";
+import { highResLogoUrl } from "@/lib/asset-logo";
 
 const nullableNumber = z.number().finite().nullable();
 const marketAssetSchema = z.object({
@@ -66,7 +67,7 @@ export async function getMarketStatistics(): Promise<MarketStatistics> {
       id: asset.id,
       symbol: asset.symbol.toUpperCase(),
       name: asset.name,
-      image: asset.image ?? null,
+      image: highResLogoUrl(asset.image),
       rank: asset.market_cap_rank,
       price: value(asset.current_price),
       change1h: value(asset.price_change_percentage_1h_in_currency),

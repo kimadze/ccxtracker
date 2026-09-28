@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import { highResLogoUrl } from "@/lib/asset-logo";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon } from "./positions";
@@ -43,7 +44,7 @@ export function PortfolioBubbleMap({ positions }: { positions: ValuedPosition[] 
       </div>
     </section>
     {selected && <section className="panel allocation-map-selection" aria-live="polite">
-      <div className={`allocation-map-mark ${tone(selected)}`}>{selected.asset.logoUrl ? <Image src={selected.asset.logoUrl} alt="" width={40} height={40} unoptimized /> : selected.asset.symbol.slice(0, 3)}</div>
+      <div className={`allocation-map-mark ${tone(selected)}`}>{selected.asset.logoUrl ? <Image src={highResLogoUrl(selected.asset.logoUrl) ?? selected.asset.logoUrl} alt="" width={40} height={40} unoptimized /> : selected.asset.symbol.slice(0, 3)}</div>
       <div><p className="allocation-kicker">არჩეული აქტივი</p><h2>{selected.asset.name} <span>{selected.asset.symbol}</span></h2></div>
       <dl><div><dt>ღირებულება</dt><dd>{money(selected.value)}</dd></div><div><dt>24 საათი</dt><dd className={pnlClass(selected.quote?.change24h ?? null)}>{percentage(selected.quote?.change24h ?? null, true)}</dd></div><div><dt>სრული შედეგი</dt><dd className={pnlClass(selected.returnPercent)}>{percentage(selected.returnPercent, true)}</dd></div></dl>
     </section>}

@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { ArrowUpRight, Layers3 } from "lucide-react";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
 import { BalanceValue } from "./ui";
+import { highResLogoUrl } from "@/lib/asset-logo";
 
 const colors = [
   "var(--accent)",
@@ -19,21 +21,27 @@ export function AssetIcon({
   symbol,
   logoUrl,
   index = 0,
+  size = 36,
 }: {
   symbol: string;
   logoUrl?: string | null;
   index?: number;
+  size?: number;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const source = highResLogoUrl(logoUrl);
   return (
     <span
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold"
+      className="flex shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold"
       style={{
+        width: size,
+        height: size,
         color: colors[index % colors.length],
         borderColor: `color-mix(in srgb, ${colors[index % colors.length]} 25%, transparent)`,
         background: `color-mix(in srgb, ${colors[index % colors.length]} 12%, transparent)`,
       }}
     >
-      {logoUrl ? <Image unoptimized src={logoUrl} alt="" width={36} height={36} className="size-full rounded-full object-cover" /> : symbol.slice(0, 3)}
+      {source && !imageFailed ? <Image unoptimized src={source} alt="" width={size} height={size} onError={() => setImageFailed(true)} className="size-full rounded-full object-cover" /> : symbol.slice(0, 3)}
     </span>
   );
 }

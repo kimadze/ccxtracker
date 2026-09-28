@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import QRCode from "qrcode";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage } from "@/lib/formatters";
+import { highResLogoUrl } from "@/lib/asset-logo";
 
 const loadImage = (src: string, timeoutMs = 1800) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new Image();
@@ -45,7 +46,8 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     });
     context.beginPath(); context.arc(130, 325, 76, 0, Math.PI * 2); context.fillStyle = "#0b112b"; context.fill(); context.lineWidth = 5; context.strokeStyle = "#2d9cff"; context.stroke();
     context.fillStyle = "#c85cff"; context.font = "700 40px Inter, Arial"; context.textAlign = "center"; context.fillText(position.asset.symbol.slice(0, 4), 130, 339); context.textAlign = "left";
-    const logoSource = position.asset.logoUrl ? `/api/asset-logo?url=${encodeURIComponent(position.asset.logoUrl)}` : null;
+    const highResLogo = highResLogoUrl(position.asset.logoUrl);
+    const logoSource = highResLogo ? `/api/asset-logo?url=${encodeURIComponent(highResLogo)}` : null;
     const assetLogoPromise = logoSource ? loadImage(logoSource, 4000).then((logo) => {
       context.save(); context.beginPath(); context.arc(130, 325, 56, 0, Math.PI * 2); context.clip(); context.fillStyle = "#0b112b"; context.fillRect(74, 269, 112, 112); context.drawImage(logo, 74, 269, 112, 112); context.restore();
     }).catch(() => undefined) : Promise.resolve();

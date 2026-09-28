@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { highResLogoUrl } from "@/lib/asset-logo";
 
 const allowedHosts = new Set([
   "assets.coingecko.com",
@@ -6,7 +7,7 @@ const allowedHosts = new Set([
 ]);
 
 export async function GET(request: NextRequest) {
-  const source = request.nextUrl.searchParams.get("url");
+  const source = highResLogoUrl(request.nextUrl.searchParams.get("url"));
   if (!source) return new NextResponse("Missing image URL", { status: 400 });
 
   let url: URL;
