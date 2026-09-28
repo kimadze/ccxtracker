@@ -1370,6 +1370,57 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .watchlist-asset .watchlist-note { display: none; }
   .watchlist-price strong, .watchlist-target strong { font-size: 12px; }
 }
+
+/* Overview v2 — compact, chart-led portfolio workspace */
+@media (min-width: 1024px) {
+  .dashboard-space {
+    grid-template-columns: minmax(0, 1.9fr) minmax(330px, .82fr);
+    grid-template-areas: "header header" "chart allocation" "metrics metrics" "holdings side";
+    gap: 14px;
+  }
+  .dashboard-space:has(.dashboard-alert) {
+    grid-template-areas: "header header" "alert alert" "chart allocation" "metrics metrics" "holdings side";
+  }
+  .dashboard-space > .overview-next-actions:not(.mobile) { display: none; }
+  .overview-page-header { min-height: 62px; padding-bottom: 10px; }
+  .overview-page-header h1 { font-size: 27px; letter-spacing: -.025em; }
+  .overview-performance { min-height: 386px; padding: 19px 21px 16px; border-radius: 12px; }
+  .overview-performance-pnl { min-width: 210px; padding-left: 18px; }
+  .dashboard-value { font-size: clamp(38px, 3vw, 48px); }
+  .dashboard-chart { min-height: 212px; }
+  .overview-allocation { display: flex; flex-direction: column; padding: 17px; border-radius: 12px; }
+  .overview-allocation > div:first-child { padding-bottom: 11px; }
+  .allocation-ranked-list { display: grid; gap: 0; margin-top: 5px; }
+  .allocation-ranked-row { display: grid; grid-template-columns: 31px minmax(0, 1fr) minmax(122px, .9fr); align-items: center; gap: 9px; min-height: 59px; border-top: 1px solid var(--border-soft); color: var(--text-hi); }
+  .allocation-ranked-row:first-child { border-top: 0; }
+  .allocation-ranked-row > span:first-child { display: grid; width: 29px; height: 29px; place-items: center; overflow: hidden; border: 1px solid var(--border); border-radius: 50%; background: var(--surface-2); color: var(--accent); font-size: 10px; font-weight: 700; }
+  .allocation-ranked-row > div:nth-child(2) { min-width: 0; }
+  .allocation-ranked-row > div:nth-child(2) strong, .allocation-ranked-row > div:nth-child(2) span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .allocation-ranked-row > div:nth-child(2) strong { font-size: 13px; }
+  .allocation-ranked-row > div:nth-child(2) span { margin-top: 2px; color: var(--text-low); font-size: 10px; }
+  .allocation-ranked-bar { display: grid; grid-template-columns: minmax(48px, 1fr) auto; align-items: center; gap: 7px; }
+  .allocation-ranked-bar i { display: block; height: 7px; overflow: hidden; border-radius: 99px; background: var(--raised); }
+  .allocation-ranked-bar b { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+  .allocation-ranked-bar strong { color: var(--text-hi); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .allocation-ranked-row:hover > div:nth-child(2) strong { color: var(--accent); }
+  .dashboard-metrics { border-radius: 10px; }
+  .overview-kpis .dashboard-metric { min-height: 86px; padding: 12px 15px; }
+  .overview-kpis .dashboard-metric strong { margin-top: 3px; font-size: 17px; }
+  .overview-kpis .dashboard-metric p { font-size: 11px; }
+  .dashboard-positions { border-radius: 12px; }
+  .dashboard-positions > header { min-height: 52px; }
+  .dashboard-side-stack { gap: 10px; }
+  .overview-movers-panel { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 10px; }
+  .overview-movers-panel .crypto-movers { gap: 8px; }
+  .overview-movers-panel .crypto-mover { min-height: 129px; padding: 10px; }
+  .overview-movers-panel .crypto-mover header { margin-bottom: 7px; }
+  .overview-movers-panel .crypto-mover-entry { grid-template-columns: 20px 21px minmax(0,1fr); gap: 5px; }
+  .overview-movers-panel .crypto-mover-entry > span:last-child { grid-column: 2 / -1; text-align: right; }
+  .overview-movers-panel .crypto-mover-entry strong { font-size: 11px; }
+  .overview-movers-panel .crypto-mover-period { font-size: 9px; }
+  .dashboard-side-stack .overview-insight { padding: 13px 15px; }
+  .dashboard-side-stack .overview-insight h2 { font-size: 14px; }
+}
 .scenario-result-asset { color: var(--text); font-weight: 650; }
 .scenario-result-asset:hover { color: var(--accent); }
 @media (max-width: 420px) {
