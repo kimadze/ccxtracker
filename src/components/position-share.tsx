@@ -8,6 +8,7 @@ import { Modal } from "./ui";
 
 const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new Image();
+  image.crossOrigin = "anonymous";
   image.onload = () => resolve(image);
   image.onerror = reject;
   image.src = src;
@@ -15,6 +16,9 @@ const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, rejec
 
 function line(context: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, color: string, width = 1) {
   context.beginPath(); context.moveTo(x1, y1); context.lineTo(x2, y2); context.strokeStyle = color; context.lineWidth = width; context.stroke();
+}
+function panel(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string) {
+  context.beginPath(); context.roundRect(x, y, width, height, 18); context.fillStyle = "rgba(7,12,32,.74)"; context.fill(); context.strokeStyle = color; context.lineWidth = 2; context.stroke();
 }
 
 export function PositionShare({ position }: { position: ValuedPosition }) {
@@ -30,26 +34,31 @@ export function PositionShare({ position }: { position: ValuedPosition }) {
     for (let x = 0; x <= W; x += 54) line(context, x, 0, x, H, "rgba(67,132,255,.10)");
     for (let y = 0; y <= H; y += 54) line(context, 0, y, W, y, "rgba(67,132,255,.10)");
     context.fillStyle = "rgba(5,8,24,.72)"; context.fillRect(0, 0, W, 210);
-    try { const logo = await loadImage("/ccx-collective-logo.png"); context.drawImage(logo, 58, 49, 92, 92); } catch { /* Brand text remains available. */ }
-    context.fillStyle = "#f6f7ff"; context.font = "700 39px Inter, Arial"; context.fillText("Crypto Collective X", 171, 89);
-    context.fillStyle = "#8ea5db"; context.font = "500 19px Inter, Arial"; context.fillText("POSITION SIGNAL", 173, 123);
-    context.fillStyle = "#7198ff"; context.font = "600 16px Inter, Arial"; context.fillText("TRACK · ANALYZE · GROW", 812, 90);
+    try { const logo = await loadImage("/ccx-mark-transparent.png"); context.drawImage(logo, 55, 42, 102, 102); } catch { /* Brand text remains available. */ }
+    context.fillStyle = "#f6f7ff"; context.font = "700 42px Inter, Arial"; context.fillText("Crypto Collective X", 176, 88);
+    context.fillStyle = "#8ea5db"; context.font = "600 17px Inter, Arial"; context.fillText("POSITION SIGNAL", 177, 122);
+    context.fillStyle = "#7198ff"; context.font = "600 16px Inter, Arial"; context.fillText("TRACK · ANALYZE · GROW", 801, 89);
     const arc = context.createRadialGradient(790, 435, 30, 790, 435, 355); arc.addColorStop(0, "rgba(219,65,255,.35)"); arc.addColorStop(1, "rgba(18,39,118,0)"); context.fillStyle = arc; context.fillRect(480, 170, 600, 580);
     context.beginPath(); context.arc(155, 340, 78, 0, Math.PI * 2); context.fillStyle = "#101532"; context.fill(); context.lineWidth = 5; context.strokeStyle = "#2d9cff"; context.stroke();
-    context.fillStyle = "#c85cff"; context.font = "700 44px Inter, Arial"; context.textAlign = "center"; context.fillText(position.asset.symbol.slice(0, 4), 155, 355); context.textAlign = "left";
+    let assetLogo = false;
+    if (position.asset.logoUrl) try { const logo = await loadImage(position.asset.logoUrl); context.save(); context.beginPath(); context.arc(155, 340, 58, 0, Math.PI * 2); context.clip(); context.drawImage(logo, 97, 282, 116, 116); context.restore(); assetLogo = true; } catch { /* Use ticker fallback. */ }
+    if (!assetLogo) { context.fillStyle = "#c85cff"; context.font = "700 44px Inter, Arial"; context.textAlign = "center"; context.fillText(position.asset.symbol.slice(0, 4), 155, 355); context.textAlign = "left"; }
     context.fillStyle = "#f6f7ff"; context.font = "700 58px Inter, Arial"; context.fillText(`${position.asset.symbol} · ${position.asset.name}`, 270, 324);
-    context.fillStyle = "#a9b7dd"; context.font = "500 25px Inter, Arial"; context.fillText("ჩემი პოზიცია", 271, 366);
+    context.fillStyle = "#a9b7dd"; context.font = '500 25px "Noto Sans Georgian", Inter, Arial'; context.fillText("ჩემი პოზიცია", 271, 366);
     context.fillStyle = positive ? "#46eeb2" : "#ff668b"; context.font = "700 108px Inter, Arial"; context.fillText(percentage(position.returnPercent, true), 56, 578);
-    context.fillStyle = "#b6c2e2"; context.font = "600 24px Inter, Arial"; context.fillText("არარეალიზებული P/L", 60, 622);
-    context.strokeStyle = positive ? "#46eeb2" : "#ff668b"; context.lineWidth = 5; context.beginPath(); context.moveTo(585, 614); context.lineTo(658, 565); context.lineTo(705, 589); context.lineTo(748, 490); context.lineTo(802, 533); context.lineTo(862, 413); context.lineTo(940, 457); context.lineTo(1014, 300); context.stroke();
-    context.fillStyle = "rgba(7,12,32,.86)"; context.fillRect(44, 708, 992, 182); [0, 1, 2].forEach((index) => { if (index) line(context, 374 + (index - 1) * 330, 734, 374 + (index - 1) * 330, 862, "rgba(147,164,222,.28)"); });
+    context.fillStyle = "#b6c2e2"; context.font = '600 24px "Noto Sans Georgian", Inter, Arial'; context.fillText("არარეალიზებული P/L", 60, 622);
+    context.strokeStyle = positive ? "#46eeb2" : "#ff668b"; context.shadowColor = positive ? "#46eeb2" : "#ff668b"; context.shadowBlur = 12; context.lineWidth = 5; context.beginPath(); context.moveTo(585, 614); context.lineTo(658, 565); context.lineTo(705, 589); context.lineTo(748, 490); context.lineTo(802, 533); context.lineTo(862, 413); context.lineTo(940, 457); context.lineTo(1014, 300); context.stroke(); context.shadowBlur = 0;
+    panel(context, 44, 702, 300, 156, "#287de8"); panel(context, 390, 702, 300, 156, "#914fff"); panel(context, 736, 702, 300, 156, "#fe8a34");
     const values = [
       ["მიმდინარე ფასი", money(position.quote?.price ?? null)],
       ["საშ. შესყიდვა", money(position.averagePrice)],
       ["პოზიციის ღირებულება", money(position.value)],
     ];
-    values.forEach(([label, value], index) => { const x = 75 + index * 330; context.fillStyle = "#9eafdb"; context.font = "500 19px Inter, Arial"; context.fillText(label, x, 760); context.fillStyle = "#f8f9ff"; context.font = "700 38px Inter, Arial"; context.fillText(hideAmounts ? "••••••" : value, x, 816); });
-    line(context, 50, 954, 1030, 954, "rgba(144,113,255,.55)", 2); context.fillStyle = "#d9e1ff"; context.font = "600 26px Inter, Arial"; context.fillText("Crypto Collective X", 58, 1010); context.fillStyle = "#7e96cd"; context.font = "500 18px Inter, Arial"; context.fillText(hideAmounts ? "პირადი მონაცემები დამალულია" : pnl, 755, 1010);
+    values.forEach(([label, value], index) => { const x = 70 + index * 346; context.fillStyle = "#9eafdb"; context.font = '500 18px "Noto Sans Georgian", Inter, Arial'; context.fillText(label, x, 754); context.fillStyle = "#f8f9ff"; context.font = "700 35px Inter, Arial"; context.fillText(hideAmounts ? "••••••" : value, x, 812); });
+    line(context, 50, 926, 1030, 926, "rgba(144,113,255,.55)", 2);
+    context.fillStyle = "#287de8"; context.fillRect(58, 967, 8, 35); context.fillRect(74, 948, 8, 54); context.fillRect(90, 958, 8, 44);
+    context.fillStyle = "#d9e1ff"; context.font = '700 27px "Noto Sans Georgian", Inter, Arial'; context.fillText("პორტფელის მიმდევარი", 122, 974); context.fillStyle = "#698bd4"; context.font = "600 15px Inter, Arial"; context.fillText("TRACK · ANALYZE · GROW TOGETHER", 122, 1006);
+    context.fillStyle = "#7e96cd"; context.font = "500 18px Inter, Arial"; context.fillText(hideAmounts ? "PRIVATE" : pnl, 740, 973); context.strokeStyle = "#d9e1ff"; context.lineWidth = 4; context.strokeRect(935, 947, 78, 78); for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) if ((i * 3 + j * 5) % 4 < 2) { context.fillStyle = "#d9e1ff"; context.fillRect(946 + i * 10, 958 + j * 10, 6, 6); }
     setReady(true);
   };
   useEffect(() => { if (open) { setReady(false); void render(); } }, [open, hideAmounts]);
