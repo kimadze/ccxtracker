@@ -43,13 +43,13 @@ export function AirdropWorkspace({
 
   return (
     <div className="airdrop-workspace space-y-4">
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="airdrop-summary-strip">
         <Metric label="მიღებული Airdrop-ები" value={String(rows.length)} hint="ყველა მიღება" />
         <Metric label="ღირებულება მიღებისას" value={money(received)} hint="საწყისი თვითღირებულება" />
         <Metric label="დღევანდელი სავარაუდო ღირებულება" value={money(estimated)} hint="მიღებული რაოდენობის მიხედვით" />
         <Metric label="ფასის ცვლილება" value={movement === null ? "—" : `${Number(movement) > 0 ? "+" : ""}${money(movement)}`} tone={pnlClass(movement)} hint="გაყიდვების გარეშე შეფასება" />
       </div>
-      <div className="panel overflow-hidden">
+      <div className="airdrop-list">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
             <h2 className="text-sm font-semibold">Airdrop ისტორია</h2>
@@ -91,7 +91,7 @@ export function AirdropWorkspace({
 }
 
 function Metric({ label, value, hint, tone = "text-foreground" }: { label: string; value: string; hint: string; tone?: string }) {
-  return <div className="panel p-5"><p className="text-[11px] text-muted">{label}</p><p className={`numeric mt-2 text-xl font-semibold ${tone}`}>{value}</p><p className="mt-2 text-[10px] text-muted">{hint}</p></div>;
+  return <div className="airdrop-metric"><p className="text-[11px] text-muted">{label}</p><p className={`numeric mt-2 text-xl font-semibold ${tone}`}>{value}</p><p className="mt-2 text-[10px] text-muted">{hint}</p></div>;
 }
 function Data({ label, value, tone = "" }: { label: string; value: string; tone?: string }) {
   return <div><p className="text-[9px] text-muted">{label}</p><p className={`numeric mt-1 text-xs font-medium ${tone}`}>{value}</p></div>;

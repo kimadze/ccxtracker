@@ -50,7 +50,7 @@ export function TransactionList({
   const resetFilters = () => { setSearch(""); setKind(""); setFrom(""); setTo(""); setPage(0); };
   return (
     <div className="transaction-workspace space-y-5">
-      <div className="panel ledger-toolbar">
+      <div className="ledger-toolbar">
       <div className="flex flex-wrap items-end gap-3">
         <label className="positions-search max-w-sm"><Search size={16} aria-hidden="true" /><span className="sr-only">ტრანზაქციების ძიება</span><input
           aria-label="ტრანზაქციების ძიება"
@@ -105,7 +105,7 @@ export function TransactionList({
         </MobileBottomSheet></div>
         {hasFilters && <button type="button" className="desktop-ledger-filter button-secondary" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
       </div></div>
-      <div className="panel overflow-hidden">
+      <div className="ledger-list">
         <div className="flex items-center justify-between border-b border-line px-5 py-4"><div><h2 className="text-sm font-semibold">ტრანზაქციების ისტორია</h2><p className="mt-1 text-[10px] text-muted">ყიდვა, გაყიდვა, შეტანა, გატანა და საკომისიოები</p></div><span className="rounded-md bg-raised px-2 py-1 text-[10px] text-muted">{filtered.length}</span></div>
         <div className="divide-y divide-line">
         {filtered.slice(currentPage * 20, (currentPage + 1) * 20).map((e) => (

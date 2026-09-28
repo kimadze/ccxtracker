@@ -1081,6 +1081,59 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .scenario-editor .field label { display: block; }
 }
 
+/* Ledger and account workspaces */
+.ledger-toolbar,
+.ledger-list,
+.airdrop-list,
+.watchlist-items,
+.journal-workspace {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.ledger-toolbar { padding: 8px; }
+.ledger-list,
+.airdrop-list { overflow: hidden; }
+.transaction-row,
+.airdrop-row {
+  position: relative;
+  transition: background-color .14s ease;
+}
+.transaction-row:hover,
+.airdrop-row:hover { background: color-mix(in srgb, var(--accent) 4%, var(--surface)); }
+.transaction-row > div:first-child > span { border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border)); background: var(--accent-soft); }
+.airdrop-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.airdrop-metric { min-width: 0; min-height: 84px; border-right: 1px solid var(--border-soft); padding: 13px 14px; }
+.airdrop-metric:last-child { border-right: 0; }
+.airdrop-metric p:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.watchlist-items { overflow: hidden; }
+.watchlist-items > div { transition: background-color .14s ease; }
+.watchlist-items > div:hover { background: color-mix(in srgb, var(--accent) 4%, var(--surface)); }
+.journal-workspace { padding: 18px; }
+.journal-workspace > div:first-child { padding-bottom: 10px; border-bottom: 1px solid var(--border-soft); }
+.settings-workspace > .grid > form,
+.settings-workspace > section {
+  border-radius: 14px;
+  box-shadow: none;
+}
+.settings-workspace > .grid > form:hover,
+.settings-workspace > section:hover { border-color: color-mix(in srgb, var(--accent) 25%, var(--border)); }
+
+@media (max-width: 1023px) {
+  .airdrop-summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .airdrop-metric { border-bottom: 1px solid var(--border-soft); }
+  .airdrop-metric:nth-child(2n) { border-right: 0; }
+  .airdrop-metric:nth-last-child(-n + 2) { border-bottom: 0; }
+  .journal-workspace { padding: 14px; }
+}
+
 /* Analysis workspaces */
 .analytics-metrics,
 .market-summary-strip {

@@ -54,7 +54,7 @@ export function Watchlist({
           აქტივის დამატება
         </button>
       )}
-      <div className="panel divide-y divide-line">
+      <div className="watchlist-items divide-y divide-line">
         {items.map((item, i) => {
           const quote = quotes.find((q) => q.assetId === item.asset.id);
           return (
