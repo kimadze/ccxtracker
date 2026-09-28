@@ -21,6 +21,7 @@ export function Modal({
   description,
   children,
   wide = false,
+  className,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -28,6 +29,7 @@ export function Modal({
   description: string;
   children: ReactNode;
   wide?: boolean;
+  className?: string;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -37,6 +39,7 @@ export function Modal({
           className={clsx(
             "ccx-modal fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-line bg-surface p-5 sm:p-7",
             wide ? "max-w-2xl" : "max-w-lg",
+            className,
           )}
         >
           <Dialog.Title className="pr-8 text-base font-semibold tracking-tight">
