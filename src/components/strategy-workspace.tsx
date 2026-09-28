@@ -48,7 +48,7 @@ export function StrategyWorkspace({
     );
   return (
     <div className="strategy-workspace space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="strategy-toolbar">
         <select
           className="max-w-xs"
           aria-label="პოზიციის არჩევა"
@@ -62,7 +62,7 @@ export function StrategyWorkspace({
           ))}
         </select>
         {mode === "strategy" && (
-          <>
+          <div className="strategy-mode-switch" role="group" aria-label="სტრატეგიის რეჟიმი">
             <button
               className={tab === "exit" ? "button-primary" : "button-secondary"}
               onClick={() => setTab("exit")}
@@ -75,7 +75,7 @@ export function StrategyWorkspace({
             >
               DCA
             </button>
-          </>
+          </div>
         )}
       </div>
       {mode === "journal" ? (

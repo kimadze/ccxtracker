@@ -37,8 +37,8 @@ export function DcaPlanner({
     /* Incomplete drafts have no result. */
   }
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1.3fr]">
-      <section className="panel space-y-5 p-6">
+    <div className="dca-workspace">
+      <section className="dca-controls">
         <h2 className="text-sm font-medium">დამატებითი შესყიდვა</h2>
         <Field label="დამატებითი კაპიტალი, საკომისიოს ჩათვლით (USD)">
           <input
@@ -66,13 +66,13 @@ export function DcaPlanner({
           მიმდინარე ფასით. ტრანზაქცია ავტომატურად არ იქმნება.
         </p>
       </section>
-      <section className="panel p-6">
+      <section className="dca-result">
         <h2 className="mb-7 text-sm font-medium">
           შესყიდვის მოსალოდნელი შედეგი
         </h2>
         {result ? (
           <>
-            <div className="grid grid-cols-2 gap-7">
+            <div className="dca-result-grid">
               <Metric
                 label="მიმდინარე საშუალო ფასი"
                 value={money(result.currentAverage)}

@@ -70,7 +70,7 @@ export function Analytics({
         ))}
         </div>
       </div>
-      <div className="analytics-metrics grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="analytics-metrics">
         <AnalyticsMetric icon={<TrendingUp size={18}/>} label="პერიოდის შემოსავლიანობა" value={percentage(performance.returnPercent, true)} tone="brand" result={performance.returnPercent} />
         <AnalyticsMetric icon={<TrendingDown size={18}/>} label="მაქსიმალური ვარდნა" value={percentage(performance.maxDrawdown)} tone="brand" result={performance.maxDrawdown} />
         <AnalyticsMetric icon={<ChartNoAxesCombined size={18}/>} label="რეალიზებული P&L" value={money(summary.realizedPnl)} tone="brand" result={summary.realizedPnl} />
@@ -177,5 +177,5 @@ export function Analytics({
 }
 function AnalyticsMetric({icon,label,value,tone,result}:{icon:React.ReactNode;label:string;value:string;tone:"positive"|"negative"|"brand";result?:string|null}) {
   const color=tone==="positive"?"text-positive bg-positive/10":tone==="negative"?"text-negative bg-negative/10":"text-brand bg-brand/10";
-  return <article className="panel p-4"><span className={`flex size-9 items-center justify-center rounded-lg ${color}`}>{icon}</span><p className="mt-4 text-xs text-muted">{label}</p><p className={`numeric mt-1 text-lg font-semibold ${result === undefined ? "" : pnlClass(result)}`}>{value}</p></article>;
+  return <article className="analytics-metric"><span className={`flex size-9 items-center justify-center rounded-lg ${color}`}>{icon}</span><div><p className="text-xs text-muted">{label}</p><p className={`numeric mt-1 text-lg font-semibold ${result === undefined ? "" : pnlClass(result)}`}>{value}</p></div></article>;
 }

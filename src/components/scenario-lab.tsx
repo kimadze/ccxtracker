@@ -91,7 +91,7 @@ export function ScenarioLab({
   }
   return (
     <div className="scenario-lab space-y-6">
-      <div className="flex flex-wrap gap-3">
+      <div className="scenario-toolbar">
         <select
           aria-label="შენახული სცენარი"
           value={active}
@@ -110,8 +110,8 @@ export function ScenarioLab({
           ახალი სცენარი
         </button>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
-        <section className="panel p-6">
+      <div className="scenario-workspace-grid">
+        <section className="scenario-editor">
           <div className="mb-6">
             <h2 className="text-sm font-medium">რა მოხდება, თუ…</h2>
             <p className="mt-2 text-xs leading-6 text-muted">
@@ -162,13 +162,13 @@ export function ScenarioLab({
             უცვლელია. ნულოვანი ფასი აქტივის ღირებულების სრულ დაკარგვას ნიშნავს.
           </p>
         </section>
-        <div className="space-y-6">
-          <section className="panel p-6">
+        <div className="scenario-results">
+          <section className="scenario-summary">
             <p className="text-xs text-muted">სცენარის პორტფელის ღირებულება</p>
             <p className="numeric mt-5 text-4xl text-brand">
               {money(result?.value ?? null)}
             </p>
-            <div className="mt-7 grid grid-cols-2 gap-6">
+            <div className="scenario-summary-grid">
               <Metric
                 label="მიმდინარე ღირებულება"
                 value={money(summary.value)}
@@ -188,7 +188,7 @@ export function ScenarioLab({
               />
             </div>
           </section>
-          <section className="panel p-6">
+          <section className="scenario-allocation">
             <h2 className="mb-4 text-sm font-medium">სცენარის განაწილება</h2>
             {result?.positions.map((p) => (
               <div
@@ -218,7 +218,7 @@ export function ScenarioLab({
       )}
       {message && <Message error={error}>{message}</Message>}
       {!preview && (
-        <div className="panel flex flex-wrap items-end gap-3 p-5">
+        <div className="scenario-savebar">
           <div className="min-w-52 flex-1">
             <Field label="სცენარის სახელი">
               <input

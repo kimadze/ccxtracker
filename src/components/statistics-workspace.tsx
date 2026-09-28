@@ -37,7 +37,7 @@ function Sparkline({ values }: { values: number[] }) {
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="panel min-w-0 p-4 sm:p-5">
+    <div className="market-metric">
       <span className="flex size-9 items-center justify-center rounded-xl bg-raised text-brand"><BarChart3 size={17}/></span>
       <p className="mt-4 text-[11px] text-muted">{label}</p>
       <p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.04em]">{value}</p>
@@ -69,7 +69,7 @@ function MarketTab({ data, owned, selected, base }: {
     <div className="statistics-workspace space-y-7">
       {overview ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="market-summary-strip">
             <MetricCard label="კრიპტო ბაზრის კაპიტალიზაცია" value={compact(overview.totalMarketCap)} />
             <MetricCard label="24სთ მოცულობა" value={compact(overview.volume24h)} />
             <MetricCard label="BTC დომინაცია" value={percentage(overview.btcDominance)} />
@@ -157,7 +157,7 @@ function Sortable({ label, value, current, direction, set }: { label: string; va
 }
 function Change({ value }: { value: string | null }) { return <td className={`table-cell numeric ${pnlClass(value)}`}>{percentage(value, true)}</td>; }
 function MoverBlock({ title, rows, positive = false }: { title: string; rows: MarketStatisticAsset[]; positive?: boolean }) {
-  return <div className="panel p-5"><h3 className="text-xs font-medium">{title}</h3><div className="mt-4 space-y-3">{rows.map((asset) => <div key={asset.id} className="flex items-center justify-between text-xs"><span>{asset.symbol} <span className="ml-2 text-muted">#{asset.rank}</span></span><span className={positive ? "text-positive" : "text-negative"}>{percentage(asset.change24h, true)}</span></div>)}</div></div>;
+  return <div className={`market-movers ${positive ? "positive" : "negative"}`}><h3>{title}</h3><div>{rows.map((asset) => <div key={asset.id}><span>{asset.symbol} <small>#{asset.rank}</small></span><i style={{ width: `${Math.min(100, Math.max(8, Math.abs(Number(asset.change24h ?? 0))))}%` }} /><strong>{percentage(asset.change24h, true)}</strong></div>)}</div></div>;
 }
 
 function MacroTab({ data }: { data: MacroStatistics }) {
