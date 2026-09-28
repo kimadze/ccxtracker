@@ -1,7 +1,13 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import type { Asset, LedgerEntry, PortfolioSummary } from "@/domain/types";
 import { amount, decimal } from "@/domain/decimal";
 import { dateTime, money, pnlClass, quantity } from "@/lib/formatters";
 import { TransactionForm } from "./transaction-form";
+import { deleteTransaction } from "@/server/actions";
+import { Message, Modal } from "./ui";
 import { AssetIcon } from "./positions";
 
 export function AirdropWorkspace({
@@ -79,7 +85,7 @@ export function AirdropWorkspace({
                   <Data label="საწყისი ღირებულება" value={money(receivedValue)} />
                   <Data label="ფასის ცვლილება" value={movement === null ? "—" : `${Number(movement) > 0 ? "+" : ""}${money(movement)}`} tone={pnlClass(movement)} />
                 </div>
-                {!preview && <TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} entry={entry} />}
+                {!preview && <AirdropActions portfolioId={portfolioId} revision={revision} assets={assets} entry={entry} />}
               </div>
             ))}
           </div>
@@ -95,4 +101,12 @@ function Metric({ label, value, hint, tone = "text-foreground" }: { label: strin
 }
 function Data({ label, value, tone = "" }: { label: string; value: string; tone?: string }) {
   return <div><p className="text-[9px] text-muted">{label}</p><p className={`numeric mt-1 text-xs font-medium ${tone}`}>{value}</p></div>;
+}
+
+function AirdropActions({ portfolioId, revision, assets, entry }: { portfolioId: string; revision: number; assets: Asset[]; entry: LedgerEntry }) {
+  const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  return <><div className="airdrop-actions"><TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} entry={entry} triggerLabel="რედაქტირება" /><button type="button" aria-label="Airdrop-ის წაშლა" onClick={() => { setConfirming(true); setError(""); }}><Trash2 size={15} /></button></div><Modal open={confirming} onOpenChange={(open) => { if (!open && !pending) setConfirming(false); }} title="Airdrop-ის წაშლა" description="ჩანაწერი წაიშლება და პორტფელის ისტორია თავიდან გამოითვლება."><div className="space-y-5">{error && <Message error>{error}</Message>}<div className="flex justify-end gap-3"><button className="button-secondary" disabled={pending} onClick={() => setConfirming(false)}>გაუქმება</button><button className="button-danger" disabled={pending} onClick={async () => { setPending(true); try { const result = await deleteTransaction(portfolioId, entry.id, revision); if (result.ok) { setConfirming(false); router.refresh(); } else setError(result.error); } catch { setError("წაშლა ვერ მოხერხდა."); } finally { setPending(false); } }}>{pending ? "იშლება…" : "წაშლა"}</button></div></div></Modal></>;
 }

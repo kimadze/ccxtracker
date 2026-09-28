@@ -1898,3 +1898,41 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
     max-height: none;
   }
 }
+
+/* Transaction and Airdrop operational controls */
+.ledger-kind-tabs {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 1px 1px 8px;
+  scrollbar-width: none;
+}
+.ledger-kind-tabs::-webkit-scrollbar { display: none; }
+.ledger-kind-tabs button {
+  flex: none;
+  min-height: 30px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0 9px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.ledger-kind-tabs button span { margin-left: 4px; color: var(--text-low); font-variant-numeric: tabular-nums; }
+.ledger-kind-tabs button:hover,
+.ledger-kind-tabs button.is-active { border-color: color-mix(in srgb, var(--accent) 38%, var(--border)); background: var(--accent-soft); color: var(--text); }
+.ledger-kind-tabs button.is-active span { color: var(--brand); }
+.ledger-toolbar > .flex { padding: 0 2px; }
+.airdrop-actions { display: flex; align-items: center; gap: 8px; }
+.airdrop-actions > button { display: inline-grid; width: 32px; height: 32px; place-items: center; border: 1px solid color-mix(in srgb, var(--negative) 26%, var(--border)); border-radius: 8px; color: var(--muted); }
+.airdrop-actions > button:hover { border-color: color-mix(in srgb, var(--negative) 58%, var(--border)); color: var(--negative); }
+@media (max-width: 1023px) {
+  .ledger-toolbar { padding: 8px; }
+  .ledger-kind-tabs { margin: -1px -1px 8px; padding-bottom: 7px; }
+  .ledger-kind-tabs button { min-height: 36px; padding: 0 11px; }
+  .ledger-toolbar > .flex { gap: 8px; }
+  .airdrop-actions { width: 100%; justify-content: flex-end; padding-top: 10px; border-top: 1px solid var(--border-soft); }
+  .airdrop-actions .text-brand { min-height: 40px; display: inline-flex; align-items: center; padding: 0 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--raised); }
+  .airdrop-actions > button { width: 40px; height: 40px; }
+}

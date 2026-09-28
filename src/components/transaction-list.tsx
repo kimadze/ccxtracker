@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, ArrowLeftRight, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { Trash2, RotateCcw, Search, SlidersHorizontal, ArrowDownToLine, ArrowUpFromLine, WalletCards, ReceiptText, Gift } from "lucide-react";
 import type { Asset, LedgerEntry } from "@/domain/types";
 import { dateTime, money, quantity } from "@/lib/formatters";
 import { deleteTransaction } from "@/server/actions";
@@ -51,6 +51,10 @@ export function TransactionList({
   return (
     <div className="transaction-workspace space-y-5">
       <div className="ledger-toolbar">
+        <div className="ledger-kind-tabs" role="group" aria-label="სწრაფი ფილტრი">
+          <button type="button" className={!kind ? "is-active" : ""} onClick={() => { setKind(""); setPage(0); }}>ყველა <span>{entries.length}</span></button>
+          {(["buy", "sell", "deposit", "withdrawal", "fee", "airdrop"] as const).map((value) => <button key={value} type="button" className={kind === value ? "is-active" : ""} onClick={() => { setKind(value); setPage(0); }}>{kindLabels[value]} <span>{entries.filter((entry) => entry.kind === value).length}</span></button>)}
+        </div>
       <div className="flex flex-wrap items-end gap-3">
         <label className="positions-search max-w-sm"><Search size={16} aria-hidden="true" /><span className="sr-only">ტრანზაქციების ძიება</span><input
           aria-label="ტრანზაქციების ძიება"
@@ -115,7 +119,7 @@ export function TransactionList({
           >
             <div className="flex items-center gap-3">
               <span className="rounded-lg bg-raised p-2 text-brand">
-                <ArrowLeftRight size={17} />
+                <TransactionKindIcon kind={e.kind} />
               </span>
               <div>
                 <p className="text-xs font-medium">
@@ -235,4 +239,11 @@ export function TransactionList({
       </Modal>
     </div>
   );
+}
+function TransactionKindIcon({ kind }: { kind: LedgerEntry["kind"] }) {
+  if (kind === "buy") return <ArrowDownToLine size={17} />;
+  if (kind === "sell") return <ArrowUpFromLine size={17} />;
+  if (kind === "deposit" || kind === "withdrawal") return <WalletCards size={17} />;
+  if (kind === "airdrop") return <Gift size={17} />;
+  return <ReceiptText size={17} />;
 }
