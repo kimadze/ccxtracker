@@ -26,6 +26,7 @@ function panel(context: CanvasRenderingContext2D, x: number, y: number, width: n
 export function PositionShare({ position, compact = false }: { position: ValuedPosition; compact?: boolean }) {
   const [open, setOpen] = useState(false), [hideAmounts, setHideAmounts] = useState(false), [ready, setReady] = useState(false), [status, setStatus] = useState("");
   const canvas = useRef<HTMLCanvasElement>(null);
+  const sharedImage = useRef<Blob | null>(null);
   const positive = position.unrealizedPnl !== null && Number(position.unrealizedPnl) >= 0;
   const render = useCallback(async () => {
     const target = canvas.current; if (!target) return;
@@ -70,7 +71,10 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     line(context, 720, 944, 720, 1027, "rgba(125,148,218,.65)", 2); context.fillStyle = "#7792d3"; context.font = '500 16px "Noto Sans Georgian", Inter, Arial'; context.fillText("მეტი ინსაითები", 750, 970); context.fillText("იხილეთ პლატფორმაზე", 750, 996);
     const qrData = await QRCode.toDataURL("https://ccxtracker.vercel.app/", { errorCorrectionLevel: "M", margin: 1, width: 180, color: { dark: "#080d20", light: "#ffffff" } });
     const qr = await loadImage(qrData); context.fillStyle = "#fff"; context.fillRect(925, 934, 100, 100); context.drawImage(qr, 931, 940, 88, 88);
-    await assetLogoPromise;
+    // A missing remote coin logo must never block the share card on a phone.
+    await Promise.race([assetLogoPromise, new Promise<void>((resolve) => window.setTimeout(resolve, 1800))]);
+    const image = await new Promise<Blob | null>((resolve) => target.toBlob(resolve, "image/png"));
+    sharedImage.current = image;
     setReady(true);
   }, [hideAmounts, positive, position]);
   useEffect(() => {
@@ -78,13 +82,26 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     const frame = window.requestAnimationFrame(() => void render());
     return () => window.cancelAnimationFrame(frame);
   }, [open, render]);
-  const blob = () => new Promise<Blob | null>((resolve) => canvas.current?.toBlob(resolve, "image/png"));
-  const download = async () => { const file = await blob(); if (!file) return; const url = URL.createObjectURL(file); const link = document.createElement("a"); link.href = url; link.download = `ccx-${position.asset.symbol.toLowerCase()}-position.png`; link.click(); URL.revokeObjectURL(url); };
-  const share = async () => { const image = await blob(); if (!image) return; const file = new File([image], `ccx-${position.asset.symbol.toLowerCase()}-position.png`, { type: "image/png" }); if (navigator.canShare?.({ files: [file] })) { await navigator.share({ title: `${position.asset.symbol} · Crypto Collective X`, files: [file] }); return; } await download(); setStatus("თქვენი ბრაუზერი პირდაპირ გაზიარებას არ უჭერს მხარს; PNG ჩამოიტვირთა."); };
+  const download = () => { const image = sharedImage.current; if (!image) { setStatus("ბარათი ჯერ მზადდება."); return; } const url = URL.createObjectURL(image); const link = document.createElement("a"); link.href = url; link.download = `ccx-${position.asset.symbol.toLowerCase()}-position.png`; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); };
+  const share = () => {
+    const image = sharedImage.current;
+    if (!image) { setStatus("ბარათი ჯერ მზადდება."); return; }
+    const title = `${position.asset.symbol} · Crypto Collective X`;
+    const text = `${position.asset.symbol}-ის პოზიცია Crypto Collective X-ში`;
+    const url = "https://ccxtracker.vercel.app/";
+    const file = new File([image], `ccx-${position.asset.symbol.toLowerCase()}-position.png`, { type: "image/png" });
+    if (typeof navigator.share !== "function") { download(); setStatus("ამ ბრაუზერს სისტემური გაზიარება არ აქვს; PNG ჩამოიტვირთა."); return; }
+    const shareImage = !navigator.canShare || navigator.canShare({ files: [file] });
+    const request = shareImage ? navigator.share({ title, text, files: [file] }) : navigator.share({ title, text, url });
+    void request.then(() => setStatus(shareImage ? "სურათი გაზიარებისთვის გაიხსნა." : "ამ ბრაუზერმა სურათის ფაილი ვერ მიიღო; გაიგზავნა ბმული.")).catch((error: unknown) => {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setStatus("გაზიარება ვერ გაიხსნა. სცადეთ PNG-ის შენახვა.");
+    });
+  };
   return <>
-    <button type="button" className={compact ? "ccx-icon-button" : "button-secondary"} aria-label={compact ? "პოზიციის გაზიარება" : undefined} title={compact ? "პოზიციის გაზიარება" : undefined} onClick={() => { setReady(false); setOpen(true); }}><Share2 size={15} />{!compact && " გაზიარება"}</button>
+    <button type="button" className={compact ? "ccx-icon-button" : "button-secondary"} aria-label={compact ? "პოზიციის გაზიარება" : undefined} title={compact ? "პოზიციის გაზიარება" : undefined} onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი მზადდება…"); setOpen(true); }}><Share2 size={15} />{!compact && " გაზიარება"}</button>
     <Modal open={open} onOpenChange={setOpen} wide title="პოზიციის გაზიარება" description="შექმენით CCX-ის ბარათი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.">
-      <div className="position-share-dialog"><canvas ref={canvas} className="position-share-preview" aria-label={`${position.asset.symbol} პოზიციის share ბარათი`} /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { setReady(false); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={() => void download()}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={() => void share()}><Share2 size={15} /> გაზიარება</button></div>{status && <p className="text-xs text-muted">{status}</p>}</div>
+      <div className="position-share-dialog"><canvas ref={canvas} className="position-share-preview" aria-label={`${position.asset.symbol} პოზიციის share ბარათი`} /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={download}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={share}><Share2 size={15} /> გაზიარება</button></div>{status && <p role="status" className="text-xs text-muted">{status}</p>}</div>
     </Modal>
   </>;
 }

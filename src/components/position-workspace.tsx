@@ -7,6 +7,7 @@ import { DcaPlanner, ExitPlanner } from "./position-planners";
 import { JournalForm, type JournalData } from "./journal";
 import { TransactionList } from "./transaction-list";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
+import { PositionShare } from "./position-share";
 export function PositionWorkspace({
   position: p,
   portfolioId,
@@ -31,6 +32,7 @@ export function PositionWorkspace({
   const [tab, setTab] = useState("overview");
   return (
     <div className="position-workspace">
+      <div className="position-workspace-toolbar">
       <div className="position-tabs ccx-tabs">
         {[
           ["overview", "მიმოხილვა"],
@@ -48,6 +50,8 @@ export function PositionWorkspace({
             {label}
           </button>
         ))}
+      </div>
+      <PositionShare position={p} />
       </div>
       {tab === "overview" && (
         <div className="position-overview-grid">
