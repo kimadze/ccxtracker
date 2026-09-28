@@ -213,7 +213,7 @@ function MoverEntry({ label, base, position, value }: {
   if (!position) return <div className="crypto-mover-empty"><span>{label}</span><small>მონაცემი მიუწვდომელია</small></div>;
   return <Link href={`${base}/positions/${position.assetId}`} className="crypto-mover-entry">
     <span className="crypto-mover-period">{label}</span>
-    <AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} />
+    <AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} size={22} />
     <strong title={position.asset.name}>{position.asset.symbol}</strong>
     <span className={`numeric ${pnlClass(value)}`}>{percentage(value, true)}</span>
   </Link>;

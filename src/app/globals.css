@@ -343,9 +343,9 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .crypto-mover header strong { display: block; color: var(--text-hi); font-size: 12px; font-weight: 700; letter-spacing: -.015em; }
 .crypto-mover header span:not(.crypto-mover-pulse) { display: block; margin-top: 2px; color: var(--text-mid); font-size: 10px; }
 .crypto-mover-pulse { width: 7px; height: 7px; margin-top: 4px; border: 1px solid var(--mover-color); border-radius: 50%; background: color-mix(in srgb, var(--mover-color) 55%, transparent); }
-.crypto-mover-entry { display: grid; grid-template-columns: 31px 25px minmax(0,1fr) auto; align-items: center; gap: 6px; min-height: 34px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); padding: 6px 0; }
+.crypto-mover-entry { display: grid; grid-template-columns: 31px 22px minmax(0,1fr) auto; align-items: center; gap: 6px; min-height: 34px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); padding: 6px 0; }
 .crypto-mover-entry:hover { color: var(--text-hi); }
-.crypto-mover-entry > span:nth-child(2) { width: 25px; height: 25px; }
+.crypto-mover-entry > span:nth-child(2) { width: 22px; height: 22px; }
 .crypto-mover-entry strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .crypto-mover-entry > span:last-child { font-size: 12px; font-weight: 700; }
 .crypto-mover-period { color: var(--text-mid); font-size: 10px; }

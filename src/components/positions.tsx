@@ -41,7 +41,7 @@ export function AssetIcon({
         background: `color-mix(in srgb, ${colors[index % colors.length]} 12%, transparent)`,
       }}
     >
-      {source && !imageFailed ? <Image unoptimized src={source} alt="" width={size} height={size} onError={() => setImageFailed(true)} className="size-full rounded-full object-cover" /> : symbol.slice(0, 3)}
+      {source && !imageFailed ? <Image unoptimized src={source} alt="" width={size} height={size} onError={() => setImageFailed(true)} className="size-full rounded-full object-contain p-px" /> : symbol.slice(0, 3)}
     </span>
   );
 }
