@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, ArrowUpRight, CircleDollarSign, TrendingUp, Wallet } from "lucide-react";
+import { Activity, AlertTriangle, ArrowUpRight, CircleDollarSign, PieChart, TrendingUp, Wallet } from "lucide-react";
 import type { PortfolioSummary, ValuedPosition } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
 import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
@@ -50,6 +50,13 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     : s.complete ? "არსებული ფასები განახლებულია" : "ზოგი ფასი მიუწვდომელია";
   const quoteDates = positions.map((position) => position.quote?.updatedAt).filter((date): date is string => !!date);
   const updatedAt = quoteDates.length ? quoteDates.sort().at(-1) : undefined;
+  const liquidityShare = s.value && s.liquidity !== null ? Number(percent(s.liquidity, s.value) ?? 0) : null;
+  const nextActions = [
+    !s.complete ? { tone: "warning", icon: <AlertTriangle size={15} />, title: "ფასის მონაცემები არასრულია", detail: "შეამოწმეთ აქტივები, რომელთაც მიმდინარე ფასი არ აქვთ.", href: `${base}/positions`, action: "პოზიციების ნახვა" } : null,
+    s.complete && largest && Number(largest.allocation ?? 0) >= 35 ? { tone: "brand", icon: <PieChart size={15} />, title: `${largest.asset.symbol} პორტფელის ${percentage(largest.allocation)}-ს შეადგენს`, detail: "შეადარეთ ეს წილი თქვენს მიზნობრივ განაწილებას.", href: `${base}/allocation`, action: "განაწილების ნახვა" } : null,
+    liquidityShare !== null && liquidityShare < 10 ? { tone: "warning", icon: <Wallet size={15} />, title: "ლიკვიდობის წილი დაბალია", detail: `ქეში და სტეიბლკოინები პორტფელის ${percentage(String(liquidityShare))}-ს შეადგენს.`, href: `${base}/positions`, action: "პოზიციების მართვა" } : null,
+    s.complete && largest && Number(largest.allocation ?? 0) < 35 && (liquidityShare === null || liquidityShare >= 10) ? { tone: "ready", icon: <TrendingUp size={15} />, title: "პორტფელის ძირითადი მონაცემები სრულია", detail: "შეამოწმეთ სტრატეგია ან შექმენით ფასის სცენარი.", href: `${base}/scenarios`, action: "სცენარების გახსნა" } : null,
+  ].filter((item): item is NonNullable<typeof item> => item !== null).slice(0, 3);
 
   return <>
   <div className="mobile-overview-app">
@@ -60,6 +67,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
       <div className="mobile-health-pnl"><span>მთლიანი P/L</span><strong className={pnlClass(s.totalPnl)}><BalanceValue>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</BalanceValue></strong></div>
     </section>
     <div className="mobile-quick-actions">{action}<Link href={base + "/positions"} className="button-secondary">პოზიციები <ArrowUpRight size={15} /></Link></div>
+    <OverviewNextActions items={nextActions} mobile />
     <section className="mobile-liquidity-strip"><div><span>Cash</span><strong className="numeric"><BalanceValue>{money(s.cash)}</BalanceValue></strong></div><i aria-hidden="true" /><div><span>Stablecoins</span><strong className="numeric"><BalanceValue>{money(s.stablecoinValue)}</BalanceValue></strong></div><div className="mobile-liquidity-total"><span>ლიკვიდობა</span><strong className="numeric"><BalanceValue>{money(s.liquidity)}</BalanceValue></strong></div></section>
     <div className="mobile-health-metrics"><MobileMetricCard label="წმინდა კაპიტალი" value={money(netCapital)} hint="შეტანა − გატანა" /><MobileMetricCard label="აქტიური პოზიციები" value={String(positions.length)} hint="მიმდინარე აქტივები" /><MobileMetricCard label="არარეალიზებული P/L" value={money(s.unrealizedPnl)} tone={pnlClass(s.unrealizedPnl)} /><MobileMetricCard label="რეალიზებული P/L" value={money(s.realizedPnl)} tone={pnlClass(s.realizedPnl)} /></div>
     <div className="mobile-overview-movers"><PortfolioMover title="დღის ლიდერი" subtitle="24 საათი" tone="positive" base={base} daily={dailyGainer} allTime={allTimeGainer} /><PortfolioMover title="დღის კლება" subtitle="24 საათი" tone="negative" base={base} daily={dailyLoser} allTime={allTimeLoser} /></div>
@@ -78,6 +86,7 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
       <div className="dashboard-actions">{action}<Link href={base + "/positions"} className="button-secondary">პოზიციების მართვა <ArrowUpRight size={15} /></Link></div>
     </header>
     {!s.complete && <p role="status" className="dashboard-alert">ზოგიერთი ფასი მიუწვდომელია — ნაჩვენებია მხოლოდ ცნობილი ღირებულება; მთლიანი შედეგი არ გამოითვლება.</p>}
+    <OverviewNextActions items={nextActions} />
 
     <section className="dashboard-chart-panel overview-performance" aria-labelledby="portfolio-value-title">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -180,6 +189,14 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
       <PortfolioCalculator positions={s.positions} />
     </aside>
   </div></>;
+}
+
+function OverviewNextActions({ items, mobile = false }: { items: { tone: string; icon: React.ReactNode; title: string; detail: string; href: string; action: string }[]; mobile?: boolean }) {
+  if (!items.length) return null;
+  return <section className={`overview-next-actions ${mobile ? "mobile" : ""}`} aria-label="შემდეგი ნაბიჯები">
+    <header><div><span>შემდეგი ნაბიჯები</span><p>პორტფელის მიმდინარე მონაცემებზე დაფუძნებული შემოწმებები</p></div></header>
+    <div>{items.map((item) => <article key={item.title} className={item.tone}><span className="overview-next-icon">{item.icon}</span><div><strong>{item.title}</strong><p>{item.detail}</p></div><Link href={item.href}>{item.action}<ArrowUpRight size={13} /></Link></article>)}</div>
+  </section>;
 }
 
 function PortfolioMover({

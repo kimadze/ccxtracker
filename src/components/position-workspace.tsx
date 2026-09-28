@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { Asset, LedgerEntry, ValuedPosition } from "@/domain/types";
 import type { ExitLevel } from "@/domain/planning";
 import { Metric } from "./overview";
@@ -29,7 +30,10 @@ export function PositionWorkspace({
   journal: JournalData | null;
   attachments?: React.ReactNode;
 }) {
-  const [tab, setTab] = useState("overview");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const supportedTabs = ["overview", "transactions", "dca", "exit", "journal"];
+  const [tab, setTab] = useState(() => supportedTabs.includes(requestedTab ?? "") ? requestedTab! : "overview");
   return (
     <div className="position-workspace">
       <div className="position-workspace-toolbar">

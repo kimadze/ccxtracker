@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { Asset, PortfolioSummary } from "@/domain/types";
 import type { ExitLevel } from "@/domain/planning";
 import { DcaPlanner, ExitPlanner } from "./position-planners";
@@ -38,7 +39,9 @@ export function StrategyWorkspace({
       ].map((asset) => [asset.id, asset]),
     ).values(),
   ];
-  const [assetId, setAssetId] = useState(options[0]?.id ?? ""),
+  const searchParams = useSearchParams();
+  const requestedAssetId = searchParams.get("asset");
+  const [assetId, setAssetId] = useState(() => options.some((asset) => asset.id === requestedAssetId) ? requestedAssetId! : (options[0]?.id ?? "")),
     [tab, setTab] = useState("exit");
   const p = investablePositions(summary).find((p) => p.assetId === assetId);
   if (!options.length || (mode !== "journal" && !p))

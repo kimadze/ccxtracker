@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { ArrowUpRight, Layers3 } from "lucide-react";
+import { ArrowUpRight, Layers3, NotebookPen, TrendingUp } from "lucide-react";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
 import { BalanceValue } from "./ui";
@@ -190,14 +190,13 @@ export function PositionsTable({
               <div><dt className="text-muted">24 საათი</dt><dd className={`numeric mt-1 ${pnlClass(p.quote?.change24h ?? null)}`}>{percentage(p.quote?.change24h ?? null, true)}</dd></div>
               <div className="col-span-2"><dt className="text-muted">არარეალიზებული P/L</dt><dd className={`numeric mt-1 ${pnlClass(p.unrealizedPnl)}`}><BalanceValue>{money(p.unrealizedPnl)}</BalanceValue> · {percentage(p.returnPercent, true)}</dd></div>
             </dl>
-            <div className="mt-4 flex justify-end text-xs text-muted">
+            <div className="position-card-workflows">
               {!preview && (
-                <Link
-                  href={`${base}/positions/${p.assetId}`}
-                  className="button-secondary"
-                >
-                  დეტალები <ArrowUpRight size={14} />
-                </Link>
+                <>
+                  <Link href={`${base}/positions/${p.assetId}?tab=exit}`}><TrendingUp size={14} /> გეგმა</Link>
+                  <Link href={`${base}/positions/${p.assetId}?tab=journal`}><NotebookPen size={14} /> ჟურნალი</Link>
+                  <Link href={`${base}/positions/${p.assetId}`} className="button-secondary">დეტალები <ArrowUpRight size={14} /></Link>
+                </>
               )}
             </div>
           </div>

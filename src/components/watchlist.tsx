@@ -8,6 +8,7 @@ import { searchAssets } from "@/server/actions";
 import { money, dateTime, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon } from "./positions";
 import { Field, Message, Modal } from "./ui";
+import { TransactionForm } from "./transaction-form";
 export interface WatchItem {
   id: string;
   asset: Asset;
@@ -17,12 +18,14 @@ export interface WatchItem {
 }
 export function Watchlist({
   portfolioId,
+  revision,
   assets,
   items,
   quotes,
   preview = false,
 }: {
   portfolioId: string;
+  revision: number;
   assets: Asset[];
   items: WatchItem[];
   quotes: Quote[];
@@ -83,6 +86,7 @@ export function Watchlist({
           const targetPrice = Number(item.entryPrice ?? NaN);
           const targetGap = Number.isFinite(currentPrice) && Number.isFinite(targetPrice) && targetPrice !== 0
             ? String(((currentPrice - targetPrice) / targetPrice) * 100) : null;
+          const closeToTarget = targetGap !== null && Math.abs(Number(targetGap)) <= 5;
           return (
             <div
               key={item.id}
@@ -102,8 +106,9 @@ export function Watchlist({
                     {percentage(quote?.change24h === null || quote?.change24h === undefined ? null : String(quote.change24h), true)}
                     {quote?.stale ? " · მოძველებულია" : ""}
               </small></div>
-              <div className="watchlist-target"><span><Target size={13} /> სასურველი შესვლა</span><strong>{money(item.entryPrice)}</strong><small className={pnlClass(targetGap)}>{targetGap === null ? "ფასი არ არის მითითებული" : `${percentage(targetGap, true)} შესვლის ფასიდან`}</small></div>
+              <div className="watchlist-target"><span><Target size={13} /> სასურველი შესვლა</span><strong>{money(item.entryPrice)}</strong><small className={closeToTarget ? "watchlist-target-near" : pnlClass(targetGap)}>{targetGap === null ? "ფასი არ არის მითითებული" : closeToTarget ? "შესვლის ფასთან ახლოსაა" : `${percentage(targetGap, true)} შესვლის ფასიდან`}</small></div>
               {!preview && <div className="watchlist-actions">
+                <TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} initialAsset={item.asset.id} triggerLabel="ყიდვა" />
                 <button aria-label={`${item.asset.symbol} რედაქტირება`} onClick={() => { setSelected(item); setAssetId(item.asset.id); setError(""); setOpen(true); }}><Pencil size={15} /></button>
                 <button className="danger" aria-label={`${item.asset.symbol} წაშლა`} onClick={() => { setDeleting(item.id); setError(""); }}><Trash2 size={15} /></button>
               </div>}

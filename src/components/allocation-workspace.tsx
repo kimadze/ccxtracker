@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Plus, Save, SlidersHorizontal } from "lucide-react";
 import type { Asset, PortfolioSummary, Quote } from "@/domain/types";
 import { calculateDeployment, validateWeights } from "@/domain/allocation";
@@ -42,7 +43,7 @@ export function AllocationWorkspace({ summary, assets, quotes, portfolioId, init
         <header><div><p className="allocation-kicker"><SlidersHorizontal size={13} /> ალოკაციის ქენვისი</p><h2>მიზნობრივი განაწილება</h2></div><button className="button-secondary" onClick={() => setMessage("შეიყვანეთ თითო აქტივის სამიზნე წილი და შეინახეთ.")}>რედაქტირება</button></header>
         <div className="allocation-ledger-head"><span>აქტივი</span><span>სამიზნე წილი</span><span>მიმდინარე წილი</span><span>გადახრა</span><span>ღირებულება</span></div>
         <div className="allocation-ledger-rows">{rows.map((row, index) => { const current = currentWeight(row.assetId); const deviation = current === null ? null : decimal(current).minus(row.weight).toFixed(); return <div className="allocation-ledger-row" key={row.assetId}>
-          <span className="allocation-ledger-asset"><AssetIcon symbol={symbol(row.assetId)} logoUrl={asset(row.assetId)?.logoUrl} index={index} /><span><strong>{symbol(row.assetId)}</strong><small>{asset(row.assetId)?.name}</small></span></span>
+          <Link className="allocation-ledger-asset" href={`/portfolios/${portfolioId}/strategy?asset=${encodeURIComponent(row.assetId)}`}><AssetIcon symbol={symbol(row.assetId)} logoUrl={asset(row.assetId)?.logoUrl} index={index} /><span><strong>{symbol(row.assetId)}</strong><small>{asset(row.assetId)?.name} · გეგმის გახსნა ↗</small></span></Link>
           <label className="allocation-ledger-input"><input aria-label={`${symbol(row.assetId)} სამიზნე წილი`} inputMode="decimal" value={displayNumber(row.weight)} onChange={(event) => { setWeights((w) => ({ ...w, [row.assetId]: event.target.value })); setMessage(""); }} /><span>%</span></label>
           <span>{percentage(current)}</span><span className={pnlClass(deviation)}>{percentage(deviation, true)}</span><strong>{money(row.value)}</strong>
         </div>; })}</div>

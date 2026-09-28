@@ -1,21 +1,26 @@
 "use client";
 import { useState } from "react";
-import { Grid2X2, List, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { Grid2X2, List, NotebookPen, RotateCcw, Search, SlidersHorizontal, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import type { ValuedPosition } from "@/domain/types";
+import type { Asset, ValuedPosition } from "@/domain/types";
 import { decimal } from "@/domain/decimal";
 import { money, percentage, pnlClass, quantity } from "@/lib/formatters";
 import { AssetIcon, PositionsTable } from "./positions";
 import { BalanceValue } from "./ui";
 import { MobileBottomSheet } from "./mobile-components";
 import { PositionShare } from "./position-share";
+import { TransactionForm } from "./transaction-form";
 export function PositionsWorkspace({
   positions,
   base,
+  assets,
+  revision,
   preview = false,
 }: {
   positions: ValuedPosition[];
   base: string;
+  assets: Asset[];
+  revision: number;
   preview?: boolean;
 }) {
   const [search, setSearch] = useState(""),
@@ -122,7 +127,7 @@ export function PositionsWorkspace({
             onSelect={setSelectedAssetId}
           />
         </section>
-        {selected && <PositionBrief position={selected} base={base} preview={preview} />}
+        {selected && <PositionBrief position={selected} base={base} assets={assets} revision={revision} preview={preview} />}
       </div>
       {filtered.length > 20 && (
         <div className="flex items-center justify-end gap-3">
@@ -149,13 +154,19 @@ export function PositionsWorkspace({
   );
 }
 
-function PositionBrief({ position, base, preview }: { position: ValuedPosition; base: string; preview: boolean }) {
+function PositionBrief({ position, base, assets, revision, preview }: { position: ValuedPosition; base: string; assets: Asset[]; revision: number; preview: boolean }) {
   const positive = position.unrealizedPnl !== null && decimal(position.unrealizedPnl).gt(0);
   return <aside className="position-brief" aria-label={`${position.asset.symbol} პოზიციის მოკლე ინფორმაცია`}>
     <header><div className="position-brief-asset"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} /><div><h2>{position.asset.symbol}</h2><span>{position.asset.name}</span></div></div>{!preview && <div className="position-brief-header-actions"><PositionShare position={position} compact /><Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>სრული გვერდი ↗</Link></div>}</header>
     <div className="position-brief-price"><span>მიმდინარე ფასი</span><strong>{money(position.quote?.price ?? null)}</strong><b className={pnlClass(position.quote?.change24h ?? null)}>{percentage(position.quote?.change24h ?? null, true)} · 24სთ</b></div>
     <div className="position-brief-grid"><div><span>რაოდენობა</span><b>{quantity(position.quantity)}</b></div><div><span>საშ. შესყიდვა</span><b>{money(position.averagePrice)}</b></div><div><span>ღირებულება</span><b><BalanceValue>{money(position.value)}</BalanceValue></b></div><div><span>პორტფელის წილი</span><b>{percentage(position.allocation)}</b></div></div>
     <div className={`position-brief-pnl ${positive ? "positive" : "negative"}`}><span>არარეალიზებული P/L</span><strong><BalanceValue>{position.unrealizedPnl && positive ? "+" : ""}{money(position.unrealizedPnl)}</BalanceValue></strong><b>{percentage(position.returnPercent, true)}</b></div>
-    {!preview && <div className="position-brief-actions"><Link className="button-primary" href={`${base}/transactions?assetId=${position.assetId}`}>＋ ტრანზაქცია</Link><Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>მართვა</Link></div>}
+    {!preview && <>
+      <div className="position-brief-actions"><TransactionForm portfolioId={base.split("/").at(-1) ?? ""} revision={revision} assets={assets} initialAsset={position.assetId} triggerLabel="ტრანზაქცია" /><Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>მართვა</Link></div>
+      <div className="position-brief-workflows" aria-label={`${position.asset.symbol} დაგეგმვის მოქმედებები`}>
+        <Link href={`${base}/positions/${position.assetId}?tab=exit`}><TrendingUp size={14} /><span>გასვლის გეგმა</span></Link>
+        <Link href={`${base}/positions/${position.assetId}?tab=journal`}><NotebookPen size={14} /><span>ჟურნალი</span></Link>
+      </div>
+    </>}
   </aside>;
 }

@@ -23,6 +23,7 @@ export default async function Page({
       />
       <Watchlist
         portfolioId={portfolioId}
+        revision={w.portfolio.revision}
         assets={w.assets}
         items={items.map((i) => ({
           ...i,

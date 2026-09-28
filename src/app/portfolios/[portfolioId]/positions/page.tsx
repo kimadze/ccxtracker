@@ -27,6 +27,8 @@ export default async function Page({
       <PositionsWorkspace
         positions={w.summary.positions}
         base={`/portfolios/${portfolioId}`}
+        assets={w.assets}
+        revision={w.portfolio.revision}
       />
       <p className="mt-5 text-xs leading-6 text-muted">
         რაოდენობის ან თვითღირებულების შესაცვლელად გახსენით პოზიცია და შეასწორეთ
