@@ -35,12 +35,10 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     for (let x = 0; x <= W; x += 54) line(context, x, 0, x, H, "rgba(67,132,255,.10)");
     for (let y = 0; y <= H; y += 54) line(context, 0, y, W, y, "rgba(67,132,255,.10)");
     const glow = context.createRadialGradient(815, 430, 20, 815, 430, 430); glow.addColorStop(0, "rgba(219,65,255,.30)"); glow.addColorStop(1, "rgba(18,39,118,0)"); context.fillStyle = glow; context.fillRect(430, 0, 650, 770);
-    try { const logo = await loadImage("/ccx-mark-transparent.png"); context.drawImage(logo, 48, 36, 185, 185); } catch { /* Brand text remains available. */ }
-    line(context, 250, 43, 250, 210, "rgba(128,152,229,.58)", 2);
-    context.fillStyle = "#f6f7ff"; context.font = "700 58px Inter, Arial"; context.fillText("Crypto", 282, 93); context.fillText("Collective", 282, 150);
-    const xGradient = context.createLinearGradient(575, 72, 670, 150); xGradient.addColorStop(0, "#726dff"); xGradient.addColorStop(.5, "#dc22ff"); xGradient.addColorStop(1, "#ff8a24"); context.fillStyle = xGradient; context.font = "800 84px Inter, Arial"; context.fillText("X", 575, 151);
-    context.fillStyle = "#7592dc"; context.font = "600 18px Inter, Arial"; context.letterSpacing = "8px"; context.fillText("TOGETHER WE TRADE SMARTER", 285, 197); context.letterSpacing = "0px";
-    context.fillStyle = "#6d85c8"; context.font = "600 17px Inter, Arial"; ["PEOPLE", "DATA", "DISCIPLINE", "HIGHER", "TOGETHER"].forEach((word, index) => context.fillText(word, 910, 62 + index * 27)); line(context, 910, 203, 1034, 203, "#8e4dff", 3);
+    try {
+      const reference = await loadImage("/position-share-neon-reference.png");
+      context.drawImage(reference, 0, 0, reference.naturalWidth, 252, 0, 0, W, 217);
+    } catch { /* The card remains usable if the decorative header cannot load. */ }
     context.beginPath(); context.arc(130, 325, 76, 0, Math.PI * 2); context.fillStyle = "#0b112b"; context.fill(); context.lineWidth = 5; context.strokeStyle = "#2d9cff"; context.stroke();
     context.fillStyle = "#c85cff"; context.font = "700 40px Inter, Arial"; context.textAlign = "center"; context.fillText(position.asset.symbol.slice(0, 4), 130, 339); context.textAlign = "left";
     const logoSource = position.asset.logoUrl ? `/api/asset-logo?url=${encodeURIComponent(position.asset.logoUrl)}` : null;
