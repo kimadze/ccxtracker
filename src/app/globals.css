@@ -986,6 +986,7 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .position-share-dialog { display: grid; gap: 14px; }
 .position-share-preview { display: block; width: 100%; border: 1px solid var(--border); border-radius: 10px; background: #070b1d; }
 .position-share-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.position-brief-header-actions { display: flex; align-items: center; gap: 7px; }
 @media (max-width: 1023px) {
   .allocation-ledger-grid { grid-template-columns: 1fr; }
   .allocation-ledger-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }

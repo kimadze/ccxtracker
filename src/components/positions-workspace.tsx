@@ -8,6 +8,7 @@ import { money, percentage, pnlClass, quantity } from "@/lib/formatters";
 import { AssetIcon, PositionsTable } from "./positions";
 import { BalanceValue } from "./ui";
 import { MobileBottomSheet } from "./mobile-components";
+import { PositionShare } from "./position-share";
 export function PositionsWorkspace({
   positions,
   base,
@@ -151,7 +152,7 @@ export function PositionsWorkspace({
 function PositionBrief({ position, base, preview }: { position: ValuedPosition; base: string; preview: boolean }) {
   const positive = position.unrealizedPnl !== null && decimal(position.unrealizedPnl).gt(0);
   return <aside className="panel position-brief" aria-label={`${position.asset.symbol} პოზიციის მოკლე ინფორმაცია`}>
-    <header><div className="position-brief-asset"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} /><div><h2>{position.asset.symbol}</h2><span>{position.asset.name}</span></div></div>{!preview && <Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>სრული გვერდი ↗</Link>}</header>
+    <header><div className="position-brief-asset"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} /><div><h2>{position.asset.symbol}</h2><span>{position.asset.name}</span></div></div>{!preview && <div className="position-brief-header-actions"><PositionShare position={position} compact /><Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>სრული გვერდი ↗</Link></div>}</header>
     <div className="position-brief-price"><span>მიმდინარე ფასი</span><strong>{money(position.quote?.price ?? null)}</strong><b className={pnlClass(position.quote?.change24h ?? null)}>{percentage(position.quote?.change24h ?? null, true)} · 24სთ</b></div>
     <div className="position-brief-grid"><div><span>რაოდენობა</span><b>{quantity(position.quantity)}</b></div><div><span>საშ. შესყიდვა</span><b>{money(position.averagePrice)}</b></div><div><span>ღირებულება</span><b><BalanceValue>{money(position.value)}</BalanceValue></b></div><div><span>პორტფელის წილი</span><b>{percentage(position.allocation)}</b></div></div>
     <div className={`position-brief-pnl ${positive ? "positive" : "negative"}`}><span>არარეალიზებული P/L</span><strong><BalanceValue>{position.unrealizedPnl && positive ? "+" : ""}{money(position.unrealizedPnl)}</BalanceValue></strong><b>{percentage(position.returnPercent, true)}</b></div>
