@@ -106,7 +106,7 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
   };
   return <>
     <button type="button" className={compact ? "ccx-icon-button" : "button-secondary"} aria-label={compact ? "პოზიციის გაზიარება" : undefined} title={compact ? "პოზიციის გაზიარება" : undefined} onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი მზადდება…"); setOpen(true); }}><Share2 size={15} />{!compact && " გაზიარება"}</button>
-    <Modal open={open} onOpenChange={setOpen} wide className="position-share-modal" title="პოზიციის გაზიარება" description="შექმენით CCX-ის ბარათი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.">
+    <Modal open={open} onOpenChange={setOpen} wide className="position-share-modal mobile-bottom-sheet" title="პოზიციის გაზიარება" description="შექმენით CCX-ის ბარათი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.">
       <div className="position-share-dialog"><canvas ref={canvas} className="position-share-preview" aria-label={`${position.asset.symbol} პოზიციის share ბარათი`} /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={download}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={share}><Share2 size={15} /> გაზიარება</button></div>{status && <p role="status" className="text-xs text-muted">{status}</p>}</div>
     </Modal>
   </>;

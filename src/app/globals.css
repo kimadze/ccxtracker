@@ -1445,6 +1445,26 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .position-share-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .position-brief-header-actions { display: flex; align-items: center; gap: 7px; }
 
+/* Kept at the end of the component rules so mobile sheet geometry wins over
+   Tailwind's centered modal utilities on every mobile browser. */
+@media (max-width: 1023px) {
+  .ccx-modal.position-share-modal.mobile-bottom-sheet {
+    position: fixed !important;
+    inset: auto 0 0 0 !important;
+    width: 100vw !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+  .ccx-modal.position-share-modal.mobile-bottom-sheet .position-share-preview {
+    width: min(calc(100vw - 28px), 430px) !important;
+    min-width: 0 !important;
+    height: auto !important;
+  }
+}
+
 /* Investment workspace — desktop information hierarchy */
 @media (min-width: 1024px) {
   .dashboard-space {
