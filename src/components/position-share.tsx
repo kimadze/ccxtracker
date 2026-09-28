@@ -44,14 +44,19 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     const brandMarkPromise = loadImage("/position-share-neon-reference.png", 8000).then((reference) => {
       context.drawImage(reference, 0, 0, reference.naturalWidth, 252, 0, 0, W, 217);
     });
-    // Keep the asset mark clean: no blue ring, disc, or glow around the logo.
+    // Keep the asset mark clean: a round crop, without a blue ring, disc, or glow.
     context.fillStyle = "#f6f7ff"; context.font = "700 40px Inter, Arial"; context.textAlign = "center"; context.fillText(position.asset.symbol.slice(0, 4), 130, 339); context.textAlign = "left";
     const highResLogo = highResLogoUrl(position.asset.logoUrl);
     const logoSource = highResLogo ? `/api/asset-logo?url=${encodeURIComponent(highResLogo)}` : null;
     const assetLogoPromise = logoSource ? loadImage(logoSource, 4000).then((logo) => {
       const scale = Math.min(108 / logo.naturalWidth, 108 / logo.naturalHeight);
       const width = logo.naturalWidth * scale, height = logo.naturalHeight * scale;
+      context.save();
+      context.beginPath();
+      context.arc(130, 325, 54, 0, Math.PI * 2);
+      context.clip();
       context.drawImage(logo, 130 - width / 2, 325 - height / 2, width, height);
+      context.restore();
     }).catch(() => undefined) : Promise.resolve();
     context.fillStyle = "#f6f7ff"; context.font = "700 64px Inter, Arial"; context.fillText(position.asset.symbol, 226, 342);
     context.fillStyle = "#f6f7ff"; context.font = '700 46px "Noto Sans Georgian", Inter, Arial'; context.fillText("ჩემი პოზიცია", 56, 465);
