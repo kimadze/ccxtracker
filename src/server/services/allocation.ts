@@ -6,6 +6,7 @@ import { validateWeights } from "@/domain/allocation";
 import type { Database } from "@/server/db";
 import { assets, targetAllocations, portfolios } from "@/server/db/schema";
 import { portfolioService } from "./portfolio";
+import { isInvestableCrypto } from "@/domain/portfolio-segments";
 const schema = z.object({
   portfolioId: idSchema,
   rows: z
@@ -42,6 +43,8 @@ export function allocationService(db: Database, userId: string) {
           ),
         );
       if (known.length !== data.rows.length) throw new Error("UNKNOWN_ASSET");
+      if (known.some((asset) => !isInvestableCrypto(asset)))
+        throw new Error("INVALID_ALLOCATION");
       await db.transaction(async (tx) => {
         await tx
           .select()

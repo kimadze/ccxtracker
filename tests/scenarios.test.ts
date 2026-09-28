@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { calculateScenario, goalProgress } from "@/domain/scenarios";
 import { demoSummary } from "@/domain/demo";
+import { investableValue } from "@/domain/portfolio-segments";
 describe("shared scenario engine", () => {
-  it("uses current holdings, unchanged cash and explicit current-price fallback", () => {
+  it("uses only market-risk holdings and explicit current-price fallback", () => {
     const base = calculateScenario(demoSummary, {});
-    expect(base.value).toBe(demoSummary.value);
+    expect(base.value).toBe(investableValue(demoSummary));
     expect(base.growth).toBe("0");
     const r = calculateScenario(demoSummary, { bitcoin: "197420" });
     expect(Number(r.growth)).toBe(24000);

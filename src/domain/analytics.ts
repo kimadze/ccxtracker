@@ -1,5 +1,6 @@
 import { D, amount, decimal, percent } from "./decimal";
 import type { LedgerEntry, PortfolioSummary } from "./types";
+import { investablePositions, investableValue } from "./portfolio-segments";
 
 export interface Snapshot {
   capturedAt: string;
@@ -16,22 +17,26 @@ export function analyzeHealth(summary: PortfolioSummary) {
     decimal(summary.value).lte(0)
   )
     return null;
-  const sorted = [...summary.positions].sort((a, b) =>
+  const cryptoValue = investableValue(summary);
+  if (cryptoValue === null || decimal(cryptoValue).lte(0)) return null;
+  const sorted = [...investablePositions(summary)].sort((a, b) =>
     decimal(b.value ?? "0").cmp(a.value ?? "0"),
   );
-  const largest = sorted[0]?.allocation ?? "0";
+  const shareOfCrypto = (value: string | null) =>
+    value === null ? "0" : percent(value, cryptoValue) ?? "0";
+  const largest = shareOfCrypto(sorted[0]?.value ?? null);
   const topThree = amount(
-    sorted.slice(0, 3).reduce((s, p) => s.plus(p.allocation ?? 0), new D(0)),
+    sorted.slice(0, 3).reduce((s, p) => s.plus(shareOfCrypto(p.value)), new D(0)),
   );
   const reserve = percent(summary.reserve, summary.value) ?? "0";
   const hhi = sorted.reduce(
     (s, p) =>
       s.plus(
-        decimal(p.allocation ?? 0)
+        decimal(shareOfCrypto(p.value))
           .div(100)
           .pow(2),
       ),
-    decimal(summary.cash).div(summary.value).pow(2),
+    new D(0),
   );
   const effectivePositions = hhi.isZero() ? "0" : amount(new D(1).div(hhi));
   const concentration = decimal(largest).gte(50)

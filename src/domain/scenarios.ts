@@ -1,10 +1,12 @@
 import { D, amount, decimal, percent } from "./decimal";
 import type { PortfolioSummary } from "./types";
+import { investableCostBasis, investablePositions, investableValue } from "./portfolio-segments";
 export function calculateScenario(
   summary: PortfolioSummary,
   prices: Record<string, string>,
 ) {
-  const positions = summary.positions.map((p) => {
+  const currentValue = investableValue(summary);
+  const positions = investablePositions(summary).map((p) => {
     const target = prices[p.assetId]?.trim()
       ? decimal(prices[p.assetId])
       : p.quote
@@ -27,26 +29,27 @@ export function calculateScenario(
   });
   const value = positions.some((p) => p.value === null)
     ? null
-    : amount(positions.reduce((s, p) => s.plus(p.value!), new D(summary.cash)));
+    : amount(positions.reduce((s, p) => s.plus(p.value!), new D(0)));
   for (const p of positions)
     p.allocation =
       value === null || p.value === null ? null : percent(p.value, value);
   const growth =
-    value === null || summary.value === null
+    value === null || currentValue === null
       ? null
-      : amount(decimal(value).minus(summary.value));
+      : amount(decimal(value).minus(currentValue));
+  const costBasis = investableCostBasis(summary);
   const unrealizedPnl =
-    value === null || summary.costBasis === null
+    value === null || costBasis === null
       ? null
-      : amount(decimal(value).minus(summary.cash).minus(summary.costBasis));
+      : amount(decimal(value).minus(costBasis));
   return {
     positions,
     value,
     growth,
     returnPercent:
-      growth === null || summary.value === null
+      growth === null || currentValue === null
         ? null
-        : percent(growth, summary.value),
+        : percent(growth, currentValue),
     unrealizedPnl,
   };
 }

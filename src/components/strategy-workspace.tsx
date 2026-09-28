@@ -5,6 +5,7 @@ import type { ExitLevel } from "@/domain/planning";
 import { DcaPlanner, ExitPlanner } from "./position-planners";
 import { JournalForm, type JournalData } from "./journal";
 import { Attachments } from "./attachments";
+import { investablePositions, investableValue } from "@/domain/portfolio-segments";
 export function StrategyWorkspace({
   summary,
   portfolioId,
@@ -32,14 +33,14 @@ export function StrategyWorkspace({
   const options = [
     ...new Map(
       [
-        ...summary.positions.map((p) => p.asset),
+        ...investablePositions(summary).map((p) => p.asset),
         ...(mode === "journal" ? journalAssets : []),
       ].map((asset) => [asset.id, asset]),
     ).values(),
   ];
   const [assetId, setAssetId] = useState(options[0]?.id ?? ""),
     [tab, setTab] = useState("exit");
-  const p = summary.positions.find((p) => p.assetId === assetId);
+  const p = investablePositions(summary).find((p) => p.assetId === assetId);
   if (!options.length || (mode !== "journal" && !p))
     return (
       <div className="panel p-10 text-center text-sm text-muted">
@@ -109,7 +110,7 @@ export function StrategyWorkspace({
         <DcaPlanner
           key={assetId}
           position={p!}
-          portfolioValue={summary.value}
+          portfolioValue={investableValue(summary)}
         />
       )}
     </div>

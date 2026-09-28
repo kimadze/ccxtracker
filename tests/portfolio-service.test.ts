@@ -242,8 +242,7 @@ describe("protected portfolio service against real PostgreSQL semantics", () => 
     await allocationService(db, "alice").save({
       portfolioId: p.id,
       rows: [
-        { assetId: "btc", weight: "80" },
-        { assetId: "USD", weight: "20" },
+        { assetId: "btc", weight: "100" },
       ],
     });
     await expect(allocationService(db, "bob").list(p.id)).rejects.toThrow(
@@ -255,7 +254,7 @@ describe("protected portfolio service against real PostgreSQL semantics", () => 
         rows: [{ assetId: "btc", weight: "80" }],
       }),
     ).rejects.toThrow("INVALID_ALLOCATION");
-    expect(await allocationService(db, "alice").list(p.id)).toHaveLength(2);
+    expect(await allocationService(db, "alice").list(p.id)).toHaveLength(1);
   });
   it("invalidates historical snapshots after backdated correction", async () => {
     const service = portfolioService(db, "alice"),

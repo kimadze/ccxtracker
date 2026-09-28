@@ -12,6 +12,7 @@ import { replayLedger } from "@/domain/ledger";
 import { percentage, money, pnlClass } from "@/lib/formatters";
 import { HistoryChart } from "./history-chart";
 import { PerformanceAttribution } from "./performance-attribution";
+import { isInvestableCrypto } from "@/domain/portfolio-segments";
 export function Analytics({
   summary,
   snapshots,
@@ -41,7 +42,7 @@ export function Analytics({
       assets,
     );
   const performers = [...summary.positions]
-    .filter((p) => p.returnPercent !== null)
+    .filter((p) => isInvestableCrypto(p.asset) && p.returnPercent !== null)
     .sort((a, b) => Number(b.returnPercent) - Number(a.returnPercent));
   return (
     <div className="analytics-workspace space-y-6">
@@ -134,11 +135,8 @@ export function Analytics({
               შეადგენს.
             </p>
             <details className="mt-3 text-[11px] leading-6 text-muted"><summary>მაჩვენებლის განმარტება</summary><p className="mt-2">
-              კონცენტრაციის საზღვრები: 30%-ზე ნაკლები — დაბალი; 30–50% —
-              საშუალო; 50%-დან — მაღალი. ეფექტური რაოდენობა წილების კვადრატების
-              ჯამის შებრუნებული მნიშვნელობაა და USD-ის ნაშთსაც მოიცავს. ეს
-              მაჩვენებლები პორტფელის სტრუქტურას აღწერს და ფასების ცვლილებას არ
-              პროგნოზირებს. სტეიბლკოინებსაც აქვთ რისკი.
+              კონცენტრაცია და ეფექტური რაოდენობა ითვლება მხოლოდ არასტეიბლ
+              კრიპტოაქტივებით. Cash და სტეიბლკოინები ცალკე ლიკვიდობად რჩება.
             </p></details>
           </>
         ) : (

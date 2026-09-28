@@ -11,6 +11,7 @@ import { portfolioService, AccessError } from "./portfolio";
 import { scenarioSchema, goalSchema } from "@/domain/scenario-validation";
 import { idSchema } from "@/domain/validation";
 import { decimal } from "@/domain/decimal";
+import { isInvestableCrypto } from "@/domain/portfolio-segments";
 export function scenarioService(db: Database, userId: string) {
   const portfolio = portfolioService(db, userId);
   return {
@@ -57,7 +58,7 @@ export function scenarioService(db: Database, userId: string) {
         throw new AccessError();
       const known = data.prices.length
         ? await db
-            .select({ id: assets.id })
+            .select({ id: assets.id, isStablecoin: assets.isStablecoin, category: assets.category, symbol: assets.symbol, name: assets.name, providerId: assets.providerId, logoUrl: assets.logoUrl })
             .from(assets)
             .where(
               inArray(
@@ -67,6 +68,8 @@ export function scenarioService(db: Database, userId: string) {
             )
         : [];
       if (known.length !== data.prices.length) throw new Error("UNKNOWN_ASSET");
+      if (known.some((asset) => !isInvestableCrypto(asset)))
+        throw new Error("INVALID_PLAN");
       await db.transaction(async (tx) => {
         if (operation === "create")
           await tx.insert(scenarios).values({

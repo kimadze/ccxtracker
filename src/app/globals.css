@@ -662,23 +662,24 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 @media (max-width: 1023px) {
   /* Dedicated position-share sheet: a square preview stays above its actions. */
   .ccx-modal.position-share-modal {
-    top: auto;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    top: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
     max-width: none !important;
-    max-height: 100dvh;
-    transform: none;
-    border-right: 0;
-    border-bottom: 0;
-    border-left: 0;
+    max-height: 100dvh !important;
+    transform: none !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
     border-radius: 20px 20px 0 0;
-    padding: 16px 14px calc(14px + env(safe-area-inset-bottom));
+    padding: 16px 14px calc(14px + env(safe-area-inset-bottom)) !important;
+    box-sizing: border-box;
   }
   .position-share-modal > .mt-6 { margin-top: 12px; }
   .position-share-modal .position-share-dialog { display: grid; min-height: 0; gap: 9px; }
-  .position-share-modal .position-share-preview { width: min(100%, 430px); max-height: 45dvh; margin-inline: auto; }
+  .position-share-modal .position-share-preview { width: min(calc(100vw - 28px), 430px) !important; max-width: 100%; max-height: 45dvh; margin-inline: auto; }
   .position-share-modal .position-share-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .position-share-modal .position-share-controls button { min-height: 46px; }
   .position-share-modal .position-share-controls button:first-child { grid-column: 1 / -1; }

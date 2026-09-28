@@ -13,6 +13,7 @@ import {
 import { AssetIcon } from "./positions";
 import { Field, Message, Modal } from "./ui";
 import { Metric } from "./overview";
+import { investablePositions, investableValue } from "@/domain/portfolio-segments";
 
 export interface SavedScenario {
   id: string;
@@ -44,6 +45,8 @@ export function ScenarioLab({
     [error, setError] = useState(false),
     [deleting, setDeleting] = useState(false);
   const router = useRouter();
+  const cryptoPositions = investablePositions(summary);
+  const cryptoValue = investableValue(summary);
   let result: ReturnType<typeof calculateScenario> | null = null;
   try {
     result = calculateScenario(summary, prices);
@@ -120,7 +123,7 @@ export function ScenarioLab({
             </p>
           </div>
           <div className="divide-y divide-line">
-            {summary.positions.map((p, i) => (
+            {cryptoPositions.map((p, i) => (
               <div
                 key={p.assetId}
                 className="grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]"
@@ -151,27 +154,27 @@ export function ScenarioLab({
                 </Field>
               </div>
             ))}
-            {!summary.positions.length && (
+            {!cryptoPositions.length && (
               <p className="py-10 text-center text-xs text-muted">
                 სცენარისთვის ჯერ დაამატეთ პოზიცია.
               </p>
             )}
           </div>
           <p className="mt-5 text-[11px] leading-6 text-muted">
-            ცარიელ ველში გამოიყენება მიმდინარე ხელმისაწვდომი ფასი. USD-ის ნაშთი
-            უცვლელია. ნულოვანი ფასი აქტივის ღირებულების სრულ დაკარგვას ნიშნავს.
+            ცარიელ ველში გამოიყენება მიმდინარე ხელმისაწვდომი ფასი. Cash და სტეიბლკოინები
+            ამ სცენარისგან გამოთიშულია. ნულოვანი ფასი აქტივის ღირებულების სრულ დაკარგვას ნიშნავს.
           </p>
         </section>
         <div className="scenario-results">
           <section className="scenario-summary">
-            <p className="text-xs text-muted">სცენარის პორტფელის ღირებულება</p>
+            <p className="text-xs text-muted">სცენარის კრიპტო ღირებულება</p>
             <p className="numeric mt-5 text-4xl text-brand">
               {money(result?.value ?? null)}
             </p>
             <div className="scenario-summary-grid">
               <Metric
                 label="მიმდინარე ღირებულება"
-                value={money(summary.value)}
+                value={money(cryptoValue)}
               />
               <Metric
                 label="ცვლილება მიმდინარე ღირებულებიდან"
@@ -231,7 +234,7 @@ export function ScenarioLab({
           </div>
           <button
             className="button-primary"
-            disabled={pending || !result || !summary.positions.length}
+            disabled={pending || !result || !cryptoPositions.length}
             onClick={() => void save()}
           >
             <Save size={15} />
@@ -261,7 +264,7 @@ export function ScenarioLab({
       )}
       <GoalPlanner
         portfolioId={portfolioId}
-        current={summary.value}
+        current={cryptoValue}
         scenarioValue={result?.value ?? null}
         initial={goal}
         preview={preview}
