@@ -52,7 +52,7 @@ function IndicatorCard({
 }) {
   const primary = metrics[0];
   return (
-    <article className={`panel overflow-hidden border-t-2 ${tone}`}>
+    <article className={`panel macro-module overflow-hidden border-t-2 ${tone}`}>
       <div className="p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <span className={`mt-1 size-2 shrink-0 rounded-full ${marker}`} />
@@ -94,8 +94,8 @@ function IndicatorCard({
 
 export function MacroIndicators({ data }: { data: MacroStatistics }) {
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+    <div className="macro-workspace space-y-6">
+      <header className="macro-commandbar flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold">ეკონომიკური მაჩვენებლები</h2>
           <p className="mt-2 text-xs leading-6 text-muted">
@@ -105,7 +105,7 @@ export function MacroIndicators({ data }: { data: MacroStatistics }) {
         <p className="text-[10px] text-muted">შემოწმდა {dateTime(data.fetchedAt)}</p>
       </header>
       {data.metrics.length ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="macro-grid grid gap-4 md:grid-cols-2">
           {groups.map((group) => (
             <IndicatorCard
               key={group.title}
@@ -121,12 +121,12 @@ export function MacroIndicators({ data }: { data: MacroStatistics }) {
           ))}
         </div>
       ) : (
-        <div className="panel p-10 text-center">
+        <div className="panel macro-empty p-10 text-center">
           <h3 className="text-sm font-medium">მაკრო მონაცემები მიუწვდომელია</h3>
           <p className="mt-3 text-xs leading-6 text-muted">სცადეთ გვერდის განახლება მოგვიანებით.</p>
         </div>
       )}
-      <p className="text-[10px] leading-5 text-muted">
+      <p className="macro-source text-[10px] leading-5 text-muted">
         წყარო: Federal Reserve Economic Data (FRED). თითოეული მაჩვენებლის თარიღი
         ასახავს წყაროში არსებულ ბოლო დაკვირვებას.
       </p>

@@ -173,7 +173,30 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
   const cash = summary.value ? Number(percent(summary.cash, summary.value) ?? 0) : 0;
   const liquidity = summary.value && summary.liquidity !== null ? percent(summary.liquidity, summary.value) : null;
   const alt = Math.max(0, 100 - Number(btc) - Number(eth) - stable - cash);
-  return <div className="space-y-7"><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><MetricCard label="პორტფელის ღირებულება" value={money(summary.value)} /><MetricCard label="ნაღდი ფული" value={money(summary.cash)} hint={`პორტფელის ${percentage(String(cash))}`} /><MetricCard label="სტეიბლკოინები" value={money(summary.stablecoinValue)} hint={`პორტფელის ${percentage(String(stable))}`} /><MetricCard label="საერთო ლიკვიდობა" value={money(summary.liquidity)} hint={`პორტფელის ${percentage(liquidity)}`} /><MetricCard label="BTC / ETH" value={`${percentage(btc)} / ${percentage(eth)}`} /><MetricCard label="სხვა კრიპტოაქტივები" value={percentage(String(alt))} /></div><div className="panel p-6"><h2 className="text-sm font-medium">ლიკვიდობის სურათი</h2><p className="mt-3 max-w-3xl text-xs leading-6 text-muted">ნაღდი ფული და სტეიბლკოინები ცალ-ცალკე აღირიცხება. მათი ჯამი აჩვენებს ახალი შესაძლებლობებისთვის ხელმისაწვდომ საერთო ლიკვიდობას.</p></div></div>;
+  const holdings = active.filter((position) => !position.asset.isStablecoin).sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0)).slice(0, 5);
+  const segments = [
+    { label: "BTC", value: Number(btc), color: "#8a63ee" },
+    { label: "ETH", value: Number(eth), color: "#3e8cff" },
+    { label: "სხვა კრიპტო", value: alt, color: "#29cbb6" },
+    { label: "სტეიბლკოინები", value: stable, color: "#f5ba57" },
+    { label: "ნაღდი ფული", value: cash, color: "#8c96aa" },
+  ];
+  return <div className="portfolio-workspace">
+    <header className="portfolio-commandbar"><div><span>PORTFOLIO PULSE</span><h2>ჩემი პორტფელი</h2></div><strong>{money(summary.value)}</strong></header>
+    <section className="portfolio-pulse">
+      <div><span>სრული P/L</span><strong className={pnlClass(summary.totalPnl)}>{money(summary.totalPnl)}</strong><small>რეალიზებული და მიმდინარე</small></div>
+      <div><span>საერთო ლიკვიდობა</span><strong>{money(summary.liquidity)}</strong><small>პორტფელის {percentage(liquidity)}</small></div>
+      <div><span>აქტიური პოზიციები</span><strong>{active.length}</strong><small>ფასიანი აქტივები</small></div>
+      <div><span>ფასის სტატუსი</span><strong>{summary.complete ? "სრული" : "ნაწილობრივი"}</strong><small>{summary.stale ? "განახლება საჭიროა" : "ფასები აქტუალურია"}</small></div>
+    </section>
+    <section className="portfolio-layout">
+      <article className="portfolio-structure"><header><h3>პორტფელის სტრუქტურა</h3><span>ქეში და სტეიბლები — ლიკვიდობა</span></header>
+        <div className="portfolio-segments">{segments.filter((segment) => segment.value > 0).map((segment) => <span key={segment.label} style={{ flex: segment.value, background: segment.color }} title={`${segment.label} ${percentage(String(segment.value))}`} />)}</div>
+        <div className="portfolio-breakdown">{segments.map((segment) => <div key={segment.label}><span><i style={{ background: segment.color }} />{segment.label}</span><strong>{percentage(String(segment.value))}</strong></div>)}</div>
+      </article>
+      <article className="portfolio-holdings"><header><h3>უმსხვილესი პოზიციები</h3><span>ღირებულებით</span></header>{holdings.length ? holdings.map((position) => <div className="portfolio-holding" key={position.assetId}><span>{position.asset.symbol} · {position.asset.name}</span><span>{percentage(position.allocation)}</span><strong>{money(position.value)}</strong></div>) : <div className="portfolio-holding"><span>აქტიური კრიპტო პოზიცია არ არის</span></div>}</article>
+    </section>
+  </div>;
 }
 
 export function StatisticsWorkspace({ market, macro, summary, selectedAssetIds, base }: { market: MarketStatistics; macro: MacroStatistics; summary: PortfolioSummary; selectedAssetIds: string[]; base: string }) {

@@ -1420,6 +1420,59 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 }
 .market-movers strong { color: var(--market-tone); text-align: right; }
 
+/* Statistics: macro and portfolio are compact working views, not presentation cards. */
+.macro-commandbar { padding: 17px 18px; border: 1px solid var(--border); border-radius: 13px; background: linear-gradient(105deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface) 60%); }
+.macro-commandbar h2 { margin: 3px 0 0; font-size: 16px; }
+.macro-commandbar p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.macro-commandbar > div > span { color: var(--brand); font-size: 10px; font-weight: 750; letter-spacing: .09em; }
+.macro-commandbar > small { color: var(--muted); font-size: 10px; }
+.macro-grid { gap: 12px; }
+.macro-module { min-height: 0; border-top-width: 1px; transition: border-color .16s ease, background-color .16s ease; }
+.macro-module:hover { border-color: color-mix(in srgb, var(--brand) 34%, var(--border)); background: color-mix(in srgb, var(--brand) 3%, var(--surface)); }
+.macro-module > div:first-child { padding: 15px 16px; }
+.macro-module > div:first-child > div { gap: 10px; }
+.macro-module > div:first-child > div > span { width: 7px; height: 7px; margin-top: 5px; }
+.macro-module h3 { font-size: 13px; font-weight: 650; }
+.macro-module h3 + p { margin-top: 3px; font-size: 10px; line-height: 1.45; }
+.macro-module > div:first-child > div + div { margin-top: 16px; }
+.macro-module > div:first-child > div + div > p:first-child { font-size: 10px; }
+.macro-module > div:first-child > div + div > p:nth-child(2) { margin-top: 3px; font-size: 25px; line-height: 1.1; }
+.macro-module > div:first-child > div + div > p:last-child { margin-top: 5px; font-size: 10px; }
+.macro-module > div:last-child { padding: 0 16px; }
+.macro-module > div:last-child > div { min-height: 47px; padding: 9px 0; }
+.macro-module > div:last-child > div p:first-child { font-size: 11px; }
+.macro-module > div:last-child > div p:last-child { margin-top: 2px; font-size: 9px; }
+.macro-module > div:last-child > div > p:last-child { font-size: 14px; }
+.macro-source { padding: 0 3px; }
+.portfolio-workspace { display: grid; gap: 12px; }
+.portfolio-commandbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px 18px; border: 1px solid var(--border); border-radius: 13px; background: linear-gradient(105deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface) 60%); }
+.portfolio-commandbar span { color: var(--brand); font-size: 10px; font-weight: 750; letter-spacing: .09em; }
+.portfolio-commandbar h2 { margin: 4px 0 0; font-size: 16px; }
+.portfolio-commandbar > strong { color: var(--text); font-size: 20px; font-variant-numeric: tabular-nums; }
+.portfolio-pulse { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.portfolio-pulse > div { min-width: 0; padding: 13px 14px; border-right: 1px solid var(--border-soft); }
+.portfolio-pulse > div:last-child { border-right: 0; }
+.portfolio-pulse span { display: block; color: var(--muted); font-size: 10px; }
+.portfolio-pulse strong { display: block; overflow: hidden; margin-top: 5px; color: var(--text); font-size: 17px; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.portfolio-pulse small { display: block; overflow: hidden; margin-top: 3px; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.portfolio-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 12px; }
+.portfolio-structure, .portfolio-holdings { overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.portfolio-structure header, .portfolio-holdings header { display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; border-bottom: 1px solid var(--border-soft); }
+.portfolio-structure h3, .portfolio-holdings h3 { margin: 0; font-size: 12px; }
+.portfolio-structure header span, .portfolio-holdings header span { color: var(--muted); font-size: 10px; }
+.portfolio-segments { display: flex; height: 14px; margin: 16px 15px 11px; overflow: hidden; border-radius: 99px; background: var(--raised); }
+.portfolio-segments span { min-width: 2px; }
+.portfolio-breakdown { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 15px 10px; }
+.portfolio-breakdown > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; color: var(--muted); font-size: 11px; }
+.portfolio-breakdown strong { color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
+.portfolio-breakdown i { width: 7px; height: 7px; flex: none; border-radius: 50%; }
+.portfolio-breakdown span { display: flex; align-items: center; gap: 6px; }
+.portfolio-holding { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; min-height: 44px; padding: 8px 15px; border-bottom: 1px solid var(--border-soft); }
+.portfolio-holding:last-child { border-bottom: 0; }
+.portfolio-holding > span:first-child { overflow: hidden; color: var(--text); font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.portfolio-holding > span:nth-child(2) { color: var(--muted); font-size: 10px; }
+.portfolio-holding strong { color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
+
 @media (max-width: 1023px) {
   .analytics-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .market-summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
