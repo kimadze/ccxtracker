@@ -29,7 +29,7 @@ export default async function Login({
           <span className="rounded-lg border border-line px-3 py-2">სტრატეგიის დაგეგმვა</span>
         </div>
       </div>
-      <div className="panel w-full max-w-md p-7 sm:p-9">
+      <div className="login-card w-full max-w-md">
         <p className="eyebrow mb-4">პირადი სამუშაო სივრცე</p>
         <h2 className="text-2xl font-semibold">კეთილი იყოს თქვენი დაბრუნება</h2>
         <p className="mt-4 mb-8 text-sm leading-7 text-muted">

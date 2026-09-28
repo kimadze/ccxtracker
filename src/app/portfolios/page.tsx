@@ -14,7 +14,7 @@ export default async function Portfolios() {
       className="portfolio-empty-workspace flex min-h-dvh flex-col items-center justify-center gap-8 p-6 text-center"
     >
       <Brand />
-      <div className="panel max-w-xl p-10">
+      <div className="portfolio-create-card max-w-xl">
         <p className="eyebrow">პირველი ნაბიჯი</p>
         <h1 className="mt-4 text-2xl font-semibold">
           ჯერ არ გაქვთ შექმნილი პორტფელი

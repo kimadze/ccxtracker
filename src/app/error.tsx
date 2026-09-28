@@ -3,7 +3,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <main
       id="main"
-      className="flex min-h-[70vh] flex-col items-center justify-center gap-5 p-8 text-center"
+      className="error-workspace flex min-h-[70vh] flex-col items-center justify-center gap-5 p-8 text-center"
     >
       <h1 className="text-xl font-medium">
         მონაცემების ჩატვირთვა ვერ მოხერხდა

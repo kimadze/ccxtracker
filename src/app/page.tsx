@@ -10,7 +10,7 @@ import { Brand } from "@/components/brand";
 
 export default function Home() {
   return (
-    <div className="mx-auto max-w-7xl px-6 sm:px-12">
+    <div className="ccx-landing mx-auto max-w-7xl px-6 sm:px-12">
       <header className="flex items-center justify-between border-b border-line py-7">
         <Brand />
         <Link className="button-secondary" href="/login">
@@ -18,7 +18,7 @@ export default function Home() {
         </Link>
       </header>
       <main id="main">
-        <section className="grid items-center gap-14 py-20 lg:grid-cols-[1.1fr_1fr] lg:py-32">
+        <section className="landing-hero">
           <div>
             <p className="mb-7 flex items-center gap-2 text-xs text-brand">
               <span className="size-1.5 rounded-full bg-brand" />
@@ -44,8 +44,8 @@ export default function Home() {
               ქართულენოვანი სამუშაო სივრცე · თქვენი მონაცემები, თქვენი კონტროლი
             </p>
           </div>
-          <div className="relative">
-            <div className="panel overflow-hidden">
+          <div className="landing-preview-wrap">
+            <div className="landing-preview">
               <div className="flex items-center justify-between border-b border-line px-6 py-4">
                 <span className="text-[11px] text-muted">
                   პორტფელის მიმოხილვა
@@ -103,7 +103,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="grid gap-8 border-t border-line py-10 md:grid-cols-3">
+        <section className="landing-feature-grid">
           {[
             [
               Layers3,
