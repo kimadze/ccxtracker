@@ -47,6 +47,7 @@ export function TransactionForm({
     [error, setError] = useState(""),
     [pending, setPending] = useState(false),
     [searching, setSearching] = useState(false);
+  const [currentRevision, setCurrentRevision] = useState(revision);
   const [submissionId, setSubmissionId] = useState(entry?.id ?? "");
   const router = useRouter();
   const isCash = assetId === "USD";
@@ -122,9 +123,10 @@ export function TransactionForm({
                   airdropStatus: kind === "airdrop" ? String(form.get("airdropStatus") ?? "received") : null,
                 },
                 entry ? "update" : "create",
-                revision,
+                Math.max(revision, currentRevision),
               );
               if (result.ok) {
+                if (result.revision !== undefined) setCurrentRevision(result.revision);
                 setOpen(false);
                 router.refresh();
               } else setError(result.error);

@@ -52,13 +52,13 @@ export async function saveTransaction(
   try {
     if (operation !== "create" && operation !== "update")
       throw new Error("INVALID_TRANSACTION");
-    await portfolioService(getDb(), user.id).mutateTransaction(
+    const result = await portfolioService(getDb(), user.id).mutateTransaction(
       input,
       operation,
       revision,
     );
     revalidatePath("/portfolios", "layout");
-    return { ok: true };
+    return { ok: true, revision: result.revision };
   } catch (e) {
     return { ok: false, error: userError(e) };
   }

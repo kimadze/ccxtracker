@@ -4,8 +4,8 @@ function formatted(value: string, places: number, trim = false) {
   const digits = trim ? fraction.replace(/0+$/, "") : fraction;
   return `${integer.replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0")}${digits ? `,${digits}` : ""}`;
 }
-export function money(value: string | null, compact = false) {
-  if (value === null) return "—";
+export function money(value: string | null | undefined, compact = false) {
+  if (value === null || value === undefined || value === "") return "—";
   const number = decimal(value),
     sign = number.lt(0) ? "-" : "",
     absolute = number.abs();
@@ -16,13 +16,13 @@ export function money(value: string | null, compact = false) {
   const places = absolute.gt(0) && absolute.lt("0.01") ? 8 : 2;
   return `${sign}$${formatted(absolute.toFixed(), places, places > 2)}`;
 }
-export function inputNumber(value: string | null) {
-  if (value === null) return "";
+export function inputNumber(value: string | null | undefined) {
+  if (value === null || value === undefined || value === "") return "";
   const raw = decimal(value).toFixed(18);
   return raw.includes(".") ? raw.replace(/0+$/, "").replace(/\.$/, "") : raw;
 }
-export function compactMoney(value: string | null) {
-  if (value === null) return "—";
+export function compactMoney(value: string | null | undefined) {
+  if (value === null || value === undefined || value === "") return "—";
   const number = decimal(value),
     sign = number.lt(0) ? "-" : "",
     absolute = number.abs(),
@@ -45,8 +45,8 @@ export function quantity(value: string) {
     true,
   );
 }
-export function percentage(value: string | null, signed = false) {
-  return value === null
+export function percentage(value: string | null | undefined, signed = false) {
+  return value === null || value === undefined || value === ""
     ? "—"
     : `${signed && decimal(value).gt(0) ? "+" : ""}${formatted(value, 2, true)}%`;
 }
@@ -77,8 +77,8 @@ export function dateTime(value: string | Date | number, short = false) {
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
   return `${get("day")} ${months[Number(get("month")) - 1]}${short ? "" : ` ${get("year")}, ${get("hour")}:${get("minute")}`}`;
 }
-export function pnlClass(value: string | null) {
-  return value === null || decimal(value).isZero()
+export function pnlClass(value: string | null | undefined) {
+  return value === null || value === undefined || value === "" || decimal(value).isZero()
     ? "text-muted"
     : decimal(value).gt(0)
       ? "text-positive"

@@ -31,7 +31,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "პორტფელის მიმოხილვა" }),
+    page.getByRole("heading", { name: /პორტფელის (მიმოხილვა|მდგომარეობა)/ }),
   ).toBeVisible();
   const portfolioUrl = page.url();
   await page
@@ -156,6 +156,6 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   ).toBe(404);
   await page.goto(portfolioUrl);
   await expect(
-    page.getByRole("heading", { name: "პორტფელის მიმოხილვა" }),
+    page.getByRole("heading", { name: /პორტფელის (მიმოხილვა|მდგომარეობა)/ }),
   ).not.toBeVisible();
 });

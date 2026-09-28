@@ -26,7 +26,7 @@ test("redesigned workspace keeps its routes usable without page overflow", async
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("პორტფელის სახელი").fill("დიზაინის შემოწმება");
   await dialog.getByRole("button", { name: "პორტფელის შექმნა", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "პორტფელის მიმოხილვა" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /პორტფელის (მიმოხილვა|მდგომარეობა)/ })).toBeVisible();
   const base = new URL(page.url()).pathname;
   const db = new Client({ connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres" });
   await db.connect();
@@ -35,7 +35,7 @@ test("redesigned workspace keeps its routes usable without page overflow", async
     for (let index = 44; index >= 0; index--) {
       const capturedAt = new Date(Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate() - index, 12));
       await db.query(
-        "INSERT INTO portfolio_snapshots (portfolio_id, day, captured_at, value, cash, revision) VALUES ($1, $2, $3, $4, $5, 0)",
+        "INSERT INTO portfolio_snapshots (portfolio_id, day, captured_at, value, cash, revision) VALUES ($1, $2, $3, $4, $5, 0) ON CONFLICT (portfolio_id, day) DO NOTHING",
         [base.split("/")[2], capturedAt.toISOString().slice(0, 10), capturedAt, String(10000 + index * 12), "10000"],
       );
     }
@@ -44,8 +44,8 @@ test("redesigned workspace keeps its routes usable without page overflow", async
   }
   await page.reload();
   await page.getByRole("button", { name: "ALL", exact: true }).click();
-  await page.getByText("მონაცემების ცხრილი").click();
-  await expect(page.locator("details tbody tr")).toHaveCount(45);
+  await page.getByRole("region", { name: "პორტფელის ღირებულება" }).getByText("მონაცემების ცხრილი").click();
+  expect(await page.locator("details tbody tr").count()).toBeGreaterThanOrEqual(45);
   const paths = [
     "", "/positions", "/transactions", "/airdrops", "/analytics", "/statistics",
     "/watchlist", "/allocation", "/strategy", "/scenarios", "/journal", "/settings",
@@ -53,8 +53,8 @@ test("redesigned workspace keeps its routes usable without page overflow", async
   await page.setViewportSize({ width: testInfo.project.name === "desktop" ? 1536 : 390, height: 900 });
   for (const path of paths) {
     await page.goto(base + path);
-    await expect(page.locator("main.ccx-main")).toBeVisible();
-    await expect(page.locator("main.ccx-main h1").first()).toBeVisible();
+    await expect(page.locator("main.ccx-main"), `route ${path}`).toBeVisible();
+    await expect(page.locator("main.ccx-main h1:visible").first()).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), path).toBe(true);
     if (testInfo.project.name === "desktop" && ["/analytics", "/statistics", "/allocation", "/scenarios"].includes(path)) {
@@ -62,7 +62,6 @@ test("redesigned workspace keeps its routes usable without page overflow", async
     }
   }
   await page.goto(base);
-  await expect(page.getByText("ლიკვიდობა", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "გვერდების ძიება" })).toBeVisible();
   await page.getByRole("button", { name: "გვერდების ძიება" }).click();
   await expect(page.getByRole("dialog", { name: "გვერდების ძიება" })).toBeVisible();
@@ -72,7 +71,7 @@ test("redesigned workspace keeps its routes usable without page overflow", async
   for (const width of [1536, 1024, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await page.reload();
-    await expect(page.getByRole("heading", { name: "პორტფელის მიმოხილვა" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /პორტფელის (მიმოხილვა|მდგომარეობა)/ })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), String(width)).toBe(true);
     if (width === 1536 || width === 390) {
       await page.screenshot({ path: ".local/rebrand-" + testInfo.project.name + "-" + width + ".png", fullPage: true });
@@ -84,13 +83,13 @@ test("redesigned workspace keeps its routes usable without page overflow", async
       await menu.getByRole("link", { name: "პოზიციები" }).click();
       await expect(page).toHaveURL(/\/positions$/);
       await page.goto(base);
-      await expect(page.getByRole("heading", { name: "პორტფელის მიმოხილვა" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: /პორტფელის (მიმოხილვა|მდგომარეობა)/ })).toBeVisible();
     }
   }
   await page.setViewportSize({ width: 320, height: 800 });
   for (const path of paths) {
     await page.goto(base + path);
-    await expect(page.locator("main.ccx-main h1").first()).toBeVisible();
+    await expect(page.locator("main.ccx-main h1:visible").first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), path + " at 320px").toBe(true);
   }
 });

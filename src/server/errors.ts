@@ -37,4 +37,4 @@ export function userError(error: unknown) {
   return "მოქმედება ვერ შესრულდა. სცადეთ ხელახლა.";
 }
 export type ActionResult =
-  { ok: true; id?: string } | { ok: false; error: string };
+  { ok: true; id?: string; revision?: number } | { ok: false; error: string };
