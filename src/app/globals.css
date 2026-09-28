@@ -987,6 +987,208 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .position-share-preview { display: block; width: 100%; border: 1px solid var(--border); border-radius: 10px; background: #070b1d; }
 .position-share-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .position-brief-header-actions { display: flex; align-items: center; gap: 7px; }
+
+/* Investment workspace — desktop information hierarchy */
+@media (min-width: 1024px) {
+  .dashboard-space {
+    grid-template-columns: minmax(0, 1.9fr) minmax(320px, .72fr);
+    grid-template-areas: "header header" "chart allocation" "metrics metrics" "holdings side";
+    gap: 12px;
+  }
+  .dashboard-space:has(.dashboard-alert) {
+    grid-template-areas: "header header" "alert alert" "chart allocation" "metrics metrics" "holdings side";
+  }
+  .overview-page-header {
+    min-height: 68px;
+    padding: 2px 2px 12px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .overview-page-header h1 { font-size: 30px; }
+  .overview-performance,
+  .overview-allocation,
+  .dashboard-positions,
+  .overview-insight,
+  .position-brief,
+  .positions-results {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+  .overview-performance {
+    min-height: 398px;
+    padding: 22px 24px 18px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 42%),
+      var(--surface);
+    box-shadow: inset 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .overview-performance::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent), var(--blue), transparent 85%);
+  }
+  .overview-performance::after { display: none; }
+  .overview-performance-pnl {
+    min-width: 224px;
+    border-left-color: var(--border-soft);
+    padding: 4px 0 4px 22px;
+  }
+  .dashboard-value { font-size: clamp(42px, 3.5vw, 54px); }
+  .overview-allocation {
+    padding: 18px;
+    background: var(--surface);
+  }
+  .overview-allocation > div:first-child { padding-bottom: 13px; }
+  .crypto-distribution { padding-top: 14px; }
+  .crypto-distribution-layout {
+    grid-template-columns: 116px minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+  }
+  .crypto-distribution-ring { width: 112px; }
+  .crypto-distribution-ring > div { border-width: 4px; }
+  .crypto-distribution-ring strong { font-size: 13px; }
+  .crypto-distribution-chart .crypto-distribution-spectrum { width: 112px; }
+  .crypto-distribution-asset { min-height: 39px; padding: 3px 5px; }
+  .crypto-distribution-list { gap: 0; }
+  .crypto-movers { gap: 8px; }
+  .crypto-mover { border-radius: 9px; padding: 9px; }
+  .dashboard-metrics {
+    overflow: hidden;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .overview-kpis .dashboard-metric {
+    min-height: 92px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: center;
+    padding: 14px 16px;
+    border-right: 1px solid var(--border-soft);
+  }
+  .overview-kpis .dashboard-metric:last-child { border-right: 0; }
+  .overview-kpis .dashboard-metric:hover { background: color-mix(in srgb, var(--accent) 4%, var(--surface)); }
+  .overview-metric-icon { width: 34px; height: 34px; border-radius: 8px; }
+  .overview-kpis .dashboard-metric strong { font-size: 18px; }
+  .overview-kpis .dashboard-metric small { display: none; }
+  .dashboard-positions { align-self: start; }
+  .dashboard-positions > header {
+    min-height: 58px;
+    padding: 10px 16px 10px 19px;
+  }
+  .dashboard-side-stack { gap: 10px; }
+  .dashboard-side-stack .overview-insight { padding: 16px; }
+  .overview-insight { position: relative; overflow: hidden; }
+  .overview-insight::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent 78%);
+  }
+  .overview-liquidity::before { background: linear-gradient(90deg, var(--blue), var(--positive), transparent 85%); }
+
+  .positions-workspace { display: grid; gap: 12px; }
+  .position-summary {
+    display: inline-flex;
+    width: fit-content;
+    max-width: 100%;
+    gap: 3px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 4px;
+  }
+  .position-summary button {
+    min-height: 36px;
+    gap: 9px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    padding: 0 11px;
+  }
+  .position-summary button:hover { border-color: transparent; background: var(--surface-2); }
+  .position-summary button.active { border-color: transparent; background: var(--accent-soft); }
+  .position-summary button strong { font-size: 12px; }
+  .positions-toolbar {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) auto auto auto auto;
+    gap: 7px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 7px;
+  }
+  .positions-toolbar input,
+  .positions-toolbar select { min-height: 38px; background: var(--surface-2); }
+  .positions-result-meta { padding: 0 3px; }
+  .positions-command-grid {
+    grid-template-columns: minmax(0, 1fr) 328px;
+    gap: 12px;
+  }
+  .positions-results { align-self: start; overflow: hidden; }
+  .positions-results thead { background: color-mix(in srgb, var(--surface-2) 75%, transparent); }
+  .positions-results .table-head { height: 40px; }
+  .positions-results .table-cell { height: 64px; }
+  .positions-results tbody tr {
+    cursor: pointer;
+    transition: background-color .14s ease, box-shadow .14s ease;
+  }
+  .positions-results tbody tr:hover { background: color-mix(in srgb, var(--accent) 4%, var(--surface)); }
+  .positions-results tbody tr.position-selected {
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    box-shadow: inset 3px 0 var(--accent);
+  }
+  .position-brief {
+    position: sticky;
+    top: 78px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 34%),
+      var(--surface);
+  }
+  .position-brief > header { min-height: 62px; padding: 12px 14px; }
+  .position-brief-price { padding: 18px 14px 16px; }
+  .position-brief-price strong { font-size: 30px; }
+  .position-brief-grid {
+    grid-template-columns: 1fr;
+    margin: 2px 14px 8px;
+    border: 0;
+    border-radius: 0;
+  }
+  .position-brief-grid > div {
+    display: flex;
+    min-height: 39px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 0;
+    border-bottom: 1px solid var(--border-soft);
+    padding: 8px 0;
+  }
+  .position-brief-grid > div:nth-child(even) { border-right: 0; }
+  .position-brief-grid > div:nth-last-child(-n + 2) { border-bottom: 1px solid var(--border-soft); }
+  .position-brief-grid > div:last-child { border-bottom: 0; }
+  .position-brief-grid b { margin-top: 0; font-size: 12px; text-align: right; }
+  .position-brief-pnl {
+    margin: 4px 14px 0;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface-2);
+    padding: 11px;
+  }
+  .position-brief-pnl.positive { border-color: color-mix(in srgb, var(--positive) 30%, var(--border)); }
+  .position-brief-pnl.negative { border-color: color-mix(in srgb, var(--negative) 30%, var(--border)); }
+  .position-brief-actions { border-top: 0; padding-top: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .positions-results tbody tr,
+  .crypto-distribution-asset { transition: none; }
+}
 @media (max-width: 1023px) {
   .allocation-ledger-grid { grid-template-columns: 1fr; }
   .allocation-ledger-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }

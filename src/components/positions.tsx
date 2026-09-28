@@ -93,7 +93,7 @@ export function PositionsTable({
           </thead>
           <tbody>
             {positions.map((p, i) => (
-              <tr key={p.assetId} onClick={() => onSelect?.(p.assetId)} className={`transition-colors hover:bg-raised/55 ${selectedAssetId === p.assetId ? "position-selected" : ""}`}>
+              <tr key={p.assetId} onClick={() => onSelect?.(p.assetId)} className={selectedAssetId === p.assetId ? "position-selected" : ""}>
                 <td className="table-cell pl-6! text-left!">
                   <div className="flex items-center gap-3">
                     <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />

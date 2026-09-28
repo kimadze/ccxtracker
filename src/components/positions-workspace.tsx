@@ -52,13 +52,13 @@ export function PositionsWorkspace({
   const selected = filtered.find((position) => position.assetId === selectedAssetId) ?? filtered[0] ?? positions[0];
   return (
     <div className="positions-workspace space-y-4">
-      <section className="position-summary" aria-label="პოზიციების მოკლე შეჯამება">
+      <section className="position-summary" aria-label="პოზიციების ფილტრები">
         <button type="button" className={filter === "all" ? "active" : ""} onClick={() => { setFilter("all"); setPage(0); }}><span>ყველა</span><strong>{positions.length}</strong></button>
         <button type="button" className={filter === "profit" ? "active positive" : "positive"} onClick={() => { setFilter("profit"); setPage(0); }}><span>მოგებაში</span><strong>{profitable}</strong></button>
         <button type="button" className={filter === "loss" ? "active negative" : "negative"} onClick={() => { setFilter("loss"); setPage(0); }}><span>ზარალში</span><strong>{losing}</strong></button>
         <button type="button" className={filter === "unpriced" ? "active warning" : "warning"} onClick={() => { setFilter("unpriced"); setPage(0); }}><span>ფასის გარეშე</span><strong>{unpriced}</strong></button>
       </section>
-      <div className="panel positions-toolbar">
+      <div className="positions-toolbar">
         <label className="positions-search">
           <Search size={16} aria-hidden="true" />
           <span className="sr-only">პოზიციების ძიება</span>
@@ -112,7 +112,7 @@ export function PositionsWorkspace({
       </div>
       <div className="positions-result-meta"><span><strong>{filtered.length}</strong> შედეგი</span>{search && <span>ძიება: “{search}”</span>}</div>
       <div className="positions-command-grid">
-        <section className="panel positions-results">
+        <section className="positions-results">
           <PositionsTable
             positions={filtered.slice(current * 20, current * 20 + 20)}
             base={base}
@@ -151,7 +151,7 @@ export function PositionsWorkspace({
 
 function PositionBrief({ position, base, preview }: { position: ValuedPosition; base: string; preview: boolean }) {
   const positive = position.unrealizedPnl !== null && decimal(position.unrealizedPnl).gt(0);
-  return <aside className="panel position-brief" aria-label={`${position.asset.symbol} პოზიციის მოკლე ინფორმაცია`}>
+  return <aside className="position-brief" aria-label={`${position.asset.symbol} პოზიციის მოკლე ინფორმაცია`}>
     <header><div className="position-brief-asset"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} /><div><h2>{position.asset.symbol}</h2><span>{position.asset.name}</span></div></div>{!preview && <div className="position-brief-header-actions"><PositionShare position={position} compact /><Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>სრული გვერდი ↗</Link></div>}</header>
     <div className="position-brief-price"><span>მიმდინარე ფასი</span><strong>{money(position.quote?.price ?? null)}</strong><b className={pnlClass(position.quote?.change24h ?? null)}>{percentage(position.quote?.change24h ?? null, true)} · 24სთ</b></div>
     <div className="position-brief-grid"><div><span>რაოდენობა</span><b>{quantity(position.quantity)}</b></div><div><span>საშ. შესყიდვა</span><b>{money(position.averagePrice)}</b></div><div><span>ღირებულება</span><b><BalanceValue>{money(position.value)}</BalanceValue></b></div><div><span>პორტფელის წილი</span><b>{percentage(position.allocation)}</b></div></div>
