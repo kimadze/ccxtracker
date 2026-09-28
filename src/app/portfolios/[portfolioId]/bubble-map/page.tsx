@@ -14,6 +14,6 @@ export default async function Page({ params }: { params: Promise<{ portfolioId: 
       description="არასტეიბლ კრიპტოაქტივების წილი, ღირებულება და მიმდინარე მოძრაობა."
       action={<Link href={`/portfolios/${portfolioId}`} className="button-secondary"><ArrowLeft size={15} />მიმოხილვაზე დაბრუნება</Link>}
     />
-    <PortfolioBubbleMap positions={workspace.summary.positions} />
+    <PortfolioBubbleMap positions={workspace.summary.positions} portfolioId={portfolioId} />
   </>;
 }

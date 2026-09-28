@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
 import { highResLogoUrl } from "@/lib/asset-logo";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage, pnlClass } from "@/lib/formatters";
@@ -12,7 +14,7 @@ function tone(position: ValuedPosition) {
   return value > 0 ? "positive" : value < 0 ? "negative" : "neutral";
 }
 
-export function PortfolioBubbleMap({ positions }: { positions: ValuedPosition[] }) {
+export function PortfolioBubbleMap({ positions, portfolioId }: { positions: ValuedPosition[]; portfolioId: string }) {
   const crypto = useMemo(
     () => positions.filter((position) => !position.asset.isStablecoin && Number(position.value ?? 0) > 0).sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0)),
     [positions],
@@ -47,6 +49,7 @@ export function PortfolioBubbleMap({ positions }: { positions: ValuedPosition[] 
       <div className={`allocation-map-mark ${tone(selected)}`}>{selected.asset.logoUrl ? <Image src={highResLogoUrl(selected.asset.logoUrl) ?? selected.asset.logoUrl} alt="" width={40} height={40} unoptimized /> : selected.asset.symbol.slice(0, 3)}</div>
       <div><p className="allocation-kicker">არჩეული აქტივი</p><h2>{selected.asset.name} <span>{selected.asset.symbol}</span></h2></div>
       <dl><div><dt>ღირებულება</dt><dd>{money(selected.value)}</dd></div><div><dt>24 საათი</dt><dd className={pnlClass(selected.quote?.change24h ?? null)}>{percentage(selected.quote?.change24h ?? null, true)}</dd></div><div><dt>სრული შედეგი</dt><dd className={pnlClass(selected.returnPercent)}>{percentage(selected.returnPercent, true)}</dd></div></dl>
+      <Link className="allocation-map-detail-link" href={`/portfolios/${portfolioId}/positions/${selected.assetId}`}>პოზიციის მართვა <ArrowUpRight size={14} /></Link>
     </section>}
   </div>;
 }
