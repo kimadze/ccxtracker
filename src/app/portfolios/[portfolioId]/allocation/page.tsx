@@ -33,6 +33,7 @@ export default async function Page({
         assets={w.assets}
         quotes={quotes}
         portfolioId={portfolioId}
+        revision={w.portfolio.revision}
         initial={initial}
       />
     </>

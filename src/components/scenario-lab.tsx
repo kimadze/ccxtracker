@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Plus, Save, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Copy, Percent, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { calculateScenario, goalProgress } from "@/domain/scenarios";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
@@ -43,7 +44,8 @@ export function ScenarioLab({
     [pending, setPending] = useState(false),
     [message, setMessage] = useState(""),
     [error, setError] = useState(false),
-    [deleting, setDeleting] = useState(false);
+    [deleting, setDeleting] = useState(false),
+    [bulkChange, setBulkChange] = useState("");
   const router = useRouter();
   const cryptoPositions = investablePositions(summary);
   const cryptoValue = investableValue(summary);
@@ -58,6 +60,15 @@ export function ScenarioLab({
     setActive(id);
     setName(scenario?.name ?? "");
     setPrices(scenario?.prices ?? {});
+    setMessage("");
+  }
+  function applyPercentageChange() {
+    const change = Number(bulkChange);
+    if (!Number.isFinite(change)) return;
+    setPrices(Object.fromEntries(cryptoPositions.flatMap((position) => {
+      const price = Number(position.quote?.price ?? 0);
+      return Number.isFinite(price) && price >= 0 ? [[position.assetId, String(price * (1 + change / 100))]] : [];
+    })));
     setMessage("");
   }
   async function save(copy = false) {
@@ -115,12 +126,13 @@ export function ScenarioLab({
       </div>
       <div className="scenario-workspace-grid">
         <section className="scenario-editor">
-          <div className="mb-6">
-            <h2 className="text-sm font-medium">რა მოხდება, თუ…</h2>
+          <div className="scenario-editor-heading">
+            <div><h2 className="text-sm font-medium">რა მოხდება, თუ…</h2>
             <p className="mt-2 text-xs leading-6 text-muted">
               შეცვალეთ ფასები. რაოდენობები ავტომატურად აიღება მიმდინარე
               პორტფელიდან.
-            </p>
+            </p></div>
+            <div className="scenario-quick-controls"><label><Percent size={13} /><input aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="button-secondary" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="button-secondary" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
           </div>
           <div className="divide-y divide-line">
             {cryptoPositions.map((p, i) => (
@@ -198,14 +210,14 @@ export function ScenarioLab({
                 key={p.assetId}
                 className="flex justify-between gap-3 border-b border-line py-3 text-xs"
               >
-                <span>
+                <Link href={`/portfolios/${portfolioId}/strategy?asset=${encodeURIComponent(p.assetId)}`} className="scenario-result-asset">
                   {p.symbol}
                   {p.assumedCurrentPrice && (
                     <span className="ml-2 text-[10px] text-muted">
                       მიმდინარე ფასი
                     </span>
                   )}
-                </span>
+                </Link>
                 <span className="text-muted">
                   {money(p.value)} · {percentage(p.allocation)}
                 </span>

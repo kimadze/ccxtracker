@@ -1176,6 +1176,13 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 }
 .scenario-editor { overflow: hidden; padding: 18px; }
 .scenario-editor > div:first-child { margin-bottom: 12px; }
+.scenario-editor-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.scenario-editor-heading > div:first-child { min-width: 0; }
+.scenario-quick-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; }
+.scenario-quick-controls label { display: flex; width: 118px; min-height: 34px; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); padding: 0 8px; color: var(--muted); }
+.scenario-quick-controls input { width: 100%; min-width: 0; height: 30px; border: 0; background: transparent; padding: 0; text-align: right; box-shadow: none; }
+.scenario-quick-controls input:focus { box-shadow: none; }
+.scenario-quick-controls button { min-height: 34px; padding-inline: 9px; font-size: 10px; }
 .scenario-editor .divide-y > div {
   grid-template-columns: minmax(180px, 1fr) 168px;
   min-height: 59px;
@@ -1240,6 +1247,9 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .dca-controls .field input,
   .scenario-savebar .field input { max-width: none; }
   .scenario-editor { padding: 14px; }
+  .scenario-editor-heading { display: grid; gap: 10px; }
+  .scenario-quick-controls { justify-content: flex-start; }
+  .scenario-quick-controls button { min-height: 40px; }
   .scenario-editor .divide-y > div { grid-template-columns: minmax(0, 1fr) 126px; }
   .scenario-savebar { align-items: stretch; }
   .scenario-savebar > div { min-width: 0; flex-basis: 100%; }
@@ -1360,6 +1370,8 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .watchlist-asset .watchlist-note { display: none; }
   .watchlist-price strong, .watchlist-target strong { font-size: 12px; }
 }
+.scenario-result-asset { color: var(--text); font-weight: 650; }
+.scenario-result-asset:hover { color: var(--accent); }
 @media (max-width: 420px) {
   .watchlist-commandbar { align-items: flex-start; }
   .watchlist-commandbar h2 { font-size: 14px; }
@@ -1368,6 +1380,13 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 }
 .journal-workspace { padding: 18px; }
 .journal-workspace > div:first-child { padding-bottom: 10px; border-bottom: 1px solid var(--border-soft); }
+.journal-heading > span { color: var(--brand); font-size: 10px; font-weight: 750; letter-spacing: .09em; }
+.journal-heading h2 { margin-top: 4px; }
+.journal-section { padding: 15px; border: 1px solid var(--border-soft); border-radius: 11px; background: color-mix(in srgb, var(--raised) 36%, var(--surface)); }
+.journal-section > header { margin-bottom: 13px; }
+.journal-section h3 { margin: 0; font-size: 12px; font-weight: 650; }
+.journal-section p { margin: 4px 0 0; color: var(--text-low); font-size: 10px; line-height: 1.45; }
+.journal-section .field label { font-size: 10px; }
 .settings-workspace > .grid > form,
 .settings-workspace > section {
   border-radius: 14px;
@@ -1594,6 +1613,7 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .rebalance-actions .allocation-ledger-asset { gap: 7px; }
 .rebalance-actions .allocation-ledger-asset > span:first-child { width: 25px; height: 25px; }
 .rebalance-actions .text-brand { font-size: 12px; font-variant-numeric: tabular-nums; }
+.rebalance-actions .button-primary { min-height: 29px; padding: 0 8px; font-size: 10px; }
 .position-share-dialog { display: grid; gap: 14px; }
 .position-share-preview { display: block; width: 100%; border: 1px solid var(--border); border-radius: 10px; background: #070b1d; }
 .position-share-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
