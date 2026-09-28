@@ -10,6 +10,7 @@ import { journalAttachments } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { TransactionForm } from "@/components/transaction-form";
 import { DeletePosition } from "@/components/delete-position";
+import { PositionShare } from "@/components/position-share";
 export default async function Page({
   params,
 }: {
@@ -47,6 +48,7 @@ export default async function Page({
         description="პოზიციის შედეგები, გეგმა და საინვესტიციო თეზისი."
         action={
           <div className="flex flex-wrap gap-3">
+            <PositionShare position={p} />
             <DeletePosition
               portfolioId={portfolioId}
               assetId={assetId}

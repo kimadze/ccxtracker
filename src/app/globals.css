@@ -983,6 +983,9 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .rebalance-actions .allocation-ledger-asset { gap: 7px; }
 .rebalance-actions .allocation-ledger-asset > span:first-child { width: 25px; height: 25px; }
 .rebalance-actions .text-brand { font-size: 12px; font-variant-numeric: tabular-nums; }
+.position-share-dialog { display: grid; gap: 14px; }
+.position-share-preview { display: block; width: 100%; border: 1px solid var(--border); border-radius: 10px; background: #070b1d; }
+.position-share-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 @media (max-width: 1023px) {
   .allocation-ledger-grid { grid-template-columns: 1fr; }
   .allocation-ledger-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1007,4 +1010,6 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .allocation-ledger-table > footer select { width: 100%; }
   .allocation-ledger-table > footer .button-primary { margin-left: 0; }
   .allocation-ledger-side { grid-template-columns: 1fr; }
+  .position-share-controls { justify-content: stretch; }
+  .position-share-controls button { flex: 1 1 145px; }
 }
