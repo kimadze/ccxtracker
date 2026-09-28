@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, Eye, EyeOff, Share2 } from "lucide-react";
+import QRCode from "qrcode";
 import type { ValuedPosition } from "@/domain/types";
 import { money, percentage } from "@/lib/formatters";
 import { Modal } from "./ui";
@@ -26,7 +27,6 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
   const [open, setOpen] = useState(false), [hideAmounts, setHideAmounts] = useState(false), [ready, setReady] = useState(false), [status, setStatus] = useState("");
   const canvas = useRef<HTMLCanvasElement>(null);
   const positive = position.unrealizedPnl !== null && Number(position.unrealizedPnl) >= 0;
-  const pnl = `${positive && position.unrealizedPnl ? "+" : ""}${money(position.unrealizedPnl)}`;
   const render = useCallback(async () => {
     const target = canvas.current; if (!target) return;
     const context = target.getContext("2d"); if (!context) return;
@@ -44,10 +44,9 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     context.beginPath(); context.arc(130, 325, 76, 0, Math.PI * 2); context.fillStyle = "#0b112b"; context.fill(); context.lineWidth = 5; context.strokeStyle = "#2d9cff"; context.stroke();
     context.fillStyle = "#c85cff"; context.font = "700 40px Inter, Arial"; context.textAlign = "center"; context.fillText(position.asset.symbol.slice(0, 4), 130, 339); context.textAlign = "left";
     const logoSource = position.asset.logoUrl ? `/api/asset-logo?url=${encodeURIComponent(position.asset.logoUrl)}` : null;
-    if (logoSource) void loadImage(logoSource, 4000).then((logo) => {
+    const assetLogoPromise = logoSource ? loadImage(logoSource, 4000).then((logo) => {
       context.save(); context.beginPath(); context.arc(130, 325, 56, 0, Math.PI * 2); context.clip(); context.fillStyle = "#0b112b"; context.fillRect(74, 269, 112, 112); context.drawImage(logo, 74, 269, 112, 112); context.restore();
-      setReady(true);
-    }).catch(() => setReady(true));
+    }).catch(() => undefined) : Promise.resolve();
     context.fillStyle = "#f6f7ff"; context.font = "700 64px Inter, Arial"; context.fillText(position.asset.symbol, 226, 342);
     context.fillStyle = "#f6f7ff"; context.font = '700 46px "Noto Sans Georgian", Inter, Arial'; context.fillText("ჩემი პოზიცია", 56, 465);
     const resultColor = positive ? "#46eeb2" : "#ff668b"; context.fillStyle = resultColor; context.shadowColor = resultColor; context.shadowBlur = 18; context.font = "800 108px Inter, Arial"; context.fillText(percentage(position.returnPercent, true), 52, 605); context.shadowBlur = 0;
@@ -58,18 +57,24 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     context.strokeStyle = resultColor; context.shadowColor = resultColor; context.shadowBlur = 13; context.lineWidth = 5; context.beginPath(); points.forEach(([x, y], index) => index ? context.lineTo(x, y) : context.moveTo(x, y)); context.stroke(); context.shadowBlur = 0; const last = points[points.length - 1]; context.beginPath(); context.arc(last[0], last[1], 10, 0, Math.PI * 2); context.fillStyle = "#fff"; context.fill(); context.lineWidth = 5; context.strokeStyle = resultColor; context.stroke();
     context.beginPath(); context.roundRect(884, 245, 118, 42, 10); context.fillStyle = "#172c76"; context.fill(); context.strokeStyle = "#7d55ff"; context.stroke(); context.fillStyle = resultColor; context.font = "700 22px Inter, Arial"; context.fillText(percentage(position.returnPercent, true), 900, 273);
     panel(context, 44, 706, 300, 138, "#287de8"); panel(context, 390, 706, 300, 138, "#914fff"); panel(context, 736, 706, 300, 138, "#fe8a34");
+    context.fillStyle = "#289cff"; context.fillRect(72, 764, 8, 36); context.fillRect(87, 747, 8, 53); context.fillRect(102, 756, 8, 44);
+    context.strokeStyle = "#a347ff"; context.lineWidth = 5; [755, 773, 791].forEach((y) => { context.beginPath(); context.ellipse(430, y, 23, 8, 0, 0, Math.PI * 2); context.stroke(); });
+    context.strokeStyle = "#ff9b23"; context.lineWidth = 5; context.beginPath(); context.arc(776, 772, 27, -Math.PI / 2, Math.PI * 1.45); context.stroke(); line(context, 776, 772, 776, 744, "#ff9b23", 5); line(context, 776, 772, 803, 772, "#ff9b23", 5);
     const values = [
       ["მიმდინარე ფასი", money(position.quote?.price ?? null)],
       ["საშ. შესყიდვა", money(position.averagePrice)],
       ["პოზიციის ღირებულება", money(position.value)],
     ];
-    values.forEach(([label, value], index) => { const x = 70 + index * 346; context.fillStyle = "#9eafdb"; context.font = '500 18px "Noto Sans Georgian", Inter, Arial'; context.fillText(label, x, 752); context.fillStyle = "#f8f9ff"; context.font = "700 35px Inter, Arial"; context.fillText(hideAmounts ? "••••••" : value, x, 804); });
+    values.forEach(([label, value], index) => { const x = 126 + index * 346; context.fillStyle = "#9eafdb"; context.font = '500 17px "Noto Sans Georgian", Inter, Arial'; context.fillText(label, x, 752); context.fillStyle = "#f8f9ff"; context.font = "700 32px Inter, Arial"; context.fillText(hideAmounts ? "••••••" : value, x, 804); });
     for (let x = 0; x <= W; x += 54) line(context, x, 858, x, 1080, "rgba(67,132,255,.08)"); line(context, 45, 914, 1035, 914, "rgba(50,127,255,.7)", 2);
     context.fillStyle = "#287de8"; context.fillRect(58, 969, 8, 35); context.fillRect(74, 950, 8, 54); context.fillRect(90, 960, 8, 44);
-    context.fillStyle = "#f3f5ff"; context.font = '700 29px "Noto Sans Georgian", Inter, Arial'; context.fillText("პორტფელის მიმდევარი", 122, 977); context.fillStyle = "#608be9"; context.font = "600 15px Inter, Arial"; context.fillText("TRACK · ANALYZE · GROW TOGETHER", 122, 1010);
-    line(context, 720, 944, 720, 1027, "rgba(125,148,218,.65)", 2); context.fillStyle = "#7792d3"; context.font = "500 17px Inter, Arial"; context.fillText(hideAmounts ? "PRIVATE" : pnl, 756, 978); context.strokeStyle = "#f5f7ff"; context.lineWidth = 4; context.strokeRect(935, 944, 78, 78); for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) if ((i * 3 + j * 5) % 4 < 2) { context.fillStyle = "#f5f7ff"; context.fillRect(946 + i * 10, 955 + j * 10, 6, 6); }
-    if (!logoSource) setReady(true);
-  }, [hideAmounts, pnl, positive, position]);
+    context.fillStyle = "#f3f5ff"; context.font = '700 29px "Noto Sans Georgian", Inter, Arial'; context.fillText("პორტფელის ტრეკერი", 122, 977); context.fillStyle = "#608be9"; context.font = "600 15px Inter, Arial"; context.fillText("TRACK · ANALYZE · GROW TOGETHER", 122, 1010);
+    line(context, 720, 944, 720, 1027, "rgba(125,148,218,.65)", 2); context.fillStyle = "#7792d3"; context.font = '500 16px "Noto Sans Georgian", Inter, Arial'; context.fillText("მეტი ინსაითები", 750, 970); context.fillText("იხილეთ პლატფორმაზე", 750, 996);
+    const qrData = await QRCode.toDataURL("https://ccxtracker.vercel.app/", { errorCorrectionLevel: "M", margin: 1, width: 180, color: { dark: "#080d20", light: "#ffffff" } });
+    const qr = await loadImage(qrData); context.fillStyle = "#fff"; context.fillRect(925, 934, 100, 100); context.drawImage(qr, 931, 940, 88, 88);
+    await assetLogoPromise;
+    setReady(true);
+  }, [hideAmounts, positive, position]);
   useEffect(() => {
     if (!open) return;
     const frame = window.requestAnimationFrame(() => void render());
