@@ -1976,3 +1976,27 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
 .allocation-map-detail-link:hover { background: var(--accent-soft); color: var(--accent); }
 @media (max-width: 1023px) { .allocation-map-space { grid-template-columns: 1fr; gap: 10px; } .allocation-map-selection { grid-template-columns: 40px minmax(0, 1fr); } .allocation-map-selection dl { grid-template-columns: repeat(3, minmax(0,1fr)); } .allocation-map-detail-link { min-height: 44px; } }
 @media (max-width: 560px) { .allocation-map-header { padding: 15px; } .allocation-map-total { min-width: 0; padding-left: 11px; } .allocation-map-columns { display: none; } .allocation-map-row { grid-template-columns: minmax(0,1fr) auto; gap: 8px; min-height: 66px; padding: 10px 13px; } .allocation-map-weight { grid-column: 1; grid-row: 2; display: grid; grid-template-columns: auto auto minmax(50px,1fr); align-items: center; gap: 6px; text-align: left; } .allocation-map-weight i { margin: 0; } .allocation-map-change { grid-column: 2; grid-row: 1; } .allocation-map-selection { padding: 14px; } .allocation-map-selection dl { gap: 8px; } .allocation-map-selection dd { font-size: 12px; } }
+
+/* Keep ledger text actions distinct from icon-only destructive actions. */
+.airdrop-actions > button.text-brand {
+  display: inline-flex;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--raised);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+.airdrop-actions > button.text-brand:hover { border-color: color-mix(in srgb, var(--brand) 55%, var(--border)); background: var(--accent-soft); color: var(--accent); }
+@media (max-width: 1023px) {
+  .airdrop-actions > button.text-brand { width: auto; min-height: 40px; padding-inline: 13px; }
+}
