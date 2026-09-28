@@ -27,16 +27,14 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     share: cryptoTotal.gt(0) ? percent(p.value ?? "0", cryptoTotal.toString()) : null,
     color: colors[index % colors.length],
   }));
+  const allocationGradient = slices.reduce<{ end: number; stops: string[] }>((acc, slice, index) => {
+    const end = index === slices.length - 1 ? 100 : acc.end + Number(slice.share ?? 0);
+    return { end, stops: [...acc.stops, `${slice.color} ${acc.end}% ${end}%`] };
+  }, { end: 0, stops: [] }).stops.join(", ");
   const primarySlices = slices.length > 5 ? slices.slice(0, 4) : slices;
   const remainingSlices = slices.length > 5 ? slices.slice(4) : [];
   const remainingValue = remainingSlices.reduce((sum, slice) => sum.plus(slice.position.value ?? 0), decimal(0));
   const remainingShare = remainingSlices.reduce((sum, slice) => sum + Number(slice.share ?? 0), 0);
-  const dailyMove = crypto.reduce((sum, position) => {
-    const change = position.quote?.change24h;
-    return position.value !== null && change !== null && change !== undefined
-      ? sum.plus(decimal(position.value).mul(change).div(100)) : sum;
-  }, decimal(0));
-  const dailyMovePercent = cryptoTotal.gt(0) ? dailyMove.div(cryptoTotal).mul(100).toString() : null;
   const netCapital = s.contributions !== null && s.withdrawals !== null
     ? decimal(s.contributions).minus(s.withdrawals).toString()
     : null;
@@ -118,21 +116,49 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
       </div>
       {!s.complete ? <div className="dashboard-empty">ყველა აქტივის ფასის მიღების შემდეგ განაწილება სრულად გამოჩნდება.</div>
         : !crypto.length ? <div className="dashboard-empty">არასტეიბლ კრიპტოაქტივები ჯერ არ გაქვთ.</div>
-        : <div className="allocation-ranked-list">
-          {primarySlices.map((slice, index) => <Link key={slice.position.assetId} href={`${base}/positions/${slice.position.assetId}`} className="allocation-ranked-row">
-            <AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} />
-            <div><strong>{slice.label}</strong><span className="numeric"><BalanceValue>{money(slice.position.value)}</BalanceValue></span></div>
-            <div className="allocation-ranked-bar"><i><b style={{ width: `${Math.min(100, Number(slice.share ?? 0))}%`, background: slice.color }} /></i><strong>{percentage(slice.share)}</strong></div>
-          </Link>)}
-          {remainingSlices.length > 0 && <div className="allocation-ranked-row allocation-ranked-other"><span>+{remainingSlices.length}</span><div><strong>სხვა აქტივები</strong><span className="numeric"><BalanceValue>{money(remainingValue.toString())}</BalanceValue></span></div><div className="allocation-ranked-bar"><i><b style={{ width: `${Math.min(100, remainingShare)}%` }} /></i><strong>{percentage(remainingShare.toString())}</strong></div></div>}
+        : <div className="crypto-distribution">
+          <div className="crypto-distribution-layout">
+            <div className="crypto-distribution-chart">
+              <div className="crypto-distribution-ring" style={{ background: `conic-gradient(${allocationGradient})` }}>
+                <div><span>სულ</span><strong className="numeric"><BalanceValue>{money(cryptoTotal.toString(), true)}</BalanceValue></strong><small>{crypto.length} აქტივი</small></div>
+              </div>
+              <div className="crypto-distribution-spectrum" aria-hidden="true">
+                {slices.map((slice) => <span key={slice.position.assetId} style={{ flexGrow: Number(slice.share), background: slice.color }} />)}
+              </div>
+            </div>
+            <div className="crypto-distribution-assets">
+              <div className="crypto-distribution-labels"><span>აქტივი</span><span>წილი</span></div>
+              <ul className="crypto-distribution-list">
+                {primarySlices.map((slice, index) => <li key={slice.position.assetId}>
+                  <Link href={`${base}/positions/${slice.position.assetId}`} className="crypto-distribution-asset">
+                    <AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} />
+                    <div className="crypto-distribution-identity"><strong>{slice.label}</strong><span className="numeric"><BalanceValue>{money(slice.position.value)}</BalanceValue></span></div>
+                    <strong className="crypto-distribution-share numeric">{percentage(slice.share)}</strong>
+                    <ArrowUpRight size={13} className="crypto-distribution-arrow" />
+                  </Link>
+                </li>)}
+                {remainingSlices.length > 0 && <li>
+                  <div className="crypto-distribution-asset crypto-distribution-other">
+                    <span className="crypto-distribution-other-icon">+{remainingSlices.length}</span>
+                    <div className="crypto-distribution-identity"><strong>სხვა აქტივები</strong><span className="numeric"><BalanceValue>{money(remainingValue.toString())}</BalanceValue></span></div>
+                    <strong className="crypto-distribution-share numeric">{percentage(remainingShare.toString())}</strong>
+                  </div>
+                </li>}
+              </ul>
+            </div>
+          </div>
+          <div className="crypto-movers" aria-label="აქტივების შედეგების ლიდერები">
+            <PortfolioMover title="Top Gainer" subtitle="საუკეთესო შედეგი" tone="positive" base={base} daily={dailyGainer} allTime={allTimeGainer} />
+            <PortfolioMover title="Top Loser" subtitle="ყველაზე სუსტი შედეგი" tone="negative" base={base} daily={dailyLoser} allTime={allTimeLoser} />
+          </div>
         </div>}
     </section>
 
     <section className="dashboard-metrics overview-kpis" aria-label="პორტფელის მაჩვენებლები">
-      <DashboardMetric icon={<Wallet size={16} />} label="ნაღდი ფული" value={money(s.cash)} hint="ხელმისაწვდომი ბალანსი" sensitive />
-      <DashboardMetric icon={<CircleDollarSign size={16} />} label="სტეიბლკოინები" value={money(s.stablecoinValue)} hint="ლიკვიდობის ნაწილი" sensitive />
-      <DashboardMetric icon={<TrendingUp size={16} />} label="ინვესტირებული აქტივები" value={money(cryptoTotal.toString())} hint={`${crypto.length} აქტიური კრიპტო`} sensitive />
-      <DashboardMetric icon={<Activity size={16} />} label="24სთ მოძრაობა" value={money(dailyMove.toString())} tone={pnlClass(dailyMove.toString())} hint={percentage(dailyMovePercent, true) ?? "მონაცემი მიუწვდომელია"} sensitive />
+      <DashboardMetric icon={<Wallet size={16} />} label="წმინდა შეტანილი კაპიტალი" value={money(netCapital)} hint="შეტანები მინუს გატანები" sensitive />
+      <DashboardMetric icon={<CircleDollarSign size={16} />} label="რეალიზებული P/L" value={money(s.realizedPnl)} tone={pnlClass(s.realizedPnl)} hint="დახურული გარიგებების შედეგი" sensitive />
+      <DashboardMetric icon={<TrendingUp size={16} />} label="არარეალიზებული P/L" value={money(s.unrealizedPnl)} tone={pnlClass(s.unrealizedPnl)} hint="მიმდინარე პოზიციების შედეგი" sensitive />
+      <DashboardMetric icon={<Activity size={16} />} label="აქტიური პოზიციები" value={String(positions.length)} hint="მიმდინარე აქტივები" />
     </section>
 
     <section className="dashboard-positions" aria-labelledby="positions-title">
@@ -141,12 +167,6 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     </section>
 
     <aside className="dashboard-side-stack" aria-label="პორტფელის დამატებითი ინფორმაცია">
-      <section className="overview-movers-panel" aria-label="აქტივების შედეგების ლიდერები">
-        <div className="crypto-movers">
-          <PortfolioMover title="Top Gainer" subtitle="საუკეთესო შედეგი" tone="positive" base={base} daily={dailyGainer} allTime={allTimeGainer} />
-          <PortfolioMover title="Top Loser" subtitle="ყველაზე სუსტი შედეგი" tone="negative" base={base} daily={dailyLoser} allTime={allTimeLoser} />
-        </div>
-      </section>
       <section className="overview-insight overview-liquidity">
         <div className="mb-4 flex items-center gap-2"><Wallet size={17} className="text-brand" /><h2>ლიკვიდობა</h2></div>
         <p className="numeric text-2xl font-semibold"><BalanceValue>{money(s.liquidity)}</BalanceValue></p>
