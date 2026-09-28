@@ -31,7 +31,7 @@ export function PositionWorkspace({
   const [tab, setTab] = useState("overview");
   return (
     <div className="position-workspace">
-      <div className="ccx-tabs mb-6">
+      <div className="position-tabs ccx-tabs">
         {[
           ["overview", "მიმოხილვა"],
           ["transactions", "ტრანზაქციები"],
@@ -50,7 +50,7 @@ export function PositionWorkspace({
         ))}
       </div>
       {tab === "overview" && (
-        <div className="panel grid grid-cols-2 gap-7 p-7 xl:grid-cols-4">
+        <div className="position-overview-grid">
           <Metric label="რაოდენობა" value={quantity(p.quantity)} />
           <Metric label="მიმდინარე ღირებულება" value={money(p.value)} sensitive />
           <Metric

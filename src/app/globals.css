@@ -596,6 +596,53 @@ tbody tr:hover { background: rgba(167, 139, 250, .055); }
   .portfolio-empty-workspace .panel { padding: 20px; }
 }
 
+/* Position detail and allocation map */
+.position-tabs {
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 4px;
+}
+.position-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.position-overview-grid > div {
+  min-width: 0;
+  min-height: 92px;
+  border-right: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+  padding: 15px;
+}
+.position-overview-grid > div:nth-child(4n) { border-right: 0; }
+.position-overview-grid > div:nth-last-child(-n + 4) { border-bottom: 0; }
+.position-overview-grid > div:hover { background: color-mix(in srgb, var(--accent) 4%, var(--surface)); }
+.position-overview-grid p:first-child { margin-top: 0; }
+.position-overview-grid p:last-child { font-size: 18px; }
+.allocation-map-space { gap: 12px; }
+.allocation-map-panel,
+.allocation-map-selection { border-radius: 14px; }
+.allocation-map-row { min-height: 60px; }
+.allocation-map-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.allocation-map-selection { position: sticky; top: 78px; }
+
+@media (max-width: 1023px) {
+  .position-tabs { width: 100%; overflow-x: auto; border-right: 0; border-left: 0; border-radius: 0; padding-inline: 0; }
+  .position-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .position-overview-grid > div,
+  .position-overview-grid > div:nth-child(4n) { border-right: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+  .position-overview-grid > div:nth-child(2n) { border-right: 0; }
+  .position-overview-grid > div:nth-last-child(-n + 2) { border-bottom: 0; }
+  .allocation-map-selection { position: static; }
+}
+
 
 @media (max-width: 1279px) and (min-width: 1024px) {
   .ccx-sidebar { width: 72px; }
