@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { Activity, AlertTriangle, ArrowUpRight, CircleDollarSign, PieChart, TrendingUp, Wallet } from "lucide-react";
+import { Activity, AlertTriangle, ArrowUpRight, BarChart3, ChevronRight, CircleDollarSign, PieChart, TrendingUp, Wallet } from "lucide-react";
 import type { PortfolioSummary, ValuedPosition } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
 import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon, PositionsTable } from "./positions";
 import { PortfolioCalculator } from "./portfolio-calculator";
 import { BalanceValue } from "./ui";
-import { MobileMetricCard } from "./mobile-components";
 
 export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = false, history, action }: {
   summary: PortfolioSummary;
@@ -61,19 +60,19 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
   return <>
   <div className="mobile-overview-app">
     <section className="mobile-health-card">
-      <div className="mobile-health-heading"><div><p className="eyebrow">{portfolioName}</p><h1>პორტფელის მდგომარეობა</h1></div><span className={s.complete ? "mobile-status-dot ready" : "mobile-status-dot warning"} /></div>
+      <div className="mobile-health-heading"><h1 className="eyebrow" aria-label="პორტფელის მდგომარეობა">პორტფელის ღირებულება</h1><p className="mobile-health-status"><span className={s.complete && !s.stale ? "mobile-status-dot ready" : "mobile-status-dot warning"} />{freshness}</p></div>
       <p className="mobile-health-value numeric"><BalanceValue>{money(displayedValue)}</BalanceValue></p>
-      <p className="mobile-health-label">{freshness}</p>
-      <div className="mobile-health-pnl"><span>მთლიანი P/L</span><strong className={pnlClass(s.totalPnl)}><BalanceValue>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</BalanceValue></strong></div>
+      <div className="mobile-health-pnl"><strong className={pnlClass(s.totalPnl)}><BalanceValue>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</BalanceValue></strong><span>მთლიანი შედეგი</span></div>
     </section>
     <div className="mobile-quick-actions">{action}<Link href={base + "/positions"} className="button-secondary">პოზიციები <ArrowUpRight size={15} /></Link></div>
-    <OverviewNextActions items={nextActions} mobile />
-    <section className="mobile-liquidity-strip"><div><span>Cash</span><strong className="numeric"><BalanceValue>{money(s.cash)}</BalanceValue></strong></div><i aria-hidden="true" /><div><span>Stablecoins</span><strong className="numeric"><BalanceValue>{money(s.stablecoinValue)}</BalanceValue></strong></div><div className="mobile-liquidity-total"><span>ლიკვიდობა</span><strong className="numeric"><BalanceValue>{money(s.liquidity)}</BalanceValue></strong></div></section>
-    <div className="mobile-health-metrics"><MobileMetricCard label="წმინდა კაპიტალი" value={money(netCapital)} hint="შეტანა − გატანა" /><MobileMetricCard label="აქტიური პოზიციები" value={String(positions.length)} hint="მიმდინარე აქტივები" /><MobileMetricCard label="არარეალიზებული P/L" value={money(s.unrealizedPnl)} tone={pnlClass(s.unrealizedPnl)} /><MobileMetricCard label="რეალიზებული P/L" value={money(s.realizedPnl)} tone={pnlClass(s.realizedPnl)} /></div>
-    <div className="mobile-overview-movers"><PortfolioMover title="დღის ლიდერი" subtitle="24 საათი" tone="positive" base={base} daily={dailyGainer} allTime={allTimeGainer} /><PortfolioMover title="დღის კლება" subtitle="24 საათი" tone="negative" base={base} daily={dailyLoser} allTime={allTimeLoser} /></div>
-    <section className="mobile-overview-section"><div className="mobile-section-heading"><h2>შედეგის დინამიკა</h2><span>{updatedAt ? dateTime(updatedAt, true) : "ჯერ არ არის"}</span></div><div className="mobile-chart-slot">{history ?? <span>ისტორიისთვის საჭიროა მინიმუმ ორი შეფასება.</span>}</div></section>
-    <section className="mobile-overview-section"><div className="mobile-section-heading"><h2>აქტივების განაწილება</h2><Link href={base + "/bubble-map"}>რუკა <ArrowUpRight size={13} /></Link></div><div className="mobile-allocation-strip">{slices.map((slice) => <span key={slice.position.assetId} title={slice.label} style={{ flexGrow: Number(slice.share ?? 0), background: slice.color }} />)}</div><div className="mobile-allocation-list">{slices.slice(0, 5).map((slice, index) => <Link key={slice.position.assetId} href={`${base}/positions/${slice.position.assetId}`}><AssetIcon symbol={slice.label} logoUrl={slice.position.asset.logoUrl} index={index} /><span>{slice.label}</span><strong>{percentage(slice.share)}</strong></Link>)}</div></section>
-    <section className="mobile-overview-section"><div className="mobile-section-heading"><h2>ჩემი აქტივები</h2><Link href={base + "/positions"}>ყველა <ArrowUpRight size={13} /></Link></div><div className="mobile-position-list">{positions.slice(0, 5).map((position, index) => <Link key={position.assetId} href={`${base}/positions/${position.assetId}`}><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} index={index} /><div><strong>{position.asset.symbol}</strong><span>{position.asset.name}</span></div><div className="mobile-position-value"><strong className="numeric"><BalanceValue>{money(position.value)}</BalanceValue></strong><span className={pnlClass(position.unrealizedPnl)}>{percentage(position.returnPercent, true)}</span></div></Link>)}</div></section>
+    <section className="mobile-liquidity-strip" aria-label="ლიკვიდობა"><div><span><Wallet size={15} /> ნაღდი ფული</span><strong className="numeric"><BalanceValue>{money(s.cash)}</BalanceValue></strong></div><i aria-hidden="true" /><div><span><CircleDollarSign size={15} /> სტეიბლკოინები</span><strong className="numeric"><BalanceValue>{money(s.stablecoinValue)}</BalanceValue></strong></div></section>
+    <details className="mobile-history-disclosure">
+      <summary><span className="mobile-history-icon"><BarChart3 size={19} /></span><span><strong>პორტფელის ისტორია</strong><small>{updatedAt ? `ბოლო შეფასება · ${dateTime(updatedAt, true)}` : "შეფასებები ავტომატურად ინახება"}</small></span><ChevronRight size={18} /></summary>
+      <div className="mobile-chart-slot">{history ?? <span>ისტორიისთვის საჭიროა მინიმუმ ორი შეფასება.</span>}</div>
+    </details>
+    <section className="mobile-allocation-compact"><div className="mobile-section-heading"><h2>კრიპტო განაწილება</h2><strong className="numeric"><BalanceValue>{money(cryptoTotal.toString())}</BalanceValue></strong></div><div className="mobile-allocation-strip">{slices.map((slice) => <span key={slice.position.assetId} title={`${slice.label} ${percentage(slice.share)}`} style={{ flexGrow: Number(slice.share ?? 0), background: slice.color }} />)}</div><p>მხოლოდ კრიპტოაქტივები · ლიკვიდობის გარეშე</p></section>
+    <section className="mobile-assets-section"><div className="mobile-section-heading"><h2>თქვენი აქტივები</h2><Link href={base + "/positions"}>ყველა <ArrowUpRight size={13} /></Link></div><div className="mobile-position-list">{positions.slice(0, 5).map((position, index) => <Link key={position.assetId} href={`${base}/positions/${position.assetId}`}><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} index={index} /><div><strong>{position.asset.symbol}</strong><span>{position.asset.name}</span></div><div className="mobile-position-value"><strong className="numeric"><BalanceValue>{money(position.value)}</BalanceValue></strong><span className={pnlClass(position.returnPercent)}>{percentage(position.returnPercent, true)}</span></div></Link>)}</div></section>
+    <section className="mobile-movers-strip" aria-label="დღის ლიდერები"><MobileMover label="24სთ საუკეთესო" position={dailyGainer} base={base} /><MobileMover label="24სთ სუსტი" position={dailyLoser} base={base} /></section>
     {!!positions.length && <details className="mobile-overview-section mobile-calculator"><summary>სამიზნე ფასის კალკულატორი <ArrowUpRight size={14} /></summary><div className="mt-4"><PortfolioCalculator positions={s.positions} /></div></details>}
   </div>
   <div className="dashboard-space">
@@ -189,6 +188,12 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
       <PortfolioCalculator positions={s.positions} />
     </aside>
   </div></>;
+}
+
+function MobileMover({ label, position, base }: { label: string; position?: ValuedPosition; base: string }) {
+  const value = position?.quote?.change24h ?? null;
+  if (!position) return <div className="mobile-mover-item"><span>{label}</span><strong>—</strong><small>მონაცემი არ არის</small></div>;
+  return <Link className="mobile-mover-item" href={`${base}/positions/${position.assetId}`}><span>{label}</span><strong>{position.asset.symbol}</strong><small className={pnlClass(value)}>{percentage(value, true)}</small></Link>;
 }
 
 function OverviewNextActions({ items, mobile = false }: { items: { tone: string; icon: React.ReactNode; title: string; detail: string; href: string; action: string }[]; mobile?: boolean }) {

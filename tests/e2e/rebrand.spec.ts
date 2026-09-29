@@ -43,8 +43,14 @@ test("redesigned workspace keeps its routes usable without page overflow", async
     await db.end();
   }
   await page.reload();
+  if (testInfo.project.name === "mobile") {
+    await page.getByText("პორტფელის ისტორია", { exact: true }).click();
+  }
   await page.getByRole("button", { name: "ALL", exact: true }).click();
-  await page.getByRole("region", { name: "პორტფელის ღირებულება" }).getByText("მონაცემების ცხრილი").click();
+  const history = testInfo.project.name === "mobile"
+    ? page.locator(".mobile-history-disclosure")
+    : page.getByRole("region", { name: "პორტფელის ღირებულება" });
+  await history.getByText("მონაცემების ცხრილი").click();
   expect(await page.locator("details tbody tr").count()).toBeGreaterThanOrEqual(45);
   const paths = [
     "", "/positions", "/transactions", "/airdrops", "/analytics", "/statistics",
@@ -62,11 +68,13 @@ test("redesigned workspace keeps its routes usable without page overflow", async
     }
   }
   await page.goto(base);
-  await expect(page.getByRole("button", { name: "გვერდების ძიება" })).toBeVisible();
-  await page.getByRole("button", { name: "გვერდების ძიება" }).click();
-  await expect(page.getByRole("dialog", { name: "გვერდების ძიება" })).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: "გვერდების ძიება" })).not.toBeVisible();
+  if (testInfo.project.name === "desktop") {
+    await expect(page.getByRole("button", { name: "გვერდების ძიება" })).toBeVisible();
+    await page.getByRole("button", { name: "გვერდების ძიება" }).click();
+    await expect(page.getByRole("dialog", { name: "გვერდების ძიება" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "გვერდების ძიება" })).not.toBeVisible();
+  }
   expect(hydrationErrors).toEqual([]);
   for (const width of [1536, 1024, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
