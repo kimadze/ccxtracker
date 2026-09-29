@@ -37,7 +37,7 @@ export function Modal({
         <Dialog.Overlay className="ccx-modal-overlay fixed inset-0 z-50 bg-black/70" />
         <Dialog.Content
           className={clsx(
-            "ccx-modal fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-line bg-surface p-5 sm:p-7",
+            "ccx-modal fixed z-50 max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-xl border border-line bg-surface p-5 sm:p-7",
             wide ? "max-w-2xl" : "max-w-lg",
             className,
           )}

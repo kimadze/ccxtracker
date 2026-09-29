@@ -190,6 +190,20 @@ export function PositionsTable({
               <div><dt className="text-muted">24 საათი</dt><dd className={`numeric mt-1 ${pnlClass(p.quote?.change24h ?? null)}`}>{percentage(p.quote?.change24h ?? null, true)}</dd></div>
               <div className="col-span-2"><dt className="text-muted">არარეალიზებული P/L</dt><dd className={`numeric mt-1 ${pnlClass(p.unrealizedPnl)}`}><BalanceValue>{money(p.unrealizedPnl)}</BalanceValue> · {percentage(p.returnPercent, true)}</dd></div>
             </dl>
+            <details className="mobile-position-disclosure">
+              <summary>
+                <span className={pnlClass(p.unrealizedPnl)}>
+                  {money(p.unrealizedPnl)} · {percentage(p.returnPercent, true)}
+                </span>
+                <span>დეტალები</span>
+              </summary>
+              <dl>
+                <div><dt>რაოდენობა</dt><dd>{quantity(p.quantity)}</dd></div>
+                <div><dt>საშუალო ფასი</dt><dd>{money(p.averagePrice)}</dd></div>
+                <div><dt>მიმდინარე ფასი</dt><dd>{money(p.quote?.price ?? null)}</dd></div>
+                <div><dt>24 საათი</dt><dd className={pnlClass(p.quote?.change24h ?? null)}>{percentage(p.quote?.change24h ?? null, true)}</dd></div>
+              </dl>
+            </details>
             <div className="position-card-workflows">
               {!preview && (
                 <>

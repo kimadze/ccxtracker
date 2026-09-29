@@ -85,10 +85,7 @@ test("redesigned workspace keeps its routes usable without page overflow", async
       await page.screenshot({ path: ".local/rebrand-" + testInfo.project.name + "-" + width + ".png", fullPage: true });
     }
     if (width === 390) {
-      await page.getByRole("button", { name: "მენიუს გახსნა" }).click();
-      const menu = page.getByRole("dialog", { name: "მთავარი მენიუ" });
-      await expect(menu).toBeVisible();
-      await menu.getByRole("link", { name: "პოზიციები" }).click();
+      await page.getByRole("navigation", { name: "მობილური ნავიგაცია" }).getByRole("link", { name: "პოზიციები" }).click();
       await expect(page).toHaveURL(/\/positions$/);
       await page.goto(base);
       await expect(page.getByRole("heading", { name: /პორტფელის (მიმოხილვა|მდგომარეობა)/ })).toBeVisible();
