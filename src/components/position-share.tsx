@@ -26,7 +26,7 @@ function panel(context: CanvasRenderingContext2D, x: number, y: number, width: n
 }
 
 export function PositionShare({ position, compact = false }: { position: ValuedPosition; compact?: boolean }) {
-  const [open, setOpen] = useState(false), [hideAmounts, setHideAmounts] = useState(false), [ready, setReady] = useState(false), [status, setStatus] = useState(""), [template, setTemplate] = useState<"performance" | "reaction">("performance");
+  const [open, setOpen] = useState(false), [hideAmounts, setHideAmounts] = useState(false), [ready, setReady] = useState(false), [status, setStatus] = useState(""), [template, setTemplate] = useState<"performance" | "reaction" | "mood">("performance");
   const canvas = useRef<HTMLCanvasElement>(null);
   const sharedImage = useRef<Blob | null>(null);
   const positive = position.unrealizedPnl !== null && Number(position.unrealizedPnl) >= 0;
@@ -35,9 +35,26 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     const context = target.getContext("2d"); if (!context) return;
     const W = 1080, H = 1080; target.width = W; target.height = H;
     const resultColor = positive ? "#46eeb2" : "#ff668b";
-    if (template === "reaction") {
-      const reaction = await loadImage(positive ? "/position-share-reaction-profit.png" : "/position-share-reaction-loss.png", 8000);
-      context.drawImage(reaction, 0, 0, W, H);
+    if (template === "reaction" || template === "mood") {
+      const characterSource = template === "reaction"
+        ? (positive ? "/position-share-reaction-profit.png" : "/position-share-reaction-loss.png")
+        : (positive ? "/position-share-mood-profit.png" : "/position-share-mood-loss.png");
+      const reaction = await loadImage(characterSource, 8000);
+      if (template === "reaction") context.drawImage(reaction, 0, 0, W, H);
+      else {
+        const moodBackground = context.createLinearGradient(0, 0, W, H);
+        moodBackground.addColorStop(0, positive ? "#071b27" : "#190a20");
+        moodBackground.addColorStop(.52, "#08142d");
+        moodBackground.addColorStop(1, positive ? "#073529" : "#311126");
+        context.fillStyle = moodBackground; context.fillRect(0, 0, W, H);
+        for (let x = -60; x < W + 120; x += 118) for (let y = 20; y < 760; y += 102) {
+          context.beginPath(); context.roundRect(x + ((Math.floor(y / 102) % 2) * 59), y, 98, 82, 18); context.strokeStyle = "rgba(88,123,198,.10)"; context.stroke();
+        }
+        const scale = Math.max(720 / reaction.naturalWidth, 720 / reaction.naturalHeight);
+        const rw = reaction.naturalWidth * scale, rh = reaction.naturalHeight * scale;
+        context.drawImage(reaction, 550 + (510 - rw) / 2, 105 + (700 - rh) / 2, rw, rh);
+        const moodGlow = context.createRadialGradient(785, 420, 30, 785, 420, 420); moodGlow.addColorStop(0, positive ? "rgba(54,236,175,.15)" : "rgba(255,91,139,.17)"); moodGlow.addColorStop(1, "rgba(0,0,0,0)"); context.fillStyle = moodGlow; context.fillRect(430, 40, 650, 740);
+      }
       const shade = context.createLinearGradient(0, 0, 0, H);
       shade.addColorStop(0, "rgba(2,5,13,.08)"); shade.addColorStop(.45, "rgba(2,5,13,.02)"); shade.addColorStop(.7, "rgba(2,5,13,.62)"); shade.addColorStop(1, "rgba(2,5,13,.94)");
       context.fillStyle = shade; context.fillRect(0, 0, W, H);
@@ -49,7 +66,7 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
       const titleGradient = context.createLinearGradient(470, 0, 530, 0); titleGradient.addColorStop(0, "#a14cff"); titleGradient.addColorStop(1, "#ff4f91");
       context.fillStyle = titleGradient; context.font = "800 42px Inter, Arial"; context.fillText("X", 483, 92);
       context.fillStyle = "#8baaff"; context.font = "700 13px Inter, Arial"; context.letterSpacing = "3px"; context.fillText("TRACK · ANALYZE · GROW", 172, 125); context.letterSpacing = "0px";
-      context.textAlign = "right"; context.fillStyle = resultColor; context.font = "700 20px Inter, Arial"; context.fillText(positive ? "PROFIT REACTION" : "LOSS REACTION", 1004, 96); context.textAlign = "left";
+      context.textAlign = "right"; context.fillStyle = resultColor; context.font = "700 20px Inter, Arial"; context.fillText(template === "mood" ? (positive ? "PROFIT MOOD" : "LOSS MOOD") : (positive ? "PROFIT REACTION" : "LOSS REACTION"), 1004, 96); context.textAlign = "left";
 
       context.fillStyle = "rgba(4,8,20,.88)"; context.beginPath(); context.roundRect(42, 754, 996, 278, 24); context.fill(); context.strokeStyle = positive ? "rgba(70,238,178,.48)" : "rgba(255,102,139,.48)"; context.lineWidth = 2; context.stroke();
       const highResLogo = highResLogoUrl(position.asset.logoUrl);
@@ -186,6 +203,6 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
   };
   return <>
     <button type="button" className={compact ? "ccx-icon-button" : "button-secondary"} aria-label={compact ? "პოზიციის გაზიარება" : undefined} title={compact ? "პოზიციის გაზიარება" : undefined} onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი მზადდება…"); setOpen(true); }}><Share2 size={15} />{!compact && " გაზიარება"}</button>
-    <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Portal><Dialog.Overlay className="ccx-modal-overlay position-share-overlay" /><Dialog.Content className="position-share-sheet" aria-describedby="position-share-description"><Dialog.Title>პოზიციის გაზიარება</Dialog.Title><Dialog.Description id="position-share-description">აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.</Dialog.Description><Dialog.Close className="position-share-close" aria-label="დახურვა"><X size={18} /></Dialog.Close><div className="position-share-dialog"><div className="position-share-templates" role="group" aria-label="გაზიარების შაბლონი"><button type="button" aria-pressed={template === "performance"} onClick={() => { setReady(false); setStatus("ბარათი ახლდება…"); setTemplate("performance"); }}>Performance</button><button type="button" aria-pressed={template === "reaction"} onClick={() => { setReady(false); setStatus("ბარათი ახლდება…"); setTemplate("reaction"); }}>Reaction</button></div><canvas ref={canvas} className="position-share-preview" aria-label={`${position.asset.symbol} პოზიციის share ბარათი`} /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={download}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={share}><Share2 size={15} /> გაზიარება</button></div>{status && <p role="status" className="text-xs text-muted">{status}</p>}</div></Dialog.Content></Dialog.Portal></Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Portal><Dialog.Overlay className="ccx-modal-overlay position-share-overlay" /><Dialog.Content className="position-share-sheet" aria-describedby="position-share-description"><Dialog.Title>პოზიციის გაზიარება</Dialog.Title><Dialog.Description id="position-share-description">აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.</Dialog.Description><Dialog.Close className="position-share-close" aria-label="დახურვა"><X size={18} /></Dialog.Close><div className="position-share-dialog"><div className="position-share-templates" role="group" aria-label="გაზიარების შაბლონი"><button type="button" aria-pressed={template === "performance"} onClick={() => { setReady(false); setStatus("ბარათი ახლდება…"); setTemplate("performance"); }}>Performance</button><button type="button" aria-pressed={template === "reaction"} onClick={() => { setReady(false); setStatus("ბარათი ახლდება…"); setTemplate("reaction"); }}>Reaction</button><button type="button" aria-pressed={template === "mood"} onClick={() => { setReady(false); setStatus("ბარათი ახლდება…"); setTemplate("mood"); }}>Mood</button></div><canvas ref={canvas} className="position-share-preview" aria-label={`${position.asset.symbol} პოზიციის share ბარათი`} /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={download}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={share}><Share2 size={15} /> გაზიარება</button></div>{status && <p role="status" className="text-xs text-muted">{status}</p>}</div></Dialog.Content></Dialog.Portal></Dialog.Root>
   </>;
 }
