@@ -635,22 +635,6 @@ export function PositionShare({
   };
   useEffect(() => {
     if (!open) return;
-    const sources = [
-      "/position-share-neon-reference.webp",
-      positive
-        ? "/position-share-scene-profit.webp"
-        : "/position-share-scene-loss.webp",
-      positive
-        ? "/position-share-reaction-profit.webp"
-        : "/position-share-reaction-loss.webp",
-    ];
-    sources.forEach((src) => {
-      const image = new Image();
-      image.src = src;
-    });
-  }, [open, positive]);
-  useEffect(() => {
-    if (!open) return;
     const generation = renderVersion;
     const frame = window.requestAnimationFrame(
       () =>
