@@ -35,26 +35,37 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     const context = target.getContext("2d"); if (!context) return;
     const W = 1080, H = 1080; target.width = W; target.height = H;
     const resultColor = positive ? "#46eeb2" : "#ff668b";
-    if (template === "reaction" || template === "mood") {
-      const characterSource = template === "reaction"
-        ? (positive ? "/position-share-reaction-profit.png" : "/position-share-reaction-loss.png")
-        : (positive ? "/position-share-mood-profit.png" : "/position-share-mood-loss.png");
-      const reaction = await loadImage(characterSource, 8000);
-      if (template === "reaction") context.drawImage(reaction, 0, 0, W, H);
-      else {
-        const moodBackground = context.createLinearGradient(0, 0, W, H);
-        moodBackground.addColorStop(0, positive ? "#071b27" : "#190a20");
-        moodBackground.addColorStop(.52, "#08142d");
-        moodBackground.addColorStop(1, positive ? "#073529" : "#311126");
-        context.fillStyle = moodBackground; context.fillRect(0, 0, W, H);
-        for (let x = -60; x < W + 120; x += 118) for (let y = 20; y < 760; y += 102) {
-          context.beginPath(); context.roundRect(x + ((Math.floor(y / 102) % 2) * 59), y, 98, 82, 18); context.strokeStyle = "rgba(88,123,198,.10)"; context.stroke();
-        }
-        const scale = Math.max(720 / reaction.naturalWidth, 720 / reaction.naturalHeight);
-        const rw = reaction.naturalWidth * scale, rh = reaction.naturalHeight * scale;
-        context.drawImage(reaction, 550 + (510 - rw) / 2, 105 + (700 - rh) / 2, rw, rh);
-        const moodGlow = context.createRadialGradient(785, 420, 30, 785, 420, 420); moodGlow.addColorStop(0, positive ? "rgba(54,236,175,.15)" : "rgba(255,91,139,.17)"); moodGlow.addColorStop(1, "rgba(0,0,0,0)"); context.fillStyle = moodGlow; context.fillRect(430, 40, 650, 740);
-      }
+    if (template === "mood") {
+      const character = await loadImage(positive ? "/position-share-mood-profit.png" : "/position-share-mood-loss.png", 8000);
+      const moodBackground = context.createLinearGradient(0, 0, W, H);
+      moodBackground.addColorStop(0, positive ? "#071b25" : "#170b20"); moodBackground.addColorStop(.52, "#09142d"); moodBackground.addColorStop(1, positive ? "#092b25" : "#2b1025");
+      context.fillStyle = moodBackground; context.fillRect(0, 0, W, H);
+      const ambient = context.createRadialGradient(780, 400, 30, 780, 400, 520); ambient.addColorStop(0, positive ? "rgba(57,239,180,.28)" : "rgba(255,91,139,.25)"); ambient.addColorStop(.55, "rgba(57,96,220,.12)"); ambient.addColorStop(1, "rgba(0,0,0,0)"); context.fillStyle = ambient; context.fillRect(310, 0, 770, 860);
+      for (let x = -70; x < W + 120; x += 126) for (let y = 20; y < 850; y += 108) { context.beginPath(); context.roundRect(x + ((Math.floor(y / 108) % 2) * 63), y, 104, 86, 20); context.strokeStyle = "rgba(108,137,210,.075)"; context.stroke(); }
+      const scale = Math.min(700 / character.naturalWidth, 700 / character.naturalHeight), cw = character.naturalWidth * scale, ch = character.naturalHeight * scale;
+      context.save(); context.shadowColor = positive ? "rgba(62,238,184,.34)" : "rgba(255,91,139,.3)"; context.shadowBlur = 38; context.drawImage(character, 560 + (480 - cw) / 2, 138 + (670 - ch) / 2, cw, ch); context.restore();
+      const characterFade = context.createLinearGradient(0, 675, 0, 885); characterFade.addColorStop(0, "rgba(7,12,29,0)"); characterFade.addColorStop(1, "rgba(7,12,29,.98)"); context.fillStyle = characterFade; context.fillRect(430, 650, 650, 250);
+      const mark = await loadImage("/ccx-mark-transparent-v2.png", 8000), markScale = Math.min(74 / mark.naturalWidth, 74 / mark.naturalHeight);
+      context.drawImage(mark, 55, 45, mark.naturalWidth * markScale, mark.naturalHeight * markScale);
+      context.fillStyle="#f7f8ff"; context.font="700 34px Inter, Arial"; context.fillText("Crypto Collective",148,79); context.fillStyle="#b25aff"; context.font="800 38px Inter, Arial"; context.fillText("X",442,80);
+      context.fillStyle="#829fe8"; context.font="700 12px Inter, Arial"; context.letterSpacing="3px"; context.fillText("TRACK · ANALYZE · GROW",150,110); context.letterSpacing="0px";
+      const highResLogo=highResLogoUrl(position.asset.logoUrl), logoSource=highResLogo?`/api/asset-logo?url=${encodeURIComponent(highResLogo)}`:null;
+      context.beginPath(); context.arc(104,245,43,0,Math.PI*2); context.fillStyle="rgba(9,15,34,.76)"; context.fill(); context.strokeStyle=resultColor; context.lineWidth=3; context.stroke();
+      let logoDrawn = false;
+      if (logoSource) try { const logo=await loadImage(logoSource,4000), s=Math.min(78/logo.naturalWidth,78/logo.naturalHeight); context.save(); context.beginPath(); context.arc(104,245,39,0,Math.PI*2); context.clip(); context.drawImage(logo,104-logo.naturalWidth*s/2,245-logo.naturalHeight*s/2,logo.naturalWidth*s,logo.naturalHeight*s); context.restore(); logoDrawn = true; } catch { /* symbol fallback below */ }
+      if (!logoDrawn) { context.fillStyle="#f7f8ff"; context.textAlign="center"; context.font="700 22px Inter, Arial"; context.fillText(position.asset.symbol.slice(0,4),104,253); context.textAlign="left"; }
+      context.fillStyle="#f8f9ff"; context.font="700 46px Inter, Arial"; context.fillText(position.asset.symbol,170,241); context.fillStyle="#8da2d5"; context.font='600 19px "Noto Sans Georgian", Inter, Arial'; context.fillText(positive?"მოგებიანი პოზიცია":"წაგებიანი პოზიცია",172,276);
+      context.fillStyle=resultColor; context.font="800 94px Inter, Arial"; context.fillText(percentage(position.returnPercent,true),55,414); context.fillStyle="#879bd0"; context.font="700 18px Inter, Arial"; context.fillText("UNREALIZED P & L",61,449);
+      context.fillStyle="rgba(7,12,30,.76)"; context.beginPath(); context.roundRect(48,500,430,116,18); context.fill(); context.strokeStyle=positive?"rgba(70,238,178,.35)":"rgba(255,102,139,.35)"; context.stroke(); context.fillStyle="#8498c8"; context.font='500 16px "Noto Sans Georgian", Inter, Arial'; context.fillText("პოზიციის ღირებულება",72,538); context.fillStyle="#f8f9ff"; context.font="700 34px Inter, Arial"; context.fillText(hideAmounts?"••••••":money(position.value),72,583);
+      context.fillStyle="rgba(5,9,23,.86)"; context.beginPath(); context.roundRect(48,858,984,174,22); context.fill(); context.strokeStyle="rgba(121,145,214,.28)"; context.stroke();
+      const moodValues=[["მიმდინარე ფასი",money(position.quote?.price??null)],["საშ. შესყიდვა",money(position.averagePrice)]]; moodValues.forEach(([label,value],i)=>{const x=76+i*285;context.fillStyle="#8094c5";context.font='500 15px "Noto Sans Georgian", Inter, Arial';context.fillText(label,x,906);context.fillStyle="#f7f8ff";context.font="700 25px Inter, Arial";context.fillText(hideAmounts?"••••••":value,x,944);});
+      context.fillStyle="#829fe8"; context.font="600 14px Inter, Arial"; context.fillText("CCX PORTFOLIO TRACKER",76,995);
+      try { const qrData=await QRCode.toDataURL("https://ccxtracker.vercel.app/",{errorCorrectionLevel:"M",margin:1,width:160,color:{dark:"#080d20",light:"#ffffff"}}),qr=await loadImage(qrData);context.fillStyle="#fff";context.fillRect(902,884,104,104);context.drawImage(qr,908,890,92,92); } catch { /* share remains available */ }
+      const image=await new Promise<Blob|null>((resolve)=>target.toBlob(resolve,"image/png"));sharedImage.current=image;setReady(image!==null);setStatus(image?"":"სურათის მომზადება ვერ მოხერხდა.");return;
+    }
+    if (template === "reaction") {
+      const reaction = await loadImage(positive ? "/position-share-reaction-profit.png" : "/position-share-reaction-loss.png", 8000);
+      context.drawImage(reaction, 0, 0, W, H);
       const shade = context.createLinearGradient(0, 0, 0, H);
       shade.addColorStop(0, "rgba(2,5,13,.08)"); shade.addColorStop(.45, "rgba(2,5,13,.02)"); shade.addColorStop(.7, "rgba(2,5,13,.62)"); shade.addColorStop(1, "rgba(2,5,13,.94)");
       context.fillStyle = shade; context.fillRect(0, 0, W, H);
@@ -66,7 +77,7 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
       const titleGradient = context.createLinearGradient(470, 0, 530, 0); titleGradient.addColorStop(0, "#a14cff"); titleGradient.addColorStop(1, "#ff4f91");
       context.fillStyle = titleGradient; context.font = "800 42px Inter, Arial"; context.fillText("X", 483, 92);
       context.fillStyle = "#8baaff"; context.font = "700 13px Inter, Arial"; context.letterSpacing = "3px"; context.fillText("TRACK · ANALYZE · GROW", 172, 125); context.letterSpacing = "0px";
-      context.textAlign = "right"; context.fillStyle = resultColor; context.font = "700 20px Inter, Arial"; context.fillText(template === "mood" ? (positive ? "PROFIT MOOD" : "LOSS MOOD") : (positive ? "PROFIT REACTION" : "LOSS REACTION"), 1004, 96); context.textAlign = "left";
+      context.textAlign = "right"; context.fillStyle = resultColor; context.font = "700 20px Inter, Arial"; context.fillText(positive ? "PROFIT REACTION" : "LOSS REACTION", 1004, 96); context.textAlign = "left";
 
       context.fillStyle = "rgba(4,8,20,.88)"; context.beginPath(); context.roundRect(42, 754, 996, 278, 24); context.fill(); context.strokeStyle = positive ? "rgba(70,238,178,.48)" : "rgba(255,102,139,.48)"; context.lineWidth = 2; context.stroke();
       const highResLogo = highResLogoUrl(position.asset.logoUrl);
