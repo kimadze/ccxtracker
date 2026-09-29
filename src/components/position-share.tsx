@@ -9,6 +9,9 @@ import type { ValuedPosition } from "@/domain/types";
 import { money, percentage } from "@/lib/formatters";
 import { highResLogoUrl } from "@/lib/asset-logo";
 
+type ShareTemplate = "performance" | "reaction" | "mood";
+const templateStorageKey = "ccx-position-share-template";
+
 const loadImage = (src: string, timeoutMs = 1800) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new Image();
   const timeout = window.setTimeout(() => reject(new Error("IMAGE_TIMEOUT")), timeoutMs);
@@ -26,7 +29,7 @@ function panel(context: CanvasRenderingContext2D, x: number, y: number, width: n
 }
 
 export function PositionShare({ position, compact = false }: { position: ValuedPosition; compact?: boolean }) {
-  const [open, setOpen] = useState(false), [hideAmounts, setHideAmounts] = useState(false), [ready, setReady] = useState(false), [status, setStatus] = useState(""), [template, setTemplate] = useState<"performance" | "reaction" | "mood">("performance");
+  const [open, setOpen] = useState(false), [hideAmounts, setHideAmounts] = useState(false), [ready, setReady] = useState(false), [status, setStatus] = useState(""), [template, setTemplate] = useState<ShareTemplate>("performance");
   const canvas = useRef<HTMLCanvasElement>(null);
   const sharedImage = useRef<Blob | null>(null);
   const renderVersion = useRef(0);
@@ -50,22 +53,20 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     const W = 1080, H = 1080; target.width = W; target.height = H;
     const resultColor = positive ? "#46eeb2" : "#ff668b";
     if (template === "mood") {
-      const artwork = await loadImage(positive ? "/position-share-scene-profit.png" : "/position-share-scene-loss.png", 12000);
+      const artwork = await loadImage(positive ? "/position-share-scene-profit.webp" : "/position-share-scene-loss.webp", 12000);
       context.drawImage(artwork, 0, 0, W, H);
       // Preserve the approved scene; overlay only live portfolio data.
       const shade = context.createLinearGradient(0, 0, 640, 0);
       shade.addColorStop(0, "rgba(3,9,27,.42)"); shade.addColorStop(1, "rgba(3,9,27,0)");
       context.fillStyle = shade; context.fillRect(0, 0, W, H);
-      const mark = await loadImage("/ccx-mark-transparent-v2.png", 8000), markScale = Math.min(74 / mark.naturalWidth, 74 / mark.naturalHeight);
-      context.drawImage(mark, 55, 45, mark.naturalWidth * markScale, mark.naturalHeight * markScale);
-      context.fillStyle="#f7f8ff"; context.font="700 34px Inter, Arial"; context.fillText("Crypto Collective",148,79); context.fillStyle="#b25aff"; context.font="800 38px Inter, Arial"; context.fillText("X",468,80);
-      context.fillStyle="#829fe8"; context.font="700 12px Inter, Arial"; context.letterSpacing="3px"; context.fillText("TRACK · ANALYZE · GROW",150,110); context.letterSpacing="0px";
+      const reference = await loadImage("/position-share-neon-reference.png", 8000);
+      context.drawImage(reference, 0, 0, reference.naturalWidth, 252, 0, 0, W, 217);
       const highResLogo=highResLogoUrl(position.asset.logoUrl), logoSource=highResLogo?`/api/asset-logo?url=${encodeURIComponent(highResLogo)}`:null;
-      context.beginPath(); context.arc(104,245,43,0,Math.PI*2); context.fillStyle="rgba(9,15,34,.76)"; context.fill(); context.strokeStyle=resultColor; context.lineWidth=3; context.stroke();
+      context.beginPath(); context.arc(104,285,43,0,Math.PI*2); context.fillStyle="rgba(9,15,34,.76)"; context.fill(); context.strokeStyle=resultColor; context.lineWidth=3; context.stroke();
       let logoDrawn = false;
-      if (logoSource) try { const logo=await loadImage(logoSource,4000), s=Math.min(78/logo.naturalWidth,78/logo.naturalHeight); context.save(); context.beginPath(); context.arc(104,245,39,0,Math.PI*2); context.clip(); context.drawImage(logo,104-logo.naturalWidth*s/2,245-logo.naturalHeight*s/2,logo.naturalWidth*s,logo.naturalHeight*s); context.restore(); logoDrawn = true; } catch { /* symbol fallback below */ }
-      if (!logoDrawn) { context.fillStyle="#f7f8ff"; context.textAlign="center"; context.font="700 22px Inter, Arial"; context.fillText(position.asset.symbol.slice(0,4),104,253); context.textAlign="left"; }
-      context.fillStyle="#f8f9ff"; context.font="700 46px Inter, Arial"; context.fillText(position.asset.symbol,170,241,300); context.fillStyle="#8da2d5"; context.font='600 19px "Noto Sans Georgian", Inter, Arial'; context.fillText(positive?"მოგებიანი პოზიცია":"წაგებიანი პოზიცია",172,276);
+      if (logoSource) try { const logo=await loadImage(logoSource,4000), s=Math.min(78/logo.naturalWidth,78/logo.naturalHeight); context.save(); context.beginPath(); context.arc(104,285,39,0,Math.PI*2); context.clip(); context.drawImage(logo,104-logo.naturalWidth*s/2,285-logo.naturalHeight*s/2,logo.naturalWidth*s,logo.naturalHeight*s); context.restore(); logoDrawn = true; } catch { /* symbol fallback below */ }
+      if (!logoDrawn) { context.fillStyle="#f7f8ff"; context.textAlign="center"; context.font="700 22px Inter, Arial"; context.fillText(position.asset.symbol.slice(0,4),104,293); context.textAlign="left"; }
+      context.fillStyle="#f8f9ff"; context.font="700 46px Inter, Arial"; context.fillText(position.asset.symbol,170,281,300); context.fillStyle="#8da2d5"; context.font='600 19px "Noto Sans Georgian", Inter, Arial'; context.fillText(positive?"მოგებიანი პოზიცია":"წაგებიანი პოზიცია",172,316);
       context.fillStyle=resultColor; context.font="800 94px Inter, Arial"; context.fillText(percentage(position.returnPercent,true),55,414,430); context.fillStyle="#879bd0"; context.font="700 18px Inter, Arial"; context.fillText("UNREALIZED P & L",61,449);
       context.fillStyle="rgba(7,12,30,.76)"; context.beginPath(); context.roundRect(48,500,350,116,18); context.fill(); context.strokeStyle=positive?"rgba(70,238,178,.35)":"rgba(255,102,139,.35)"; context.stroke(); context.fillStyle="#8498c8"; context.font='500 16px "Noto Sans Georgian", Inter, Arial'; context.fillText("პოზიციის ღირებულება",72,538); context.fillStyle="#f8f9ff"; context.font="700 34px Inter, Arial"; context.fillText(hideAmounts?"••••••":money(position.value),72,583,300);
       context.fillStyle="rgba(5,9,23,.86)"; context.beginPath(); context.roundRect(48,858,984,174,22); context.fill(); context.strokeStyle="rgba(121,145,214,.28)"; context.stroke();
@@ -75,7 +76,7 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
       const image=await new Promise<Blob|null>((resolve)=>target.toBlob(resolve,"image/png"));publish(image);return;
     }
     if (template === "reaction") {
-      const reaction = await loadImage(positive ? "/position-share-reaction-profit.png" : "/position-share-reaction-loss.png", 8000);
+      const reaction = await loadImage(positive ? "/position-share-reaction-profit.webp" : "/position-share-reaction-loss.webp", 8000);
       context.drawImage(reaction, 0, 0, W, H);
       const shade = context.createLinearGradient(0, 0, 0, H);
       shade.addColorStop(0, "rgba(2,5,13,.08)"); shade.addColorStop(.45, "rgba(2,5,13,.02)"); shade.addColorStop(.7, "rgba(2,5,13,.62)"); shade.addColorStop(1, "rgba(2,5,13,.94)");
@@ -88,7 +89,6 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
       const titleGradient = context.createLinearGradient(470, 0, 530, 0); titleGradient.addColorStop(0, "#a14cff"); titleGradient.addColorStop(1, "#ff4f91");
       context.fillStyle = titleGradient; context.font = "800 42px Inter, Arial"; context.fillText("X", 483, 92);
       context.fillStyle = "#8baaff"; context.font = "700 13px Inter, Arial"; context.letterSpacing = "3px"; context.fillText("TRACK · ANALYZE · GROW", 172, 125); context.letterSpacing = "0px";
-      context.textAlign = "right"; context.fillStyle = resultColor; context.font = "700 20px Inter, Arial"; context.fillText(positive ? "PROFIT REACTION" : "LOSS REACTION", 1004, 96); context.textAlign = "left";
 
       context.fillStyle = "rgba(4,8,20,.88)"; context.beginPath(); context.roundRect(42, 754, 996, 278, 24); context.fill(); context.strokeStyle = positive ? "rgba(70,238,178,.48)" : "rgba(255,102,139,.48)"; context.lineWidth = 2; context.stroke();
       const highResLogo = highResLogoUrl(position.asset.logoUrl);
@@ -161,6 +161,30 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     const image = await new Promise<Blob | null>((resolve) => target.toBlob(resolve, "image/png"));
     publish(image);
   }, [hideAmounts, positive, position, template]);
+  const chooseTemplate = (next: ShareTemplate) => {
+    sharedImage.current = null;
+    setReady(false);
+    setStatus("ბარათი ახლდება…");
+    setTemplate(next);
+    window.localStorage.setItem(templateStorageKey, next);
+  };
+  const openShare = () => {
+    const saved = window.localStorage.getItem(templateStorageKey);
+    if (saved === "performance" || saved === "reaction" || saved === "mood") setTemplate(saved);
+    sharedImage.current = null;
+    setReady(false);
+    setStatus("ბარათი მზადდება…");
+    setOpen(true);
+  };
+  useEffect(() => {
+    if (!open) return;
+    const sources = [
+      "/position-share-neon-reference.png",
+      positive ? "/position-share-scene-profit.webp" : "/position-share-scene-loss.webp",
+      positive ? "/position-share-reaction-profit.webp" : "/position-share-reaction-loss.webp",
+    ];
+    sources.forEach((src) => { const image = new Image(); image.src = src; });
+  }, [open, positive]);
   useEffect(() => {
     if (!open) return;
     const generation = renderVersion;
@@ -184,7 +208,7 @@ export function PositionShare({ position, compact = false }: { position: ValuedP
     });
   };
   return <>
-    <button type="button" className={compact ? "ccx-icon-button" : "button-secondary"} aria-label={compact ? "პოზიციის გაზიარება" : undefined} title={compact ? "პოზიციის გაზიარება" : undefined} onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი მზადდება…"); setOpen(true); }}><Share2 size={15} />{!compact && " გაზიარება"}</button>
-    <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Portal><Dialog.Overlay className="ccx-modal-overlay position-share-overlay" /><Dialog.Content className="position-share-sheet" aria-describedby="position-share-description"><Dialog.Title>პოზიციის გაზიარება</Dialog.Title><Dialog.Description id="position-share-description">აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.</Dialog.Description><Dialog.Close className="position-share-close" aria-label="დახურვა"><X size={18} /></Dialog.Close><div className="position-share-dialog"><div className="position-share-templates" role="group" aria-label="გაზიარების შაბლონი"><button type="button" aria-pressed={template === "performance"} onClick={() => { setReady(false); setStatus("ბარათი ახლდება…"); setTemplate("performance"); }}>კლასიკური</button><button type="button" aria-pressed={template === "reaction"} onClick={() => { setReady(false); setStatus("ბარათი ახლდება…"); setTemplate("reaction"); }}>Reaction</button><button type="button" aria-pressed={template === "mood"} onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setTemplate("mood"); }}>პერსონაჟი</button></div><canvas ref={canvas} className="position-share-preview" aria-label={`${position.asset.symbol} პოზიციის share ბარათი`} /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={download}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={share}><Share2 size={15} /> გაზიარება</button></div>{status && <p role="status" className="text-xs text-muted">{status}</p>}</div></Dialog.Content></Dialog.Portal></Dialog.Root>
+    <button type="button" className={compact ? "ccx-icon-button" : "button-secondary"} aria-label={compact ? "პოზიციის გაზიარება" : undefined} title={compact ? "პოზიციის გაზიარება" : undefined} onClick={openShare}><Share2 size={15} />{!compact && " გაზიარება"}</button>
+    <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Portal><Dialog.Overlay className="ccx-modal-overlay position-share-overlay" /><Dialog.Content className="position-share-sheet" aria-describedby="position-share-description position-share-data"><Dialog.Title>პოზიციის გაზიარება</Dialog.Title><Dialog.Description id="position-share-description">აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც გსურთ.</Dialog.Description><Dialog.Close className="position-share-close" aria-label="დახურვა"><X size={18} /></Dialog.Close><div className="position-share-dialog"><div className="position-share-templates" role="group" aria-label="გაზიარების შაბლონი"><button type="button" aria-pressed={template === "performance"} onClick={() => chooseTemplate("performance")}>კლასიკური</button><button type="button" aria-pressed={template === "reaction"} onClick={() => chooseTemplate("reaction")}>რეაქცია</button><button type="button" aria-pressed={template === "mood"} onClick={() => chooseTemplate("mood")}>პერსონაჟი</button></div><p id="position-share-data" className="sr-only">{position.asset.symbol} პოზიცია. შედეგი {percentage(position.returnPercent, true)}. მიმდინარე ფასი {money(position.quote?.price ?? null)}. საშუალო შესყიდვა {hideAmounts ? "დამალულია" : money(position.averagePrice)}. პოზიციის ღირებულება {hideAmounts ? "დამალულია" : money(position.value)}.</p><canvas ref={canvas} className="position-share-preview" role="img" aria-label={`${position.asset.symbol} პოზიციის გაზიარების ბარათი`} aria-describedby="position-share-data" /><div className="position-share-controls"><button type="button" className="button-secondary" onClick={() => { sharedImage.current = null; setReady(false); setStatus("ბარათი ახლდება…"); setHideAmounts((value) => !value); }}>{hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}{hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}</button><button type="button" className="button-secondary" disabled={!ready} onClick={download}><Download size={15} /> PNG</button><button type="button" className="button-primary" disabled={!ready} onClick={share}><Share2 size={15} /> გაზიარება</button></div>{status && <p role="status" className="text-xs text-muted">{status}</p>}</div></Dialog.Content></Dialog.Portal></Dialog.Root>
   </>;
 }
