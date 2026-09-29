@@ -8,7 +8,6 @@ import { DcaPlanner, ExitPlanner } from "./position-planners";
 import { JournalForm, type JournalData } from "./journal";
 import { TransactionList } from "./transaction-list";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
-import { PositionShare } from "./position-share";
 export function PositionWorkspace({
   position: p,
   portfolioId,
@@ -55,7 +54,6 @@ export function PositionWorkspace({
           </button>
         ))}
       </div>
-      <PositionShare position={p} />
       </div>
       {tab === "overview" && (
         <div className="position-overview-grid">

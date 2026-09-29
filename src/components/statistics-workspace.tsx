@@ -53,7 +53,7 @@ function MarketTab({ data, owned, selected, base }: {
   selected: Set<string>;
   base: string;
 }) {
-  const [query, setQuery] = useState(""), [sort, setSort] = useState<SortKey>("rank"), [direction, setDirection] = useState<"asc" | "desc">("asc");
+  const [query, setQuery] = useState(""), [sort, setSort] = useState<SortKey>("rank"), [direction, setDirection] = useState<"asc" | "desc">("asc"), [mobileLimit, setMobileLimit] = useState(20);
   const rows = useMemo(() => {
     const result = data.assets.filter((asset) =>
       `${asset.name} ${asset.symbol}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
@@ -133,7 +133,7 @@ function MarketTab({ data, owned, selected, base }: {
           </table>
         </div>
         <div className="mobile-market-list">
-          {rows.map((asset) => {
+          {rows.slice(0, mobileLimit).map((asset) => {
             const allocation = owned.get(asset.id);
             return <article key={asset.id} className="mobile-market-card">
               <div className="mobile-market-primary"><span className="mobile-market-rank">#{asset.rank ?? "—"}</span><AssetIcon symbol={asset.symbol} logoUrl={asset.image} size={32} /><div><strong>{asset.symbol}</strong><small>{asset.name}</small></div><div className="mobile-market-price"><strong className="numeric">{money(asset.price)}</strong><small className={pnlClass(asset.change24h)}>{percentage(asset.change24h, true)} · 24სთ</small></div></div>
@@ -142,6 +142,7 @@ function MarketTab({ data, owned, selected, base }: {
             </article>;
           })}
         </div>
+        {rows.length > mobileLimit && <div className="mobile-market-more"><button type="button" className="button-secondary" onClick={() => setMobileLimit((limit) => Math.min(limit + 20, rows.length))}>კიდევ 20 აქტივის ნახვა</button><small>{mobileLimit} / {rows.length}</small></div>}
         {!rows.length && <p className="p-12 text-center text-xs text-muted">შესაბამისი მონეტა ვერ მოიძებნა.</p>}
         <div className="border-t border-line p-4 text-right"><Link href={`${base}/watchlist`} className="text-xs text-brand">დაკვირვების სიის მართვა <ExternalLink className="inline" size={13} /></Link></div>
       </section>

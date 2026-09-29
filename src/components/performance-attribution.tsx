@@ -1,3 +1,5 @@
+"use client";
+import { useState } from "react";
 import type { PortfolioAttribution } from "@/domain/attribution";
 import { decimal } from "@/domain/decimal";
 import { money, percentage, pnlClass } from "@/lib/formatters";
@@ -17,6 +19,7 @@ export function PerformanceAttribution({
 }: {
   attribution: PortfolioAttribution;
 }) {
+  const [showAllAssets, setShowAllAssets] = useState(false);
   if (!attribution.complete || !attribution.reconciled)
     return (
       <section className="panel p-6">
@@ -102,7 +105,7 @@ export function PerformanceAttribution({
             </p>
           </div>
           <div className="divide-y divide-line">
-            {attribution.assets.map((row) => {
+            {(showAllAssets ? attribution.assets : attribution.assets.slice(0, 8)).map((row) => {
               const width = denominator
                 ? (Math.abs(Number(row.totalPnl)) / denominator) * 100
                 : 0;
@@ -156,6 +159,7 @@ export function PerformanceAttribution({
                 </div>
               );
             })}
+            {attribution.assets.length > 8 && <button type="button" className="attribution-more" onClick={() => setShowAllAssets((open) => !open)}>{showAllAssets ? "ნაკლების ნახვა" : `ყველა ${attribution.assets.length} აქტივის ნახვა`}</button>}
             {!attribution.assets.length && (
               <p className="p-8 text-center text-xs text-muted">
                 შედეგის გასაანალიზებლად ტრანზაქციები ჯერ არ არის.

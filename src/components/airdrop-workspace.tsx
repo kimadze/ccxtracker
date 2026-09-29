@@ -85,7 +85,7 @@ export function AirdropWorkspace({
                   <Data label="საწყისი ღირებულება" value={money(receivedValue)} />
                   <Data label="ფასის ცვლილება" value={movement === null ? "—" : `${Number(movement) > 0 ? "+" : ""}${money(movement)}`} tone={pnlClass(movement)} />
                 </div>
-                {!preview && <AirdropActions portfolioId={portfolioId} revision={revision} assets={assets} entry={entry} />}
+                {!preview && <><div className="airdrop-desktop-actions"><AirdropActions portfolioId={portfolioId} revision={revision} assets={assets} entry={entry} /></div><details className="mobile-entry-details"><summary>დეტალები და მოქმედებები</summary><div className="mobile-entry-actions"><AirdropActions portfolioId={portfolioId} revision={revision} assets={assets} entry={entry} /></div></details></>}
               </div>
             ))}
           </div>

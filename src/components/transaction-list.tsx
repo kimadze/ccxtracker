@@ -136,7 +136,7 @@ export function TransactionList({
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-6">
+            <div className="transaction-actions flex flex-wrap items-center gap-6">
               <div className="text-right">
                 <p className="numeric text-sm">{quantity(e.quantity)}</p>
                 <p className="mt-1 text-[10px] text-muted">
@@ -161,6 +161,7 @@ export function TransactionList({
                 <Trash2 size={15} />
               </button>
             </div>
+            <details className="mobile-entry-details"><summary>დეტალები და მოქმედებები</summary><div><p className="text-[11px] text-muted">{e.price ? `ფასი: ${money(e.price)}` : "ფასი არ არის მითითებული"} · საკომისიო: {money(e.fee)}</p><div className="mobile-entry-actions"><TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} entry={e} /><button className="button-danger" type="button" onClick={() => { setSelected(e.id); setError(""); }}>წაშლა</button></div></div></details>
           </div>
         ))}
         {!filtered.length && (

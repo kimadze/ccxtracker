@@ -71,6 +71,12 @@ export function ScenarioLab({
     })));
     setMessage("");
   }
+  const priceRow = (p: typeof cryptoPositions[number], i: number) => (
+    <div key={p.assetId} className="scenario-price-row grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]">
+      <div className="flex items-center gap-3"><AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} /><div><p className="text-xs font-medium">{p.asset.symbol}</p><p className="mt-1 text-[10px] text-muted">{quantity(p.quantity)} · ახლა {money(p.quote?.price ?? null)}</p></div></div>
+      <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}><input inputMode="decimal" value={prices[p.assetId] ?? ""} placeholder={p.quote?.price ?? "შეიყვანეთ ფასი"} onChange={(e) => { setPrices((current) => ({ ...current, [p.assetId]: e.target.value })); setMessage(""); }} /></Field>
+    </div>
+  );
   async function save(copy = false) {
     if (preview) return;
     setPending(true);
@@ -135,37 +141,8 @@ export function ScenarioLab({
             <div className="scenario-quick-controls"><label><Percent size={13} /><input aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="button-secondary" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="button-secondary" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
           </div>
           <div className="divide-y divide-line">
-            {cryptoPositions.map((p, i) => (
-              <div
-                key={p.assetId}
-                className="grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]"
-              >
-                <div className="flex items-center gap-3">
-                  <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
-                  <div>
-                    <p className="text-xs font-medium">{p.asset.symbol}</p>
-                    <p className="mt-1 text-[10px] text-muted">
-                      {quantity(p.quantity)} · ახლა{" "}
-                      {money(p.quote?.price ?? null)}
-                    </p>
-                  </div>
-                </div>
-                <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}>
-                  <input
-                    inputMode="decimal"
-                    value={prices[p.assetId] ?? ""}
-                    placeholder={p.quote?.price ?? "შეიყვანეთ ფასი"}
-                    onChange={(e) => {
-                      setPrices((current) => ({
-                        ...current,
-                        [p.assetId]: e.target.value,
-                      }));
-                      setMessage("");
-                    }}
-                  />
-                </Field>
-              </div>
-            ))}
+            {cryptoPositions.slice(0, 6).map(priceRow)}
+            {cryptoPositions.length > 6 && <details className="scenario-remaining-assets"><summary>დარჩენილი {cryptoPositions.length - 6} აქტივის რედაქტირება</summary>{cryptoPositions.slice(6).map((p, i) => priceRow(p, i + 6))}</details>}
             {!cryptoPositions.length && (
               <p className="py-10 text-center text-xs text-muted">
                 სცენარისთვის ჯერ დაამატეთ პოზიცია.

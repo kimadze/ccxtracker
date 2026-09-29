@@ -176,6 +176,7 @@ export function Shell({ children, portfolios, userName }: {
           </div>
           <Dialog.Root open={commandOpen} onOpenChange={(open) => { setCommandOpen(open); if (!open) setQuery(""); }}>
             <Dialog.Trigger asChild><button type="button" className="ccx-search" aria-label="გვერდების ძიება"><Search size={17} aria-hidden="true" /><span className="truncate">მოძებნეთ გვერდი...</span><kbd className="ml-auto rounded border border-line px-1.5 py-0.5 text-xs">Ctrl K</kbd></button></Dialog.Trigger>
+            <Dialog.Trigger asChild><button type="button" className="ccx-icon-button mobile-command-trigger" aria-label="გვერდების ძიება"><Search size={18} /></button></Dialog.Trigger>
             <Dialog.Portal>
               <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
               <Dialog.Content className="fixed left-1/2 top-[12dvh] z-[51] w-[calc(100%-32px)] max-w-xl -translate-x-1/2 overflow-hidden rounded-xl border border-line bg-surface" aria-describedby={undefined}>

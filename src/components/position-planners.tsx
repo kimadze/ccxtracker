@@ -152,7 +152,7 @@ export function ExitPlanner({
   const [levels, setLevels] = useState<ExitLevel[]>(
       initial?.levels.map((level) => ({ price: inputNumber(level.price), percentage: inputNumber(level.percentage) })) ?? [{ price: "", percentage: "25" }],
     ),
-    [feePercent, setFee] = useState(initial?.feePercent ?? "0"),
+    [feePercent, setFee] = useState(inputNumber(initial?.feePercent ?? "0")),
     [message, setMessage] = useState(""),
     [error, setError] = useState(false),
     [pending, setPending] = useState(false);
