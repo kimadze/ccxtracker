@@ -1962,10 +1962,9 @@ tbody tr:hover {
 .exit-level-head,
 .exit-level-row {
   display: grid;
-  grid-template-columns: 42px minmax(120px, 1fr) minmax(
-      110px,
-      0.72fr
-    ) 88px 104px 32px;
+  grid-template-columns:
+    42px minmax(120px, 1fr) minmax(110px, 0.72fr)
+    88px 104px 32px;
   gap: 10px;
   align-items: center;
 }
@@ -4168,6 +4167,48 @@ tbody tr:hover {
   select {
     min-height: 44px;
   }
+
+  /* Keep the actual hit area at least 44px, including icon-only controls. */
+  .ccx-icon-button,
+  .ccx-topbar details summary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .chart-periods button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .mobile-history-disclosure > summary,
+  .mobile-overview-section > summary,
+  .mobile-calculator > summary,
+  .mobile-position-disclosure > summary,
+  .mobile-entry-details > summary,
+  .mobile-section-heading > a {
+    min-height: 44px;
+  }
+
+  .mobile-section-heading > a {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .workspace-heading .position-page-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .workspace-heading .position-page-actions > * {
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .workspace-heading .position-page-actions > :last-child {
+    grid-column: 1 / -1;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -4676,10 +4717,9 @@ tbody tr:hover {
 .watchlist-list-head,
 .watchlist-row {
   display: grid;
-  grid-template-columns: minmax(250px, 1.4fr) minmax(155px, 0.72fr) minmax(
-      180px,
-      0.85fr
-    ) 74px;
+  grid-template-columns:
+    minmax(250px, 1.4fr) minmax(155px, 0.72fr) minmax(180px, 0.85fr)
+    74px;
   align-items: center;
   gap: 20px;
 }

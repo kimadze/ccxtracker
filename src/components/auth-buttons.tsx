@@ -43,7 +43,7 @@ export function LogoutButton() {
   return (
     <>
       <button
-        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted hover:bg-raised"
+        className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted hover:bg-raised"
         onClick={async () => {
           try {
             const result = await auth.signOut();

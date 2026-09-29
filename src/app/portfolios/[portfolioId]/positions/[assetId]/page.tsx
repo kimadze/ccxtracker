@@ -47,7 +47,7 @@ export default async function Page({
         title={p.asset.name}
         description="პოზიციის შედეგები, გეგმა და საინვესტიციო თეზისი."
         action={
-          <div className="flex flex-wrap gap-3">
+          <div className="position-page-actions flex flex-wrap gap-3">
             <PositionShare position={p} />
             <DeletePosition
               portfolioId={portfolioId}
