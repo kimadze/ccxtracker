@@ -5686,6 +5686,9 @@ tbody tr:hover {
 .allocation-ledger-table > footer .button-primary {
   margin-left: auto;
 }
+.allocation-mobile-save {
+  display: none;
+}
 .allocation-ledger-side {
   display: grid;
   gap: 16px;
@@ -6380,6 +6383,13 @@ tbody tr:hover {
   }
   .allocation-ledger-table > footer .button-primary {
     margin-left: 0;
+  }
+  .allocation-mobile-save {
+    display: flex;
+    width: calc(100% - 28px);
+    min-height: 48px;
+    margin: 0 14px 14px;
+    justify-content: center;
   }
   .allocation-ledger-side {
     grid-template-columns: 1fr;

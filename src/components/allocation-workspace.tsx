@@ -50,6 +50,7 @@ export function AllocationWorkspace({ summary, assets, quotes, portfolioId, revi
         </div>; })}</div>
         {rows.length > 6 && <button type="button" className="allocation-mobile-more button-secondary" onClick={() => setShowAllRows((open) => !open)}>{showAllRows ? "ნაკლების ნახვა" : `კიდევ ${rows.length - 6} აქტივის რედაქტირება`}</button>}
         <footer><select aria-label="აქტივის დამატება" value={addId} onChange={(event) => setAddId(event.target.value)}><option value="">აქტივის დამატება…</option>{cryptoAssets.filter((item) => !(item.id in weights)).map((item) => <option value={item.id} key={item.id}>{item.symbol} · {item.name}</option>)}</select><button className="button-secondary" disabled={!addId} onClick={() => { setWeights((w) => ({ ...w, [addId]: "0" })); setAddId(""); }}><Plus size={14} /> დამატება</button>{!preview && <button className="button-primary" disabled={!valid || pending} onClick={save}><Save size={14} />{pending ? "ინახება…" : "შენახვა"}</button>}</footer>
+      {!preview && <button className="allocation-mobile-save button-primary" disabled={!valid || pending} onClick={save}><Save size={15} />{pending ? "ინახება…" : "განაწილების შენახვა"}</button>}
       </section>
 
       <aside className="allocation-ledger-side">

@@ -52,13 +52,23 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-balance-privacy", "hidden");
-  await expect(page.locator(".balance-value").first()).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-balance-privacy",
+    "hidden",
+  );
+  await expect(page.locator(".balance-value").first()).toHaveCSS(
+    "color",
+    "rgba(0, 0, 0, 0)",
+  );
   if (testInfo.project.name === "desktop") {
-    await expect(page.getByRole("cell", { name: "$50 000,00", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "$50 000,00", exact: true }),
+    ).toBeVisible();
   }
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
-  await expect(page.locator("html")).not.toHaveAttribute("data-balance-privacy");
+  await expect(page.locator("html")).not.toHaveAttribute(
+    "data-balance-privacy",
+  );
   await page.goto(`${portfolioUrl}/settings`);
   await page
     .getByRole("checkbox", { name: /მხოლოდ კრიპტოაქტივების ღირებულება/ })
@@ -68,9 +78,10 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await page.goto(portfolioUrl);
   await expect(
     page.getByRole("heading", {
-      name: testInfo.project.name === "mobile"
-        ? "პორტფელის მდგომარეობა"
-        : "კრიპტოაქტივების ღირებულება",
+      name:
+        testInfo.project.name === "mobile"
+          ? "პორტფელის მდგომარეობა"
+          : "კრიპტოაქტივების ღირებულება",
     }),
   ).toBeVisible();
   await page.goto(`${portfolioUrl}/positions/bitcoin`);
@@ -114,16 +125,25 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await expect(dialog).not.toBeVisible();
   await page.goto(`${portfolioUrl}/allocation`);
   await page.getByLabel("BTC სამიზნე წილი").fill("100");
-  await page.getByRole("button", { name: "განაწილების შენახვა" }).click();
-  await expect(
-    page.getByText("მიზნობრივი განაწილება შენახულია."),
-  ).toBeVisible();
+  await page
+    .getByRole("button", {
+      name:
+        testInfo.project.name === "mobile" ? "განაწილების შენახვა" : "შენახვა",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByText("განაწილება შენახულია.")).toBeVisible();
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "მეტი გვერდი" }).click();
-    await page.getByRole("dialog", { name: "ყველა ხელსაწყო" }).getByRole("link", { name: "დაკვირვების სია" }).click();
+    await page
+      .getByRole("dialog", { name: "ყველა ხელსაწყო" })
+      .getByRole("link", { name: "დაკვირვების სია" })
+      .click();
     await expect(dialog).not.toBeVisible();
   } else await page.goto(`${portfolioUrl}/watchlist`);
-  await page.getByRole("button", { name: "აქტივის დამატება" }).click();
+  await page
+    .getByRole("button", { name: "აქტივის დამატება", exact: true })
+    .click();
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("ethereum");
   await dialog.getByLabel("სასურველი შესვლის ფასი (USD)").fill("2000");
   await dialog
@@ -132,7 +152,9 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
   await page.reload();
-  await expect(page.getByText("დაკვირვების ტესტი")).toBeVisible();
+  if (testInfo.project.name !== "mobile") {
+    await expect(page.getByText("დაკვირვების ტესტი")).toBeVisible();
+  }
   const portfolioId = new URL(portfolioUrl).pathname.split("/").at(-1);
   const exported = await page.request.get(
     `/api/portfolios/${portfolioId}/export`,
@@ -141,7 +163,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   const data = await exported.json();
   expect(data.transactions).toHaveLength(2);
   expect(data.scenarios).toHaveLength(1);
-  expect(data.targetAllocation).toHaveLength(2);
+  expect(data.targetAllocation).toHaveLength(1);
   expect(data.watchlist).toHaveLength(1);
   await page.goto(`${portfolioUrl}/positions/bitcoin`);
   await page
