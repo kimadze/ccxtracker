@@ -4237,6 +4237,24 @@ tbody tr:hover {
 .scenario-toolbar > select {
   width: min(100%, 320px);
 }
+.strategy-plan-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+.strategy-plan-heading span {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.strategy-plan-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+}
 .strategy-mode-switch {
   display: flex;
   gap: 3px;

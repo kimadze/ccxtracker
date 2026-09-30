@@ -5,8 +5,10 @@ import type { Asset, PortfolioSummary } from "@/domain/types";
 import type { ExitLevel } from "@/domain/planning";
 import { DcaPlanner, ExitPlanner } from "./position-planners";
 import { JournalForm, type JournalData } from "./journal";
-import { Attachments } from "./attachments";
-import { investablePositions, investableValue } from "@/domain/portfolio-segments";
+import {
+  investablePositions,
+  investableValue,
+} from "@/domain/portfolio-segments";
 export function StrategyWorkspace({
   summary,
   portfolioId,
@@ -14,7 +16,6 @@ export function StrategyWorkspace({
   mode = "strategy",
   preview = false,
   journalAssets = [],
-  attachmentsEnabled = false,
 }: {
   summary: PortfolioSummary;
   portfolioId: string;
@@ -23,13 +24,11 @@ export function StrategyWorkspace({
     {
       plan: { feePercent: string; levels: ExitLevel[] } | null;
       journal: (JournalData & { id?: string }) | null;
-      files?: { id: string; name: string; size: number }[];
     }
   >;
   mode?: "strategy" | "journal";
   preview?: boolean;
   journalAssets?: Asset[];
-  attachmentsEnabled?: boolean;
 }) {
   const options = [
     ...new Map(
@@ -41,8 +40,11 @@ export function StrategyWorkspace({
   ];
   const searchParams = useSearchParams();
   const requestedAssetId = searchParams.get("asset");
-  const [assetId, setAssetId] = useState(() => options.some((asset) => asset.id === requestedAssetId) ? requestedAssetId! : (options[0]?.id ?? "")),
-    [tab, setTab] = useState("exit");
+  const [assetId, setAssetId] = useState(() =>
+    options.some((asset) => asset.id === requestedAssetId)
+      ? requestedAssetId!
+      : (options[0]?.id ?? ""),
+  );
   const p = investablePositions(summary).find((p) => p.assetId === assetId);
   if (!options.length || (mode !== "journal" && !p))
     return (
@@ -65,22 +67,6 @@ export function StrategyWorkspace({
             </option>
           ))}
         </select>
-        {mode === "strategy" && (
-          <div className="strategy-mode-switch" role="group" aria-label="სტრატეგიის რეჟიმი">
-            <button
-              className={tab === "exit" ? "button-primary" : "button-secondary"}
-              onClick={() => setTab("exit")}
-            >
-              გასვლის გეგმა
-            </button>
-            <button
-              className={tab === "dca" ? "button-primary" : "button-secondary"}
-              onClick={() => setTab("dca")}
-            >
-              DCA
-            </button>
-          </div>
-        )}
       </div>
       {mode === "journal" ? (
         <div className="space-y-6">
@@ -91,30 +77,36 @@ export function StrategyWorkspace({
             initial={data[assetId]?.journal}
             preview={preview}
           />
-          {!preview && (
-            <Attachments
-              key={`files-${assetId}`}
-              portfolioId={portfolioId}
-              journalId={data[assetId]?.journal?.id ?? null}
-              files={data[assetId]?.files ?? []}
-              enabled={attachmentsEnabled}
-            />
-          )}
         </div>
-      ) : tab === "exit" ? (
-        <ExitPlanner
-          key={assetId}
-          position={p!}
-          portfolioId={portfolioId}
-          initial={data[assetId]?.plan}
-          preview={preview}
-        />
       ) : (
-        <DcaPlanner
-          key={assetId}
-          position={p!}
-          portfolioValue={investableValue(summary)}
-        />
+        <div className="strategy-plan-stack space-y-6">
+          <section>
+            <div className="strategy-plan-heading">
+              <span>შესვლის გეგმა</span>
+              <p>
+                DCA განაწილება მიმდინარე პოზიციისა და პორტფელის ზომის მიხედვით.
+              </p>
+            </div>
+            <DcaPlanner
+              key={`${assetId}-dca`}
+              position={p!}
+              portfolioValue={investableValue(summary)}
+            />
+          </section>
+          <section>
+            <div className="strategy-plan-heading">
+              <span>გასვლის გეგმა</span>
+              <p>სამიზნე ფასები და გასაყიდი წილები.</p>
+            </div>
+            <ExitPlanner
+              key={`${assetId}-exit`}
+              position={p!}
+              portfolioId={portfolioId}
+              initial={data[assetId]?.plan}
+              preview={preview}
+            />
+          </section>
+        </div>
       )}
     </div>
   );

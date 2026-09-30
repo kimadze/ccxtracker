@@ -17,7 +17,6 @@ export function PositionWorkspace({
   entries,
   plan,
   journal,
-  attachments,
 }: {
   position: ValuedPosition;
   portfolioId: string;
@@ -27,38 +26,43 @@ export function PositionWorkspace({
   entries: LedgerEntry[];
   plan: { feePercent: string; levels: ExitLevel[] } | null;
   journal: JournalData | null;
-  attachments?: React.ReactNode;
 }) {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const supportedTabs = ["overview", "transactions", "dca", "exit", "journal"];
-  const [tab, setTab] = useState(() => supportedTabs.includes(requestedTab ?? "") ? requestedTab! : "overview");
+  const [tab, setTab] = useState(() =>
+    supportedTabs.includes(requestedTab ?? "") ? requestedTab! : "overview",
+  );
   return (
     <div className="position-workspace">
       <div className="position-workspace-toolbar">
-      <div className="position-tabs ccx-tabs">
-        {[
-          ["overview", "მიმოხილვა"],
-          ["transactions", "ტრანზაქციები"],
-          ["dca", "DCA"],
-          ["exit", "გასვლის გეგმა"],
-          ["journal", "ჟურნალი"],
-        ].map(([key, label]) => (
-          <button
-            key={key}
-            aria-pressed={tab === key}
-            onClick={() => setTab(key)}
-            className="text-xs"
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+        <div className="position-tabs ccx-tabs">
+          {[
+            ["overview", "მიმოხილვა"],
+            ["transactions", "ტრანზაქციები"],
+            ["dca", "DCA"],
+            ["exit", "გასვლის გეგმა"],
+            ["journal", "ჟურნალი"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              aria-pressed={tab === key}
+              onClick={() => setTab(key)}
+              className="text-xs"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       {tab === "overview" && (
         <div className="position-overview-grid">
           <Metric label="რაოდენობა" value={quantity(p.quantity)} />
-          <Metric label="მიმდინარე ღირებულება" value={money(p.value)} sensitive />
+          <Metric
+            label="მიმდინარე ღირებულება"
+            value={money(p.value)}
+            sensitive
+          />
           <Metric
             label="საშუალო შესყიდვის ფასი"
             value={money(p.averagePrice)}
@@ -103,7 +107,6 @@ export function PositionWorkspace({
             assetId={p.assetId}
             initial={journal}
           />
-          {attachments}
         </div>
       )}
     </div>

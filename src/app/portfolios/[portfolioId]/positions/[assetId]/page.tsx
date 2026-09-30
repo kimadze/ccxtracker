@@ -5,9 +5,6 @@ import { PositionWorkspace } from "@/components/position-workspace";
 import { strategyService } from "@/server/services/strategy";
 import { requireUser } from "@/server/auth";
 import { getDb } from "@/server/db";
-import { Attachments } from "@/components/attachments";
-import { journalAttachments } from "@/server/db/schema";
-import { and, eq } from "drizzle-orm";
 import { TransactionForm } from "@/components/transaction-form";
 import { DeletePosition } from "@/components/delete-position";
 import { PositionShare } from "@/components/position-share";
@@ -25,21 +22,6 @@ export default async function Page({
     portfolioId,
     assetId,
   );
-  const files = data.journal
-    ? await getDb()
-        .select({
-          id: journalAttachments.id,
-          name: journalAttachments.name,
-          size: journalAttachments.size,
-        })
-        .from(journalAttachments)
-        .where(
-          and(
-            eq(journalAttachments.portfolioId, portfolioId),
-            eq(journalAttachments.journalId, data.journal.id),
-          ),
-        )
-    : [];
   return (
     <>
       <PageHeading
@@ -72,16 +54,6 @@ export default async function Page({
         entries={w.entries.filter((e) => e.assetId === assetId)}
         plan={data.plan}
         journal={data.journal}
-        attachments={
-          <Attachments
-            portfolioId={portfolioId}
-            journalId={data.journal?.id ?? null}
-            files={files}
-            enabled={Boolean(
-              process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID,
-            )}
-          />
-        }
       />
     </>
   );

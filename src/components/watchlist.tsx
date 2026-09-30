@@ -8,7 +8,6 @@ import { searchAssets } from "@/server/actions";
 import { money, dateTime, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon } from "./positions";
 import { Field, Message, Modal } from "./ui";
-import { TransactionForm } from "./transaction-form";
 export interface WatchItem {
   id: string;
   asset: Asset;
@@ -39,88 +38,237 @@ export function Watchlist({
       assets.find((a) => a.id !== "USD")?.id ?? "",
     ),
     [filterQuery, setFilterQuery] = useState(""),
-    [movement, setMovement] = useState<"all" | "up" | "down" | "unpriced">("all"),
+    [movement, setMovement] = useState<"all" | "up" | "down" | "unpriced">(
+      "all",
+    ),
     [query, setQuery] = useState(""),
     [error, setError] = useState(""),
     [pending, setPending] = useState(false);
   const router = useRouter();
   const filteredItems = items.filter((item) => {
     const quote = quotes.find((q) => q.assetId === item.asset.id);
-    const matchesText = `${item.asset.name} ${item.asset.symbol}`.toLowerCase().includes(filterQuery.toLowerCase());
+    const matchesText = `${item.asset.name} ${item.asset.symbol}`
+      .toLowerCase()
+      .includes(filterQuery.toLowerCase());
     if (!matchesText) return false;
     if (movement === "up") return Number(quote?.change24h ?? 0) > 0;
     if (movement === "down") return Number(quote?.change24h ?? 0) < 0;
-    if (movement === "unpriced") return quote?.price === null || quote?.price === undefined;
+    if (movement === "unpriced")
+      return quote?.price === null || quote?.price === undefined;
     return true;
   });
-  const pricedItems = items.filter((item) => quotes.some((quote) => quote.assetId === item.asset.id && quote.price !== null));
-  const risingItems = items.filter((item) => Number(quotes.find((quote) => quote.assetId === item.asset.id)?.change24h ?? 0) > 0);
-  const fallingItems = items.filter((item) => Number(quotes.find((quote) => quote.assetId === item.asset.id)?.change24h ?? 0) < 0);
+  const pricedItems = items.filter((item) =>
+    quotes.some(
+      (quote) => quote.assetId === item.asset.id && quote.price !== null,
+    ),
+  );
+  const risingItems = items.filter(
+    (item) =>
+      Number(
+        quotes.find((quote) => quote.assetId === item.asset.id)?.change24h ?? 0,
+      ) > 0,
+  );
+  const fallingItems = items.filter(
+    (item) =>
+      Number(
+        quotes.find((quote) => quote.assetId === item.asset.id)?.change24h ?? 0,
+      ) < 0,
+  );
   return (
     <div className="watchlist-workspace space-y-4">
-      {!preview && <section className="watchlist-commandbar">
-        <div>
-          <span className="watchlist-kicker"><Eye size={14} /> ბაზრის სიგნალები</span>
-          <h2>საყურადღებო აქტივები</h2>
-          <p>პორტფელისგან დამოუკიდებელი ფასების მოკლე სამუშაო სია.</p>
+      {!preview && (
+        <section className="watchlist-commandbar">
+          <div>
+            <span className="watchlist-kicker">
+              <Eye size={14} /> ბაზრის სიგნალები
+            </span>
+            <h2>საყურადღებო აქტივები</h2>
+            <p>პორტფელისგან დამოუკიდებელი ფასების მოკლე სამუშაო სია.</p>
+          </div>
+          <button
+            className="button-primary"
+            onClick={() => {
+              setSelected(null);
+              setError("");
+              setOpen(true);
+            }}
+          >
+            <Plus size={16} /> აქტივის დამატება
+          </button>
+        </section>
+      )}
+      {!preview && (
+        <section
+          className="watchlist-summary"
+          aria-label="დაკვირვების სიის შეჯამება"
+        >
+          <button
+            className={movement === "all" ? "is-active" : ""}
+            onClick={() => setMovement("all")}
+          >
+            <span>სულ აქტივი</span>
+            <strong>{items.length}</strong>
+          </button>
+          <button
+            className={movement === "up" ? "is-active positive" : "positive"}
+            onClick={() => setMovement("up")}
+          >
+            <span>დღეს ზრდაში</span>
+            <strong>{risingItems.length}</strong>
+          </button>
+          <button
+            className={movement === "down" ? "is-active negative" : "negative"}
+            onClick={() => setMovement("down")}
+          >
+            <span>დღეს კლებაში</span>
+            <strong>{fallingItems.length}</strong>
+          </button>
+          <button
+            className={movement === "unpriced" ? "is-active" : ""}
+            onClick={() => setMovement("unpriced")}
+          >
+            <span>ფასის გარეშე</span>
+            <strong>{items.length - pricedItems.length}</strong>
+          </button>
+        </section>
+      )}
+      {!preview && (
+        <div className="watchlist-toolbar">
+          <label className="watchlist-search">
+            <Search size={17} />
+            <input
+              value={filterQuery}
+              onChange={(event) => setFilterQuery(event.target.value)}
+              placeholder="მოძებნეთ აქტივი ან სიმბოლო…"
+            />
+          </label>
+          <span>{filteredItems.length} აქტივი</span>
         </div>
-        <button className="button-primary" onClick={() => { setSelected(null); setError(""); setOpen(true); }}>
-          <Plus size={16} /> აქტივის დამატება
-        </button>
-      </section>}
-      {!preview && <section className="watchlist-summary" aria-label="დაკვირვების სიის შეჯამება">
-        <button className={movement === "all" ? "is-active" : ""} onClick={() => setMovement("all")}><span>სულ აქტივი</span><strong>{items.length}</strong></button>
-        <button className={movement === "up" ? "is-active positive" : "positive"} onClick={() => setMovement("up")}><span>დღეს ზრდაში</span><strong>{risingItems.length}</strong></button>
-        <button className={movement === "down" ? "is-active negative" : "negative"} onClick={() => setMovement("down")}><span>დღეს კლებაში</span><strong>{fallingItems.length}</strong></button>
-        <button className={movement === "unpriced" ? "is-active" : ""} onClick={() => setMovement("unpriced")}><span>ფასის გარეშე</span><strong>{items.length - pricedItems.length}</strong></button>
-      </section>}
-      {!preview && <div className="watchlist-toolbar">
-        <label className="watchlist-search"><Search size={17} /><input value={filterQuery} onChange={(event) => setFilterQuery(event.target.value)} placeholder="მოძებნეთ აქტივი ან სიმბოლო…" /></label>
-        <span>{filteredItems.length} აქტივი</span>
-      </div>}
+      )}
       <div className="watchlist-items">
-        <div className="watchlist-list-head" aria-hidden="true"><span>აქტივი</span><span>მიმდინარე ფასი</span><span>სასურველი შესვლა</span><span /></div>
+        <div className="watchlist-list-head" aria-hidden="true">
+          <span>აქტივი</span>
+          <span>მიმდინარე ფასი</span>
+          <span>სასურველი შესვლა</span>
+          <span />
+        </div>
         {filteredItems.map((item, i) => {
           const quote = quotes.find((q) => q.assetId === item.asset.id);
           const currentPrice = Number(quote?.price ?? NaN);
           const targetPrice = Number(item.entryPrice ?? NaN);
-          const targetGap = Number.isFinite(currentPrice) && Number.isFinite(targetPrice) && targetPrice !== 0
-            ? String(((currentPrice - targetPrice) / targetPrice) * 100) : null;
-          const closeToTarget = targetGap !== null && Math.abs(Number(targetGap)) <= 5;
+          const targetGap =
+            Number.isFinite(currentPrice) &&
+            Number.isFinite(targetPrice) &&
+            targetPrice !== 0
+              ? String(((currentPrice - targetPrice) / targetPrice) * 100)
+              : null;
+          const closeToTarget =
+            targetGap !== null && Math.abs(Number(targetGap)) <= 5;
           return (
-            <div
-              key={item.id}
-              className="watchlist-row"
-            >
+            <div key={item.id} className="watchlist-row">
               <div className="watchlist-asset">
-                <AssetIcon symbol={item.asset.symbol} logoUrl={item.asset.logoUrl} index={i} />
+                <AssetIcon
+                  symbol={item.asset.symbol}
+                  logoUrl={item.asset.logoUrl}
+                  index={i}
+                />
                 <div>
-                  <p>{item.asset.name} <span>{item.asset.symbol}</span></p>
+                  <p>
+                    {item.asset.name} <span>{item.asset.symbol}</span>
+                  </p>
                   <small>დამატებულია {dateTime(item.createdAt, true)}</small>
                   {item.notes && (
                     <small className="watchlist-note">{item.notes}</small>
                   )}
                 </div>
               </div>
-              <div className="watchlist-price"><span>მიმდინარე ფასი</span><strong>{money(quote?.price ?? null)}</strong><small className={pnlClass(quote?.change24h === null || quote?.change24h === undefined ? null : String(quote.change24h))}>
-                    {percentage(quote?.change24h === null || quote?.change24h === undefined ? null : String(quote.change24h), true)}
-                    {quote?.stale ? " · მოძველებულია" : ""}
-              </small></div>
-              <div className="watchlist-target"><span><Target size={13} /> სასურველი შესვლა</span><strong>{money(item.entryPrice)}</strong><small className={closeToTarget ? "watchlist-target-near" : pnlClass(targetGap)}>{targetGap === null ? "ფასი არ არის მითითებული" : closeToTarget ? "შესვლის ფასთან ახლოსაა" : `${percentage(targetGap, true)} შესვლის ფასიდან`}</small></div>
-              {!preview && <div className="watchlist-actions">
-                <TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} initialAsset={item.asset.id} triggerLabel="ყიდვა" />
-                <button aria-label={`${item.asset.symbol} რედაქტირება`} onClick={() => { setSelected(item); setAssetId(item.asset.id); setError(""); setOpen(true); }}><Pencil size={15} /></button>
-                <button className="danger" aria-label={`${item.asset.symbol} წაშლა`} onClick={() => { setDeleting(item.id); setError(""); }}><Trash2 size={15} /></button>
-              </div>}
+              <div className="watchlist-price">
+                <span>მიმდინარე ფასი</span>
+                <strong>{money(quote?.price ?? null)}</strong>
+                <small
+                  className={pnlClass(
+                    quote?.change24h === null || quote?.change24h === undefined
+                      ? null
+                      : String(quote.change24h),
+                  )}
+                >
+                  {percentage(
+                    quote?.change24h === null || quote?.change24h === undefined
+                      ? null
+                      : String(quote.change24h),
+                    true,
+                  )}
+                  {quote?.stale ? " · მოძველებულია" : ""}
+                </small>
+              </div>
+              <div className="watchlist-target">
+                <span>
+                  <Target size={13} /> სასურველი შესვლა
+                </span>
+                <strong>{money(item.entryPrice)}</strong>
+                <small
+                  className={
+                    closeToTarget
+                      ? "watchlist-target-near"
+                      : pnlClass(targetGap)
+                  }
+                >
+                  {targetGap === null
+                    ? "ფასი არ არის მითითებული"
+                    : closeToTarget
+                      ? "შესვლის ფასთან ახლოსაა"
+                      : `${percentage(targetGap, true)} შესვლის ფასიდან`}
+                </small>
+              </div>
+              {!preview && (
+                <div className="watchlist-actions">
+                  <button
+                    aria-label={`${item.asset.symbol} რედაქტირება`}
+                    onClick={() => {
+                      setSelected(item);
+                      setAssetId(item.asset.id);
+                      setError("");
+                      setOpen(true);
+                    }}
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <button
+                    className="danger"
+                    aria-label={`${item.asset.symbol} წაშლა`}
+                    onClick={() => {
+                      setDeleting(item.id);
+                      setError("");
+                    }}
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
         {!filteredItems.length && (
           <div className="watchlist-empty">
             <Eye size={22} />
-            <h2>{items.length ? "აქტივი ვერ მოიძებნა" : "დაკვირვების სია ჯერ ცარიელია"}</h2>
-            <p>{items.length ? "შეცვალეთ ძიება ან სტატუსის ფილტრი." : "დაამატეთ აქტივები, რომელთა ფასსაც აკვირდებით. ისინი პორტფელის ღირებულებაში არ ჩაითვლება."}</p>
-            {!items.length && !preview && <button className="button-secondary" onClick={() => setOpen(true)}><Plus size={15} /> პირველი აქტივის დამატება</button>}
+            <h2>
+              {items.length
+                ? "აქტივი ვერ მოიძებნა"
+                : "დაკვირვების სია ჯერ ცარიელია"}
+            </h2>
+            <p>
+              {items.length
+                ? "შეცვალეთ ძიება ან სტატუსის ფილტრი."
+                : "დაამატეთ აქტივები, რომელთა ფასსაც აკვირდებით. ისინი პორტფელის ღირებულებაში არ ჩაითვლება."}
+            </p>
+            {!items.length && !preview && (
+              <button
+                className="button-secondary"
+                onClick={() => setOpen(true)}
+              >
+                <Plus size={15} /> პირველი აქტივის დამატება
+              </button>
+            )}
           </div>
         )}
       </div>
