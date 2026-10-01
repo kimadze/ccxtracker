@@ -9634,6 +9634,58 @@ body {
     background: var(--surface);
     box-shadow: none;
   }
+  .mobile-liquidity-strip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+  }
+  .mobile-liquidity-strip > div span,
+  .mobile-liquidity-strip > div strong { display: block; }
+  .mobile-liquidity-strip > div span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-mid);
+    font-size: 11px;
+  }
+  .mobile-liquidity-strip > div span svg { color: #a98fff; }
+  .mobile-liquidity-strip > div strong { margin-top: 7px; font-size: 16px; }
+  .mobile-liquidity-strip > i { width: 1px; height: 46px; background: var(--border-soft); }
+  .mobile-history-disclosure { overflow: hidden; }
+  .mobile-history-disclosure > summary {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .mobile-history-disclosure > summary::-webkit-details-marker { display: none; }
+  .mobile-history-disclosure > summary strong,
+  .mobile-history-disclosure > summary small { display: block; }
+  .mobile-history-disclosure > summary small { margin-top: 4px; color: var(--text-mid); font-size: 11px; }
+  .mobile-history-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 10px; }
+  .mobile-history-disclosure .mobile-chart-slot { border-top: 1px solid var(--border-soft); padding: 16px; }
+  .mobile-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mobile-section-heading h2 { font-size: 15px; font-weight: 650; }
+  .mobile-section-heading > a { display: inline-flex; align-items: center; gap: 3px; color: #a98fff; font-size: 11px; }
+  .mobile-allocation-strip { display: flex; height: 10px; gap: 2px; margin-top: 16px; overflow: hidden; border-radius: 999px; background: var(--surface-2); }
+  .mobile-allocation-strip span { min-width: 3px; }
+  .mobile-allocation-compact > p { margin-top: 10px; color: var(--text-low); font-size: 10px; }
+  .mobile-position-list { display: grid; margin-top: 12px; border-top: 1px solid var(--border-soft); }
+  .mobile-position-list > a {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 11px;
+    color: var(--text-hi);
+  }
+  .mobile-position-list > a > div:nth-child(2) strong,
+  .mobile-position-value strong { display: block; font-size: 13px; }
+  .mobile-position-list > a > div:nth-child(2) span,
+  .mobile-position-value span { display: block; margin-top: 3px; color: var(--text-mid); font-size: 10px; }
+  .mobile-position-value { text-align: right; }
   .mobile-liquidity-strip,
   .mobile-history-disclosure,
   .mobile-allocation-compact,
