@@ -210,7 +210,7 @@ export function Shell({
         checked={mobileOpen}
         onChange={(event) => setMobileOpen(event.target.checked)}
       />
-      <div className={clsx("drawer-content flex min-w-0 flex-1 flex-col bg-base-100", collapsed && "compact", "ccx-content")}>
+      <div className="drawer-content flex min-w-0 flex-1 flex-col bg-base-100">
         <header className="navbar sticky top-0 z-20 min-h-16 border-b border-base-300 bg-base-100/95 px-4 backdrop-blur-xl lg:px-6 ccx-topbar">
           <div className="navbar-start min-w-0 gap-3">
             <div className="mobile-topbar-brand">

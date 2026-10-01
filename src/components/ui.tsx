@@ -122,7 +122,7 @@ export function Field({
     : "";
   return (
     <fieldset className="fieldset">
-      <legend className="fieldset-legend">{label}</legend>
+      <legend className="fieldset-legend"><label htmlFor={id}>{label}</label></legend>
       {isValidElement(children)
         ? cloneElement(
             children as ReactElement<{ id?: string; className?: string }>,

@@ -37,7 +37,7 @@ export function HistoryChart({
     const observer = new ResizeObserver(update);
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [snapshots.length, period]);
   const points = useMemo(() => {
     const days = showPeriodControls
       ? { "1D": 1, "7D": 7, "1M": 30, "3M": 90, "1Y": 365, ALL: Infinity }[
@@ -61,7 +61,7 @@ export function HistoryChart({
   }, [snapshots, period, showPeriodControls]);
   if (!snapshots.length)
     return (
-      <div className="history-empty flex flex-col items-start justify-center text-left">
+      <div className="py-4 text-left">
         <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
         <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
           მიმდინარე შეფასება ავტომატურად შეინახება და ყოველდღიური განახლებები
@@ -74,7 +74,7 @@ export function HistoryChart({
     <div>
       {showPeriodControls && (
         <div
-          className="chart-periods mb-3"
+          className="tabs tabs-box mb-3 flex flex-wrap"
           role="group"
           aria-label="გრაფიკის პერიოდი"
         >
@@ -83,7 +83,7 @@ export function HistoryChart({
               key={item}
               type="button"
               aria-pressed={period === item}
-              className={period === item ? "active" : ""}
+              className={`tab min-h-11 ${period === item ? "tab-active" : ""}`}
               onClick={() => setPeriod(item)}
             >
               {item}
@@ -100,7 +100,7 @@ export function HistoryChart({
       )}
       <div
         ref={chartRef}
-        className="dashboard-chart h-56 w-full"
+        className={points.length < 2 ? "hidden" : "h-56 w-full min-w-0"}
         role="img"
         aria-label={
           illustrative
