@@ -21,16 +21,20 @@
   --color-neutral: #202126;
   --color-neutral-content: #f7f7f8;
   --color-info: #62a9ff;
+  --color-info-content: #07111f;
   --color-success: #35d6a0;
+  --color-success-content: #07140f;
   --color-warning: #f4ba62;
+  --color-warning-content: #1a1003;
   --color-error: #ff6b86;
+  --color-error-content: #1d050b;
   --radius-selector: 0.5rem;
   --radius-field: 0.55rem;
   --radius-box: 1rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
-  --depth: 0;
+  --depth: 1;
   --noise: 0;
 }
 @import "@fontsource/noto-sans-georgian/400.css";

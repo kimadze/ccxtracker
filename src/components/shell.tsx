@@ -80,45 +80,45 @@ function Navigation({
   onNavigate?: () => void;
 }) {
   return (
-    <nav aria-label="მთავარი ნავიგაცია" className="menu flex-1 space-y-2">
+    <ul aria-label="მთავარი ნავიგაცია" className="menu menu-md w-full flex-1 gap-1">
       {groups.map((group) => (
-        <div key={group.title}>
-          <p className="ccx-section-label nav-label">{group.title}</p>
-          <div className="space-y-1">
+        <li key={group.title}>
+          <h2 className="menu-title ccx-section-label nav-label">{group.title}</h2>
+          <ul>
             {group.links.map(([segment, label, Icon]) => {
               const href = base + (segment ? "/" + segment : "");
               const active =
                 path === href ||
                 (segment === "positions" && path.startsWith(href + "/"));
               return (
-                <Link
-                  key={segment}
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  aria-label={label}
-                  title={label}
-                  onClick={onNavigate}
-                  className={clsx(
-                    "menu-item btn btn-ghost min-h-11 justify-start gap-3 rounded-box text-sm",
-                    active && "menu-active bg-primary/15 text-primary",
-                    compact && "justify-center",
-                    "ccx-nav-link",
-                  )}
-                >
-                  <Icon
-                    aria-hidden="true"
-                    size={18}
-                    strokeWidth={1.75}
-                    className="shrink-0"
-                  />
-                  <span className="nav-label truncate">{label}</span>
-                </Link>
+                <li key={segment}>
+                  <Link
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={label}
+                    title={label}
+                    onClick={onNavigate}
+                    className={clsx(
+                      active && "menu-active",
+                      compact && "justify-center",
+                      "min-h-11 gap-3 rounded-field text-sm ccx-nav-link",
+                    )}
+                  >
+                    <Icon
+                      aria-hidden="true"
+                      size={18}
+                      strokeWidth={1.75}
+                      className="shrink-0"
+                    />
+                    <span className="nav-label truncate">{label}</span>
+                  </Link>
+                </li>
               );
             })}
-          </div>
-        </div>
+          </ul>
+        </li>
       ))}
-    </nav>
+    </ul>
   );
 }
 
@@ -196,34 +196,16 @@ export function Shell({
 
   return (
     <div className="drawer lg:drawer-open min-h-screen bg-base-100 ccx-shell">
-      <aside
-        className={clsx(
-          "menu drawer-side z-30 w-64 max-w-[85vw] overflow-y-auto border-r border-base-300 bg-base-200 px-3 py-5",
-          collapsed && "compact",
-        )}
-        aria-label="გვერდითი მენიუ"
-      >
-        <div className="mb-5 flex items-center px-1">
-          <Brand compact={collapsed} />
-        </div>
-        <Navigation base={base} path={path} compact={collapsed} />
-        <div className="mt-5 border-t border-line pt-4">
-          {!collapsed && (
-            <div className="nav-label">
-              <PortfolioCreate compact />
-            </div>
-          )}
-          <div className="nav-label">
-            <LogoutButton />
-          </div>
-          <p className="nav-label mt-4 px-3 text-xs text-muted">
-            Crypto Collective X
-          </p>
-        </div>
-      </aside>
+      <input
+        id="ccx-main-drawer"
+        type="checkbox"
+        className="drawer-toggle"
+        checked={mobileOpen}
+        onChange={(event) => setMobileOpen(event.target.checked)}
+      />
       <div className={clsx("drawer-content flex min-w-0 flex-1 flex-col bg-base-100", collapsed && "compact", "ccx-content")}>
         <header className="navbar sticky top-0 z-20 min-h-16 border-b border-base-300 bg-base-100/95 px-4 backdrop-blur-xl lg:px-6 ccx-topbar">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="navbar-start min-w-0 gap-3">
             <div className="mobile-topbar-brand">
               <Brand compact />
             </div>
@@ -236,57 +218,20 @@ export function Shell({
             >
               <Menu size={18} />
             </button>
-            <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
-              <Dialog.Trigger asChild>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-square mobile-menu-trigger ccx-icon-button"
-                  aria-label="მენიუს გახსნა"
-                >
-                  <Menu size={19} />
-                </button>
-              </Dialog.Trigger>
-              <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
-                <Dialog.Content
-                  className="ccx-sidebar mobile fixed z-[51] overflow-y-auto px-3 py-5"
-                  aria-describedby={undefined}
-                >
-                  <div className="mb-5 flex items-center justify-between px-1">
-                    <Dialog.Title className="sr-only">
-                      მთავარი მენიუ
-                    </Dialog.Title>
-                    <Brand />
-                    <Dialog.Close
-                      className="btn btn-ghost btn-square ccx-icon-button"
-                      aria-label="მენიუს დახურვა"
-                    >
-                      <X size={18} />
-                    </Dialog.Close>
-                  </div>
-                  <Navigation
-                    base={base}
-                    path={path}
-                    compact={false}
-                    onNavigate={() => setMobileOpen(false)}
-                  />
-                  <div className="mt-5 border-t border-line pt-4">
-                    <PortfolioCreate
-                      compact
-                      onCreated={() => setMobileOpen(false)}
-                    />
-                    <LogoutButton />
-                  </div>
-                </Dialog.Content>
-              </Dialog.Portal>
-            </Dialog.Root>
+            <label
+              htmlFor="ccx-main-drawer"
+              className="btn btn-ghost btn-square drawer-button mobile-menu-trigger ccx-icon-button"
+              aria-label="მენიუს გახსნა"
+            >
+              <Menu size={19} />
+            </label>
             <div className="breadcrumb min-w-0 text-xs text-muted">
               <span>პორტფელი</span>
               <span className="mx-2 text-foreground/30">/</span>
               <span className="truncate text-foreground">{currentSection}</span>
             </div>
           </div>
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="navbar-end min-w-0 gap-3">
             <BalancePrivacyToggle />
             <label className="relative block w-[clamp(126px,17vw,220px)] min-w-0">
               <span className="sr-only">პორტფელის არჩევა</span>
@@ -321,7 +266,7 @@ export function Shell({
                 <span className="hidden truncate sm:block">{userName}</span>
                 <ChevronDown size={13} className="text-muted" />
               </summary>
-              <div className="menu absolute right-0 top-12 z-40 w-48 rounded-box border border-base-300 bg-base-200 p-2 shadow-xl">
+              <div className="dropdown-content z-40 mt-2 w-48 rounded-box border border-base-300 bg-base-200 p-2 shadow-xl">
                 <Link href={base + "/settings"} className="ccx-nav-link">
                   <Settings2 size={16} /> პარამეტრები
                 </Link>
@@ -350,13 +295,14 @@ export function Shell({
                 aria-label={String(label)}
                 className={clsx(
                   "mobile-bottom-link",
+                  active && "dock-active",
                   segment === "transactions" && "mobile-bottom-primary",
                 )}
               >
                 <span className="mobile-bottom-icon">
                   <Icon size={segment === "transactions" ? 24 : 19} />
                 </span>
-                <span>{label}</span>
+                <span className="dock-label">{label}</span>
               </Link>
             );
           })}
@@ -368,7 +314,7 @@ export function Shell({
                 aria-label="მეტი გვერდი"
               >
                 <Menu size={19} />
-                <span>მეტი</span>
+                <span className="dock-label">მეტი</span>
               </button>
             </Dialog.Trigger>
             <Dialog.Portal>
@@ -422,6 +368,43 @@ export function Shell({
           <span>© {new Date().getFullYear()} Crypto Collective X</span>
           <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
         </footer>
+      </div>
+      <div className="drawer-side z-30">
+        <label
+          htmlFor="ccx-main-drawer"
+          aria-label="მენიუს დახურვა"
+          className="drawer-overlay"
+        />
+        <aside
+          className={clsx(
+            "flex min-h-full w-64 max-w-[85vw] flex-col overflow-y-auto border-r border-base-300 bg-base-200 px-3 py-5 text-base-content",
+            collapsed && "compact",
+          )}
+          aria-label="გვერდითი მენიუ"
+        >
+          <div className="mb-5 flex items-center px-1">
+            <Brand compact={collapsed} />
+          </div>
+          <Navigation
+            base={base}
+            path={path}
+            compact={collapsed}
+            onNavigate={() => setMobileOpen(false)}
+          />
+          <div className="mt-5 border-t border-base-300 pt-4">
+            {!collapsed && (
+              <div className="nav-label">
+                <PortfolioCreate compact />
+              </div>
+            )}
+            <div className="nav-label">
+              <LogoutButton />
+            </div>
+            <p className="nav-label mt-4 px-3 text-xs text-base-content/50">
+              Crypto Collective X
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
   );
