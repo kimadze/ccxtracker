@@ -9533,6 +9533,11 @@ body {
 
 @media (max-width: 1023px) {
   body { background: #0e0f12; }
+  .ccx-content,
+  .ccx-content.compact {
+    width: 100%;
+    padding-left: 0;
+  }
   .ccx-topbar {
     min-height: 60px;
     border-bottom: 0;
