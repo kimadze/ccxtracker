@@ -65,7 +65,7 @@ export function TransactionForm({
     <>
       <button
         className={
-          entry ? "text-xs text-brand hover:underline" : "button-primary"
+          entry ? "btn btn-ghost btn-xs" : "btn btn-primary"
         }
         onClick={() => {
           setSubmissionId(entry?.id ?? crypto.randomUUID());
@@ -153,15 +153,15 @@ export function TransactionForm({
             }
           }}
         >
-          <div>
-            <p className="field-label">ტრანზაქციის ტიპი</p>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">ტრანზაქციის ტიპი</legend>
             <div
-              className="transaction-kind-selector"
+              className="tabs tabs-box grid grid-cols-2 gap-1 sm:grid-cols-3"
               role="group"
               aria-label="ტრანზაქციის ტიპი"
             >
               {Object.entries(kindLabels).map(([value, label]) => (
-                <button className="btn btn-ghost"
+                <button className={`tab h-auto min-h-11 whitespace-normal px-2 py-2 ${kind === value ? "tab-active" : ""}`}
                   key={value}
                   type="button"
                   aria-pressed={kind === value}
@@ -171,7 +171,7 @@ export function TransactionForm({
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="აქტივი">
               <select className="select select-bordered"
@@ -186,8 +186,8 @@ export function TransactionForm({
               </select>
             </Field>
           </div>
-          <div className="flex gap-2">
-            <input className="input input-bordered"
+          <div className="join flex w-full">
+            <input className="input join-item min-w-0 flex-1"
               aria-label="სხვა აქტივის ძიება"
               placeholder="სხვა აქტივის ძიება…"
               value={query}
@@ -195,7 +195,7 @@ export function TransactionForm({
             />
             <button
               type="button"
-              className="btn btn-ghost button-secondary shrink-0"
+              className="btn join-item shrink-0"
               disabled={searching || query.trim().length < 2}
               onClick={async () => {
                 setSearching(true);
@@ -274,16 +274,16 @@ export function TransactionForm({
             </Field>
           </div>
           {kind === "buy" && (
-            <p className="text-xs leading-6 text-muted">
+            <div role="alert" className="alert alert-info alert-soft text-xs leading-6">
               შესყიდვა თანხის ნაშთიდან დაიფარება. საჭიროების შემთხვევაში ჯერ
               ჩაიწერეთ USD-ის შეტანა.
-            </p>
+            </div>
           )}
           {kind === "deposit" && !isCash && (
-            <p className="text-xs leading-6 text-muted">
+            <div role="alert" className="alert alert-info alert-soft text-xs leading-6">
               თუ თვითღირებულება უცნობია, დატოვეთ ცარიელი. შესაბამისი მოგება /
               ზარალი არ გამოითვლება.
-            </p>
+            </div>
           )}
           {kind === "airdrop" && (
             <>
@@ -312,10 +312,10 @@ export function TransactionForm({
                   </select>
                 </Field>
               </div>
-              <p className="text-xs leading-6 text-muted">
+              <div role="alert" className="alert alert-info alert-soft text-xs leading-6">
                 Airdrop პორტფელში დაემატება თანხის ნაშთის შემცირების გარეშე.
                 მიღების ფასი გახდება მისი საწყისი თვითღირებულება.
-              </p>
+              </div>
             </>
           )}
           <Field label="შენიშვნა">
@@ -328,7 +328,7 @@ export function TransactionForm({
             />
           </Field>
           {entry && (
-            <label className="flex items-start gap-3 text-xs leading-5 text-muted">
+            <label className="label cursor-pointer items-start justify-start gap-3 text-xs leading-5">
               <input type="checkbox" required className="checkbox checkbox-primary mt-1" />
               ვადასტურებ ისტორიის შესწორებასა და შემდგომი ტრანზაქციების თავიდან
               გამოთვლას.
@@ -338,13 +338,14 @@ export function TransactionForm({
           <div className="flex justify-end gap-3">
             <button
               type="button"
-              className="btn btn-ghost button-secondary"
+              className="btn"
               disabled={pending}
               onClick={() => setOpen(false)}
             >
               გაუქმება
             </button>
-            <button disabled={pending} className="btn btn-primary button-primary">
+            <button disabled={pending} className="btn btn-primary">
+              {pending && <span className="loading loading-spinner loading-xs" />}
               {pending ? "ინახება…" : "შენახვა"}
             </button>
           </div>

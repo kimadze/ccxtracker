@@ -55,15 +55,16 @@ export function Analytics({
     .sort((a, b) => Number(b.returnPercent) - Number(a.returnPercent));
   const hasHistory = snapshots.length > 0;
   return (
-    <div className="analytics-workspace space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-3">
+    <div className="space-y-6">
+      <section className="card card-border bg-base-200">
+        <div className="card-body gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
           <p className="text-sm font-semibold">შედეგების ანალიზი</p>
-          <p className="mt-1 text-[11px] text-muted">
+          <p className="mt-1 text-xs text-base-content/60">
             პორტფელის შედეგი, რისკი და attribution
           </p>
         </div>
-        <div className="flex flex-wrap gap-1 rounded-lg bg-raised/60 p-1">
+        <div className="tabs tabs-box overflow-x-auto">
           {[
             ["1", "24 საათი"],
             ["7", "7 დღე"],
@@ -76,14 +77,14 @@ export function Analytics({
               key={value}
               aria-pressed={period === value}
               onClick={() => setPeriod(value)}
-              className={`min-h-10 rounded-lg border px-3 py-2 text-xs font-medium ${period === value ? "border-brand/30 bg-brand/15 text-brand" : "border-transparent text-muted hover:bg-raised hover:text-foreground"}`}
+              className={`tab shrink-0 ${period === value ? "tab-active" : ""}`}
             >
               {label}
             </button>
           ))}
-        </div>
-      </div>
-      <div className="analytics-metrics">
+        </div></div>
+      </section>
+      <div className="stats stats-vertical w-full border border-base-300 bg-base-200 shadow-sm sm:stats-horizontal">
         <AnalyticsMetric
           icon={<TrendingUp size={18} />}
           label="პერიოდის შემოსავლიანობა"
@@ -100,23 +101,23 @@ export function Analytics({
         />
       </div>
       {hasHistory ? (
-        <section className="card panel analytics-history overflow-hidden">
-          <div className="flex items-center justify-between border-b border-line p-5">
+        <section className="card card-border overflow-hidden bg-base-200">
+          <div className="flex items-center justify-between border-b border-base-300 p-5">
             <div>
               <h2 className="text-sm font-semibold">ღირებულების ისტორია</h2>
-              <p className="mt-1 text-[10px] text-muted">
+              <p className="mt-1 text-xs text-base-content/60">
                 არჩეული პერიოდის პორტფელის დინამიკა
               </p>
             </div>
-            <span className="rounded-md border border-line px-2 py-1 text-xs text-muted">
+            <span className="badge badge-outline">
               შენახული ისტორია
             </span>
           </div>
           <div className="p-5">
             <HistoryChart snapshots={selected} showPeriodControls={false} />
-            <details className="analytics-method mt-4 text-[11px] leading-6 text-muted">
-              <summary>გამოთვლის შესახებ</summary>
-              <p className="mt-2">
+            <details className="collapse collapse-arrow mt-4 bg-base-100 text-xs leading-6">
+              <summary className="collapse-title font-medium">გამოთვლის შესახებ</summary>
+              <p className="collapse-content text-base-content/60">
                 შემოსავლიანობა და ვარდნა მიახლოებითი შეფასებებია: ყოველდღიური
                 მონაცემები თანხის შეტანა-გატანის გათვალისწინებით მუშავდება
                 (Modified Dietz). აქტივის გადატანის ან ისტორიის მნიშვნელოვანი
@@ -128,33 +129,33 @@ export function Analytics({
         </section>
       ) : (
         <section
-          className="analytics-history-status"
+          className="alert alert-info alert-soft sm:alert-horizontal"
           aria-label="პორტფელის ისტორიის სტატუსი"
         >
           <div>
-            <p className="analytics-status-kicker">პორტფელის ისტორია</p>
-            <h2>პირველი შეფასება ინახება ავტომატურად</h2>
-            <p>
+            <span className="badge badge-info mb-2">პორტფელის ისტორია</span>
+            <h2 className="font-semibold">პირველი შეფასება ინახება ავტომატურად</h2>
+            <p className="mt-1 text-sm leading-6">
               ამ დროისთვის შენახული შეფასება არ მოიძებნა. შემდეგი ფასის
               განახლება ამ პორტფელის ღირებულებას ავტომატურად დაამატებს
               ისტორიაში.
             </p>
           </div>
-          <span>მონიტორინგი აქტიურია</span>
+          <span className="badge badge-success whitespace-nowrap">მონიტორინგი აქტიურია</span>
         </section>
       )}
       <PerformanceAttribution attribution={attribution} />
-      <section className="card panel analytics-health overflow-hidden">
-        <div className="border-b border-line p-5">
+      <section className="card card-border overflow-hidden bg-base-200">
+        <div className="border-b border-base-300 p-5">
           <h2 className="text-sm font-semibold">პორტფელის მდგომარეობა</h2>
-          <p className="mt-1 text-[10px] text-muted">
+          <p className="mt-1 text-xs text-base-content/60">
             კონცენტრაციისა და რეზერვის სწრაფი კონტროლი
           </p>
         </div>
         <div className="p-5">
           {health ? (
             <>
-              <div className="mt-1 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <div className="stats stats-vertical w-full bg-base-100 lg:stats-horizontal">
                 <AnalyticsMetric
                   icon={<ShieldCheck size={17} />}
                   label="ყველაზე დიდი პოზიცია"
@@ -180,8 +181,8 @@ export function Analytics({
                   tone="brand"
                 />
               </div>
-              <p className="mt-6 rounded-lg bg-raised p-4 text-xs leading-7">
-                <span className="text-brand">
+              <div role="alert" className="alert alert-info alert-soft mt-5 text-xs leading-7">
+                <span>
                   კონცენტრაცია:{" "}
                   {health.concentration === "high"
                     ? "მაღალი"
@@ -192,27 +193,27 @@ export function Analytics({
                 </span>{" "}
                 {health.largestSymbol} პორტფელის {percentage(health.largest)}-ს
                 შეადგენს.
-              </p>
-              <details className="mt-3 text-[11px] leading-6 text-muted">
-                <summary>მაჩვენებლის განმარტება</summary>
-                <p className="mt-2">
+              </div>
+              <details className="collapse collapse-arrow mt-3 bg-base-100 text-xs leading-6">
+                <summary className="collapse-title font-medium">მაჩვენებლის განმარტება</summary>
+                <p className="collapse-content text-base-content/60">
                   კონცენტრაცია და ეფექტური რაოდენობა ითვლება მხოლოდ არასტეიბლ
                   კრიპტოაქტივებით. Cash და სტეიბლკოინები ცალკე ლიკვიდობად რჩება.
                 </p>
               </details>
             </>
           ) : (
-            <p className="mt-6 text-xs leading-6 text-muted">
+            <div role="alert" className="alert alert-info alert-soft mt-2 text-xs leading-6">
               შეფასებისთვის საჭიროა დადებითი ღირებულება და ყველა აქტივის
               განახლებული ფასი.
-            </p>
+            </div>
           )}
         </div>
       </section>
       {performers.length > 0 && (
-        <div className="analytics-performers">
+        <div className="grid gap-4 md:grid-cols-2">
           <Link
-            className="analytics-performer positive"
+            className="card card-border bg-success/5 transition hover:border-success"
             href={`/portfolios/${portfolioId}/positions/${performers[0].assetId}`}
           >
             <AnalyticsMetric
@@ -227,7 +228,7 @@ export function Analytics({
             />
           </Link>
           <Link
-            className="analytics-performer negative"
+            className="card card-border bg-error/5 transition hover:border-error"
             href={`/portfolios/${portfolioId}/positions/${performers.at(-1)!.assetId}`}
           >
             <AnalyticsMetric
@@ -259,23 +260,14 @@ function AnalyticsMetric({
   tone: "positive" | "negative" | "brand";
   result?: string | null;
 }) {
-  const color =
-    tone === "positive"
-      ? "text-positive bg-positive/10"
-      : tone === "negative"
-        ? "text-negative bg-negative/10"
-        : "text-brand bg-brand/10";
+  const color = tone === "positive" ? "text-success" : tone === "negative" ? "text-error" : "text-primary";
   return (
-    <article className="analytics-metric">
-      <span
-        className={`flex size-9 items-center justify-center rounded-lg ${color}`}
-      >
-        {icon}
-      </span>
+    <article className="stat min-w-0">
+      <div className={`stat-figure ${color}`}>{icon}</div>
       <div>
-        <p className="text-xs text-muted">{label}</p>
+        <p className="stat-title whitespace-normal text-xs">{label}</p>
         <p
-          className={`numeric mt-1 text-lg font-semibold ${result === undefined ? "" : pnlClass(result)}`}
+          className={`stat-value numeric mt-1 whitespace-normal text-xl ${result === undefined ? color : pnlClass(result)}`}
         >
           {value}
         </p>

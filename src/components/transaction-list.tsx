@@ -49,14 +49,15 @@ export function TransactionList({
   const hasFilters = Boolean(search || kind || from || to);
   const resetFilters = () => { setSearch(""); setKind(""); setFrom(""); setTo(""); setPage(0); };
   return (
-    <div className="transaction-workspace space-y-5">
-      <div className="ledger-toolbar">
-        <div className="ledger-kind-tabs" role="group" aria-label="სწრაფი ფილტრი">
-          <button type="button" className={!kind ? "is-active" : ""} onClick={() => { setKind(""); setPage(0); }}>ყველა <span>{entries.length}</span></button>
-          {(["buy", "sell", "deposit", "withdrawal", "fee", "airdrop"] as const).map((value) => <button key={value} type="button" className={kind === value ? "is-active" : ""} onClick={() => { setKind(value); setPage(0); }}>{kindLabels[value]} <span>{entries.filter((entry) => entry.kind === value).length}</span></button>)}
+    <div className="space-y-5">
+      <section className="card card-border bg-base-200">
+        <div className="card-body gap-4 p-4 sm:p-5">
+        <div className="tabs tabs-box overflow-x-auto" role="group" aria-label="სწრაფი ფილტრი">
+          <button type="button" className={`tab shrink-0 ${!kind ? "tab-active" : ""}`} onClick={() => { setKind(""); setPage(0); }}>ყველა <span className="badge badge-sm ml-2">{entries.length}</span></button>
+          {(["buy", "sell", "deposit", "withdrawal", "fee", "airdrop"] as const).map((value) => <button key={value} type="button" className={`tab shrink-0 ${kind === value ? "tab-active" : ""}`} onClick={() => { setKind(value); setPage(0); }}>{kindLabels[value]} <span className="badge badge-sm ml-2">{entries.filter((entry) => entry.kind === value).length}</span></button>)}
         </div>
       <div className="flex flex-wrap items-end gap-3">
-        <label className="positions-search max-w-sm"><Search size={16} aria-hidden="true" /><span className="sr-only">ტრანზაქციების ძიება</span><input className="input input-bordered"
+        <label className="input min-w-0 flex-1 md:max-w-sm"><Search size={16} aria-hidden="true" /><span className="sr-only">ტრანზაქციების ძიება</span><input
           aria-label="ტრანზაქციების ძიება"
           placeholder="აქტივის ან შენიშვნის ძიება…"
           value={search}
@@ -65,7 +66,7 @@ export function TransactionList({
             setPage(0);
           }}
         /></label>
-        <select className="desktop-ledger-filter"
+        <select className="select hidden md:inline-flex"
           aria-label="ტრანზაქციის ტიპი"
           value={kind}
           onChange={(e) => {
@@ -80,9 +81,8 @@ export function TransactionList({
             </option>
           ))}
         </select>
-        <label className="desktop-ledger-filter max-w-44 text-[10px] text-muted">
-          თარიღიდან (თბილისი)
-          <input className="input input-bordered"
+        <fieldset className="fieldset hidden max-w-44 md:block"><legend className="fieldset-legend">თარიღიდან</legend>
+          <input className="input"
             type="date"
             value={from}
             onChange={(e) => {
@@ -90,10 +90,9 @@ export function TransactionList({
               setPage(0);
             }}
           />
-        </label>
-        <label className="desktop-ledger-filter max-w-44 text-[10px] text-muted">
-          თარიღამდე (თბილისი)
-          <input className="input input-bordered"
+        </fieldset>
+        <fieldset className="fieldset hidden max-w-44 md:block"><legend className="fieldset-legend">თარიღამდე</legend>
+          <input className="input"
             type="date"
             value={to}
             onChange={(e) => {
@@ -101,24 +100,24 @@ export function TransactionList({
               setPage(0);
             }}
           />
-        </label>
-        <div className="mobile-ledger-filter"><MobileBottomSheet title="ტრანზაქციების ფილტრი" trigger={<button type="button" className="btn btn-ghost button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
-          <label className="mobile-filter-select"><span>ტრანზაქციის ტიპი</span><select className="select select-bordered" value={kind} onChange={(event) => { setKind(event.target.value); setPage(0); }}><option value="">ყველა ტიპი</option>{Object.entries(kindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <div className="mobile-ledger-dates"><label><span>თარიღიდან</span><input className="input input-bordered" type="date" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0); }} /></label><label><span>თარიღამდე</span><input className="input input-bordered" type="date" value={to} onChange={(event) => { setTo(event.target.value); setPage(0); }} /></label></div>
-          {hasFilters && <button type="button" className="btn btn-ghost button-secondary w-full" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
+        </fieldset>
+        <div className="md:hidden"><MobileBottomSheet title="ტრანზაქციების ფილტრი" trigger={<button type="button" className="btn"><SlidersHorizontal size={16} /> ფილტრი</button>}>
+          <fieldset className="fieldset"><legend className="fieldset-legend">ტრანზაქციის ტიპი</legend><select className="select w-full" value={kind} onChange={(event) => { setKind(event.target.value); setPage(0); }}><option value="">ყველა ტიპი</option>{Object.entries(kindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></fieldset>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><fieldset className="fieldset"><legend className="fieldset-legend">თარიღიდან</legend><input className="input w-full" type="date" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0); }} /></fieldset><fieldset className="fieldset"><legend className="fieldset-legend">თარიღამდე</legend><input className="input w-full" type="date" value={to} onChange={(event) => { setTo(event.target.value); setPage(0); }} /></fieldset></div>
+          {hasFilters && <button type="button" className="btn btn-block" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
         </MobileBottomSheet></div>
-        {hasFilters && <button type="button" className="desktop-ledger-filter button-secondary" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
-      </div></div>
-      <div className="ledger-list">
-        <div className="flex items-center justify-between border-b border-line px-5 py-4"><div><h2 className="text-sm font-semibold">ტრანზაქციების ისტორია</h2><p className="mt-1 text-[10px] text-muted">ყიდვა, გაყიდვა, შეტანა, გატანა და საკომისიოები</p></div><span className="rounded-md bg-raised px-2 py-1 text-[10px] text-muted">{filtered.length}</span></div>
-        <div className="divide-y divide-line">
+        {hasFilters && <button type="button" className="btn hidden md:inline-flex" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
+      </div></div></section>
+      <section className="card card-border bg-base-200">
+        <div className="flex items-center justify-between border-b border-base-300 px-5 py-4"><div><h2 className="card-title text-base">ტრანზაქციების ისტორია</h2><p className="mt-1 text-xs text-base-content/60">ყიდვა, გაყიდვა, შეტანა, გატანა და საკომისიოები</p></div><span className="badge">{filtered.length}</span></div>
+        <ul className="list">
         {filtered.slice(currentPage * 20, (currentPage + 1) * 20).map((e) => (
-          <div
+          <li
             key={e.id}
-            className="transaction-row flex flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-raised/40"
+            className="list-row border-b border-base-300 px-4 py-4 last:border-0 sm:px-5"
           >
             <div className="flex items-center gap-3">
-              <span className="rounded-lg bg-raised p-2 text-brand">
+              <span className="btn btn-square pointer-events-none">
                 <TransactionKindIcon kind={e.kind} />
               </span>
               <div>
@@ -126,20 +125,20 @@ export function TransactionList({
                   {kindLabels[e.kind]} ·{" "}
                   {assets.find((a) => a.id === e.assetId)?.symbol ?? e.assetId}
                 </p>
-                <p className="mt-1.5 text-[10px] text-muted">
+                <p className="mt-1.5 text-xs text-base-content/60">
                   {dateTime(e.occurredAt)}
                 </p>
                 {e.notes && (
-                  <p className="mt-2 max-w-sm break-words text-xs text-muted">
+                  <p className="mt-2 max-w-sm break-words text-xs text-base-content/60">
                     {e.notes}
                   </p>
                 )}
               </div>
             </div>
-            <div className="transaction-actions flex flex-wrap items-center gap-6">
+            <div className="hidden items-center gap-4 md:flex">
               <div className="text-right">
                 <p className="numeric text-sm">{quantity(e.quantity)}</p>
-                <p className="mt-1 text-[10px] text-muted">
+                <p className="mt-1 text-xs text-base-content/60">
                   {e.price ? `ფასი: ${money(e.price)}` : "—"} · საკომისიო:{" "}
                   {money(e.fee)}
                 </p>
@@ -151,7 +150,7 @@ export function TransactionList({
                 entry={e}
               />
               <button
-                className="rounded p-2 text-muted hover:text-negative"
+                className="btn btn-ghost btn-square btn-sm text-error"
                 aria-label="ტრანზაქციის წაშლა"
                 onClick={() => {
                   setSelected(e.id);
@@ -161,30 +160,30 @@ export function TransactionList({
                 <Trash2 size={15} />
               </button>
             </div>
-            <details className="mobile-entry-details"><summary>დეტალები და მოქმედებები</summary><div><p className="text-[11px] text-muted">{e.price ? `ფასი: ${money(e.price)}` : "ფასი არ არის მითითებული"} · საკომისიო: {money(e.fee)}</p><div className="mobile-entry-actions"><TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} entry={e} /><button className="btn btn-error button-danger" type="button" onClick={() => { setSelected(e.id); setError(""); }}>წაშლა</button></div></div></details>
-          </div>
+            <details className="collapse collapse-arrow list-col-wrap bg-base-100 md:hidden"><summary className="collapse-title min-h-11 py-3 text-xs font-medium">დეტალები და მოქმედებები</summary><div className="collapse-content"><p className="text-xs text-base-content/60">{e.price ? `ფასი: ${money(e.price)}` : "ფასი არ არის მითითებული"} · საკომისიო: {money(e.fee)}</p><div className="mt-3 flex gap-2"><TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} entry={e} /><button className="btn btn-error btn-sm" type="button" onClick={() => { setSelected(e.id); setError(""); }}>წაშლა</button></div></div></details>
+          </li>
         ))}
         {!filtered.length && (
-          <p className="px-5 py-20 text-center text-sm text-muted">
+          <li className="p-10 text-center text-sm text-base-content/60">
             ტრანზაქციები ვერ მოიძებნა.
-          </p>
-        )}</div>
-      </div>
-      <div className="flex items-center justify-between text-xs text-muted">
+          </li>
+        )}</ul>
+      </section>
+      <div className="flex items-center justify-between text-xs text-base-content/60">
         <span>{filtered.length} ტრანზაქცია</span>
-        <div className="flex items-center gap-3">
+        <div className="join">
           <button
-            className="btn btn-ghost button-secondary"
+            className="btn join-item"
             disabled={currentPage === 0}
             onClick={() => setPage(currentPage - 1)}
           >
             წინა
           </button>
-          <span>
+          <span className="btn join-item pointer-events-none">
             {currentPage + 1} / {pages}
           </span>
           <button
-            className="btn btn-ghost button-secondary"
+            className="btn join-item"
             disabled={currentPage + 1 >= pages}
             onClick={() => setPage(currentPage + 1)}
           >
@@ -204,14 +203,14 @@ export function TransactionList({
           {error && <Message error>{error}</Message>}
           <div className="flex justify-end gap-3">
             <button
-              className="btn btn-ghost button-secondary"
+              className="btn"
               onClick={() => setSelected(null)}
               disabled={pending}
             >
               გაუქმება
             </button>
             <button
-              className="btn btn-error button-danger"
+              className="btn btn-error"
               disabled={pending}
               onClick={async () => {
                 if (!selected) return;
