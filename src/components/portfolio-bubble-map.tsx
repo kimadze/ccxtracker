@@ -24,10 +24,10 @@ export function PortfolioBubbleMap({ positions, portfolioId }: { positions: Valu
   const selected = crypto.find((position) => position.assetId === selectedId) ?? crypto[0];
 
   if (!crypto.length)
-    return <section className="panel bubble-map-empty"><h2>პოზიციების განაწილება</h2><p>ამ ხედისთვის საჭიროა მინიმუმ ერთი შეფასებული არასტეიბლ კრიპტოაქტივი.</p></section>;
+    return <section className="card panel bubble-map-empty"><h2>პოზიციების განაწილება</h2><p>ამ ხედისთვის საჭიროა მინიმუმ ერთი შეფასებული არასტეიბლ კრიპტოაქტივი.</p></section>;
 
   return <div className="allocation-map-space">
-    <section className="panel allocation-map-panel" aria-labelledby="allocation-map-heading">
+    <section className="card panel allocation-map-panel" aria-labelledby="allocation-map-heading">
       <header className="allocation-map-header">
         <div><p className="allocation-kicker">პორტფელის კონცენტრაცია</p><h2 id="allocation-map-heading">აქტივების განაწილება</h2><p>წილი, ღირებულება და დღიური მოძრაობა ერთ სამუშაო სიაში.</p></div>
         <div className="allocation-map-total"><small>არასტეიბლ კრიპტო</small><strong>{money(String(total))}</strong></div>
@@ -45,7 +45,7 @@ export function PortfolioBubbleMap({ positions, portfolioId }: { positions: Valu
         })}
       </div>
     </section>
-    {selected && <section className="panel allocation-map-selection" aria-live="polite">
+    {selected && <section className="card panel allocation-map-selection" aria-live="polite">
       <div className={`allocation-map-mark ${tone(selected)}`}>{selected.asset.logoUrl ? <Image src={highResLogoUrl(selected.asset.logoUrl) ?? selected.asset.logoUrl} alt="" width={40} height={40} unoptimized /> : selected.asset.symbol.slice(0, 3)}</div>
       <div><p className="allocation-kicker">არჩეული აქტივი</p><h2>{selected.asset.name} <span>{selected.asset.symbol}</span></h2></div>
       <dl><div><dt>ღირებულება</dt><dd>{money(selected.value)}</dd></div><div><dt>24 საათი</dt><dd className={pnlClass(selected.quote?.change24h ?? null)}>{percentage(selected.quote?.change24h ?? null, true)}</dd></div><div><dt>სრული შედეგი</dt><dd className={pnlClass(selected.returnPercent)}>{percentage(selected.returnPercent, true)}</dd></div></dl>

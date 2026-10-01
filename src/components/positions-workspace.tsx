@@ -105,12 +105,12 @@ export function PositionsWorkspace({
           <button type="button" className={view === "cards" ? "active" : ""} onClick={() => setView("cards")} aria-label="ბარათების ხედი"><Grid2X2 size={16} /></button>
         </div>
         <div className="mobile-position-filter">
-          <MobileBottomSheet title="პოზიციების ფილტრი" trigger={<button type="button" className="button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
+          <MobileBottomSheet title="პოზიციების ფილტრი" trigger={<button type="button" className="btn btn-ghost button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
             <div className="mobile-filter-options" role="group" aria-label="შედეგის ფილტრი">
               {[["all", "ყველა", positions.length], ["profit", "მოგებაში", profitable], ["loss", "ზარალში", losing], ["unpriced", "ფასის გარეშე", unpriced]].map(([value, label, count]) => <button key={String(value)} type="button" className={filter === value ? "active" : ""} onClick={() => { setFilter(String(value)); setPage(0); }}><span>{String(label)}</span><strong>{String(count)}</strong></button>)}
             </div>
             <label className="mobile-filter-select"><span>დალაგება</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="value">ღირებულებით</option><option value="return">შემოსავლიანობით</option><option value="name">სახელით</option></select></label>
-            {(search || filter !== "all" || sort !== "value") && <button type="button" className="button-secondary w-full" onClick={reset}><RotateCcw size={15} /> ფილტრების გასუფთავება</button>}
+            {(search || filter !== "all" || sort !== "value") && <button type="button" className="btn btn-ghost button-secondary w-full" onClick={reset}><RotateCcw size={15} /> ფილტრების გასუფთავება</button>}
           </MobileBottomSheet>
         </div>
         {(search || filter !== "all" || sort !== "value") && <button type="button" className="toolbar-reset desktop-position-filter" onClick={reset}><RotateCcw size={14} /> გასუფთავება</button>}
@@ -132,7 +132,7 @@ export function PositionsWorkspace({
       {filtered.length > 20 && (
         <div className="flex items-center justify-end gap-3">
           <button
-            className="button-secondary"
+            className="btn btn-ghost button-secondary"
             disabled={current === 0}
             onClick={() => setPage(current - 1)}
           >
@@ -142,7 +142,7 @@ export function PositionsWorkspace({
             {current + 1} / {pages}
           </span>
           <button
-            className="button-secondary"
+            className="btn btn-ghost button-secondary"
             disabled={current + 1 >= pages}
             onClick={() => setPage(current + 1)}
           >
@@ -157,12 +157,12 @@ export function PositionsWorkspace({
 function PositionBrief({ position, base, assets, revision, preview }: { position: ValuedPosition; base: string; assets: Asset[]; revision: number; preview: boolean }) {
   const positive = position.unrealizedPnl !== null && decimal(position.unrealizedPnl).gt(0);
   return <aside className="position-brief" aria-label={`${position.asset.symbol} პოზიციის მოკლე ინფორმაცია`}>
-    <header><div className="position-brief-asset"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} /><div><h2>{position.asset.symbol}</h2><span>{position.asset.name}</span></div></div>{!preview && <div className="position-brief-header-actions"><PositionShare position={position} compact /><Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>სრული გვერდი ↗</Link></div>}</header>
+    <header><div className="position-brief-asset"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} /><div><h2>{position.asset.symbol}</h2><span>{position.asset.name}</span></div></div>{!preview && <div className="position-brief-header-actions"><PositionShare position={position} compact /><Link className="btn btn-ghost button-secondary" href={`${base}/positions/${position.assetId}`}>სრული გვერდი ↗</Link></div>}</header>
     <div className="position-brief-price"><span>მიმდინარე ფასი</span><strong>{money(position.quote?.price ?? null)}</strong><b className={pnlClass(position.quote?.change24h ?? null)}>{percentage(position.quote?.change24h ?? null, true)} · 24სთ</b></div>
     <div className="position-brief-grid"><div><span>რაოდენობა</span><b>{quantity(position.quantity)}</b></div><div><span>საშ. შესყიდვა</span><b>{money(position.averagePrice)}</b></div><div><span>ღირებულება</span><b><BalanceValue>{money(position.value)}</BalanceValue></b></div><div><span>პორტფელის წილი</span><b>{percentage(position.allocation)}</b></div></div>
     <div className={`position-brief-pnl ${positive ? "positive" : "negative"}`}><span>არარეალიზებული P/L</span><strong><BalanceValue>{position.unrealizedPnl && positive ? "+" : ""}{money(position.unrealizedPnl)}</BalanceValue></strong><b>{percentage(position.returnPercent, true)}</b></div>
     {!preview && <>
-      <div className="position-brief-actions"><TransactionForm portfolioId={base.split("/").at(-1) ?? ""} revision={revision} assets={assets} initialAsset={position.assetId} triggerLabel="ტრანზაქცია" /><Link className="button-secondary" href={`${base}/positions/${position.assetId}`}>მართვა</Link></div>
+      <div className="position-brief-actions"><TransactionForm portfolioId={base.split("/").at(-1) ?? ""} revision={revision} assets={assets} initialAsset={position.assetId} triggerLabel="ტრანზაქცია" /><Link className="btn btn-ghost button-secondary" href={`${base}/positions/${position.assetId}`}>მართვა</Link></div>
       <div className="position-brief-workflows" aria-label={`${position.asset.symbol} დაგეგმვის მოქმედებები`}>
         <Link href={`${base}/positions/${position.assetId}?tab=exit`}><TrendingUp size={14} /><span>გასვლის გეგმა</span></Link>
         <Link href={`${base}/positions/${position.assetId}?tab=journal`}><NotebookPen size={14} /><span>ჟურნალი</span></Link>

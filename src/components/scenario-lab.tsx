@@ -125,7 +125,7 @@ export function ScenarioLab({
             </option>
           ))}
         </select>
-        <button className="button-secondary" onClick={() => choose("")}>
+        <button className="btn btn-ghost button-secondary" onClick={() => choose("")}>
           <Plus size={15} />
           ახალი სცენარი
         </button>
@@ -138,7 +138,7 @@ export function ScenarioLab({
               შეცვალეთ ფასები. რაოდენობები ავტომატურად აიღება მიმდინარე
               პორტფელიდან.
             </p></div>
-            <div className="scenario-quick-controls"><label><Percent size={13} /><input aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="button-secondary" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="button-secondary" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
+            <div className="scenario-quick-controls"><label><Percent size={13} /><input aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="btn btn-ghost button-secondary" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="btn btn-ghost button-secondary" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
           </div>
           <div className="divide-y divide-line">
             {cryptoPositions.slice(0, 6).map(priceRow)}
@@ -222,7 +222,7 @@ export function ScenarioLab({
             </Field>
           </div>
           <button
-            className="button-primary"
+            className="btn btn-primary button-primary"
             disabled={pending || !result || !cryptoPositions.length}
             onClick={() => void save()}
           >
@@ -232,7 +232,7 @@ export function ScenarioLab({
           {active && (
             <>
               <button
-                className="button-secondary"
+                className="btn btn-ghost button-secondary"
                 disabled={pending}
                 onClick={() => void save(true)}
               >
@@ -240,7 +240,7 @@ export function ScenarioLab({
                 ასლის შექმნა
               </button>
               <button
-                className="button-danger"
+                className="btn btn-error button-danger"
                 disabled={pending}
                 onClick={() => setDeleting(true)}
               >
@@ -265,7 +265,7 @@ export function ScenarioLab({
         description="სცენარი წაიშლება. პორტფელის რეალური ტრანზაქციები ამ მოქმედებით არ იცვლება."
       >
         <button
-          className="button-danger"
+          className="btn btn-error button-danger"
           disabled={pending}
           onClick={async () => {
             setPending(true);
@@ -322,7 +322,7 @@ function GoalPlanner({
     /* A goal is optional until entered. */
   }
   return (
-    <section className="panel p-6">
+    <section className="card panel p-6">
       <div className="mb-6">
         <h2 className="text-sm font-medium">პორტფელის მიზანი</h2>
         <p className="mt-2 text-xs text-muted">
@@ -355,7 +355,7 @@ function GoalPlanner({
           </Field>
           {!preview && (
             <button
-              className="button-secondary"
+              className="btn btn-ghost button-secondary"
               disabled={!progress || pending}
               onClick={async () => {
                 setPending(true);

@@ -12,7 +12,7 @@ export function LoginButton({ enabled }: { enabled: boolean }) {
     <div className="space-y-3">
       <button
         disabled={!enabled || pending}
-        className="button-primary w-full"
+        className="btn btn-primary button-primary w-full"
         onClick={async () => {
           setPending(true);
           setError("");

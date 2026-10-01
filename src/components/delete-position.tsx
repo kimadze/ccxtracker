@@ -19,7 +19,7 @@ export function DeletePosition({
   return (
     <>
       <button
-        className="button-danger"
+        className="btn btn-error button-danger"
         onClick={() => {
           setOpen(true);
           setError("");
@@ -60,7 +60,7 @@ export function DeletePosition({
             ვადასტურებ პოზიციის ისტორიის წაშლას.
           </label>
           {error && <Message error>{error}</Message>}
-          <button className="button-danger" disabled={pending}>
+          <button className="btn btn-error button-danger" disabled={pending}>
             {pending ? "იშლება…" : "წაშლა"}
           </button>
         </form>

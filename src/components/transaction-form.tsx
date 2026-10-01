@@ -195,7 +195,7 @@ export function TransactionForm({
             />
             <button
               type="button"
-              className="button-secondary shrink-0"
+              className="btn btn-ghost button-secondary shrink-0"
               disabled={searching || query.trim().length < 2}
               onClick={async () => {
                 setSearching(true);
@@ -338,13 +338,13 @@ export function TransactionForm({
           <div className="flex justify-end gap-3">
             <button
               type="button"
-              className="button-secondary"
+              className="btn btn-ghost button-secondary"
               disabled={pending}
               onClick={() => setOpen(false)}
             >
               გაუქმება
             </button>
-            <button disabled={pending} className="button-primary">
+            <button disabled={pending} className="btn btn-primary button-primary">
               {pending ? "ინახება…" : "შენახვა"}
             </button>
           </div>

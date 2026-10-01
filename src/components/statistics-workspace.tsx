@@ -81,7 +81,7 @@ function MarketTab({ data }: { data: MarketStatistics }) {
           </p>
         </>
       ) : (
-        <div className="panel p-6 text-xs leading-6 text-muted">
+        <div className="card panel p-6 text-xs leading-6 text-muted">
           ბაზრის მონაცემები ამჟამად მიუწვდომელია. შეამოწმეთ CoinGecko API-ის
           კონფიგურაცია.
         </div>

@@ -314,7 +314,7 @@ export function Overview({
           </div>
           <div className="dashboard-actions">
             {action}
-            <Link href={base + "/positions"} className="button-secondary">
+            <Link href={base + "/positions"} className="btn btn-ghost button-secondary">
               პოზიციების მართვა <ArrowUpRight size={15} />
             </Link>
           </div>
@@ -392,7 +392,7 @@ export function Overview({
             </div>
             <Link
               href={base + "/allocation"}
-              className="button-secondary shrink-0"
+              className="btn btn-ghost button-secondary shrink-0"
             >
               მართვა <ArrowUpRight size={14} />
             </Link>
@@ -543,7 +543,7 @@ export function Overview({
         >
           <header>
             <h2 id="positions-title">ჩემი აქტივები</h2>
-            <Link className="button-secondary" href={base + "/positions"}>
+            <Link className="btn btn-ghost button-secondary" href={base + "/positions"}>
               ყველა პოზიცია <ArrowUpRight size={15} />
             </Link>
           </header>

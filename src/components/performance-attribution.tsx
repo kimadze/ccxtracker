@@ -22,7 +22,7 @@ export function PerformanceAttribution({
   const [showAllAssets, setShowAllAssets] = useState(false);
   if (!attribution.complete || !attribution.reconciled)
     return (
-      <section className="panel p-6">
+      <section className="card panel p-6">
         <h2 className="text-sm font-medium">შედეგის წყარო</h2>
         <p className="mt-4 text-xs leading-6 text-muted">
           სრული ანალიზისთვის საჭიროა ყველა აქტივის მიმდინარე ფასი და ცნობილი
@@ -42,7 +42,7 @@ export function PerformanceAttribution({
     .sort((a, b) => decimal(b.totalPnl!).cmp(a.totalPnl!))[0];
   return (
     <section className="space-y-6" aria-labelledby="attribution-heading">
-      <div className="panel p-6">
+      <div className="card panel p-6">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <p className="eyebrow">სრული პერიოდი</p>
@@ -96,7 +96,7 @@ export function PerformanceAttribution({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
-        <div className="panel overflow-hidden">
+        <div className="card panel overflow-hidden">
           <div className="border-b border-line p-6">
             <h3 className="text-sm font-medium">აქტივების წვლილი</h3>
             <p className="mt-2 text-[11px] leading-5 text-muted">
@@ -170,7 +170,7 @@ export function PerformanceAttribution({
 
         <div className="space-y-4">
           {attribution.categories.map((category) => (
-            <article key={category.category} className="panel p-5">
+            <article key={category.category} className="card panel p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-xs font-medium">

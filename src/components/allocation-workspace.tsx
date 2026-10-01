@@ -151,7 +151,7 @@ export function AllocationWorkspace({
       </section>
 
       <div className="allocation-ledger-grid">
-        <section className="panel allocation-ledger-table">
+        <section className="card panel allocation-ledger-table">
           <header>
             <div>
               <p className="allocation-kicker">
@@ -160,7 +160,7 @@ export function AllocationWorkspace({
               <h2>მიზნობრივი განაწილება</h2>
             </div>
             <button
-              className="button-secondary"
+              className="btn btn-ghost button-secondary"
               onClick={() =>
                 setMessage("შეიყვანეთ თითო აქტივის სამიზნე წილი და შეინახეთ.")
               }
@@ -254,7 +254,7 @@ export function AllocationWorkspace({
                 ))}
             </select>
             <button
-              className="button-secondary"
+              className="btn btn-ghost button-secondary"
               disabled={!addId}
               onClick={() => {
                 setWeights((w) => ({ ...w, [addId]: "0" }));
@@ -265,7 +265,7 @@ export function AllocationWorkspace({
             </button>
             {!preview && (
               <button
-                className="button-primary"
+                className="btn btn-primary button-primary"
                 disabled={!valid || pending}
                 onClick={save}
               >
@@ -287,7 +287,7 @@ export function AllocationWorkspace({
         </section>
 
         <aside className="allocation-ledger-side">
-          <section className="panel concentration-card">
+          <section className="card panel concentration-card">
             <header>
               <h2>კონცენტრაცია</h2>
               <span>არასტეიბლ კრიპტო</span>
@@ -312,7 +312,7 @@ export function AllocationWorkspace({
               );
             })}
           </section>
-          <section className="panel rebalance-card">
+          <section className="card panel rebalance-card">
             <header>
               <div>
                 <p className="allocation-kicker">Rebalance</p>

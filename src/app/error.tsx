@@ -11,7 +11,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
       <p className="text-sm text-muted">
         სცადეთ ხელახლა. თუ პრობლემა გაგრძელდა, დაუკავშირდით ადმინისტრატორს.
       </p>
-      <button className="button-primary" onClick={reset}>
+      <button className="btn btn-primary button-primary" onClick={reset}>
         ხელახლა ცდა
       </button>
     </main>

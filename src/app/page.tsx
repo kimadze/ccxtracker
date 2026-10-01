@@ -13,7 +13,7 @@ export default function Home() {
     <div className="ccx-landing mx-auto max-w-7xl px-6 sm:px-12">
       <header className="flex items-center justify-between border-b border-line py-7">
         <Brand />
-        <Link className="button-secondary" href="/login">
+        <Link className="btn btn-ghost button-secondary" href="/login">
           შესვლა <ArrowUpRight size={15} />
         </Link>
       </header>
@@ -36,7 +36,7 @@ export default function Home() {
               შეაფასეთ შედეგები და დაგეგმეთ შემდეგი ნაბიჯი ერთ სივრცეში.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link className="button-primary" href="/login">
+              <Link className="btn btn-primary button-primary" href="/login">
                 პორტფელის შექმნა <ArrowRight size={16} />
               </Link>
             </div>

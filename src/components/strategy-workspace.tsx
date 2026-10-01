@@ -48,7 +48,7 @@ export function StrategyWorkspace({
   const p = investablePositions(summary).find((p) => p.assetId === assetId);
   if (!options.length || (mode !== "journal" && !p))
     return (
-      <div className="panel p-10 text-center text-sm text-muted">
+      <div className="card panel p-10 text-center text-sm text-muted">
         ჯერ დაამატეთ პოზიცია.
       </div>
     );

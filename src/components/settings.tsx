@@ -53,7 +53,7 @@ export function Settings({
       {message && <Message error={error}>{message}</Message>}
       <div className="grid gap-6 lg:grid-cols-2">
         <form
-          className="panel space-y-5 p-6"
+          className="card panel space-y-5 p-6"
           onSubmit={async (e) => {
             e.preventDefault();
             if (preview) return;
@@ -97,13 +97,13 @@ export function Settings({
             </span>
           </label>
           {!preview && (
-            <button className="button-secondary" disabled={pending}>
+            <button className="btn btn-ghost button-secondary" disabled={pending}>
               პროფილის შენახვა
             </button>
           )}
         </form>
         <form
-          className="panel space-y-5 p-6"
+          className="card panel space-y-5 p-6"
           onSubmit={async (e) => {
             e.preventDefault();
             if (preview) return;
@@ -137,13 +137,13 @@ export function Settings({
             მითითებულია ფორმაში.
           </p>
           {!preview && (
-            <button className="button-secondary" disabled={pending}>
+            <button className="btn btn-ghost button-secondary" disabled={pending}>
               სახელის შენახვა
             </button>
           )}
         </form>
       </div>
-      <section className="panel p-6">
+      <section className="card panel p-6">
         <h2 className="text-sm font-medium">მონაცემების წყარო</h2>
         <div className="mt-5 flex flex-wrap justify-between gap-4 text-xs">
           <span className="text-muted">ფასების წყარო</span>
@@ -175,7 +175,7 @@ export function Settings({
           როგორც მოძველებული. გამოტოვებული ფასი ნულად არ ითვლება.
         </p>
       </section>
-      <section className="panel p-6">
+      <section className="card panel p-6">
         <h2 className="flex items-center gap-2 text-sm font-medium">
           <ShieldCheck size={17} className="text-brand" />
           მონაცემები და უსაფრთხოება
@@ -188,13 +188,13 @@ export function Settings({
           <div className="mt-5 flex flex-wrap gap-3">
             <a
               href={`/api/portfolios/${portfolioId}/export`}
-              className="button-secondary"
+              className="btn btn-ghost button-secondary"
             >
               <Download size={15} />
               მონაცემების ჩამოტვირთვა
             </a>
             <button
-              className="button-secondary"
+              className="btn btn-ghost button-secondary"
               onClick={() => setConfirm("sessions")}
             >
               ყველა მოწყობილობიდან გასვლა
@@ -209,7 +209,7 @@ export function Settings({
             წაიშლება ამ პორტფელის ტრანზაქციები, გეგმები, ჟურნალი და დანართები.
           </p>
           <button
-            className="button-danger mt-5"
+            className="btn btn-error button-danger mt-5"
             onClick={() => setConfirm("portfolio")}
           >
             პორტფელის წაშლა
@@ -258,7 +258,7 @@ export function Settings({
             </Field>
           )}
           {error && message && <Message error>{message}</Message>}
-          <button className="button-danger" disabled={pending}>
+          <button className="btn btn-error button-danger" disabled={pending}>
             {pending ? "მიმდინარეობს…" : "დადასტურება"}
           </button>
         </form>

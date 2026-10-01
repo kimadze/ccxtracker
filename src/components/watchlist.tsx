@@ -86,7 +86,7 @@ export function Watchlist({
             <p>პორტფელისგან დამოუკიდებელი ფასების მოკლე სამუშაო სია.</p>
           </div>
           <button
-            className="button-primary"
+            className="btn btn-primary button-primary"
             onClick={() => {
               setSelected(null);
               setError("");
@@ -263,7 +263,7 @@ export function Watchlist({
             </p>
             {!items.length && !preview && (
               <button
-                className="button-secondary"
+                className="btn btn-ghost button-secondary"
                 onClick={() => setOpen(true)}
               >
                 <Plus size={15} /> პირველი აქტივის დამატება
@@ -326,7 +326,7 @@ export function Watchlist({
                 placeholder="სხვა აქტივი…"
               />
               <button
-                className="button-secondary"
+                className="btn btn-ghost button-secondary"
                 type="button"
                 disabled={pending || query.length < 2}
                 aria-label="ძიება"
@@ -372,7 +372,7 @@ export function Watchlist({
             />
           </Field>
           {error && <Message error>{error}</Message>}
-          <button className="button-primary" disabled={pending}>
+          <button className="btn btn-primary button-primary" disabled={pending}>
             {pending ? "ინახება…" : "შენახვა"}
           </button>
         </form>
@@ -387,7 +387,7 @@ export function Watchlist({
       >
         {error && <Message error>{error}</Message>}
         <button
-          className="button-danger mt-4"
+          className="btn btn-error button-danger mt-4"
           disabled={pending}
           onClick={async () => {
             setPending(true);

@@ -100,7 +100,7 @@ export function JournalForm({
       </Field>
       {message && <Message error={error}>{message}</Message>}
       {!preview && (
-        <button className="button-primary" disabled={pending}>
+        <button className="btn btn-primary button-primary" disabled={pending}>
           {pending ? "ინახება…" : "ჟურნალის შენახვა"}
         </button>
       )}

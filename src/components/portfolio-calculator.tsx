@@ -19,7 +19,7 @@ export function PortfolioCalculator({ positions }: { positions: ValuedPosition[]
 
   if (!position) return null;
   return (
-    <section className="panel dashboard-calculator p-4">
+    <section className="card panel dashboard-calculator p-4">
       <h2 className="text-[15px] font-semibold">პოტენციური P/L</h2>
       <div className="calculator-fields mt-4 grid gap-3">
         <label className="text-[10px] text-muted">აირჩიეთ აქტივი

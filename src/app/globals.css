@@ -1,4 +1,38 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: false;
+  logs: false;
+}
+@plugin "daisyui/theme" {
+  name: "ccx";
+  default: true;
+  prefersdark: true;
+  color-scheme: "dark";
+  --color-base-100: #0e0f12;
+  --color-base-200: #17181c;
+  --color-base-300: #202126;
+  --color-base-content: #f7f7f8;
+  --color-primary: #7047eb;
+  --color-primary-content: #ffffff;
+  --color-secondary: #a98fff;
+  --color-secondary-content: #0e0f12;
+  --color-accent: #2ed5c4;
+  --color-accent-content: #07100f;
+  --color-neutral: #202126;
+  --color-neutral-content: #f7f7f8;
+  --color-info: #62a9ff;
+  --color-success: #35d6a0;
+  --color-warning: #f4ba62;
+  --color-error: #ff6b86;
+  --radius-selector: 0.5rem;
+  --radius-field: 0.55rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
 @import "@fontsource/noto-sans-georgian/400.css";
 @import "@fontsource/noto-sans-georgian/500.css";
 @import "@fontsource/noto-sans-georgian/600.css";

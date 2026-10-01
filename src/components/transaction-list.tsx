@@ -102,10 +102,10 @@ export function TransactionList({
             }}
           />
         </label>
-        <div className="mobile-ledger-filter"><MobileBottomSheet title="ტრანზაქციების ფილტრი" trigger={<button type="button" className="button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
+        <div className="mobile-ledger-filter"><MobileBottomSheet title="ტრანზაქციების ფილტრი" trigger={<button type="button" className="btn btn-ghost button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
           <label className="mobile-filter-select"><span>ტრანზაქციის ტიპი</span><select value={kind} onChange={(event) => { setKind(event.target.value); setPage(0); }}><option value="">ყველა ტიპი</option>{Object.entries(kindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <div className="mobile-ledger-dates"><label><span>თარიღიდან</span><input type="date" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0); }} /></label><label><span>თარიღამდე</span><input type="date" value={to} onChange={(event) => { setTo(event.target.value); setPage(0); }} /></label></div>
-          {hasFilters && <button type="button" className="button-secondary w-full" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
+          {hasFilters && <button type="button" className="btn btn-ghost button-secondary w-full" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
         </MobileBottomSheet></div>
         {hasFilters && <button type="button" className="desktop-ledger-filter button-secondary" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
       </div></div>
@@ -161,7 +161,7 @@ export function TransactionList({
                 <Trash2 size={15} />
               </button>
             </div>
-            <details className="mobile-entry-details"><summary>დეტალები და მოქმედებები</summary><div><p className="text-[11px] text-muted">{e.price ? `ფასი: ${money(e.price)}` : "ფასი არ არის მითითებული"} · საკომისიო: {money(e.fee)}</p><div className="mobile-entry-actions"><TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} entry={e} /><button className="button-danger" type="button" onClick={() => { setSelected(e.id); setError(""); }}>წაშლა</button></div></div></details>
+            <details className="mobile-entry-details"><summary>დეტალები და მოქმედებები</summary><div><p className="text-[11px] text-muted">{e.price ? `ფასი: ${money(e.price)}` : "ფასი არ არის მითითებული"} · საკომისიო: {money(e.fee)}</p><div className="mobile-entry-actions"><TransactionForm portfolioId={portfolioId} revision={revision} assets={assets} entry={e} /><button className="btn btn-error button-danger" type="button" onClick={() => { setSelected(e.id); setError(""); }}>წაშლა</button></div></div></details>
           </div>
         ))}
         {!filtered.length && (
@@ -174,7 +174,7 @@ export function TransactionList({
         <span>{filtered.length} ტრანზაქცია</span>
         <div className="flex items-center gap-3">
           <button
-            className="button-secondary"
+            className="btn btn-ghost button-secondary"
             disabled={currentPage === 0}
             onClick={() => setPage(currentPage - 1)}
           >
@@ -184,7 +184,7 @@ export function TransactionList({
             {currentPage + 1} / {pages}
           </span>
           <button
-            className="button-secondary"
+            className="btn btn-ghost button-secondary"
             disabled={currentPage + 1 >= pages}
             onClick={() => setPage(currentPage + 1)}
           >
@@ -204,14 +204,14 @@ export function TransactionList({
           {error && <Message error>{error}</Message>}
           <div className="flex justify-end gap-3">
             <button
-              className="button-secondary"
+              className="btn btn-ghost button-secondary"
               onClick={() => setSelected(null)}
               disabled={pending}
             >
               გაუქმება
             </button>
             <button
-              className="button-danger"
+              className="btn btn-error button-danger"
               disabled={pending}
               onClick={async () => {
                 if (!selected) return;

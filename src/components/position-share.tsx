@@ -774,7 +774,7 @@ export function PositionShare({
               <div className="position-share-controls">
                 <button
                   type="button"
-                  className="button-secondary"
+                  className="btn btn-ghost button-secondary"
                   onClick={() => {
                     sharedImage.current = null;
                     setReady(false);
@@ -787,7 +787,7 @@ export function PositionShare({
                 </button>
                 <button
                   type="button"
-                  className="button-secondary"
+                  className="btn btn-ghost button-secondary"
                   disabled={!ready}
                   onClick={download}
                 >
@@ -795,7 +795,7 @@ export function PositionShare({
                 </button>
                 <button
                   type="button"
-                  className="button-primary"
+                  className="btn btn-primary button-primary"
                   disabled={!ready}
                   onClick={share}
                 >

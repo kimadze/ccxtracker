@@ -7,7 +7,7 @@ export default function NotFound() {
     >
       <p className="numeric text-6xl text-brand">404</p>
       <h1 className="text-xl">გვერდი ვერ მოიძებნა</h1>
-      <Link href="/portfolios" className="button-primary">
+      <Link href="/portfolios" className="btn btn-primary button-primary">
         პორტფელზე დაბრუნება
       </Link>
     </main>

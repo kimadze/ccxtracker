@@ -100,7 +100,7 @@ export function Analytics({
         />
       </div>
       {hasHistory ? (
-        <section className="panel analytics-history overflow-hidden">
+        <section className="card panel analytics-history overflow-hidden">
           <div className="flex items-center justify-between border-b border-line p-5">
             <div>
               <h2 className="text-sm font-semibold">ღირებულების ისტორია</h2>
@@ -144,7 +144,7 @@ export function Analytics({
         </section>
       )}
       <PerformanceAttribution attribution={attribution} />
-      <section className="panel analytics-health overflow-hidden">
+      <section className="card panel analytics-health overflow-hidden">
         <div className="border-b border-line p-5">
           <h2 className="text-sm font-semibold">პორტფელის მდგომარეობა</h2>
           <p className="mt-1 text-[10px] text-muted">

@@ -34,10 +34,10 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="ccx-modal-overlay fixed inset-0 z-50 bg-black/70" />
+        <Dialog.Overlay className="modal-backdrop ccx-modal-overlay fixed inset-0 z-50 bg-black/70" />
         <Dialog.Content
           className={clsx(
-            "ccx-modal fixed z-50 max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-xl border border-line bg-surface p-5 sm:p-7",
+            "modal-box ccx-modal fixed z-50 max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-xl border border-line bg-surface p-5 sm:p-7",
             wide ? "max-w-2xl" : "max-w-lg",
             className,
           )}
@@ -71,10 +71,10 @@ export function Message({
     <p
       role={error ? "alert" : "status"}
       className={clsx(
-        "rounded-lg border p-3 text-xs leading-6",
+        "alert rounded-lg border p-3 text-xs leading-6",
         error
-          ? "border-negative/20 bg-negative/5 text-negative"
-          : "border-brand/20 bg-brand/5 text-brand",
+          ? "alert-error border-negative/20 bg-negative/5 text-negative"
+          : "alert-info border-brand/20 bg-brand/5 text-brand",
       )}
     >
       {children}

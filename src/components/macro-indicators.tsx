@@ -121,7 +121,7 @@ export function MacroIndicators({ data }: { data: MacroStatistics }) {
           ))}
         </div>
       ) : (
-        <div className="panel macro-empty p-10 text-center">
+        <div className="card panel macro-empty p-10 text-center">
           <h3 className="text-sm font-medium">მაკრო მონაცემები მიუწვდომელია</h3>
           <p className="mt-3 text-xs leading-6 text-muted">სცადეთ გვერდის განახლება მოგვიანებით.</p>
         </div>

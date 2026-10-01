@@ -176,7 +176,7 @@ export function ExitPlanner({
   }
   return (
     <div className="exit-planner">
-      <section className="panel exit-editor">
+      <section className="card panel exit-editor">
         <div className="exit-editor-heading">
           <div>
             <h2 className="text-sm font-medium">გაყიდვის ეტაპები</h2>
@@ -238,7 +238,7 @@ export function ExitPlanner({
           ))}
         </div>
         <div className="exit-editor-actions"><button
-          className="button-secondary"
+          className="btn btn-ghost button-secondary"
           disabled={levels.length >= 12}
           onClick={() =>
             setLevels((l) => [...l, { price: "", percentage: "10" }])
@@ -246,7 +246,7 @@ export function ExitPlanner({
         >
           <Plus size={15} />
           ეტაპის დამატება
-        </button>{!preview && <button className="button-primary" disabled={!result || pending} onClick={async () => {
+        </button>{!preview && <button className="btn btn-primary button-primary" disabled={!result || pending} onClick={async () => {
           setPending(true);
           try { const response = await saveExitPlan({ portfolioId, assetId: position.assetId, feePercent, levels }); setError(!response.ok); setMessage(response.ok ? "გასვლის გეგმა შენახულია." : response.error); }
           catch { setError(true); setMessage("შენახვა ვერ მოხერხდა."); }
@@ -255,7 +255,7 @@ export function ExitPlanner({
       </section>
       {result ? (
         <aside className="exit-results">
-          <div className="panel exit-summary">
+          <div className="card panel exit-summary">
             <Metric
               label="მოსალოდნელი წმინდა შემოსავალი"
               value={money(result.revenue)}
@@ -270,7 +270,7 @@ export function ExitPlanner({
               value={money(result.weightedExitPrice)}
             />
           </div>
-          <section className="panel exit-recovery">
+          <section className="card panel exit-recovery">
             <h2 className="text-sm font-medium">კაპიტალის ამოღება</h2>
             <p className="mt-3 text-xs leading-7 text-muted">
               აღსადგენი თვითღირებულება: {money(position.costBasis)}.{" "}

@@ -209,7 +209,7 @@ export function PositionsTable({
                 <>
                   <Link href={`${base}/positions/${p.assetId}?tab=exit}`}><TrendingUp size={14} /> გეგმა</Link>
                   <Link href={`${base}/positions/${p.assetId}?tab=journal`}><NotebookPen size={14} /> ჟურნალი</Link>
-                  <Link href={`${base}/positions/${p.assetId}`} className="button-secondary">დეტალები <ArrowUpRight size={14} /></Link>
+                  <Link href={`${base}/positions/${p.assetId}`} className="btn btn-ghost button-secondary">დეტალები <ArrowUpRight size={14} /></Link>
                 </>
               )}
             </div>

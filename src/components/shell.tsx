@@ -80,7 +80,7 @@ function Navigation({
   onNavigate?: () => void;
 }) {
   return (
-    <nav aria-label="მთავარი ნავიგაცია" className="flex-1 space-y-2">
+    <nav aria-label="მთავარი ნავიგაცია" className="menu flex-1 space-y-2">
       {groups.map((group) => (
         <div key={group.title}>
           <p className="ccx-section-label nav-label">{group.title}</p>
@@ -328,7 +328,7 @@ export function Shell({
         <main id="main" className="ccx-main">
           {children}
         </main>
-        <nav className="mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
+        <nav className="dock mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
           {mobileLinks.map(([segment, label, Icon]) => {
             const href =
               segment === "transactions"
@@ -369,7 +369,7 @@ export function Shell({
             <Dialog.Portal>
               <Dialog.Overlay className="mobile-sheet-overlay" />
               <Dialog.Content
-                className="mobile-bottom-sheet mobile-more-sheet"
+                className="modal-box mobile-bottom-sheet mobile-more-sheet"
                 aria-describedby={undefined}
               >
                 <div className="mobile-sheet-handle" aria-hidden="true" />
@@ -451,7 +451,7 @@ export function PageHeading({
 
 export function AddButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="button-primary">
+    <button type="button" onClick={onClick} className="btn btn-primary button-primary">
       <Plus size={16} />
       ტრანზაქციის დამატება
     </button>
