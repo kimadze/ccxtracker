@@ -39,10 +39,13 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     {nextActions.length > 0 && <div className="grid gap-3 xl:grid-cols-3">{nextActions.map((item) => <div key={item.title} role="alert" className={`alert alert-soft ${item.tone}`}>{item.icon}<div className="min-w-0"><h2 className="font-semibold">{item.title}</h2><p className="mt-1 text-sm opacity-75">{item.detail}</p></div><Link href={item.href} className="btn btn-sm">{item.label}</Link></div>)}</div>}
 
     <section className="grid gap-4 xl:grid-cols-12">
-      <div className="card overflow-hidden bg-primary text-primary-content shadow-xl xl:col-span-8"><div className="card-body relative min-h-64 justify-between">
-        <div className="relative z-10"><p className="text-sm opacity-75">{cryptoOnlyValue ? "კრიპტოაქტივების ღირებულება" : "პორტფელის ღირებულება"}</p><p className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl"><BalanceValue>{money(displayedValue)}</BalanceValue></p><div className="mt-4 flex flex-wrap items-center gap-3"><span className="badge badge-lg border-0 bg-primary-content/15 text-primary-content"><BalanceValue>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</BalanceValue></span><span className="text-sm opacity-75">მთლიანი შედეგი</span></div></div>
-        <div className="relative z-10 text-sm opacity-70">{cryptoOnlyValue ? "ლიკვიდობის გარეშე" : "სრული პორტფელი"}</div><div className="pointer-events-none absolute -bottom-24 -right-16 size-72 rounded-full bg-secondary/30 blur-3xl" />
-      </div></div>
+      <div className="hover-3d xl:col-span-8">
+        <div className="card h-full overflow-hidden bg-primary text-primary-content shadow-xl"><div className="card-body relative min-h-64 justify-between bg-[radial-gradient(circle_at_bottom_left,#ffffff0a_35%,transparent_36%),radial-gradient(circle_at_top_right,#ffffff0a_35%,transparent_36%)] bg-size-[5rem_5rem]">
+          <div className="relative z-10"><p className="text-sm opacity-75">{cryptoOnlyValue ? "კრიპტოაქტივების ღირებულება" : "პორტფელის ღირებულება"}</p><p className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl"><BalanceValue>{money(displayedValue)}</BalanceValue></p><div className="mt-4 flex flex-wrap items-center gap-3"><span className="badge badge-lg border-0 bg-primary-content/15 text-primary-content"><BalanceValue>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</BalanceValue></span><span className="text-sm opacity-75">მთლიანი შედეგი</span></div></div>
+          <div className="relative z-10 text-sm opacity-70">{cryptoOnlyValue ? "ლიკვიდობის გარეშე" : "სრული პორტფელი"}</div><div className="pointer-events-none absolute -bottom-24 -right-16 size-72 rounded-full bg-secondary/30 blur-3xl" />
+        </div></div>
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      </div>
       <div className="card border border-base-300 bg-base-200 xl:col-span-4"><div className="card-body"><h2 className="card-title text-base">სწრაფი მოქმედებები</h2><div className="grid grid-cols-2 gap-2"><QuickLink href={`${base}/positions`} icon={<Wallet size={20} />} label="პოზიციები" /><QuickLink href={`${base}/allocation`} icon={<PieChart size={20} />} label="განაწილება" /><QuickLink href={`${base}/transactions`} icon={<BarChart3 size={20} />} label="ისტორია" /><QuickLink href={`${base}/analytics`} icon={<TrendingUp size={20} />} label="ანალიტიკა" /></div></div></div>
     </section>
 
