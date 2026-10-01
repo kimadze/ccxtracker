@@ -9663,6 +9663,27 @@ body {
     box-shadow: none;
   }
   .workspace-heading h1 { font-size: 24px; font-weight: 600; }
+  .analytics-workspace,
+  .statistics-workspace,
+  .strategy-workspace,
+  .scenario-lab,
+  .allocation-ledger,
+  .watchlist-workspace,
+  .settings-workspace {
+    width: 100%;
+    min-width: 0;
+  }
+  .analytics-workspace > *,
+  .statistics-workspace > *,
+  .strategy-workspace > *,
+  .scenario-lab > *,
+  .allocation-ledger > *,
+  .watchlist-workspace > *,
+  .settings-workspace > * {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
   .ccx-modal:not(.position-share-modal),
   .mobile-bottom-sheet { border-radius: 18px 18px 0 0; }
 }
