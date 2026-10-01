@@ -34,15 +34,15 @@ function MetricCard({
   hint?: string;
 }) {
   return (
-    <div className="market-metric">
-      <span className="flex size-9 items-center justify-center rounded-xl bg-raised text-brand">
+    <div className="stat min-w-0">
+      <span className="stat-figure text-primary">
         <BarChart3 size={17} />
       </span>
-      <p className="mt-4 text-[11px] text-muted">{label}</p>
-      <p className="numeric mt-1.5 whitespace-nowrap text-lg font-semibold tracking-[-.04em]">
+      <p className="stat-title whitespace-normal text-xs">{label}</p>
+      <p className="stat-value numeric mt-1.5 whitespace-nowrap text-xl tracking-[-.04em]">
         {value}
       </p>
-      {hint && <p className="mt-2 truncate text-[10px] text-muted">{hint}</p>}
+      {hint && <p className="stat-desc mt-2 truncate text-xs">{hint}</p>}
     </div>
   );
 }
@@ -51,10 +51,10 @@ function MarketTab({ data }: { data: MarketStatistics }) {
   const movers = topMovers(data.assets);
   const overview = data.overview;
   return (
-    <div className="statistics-workspace space-y-7">
+    <div className="space-y-7">
       {overview ? (
         <>
-          <div className="market-summary-strip">
+          <div className="stats stats-vertical w-full border border-base-300 bg-base-200 shadow-sm md:stats-horizontal">
             <MetricCard
               label="კრიპტო ბაზრის კაპიტალიზაცია"
               value={compact(overview.totalMarketCap)}
@@ -76,12 +76,12 @@ function MarketTab({ data }: { data: MarketStatistics }) {
               value={compact(overview.stablecoinMarketCap)}
             />
           </div>
-          <p className="text-[10px] text-muted">
+          <p className="text-xs text-base-content/60">
             წყარო: {overview.source} · განახლდა {dateTime(overview.updatedAt)}
           </p>
         </>
       ) : (
-        <div className="card panel p-6 text-xs leading-6 text-muted">
+        <div role="alert" className="alert alert-warning alert-soft text-xs leading-6">
           ბაზრის მონაცემები ამჟამად მიუწვდომელია. შეამოწმეთ CoinGecko API-ის
           კონფიგურაცია.
         </div>
@@ -113,12 +113,12 @@ function MoverBlock({
   positive?: boolean;
 }) {
   return (
-    <div className={`market-movers ${positive ? "positive" : "negative"}`}>
-      <h3>{title}</h3>
-      <div>
+    <section className={`card card-border bg-base-200 ${positive ? "border-success/30" : "border-error/30"}`}>
+      <div className="card-body p-4 sm:p-5"><h3 className="card-title text-base">{title}</h3>
+      <ul className="list">
         {rows.map((asset) => (
-          <div key={asset.id}>
-            <span className="market-mover-asset">
+          <li className="list-row items-center border-b border-base-300 px-0 last:border-0" key={asset.id}>
+            <span className="flex items-center gap-2">
               <AssetIcon
                 symbol={asset.symbol}
                 logoUrl={asset.image}
@@ -127,16 +127,12 @@ function MoverBlock({
               <b>{asset.symbol}</b>
               <small>#{asset.rank}</small>
             </span>
-            <i
-              style={{
-                width: `${Math.min(100, Math.max(8, Math.abs(Number(asset.change24h ?? 0))))}%`,
-              }}
-            />
-            <strong>{percentage(asset.change24h, true)}</strong>
-          </div>
+            <progress className={`progress w-full ${positive ? "progress-success" : "progress-error"}`} value={Math.min(100, Math.max(8, Math.abs(Number(asset.change24h ?? 0))))} max="100" />
+            <strong className={positive ? "text-success" : "text-error"}>{percentage(asset.change24h, true)}</strong>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul></div>
+    </section>
   );
 }
 
@@ -174,45 +170,47 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
     { label: "ნაღდი ფული", value: cash, color: "#8c96aa" },
   ];
   return (
-    <div className="portfolio-workspace">
-      <header className="portfolio-commandbar">
+    <div className="space-y-5">
+      <header className="card card-border bg-base-200">
+        <div className="card-body sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span>PORTFOLIO PULSE</span>
-          <h2>ჩემი პორტფელი</h2>
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary">Portfolio pulse</span>
+          <h2 className="card-title mt-1">ჩემი პორტფელი</h2>
         </div>
-        <strong>{money(summary.value)}</strong>
+        <strong className="numeric text-2xl">{money(summary.value)}</strong>
+        </div>
       </header>
-      <section className="portfolio-pulse">
-        <div>
-          <span>სრული P/L</span>
-          <strong className={pnlClass(summary.totalPnl)}>
+      <section className="stats stats-vertical w-full border border-base-300 bg-base-200 shadow-sm lg:stats-horizontal">
+        <div className="stat">
+          <span className="stat-title">სრული P/L</span>
+          <strong className={`stat-value text-xl ${pnlClass(summary.totalPnl)}`}>
             {money(summary.totalPnl)}
           </strong>
-          <small>რეალიზებული და მიმდინარე</small>
+          <small className="stat-desc">რეალიზებული და მიმდინარე</small>
         </div>
-        <div>
-          <span>საერთო ლიკვიდობა</span>
-          <strong>{money(summary.liquidity)}</strong>
-          <small>პორტფელის {percentage(liquidity)}</small>
+        <div className="stat">
+          <span className="stat-title">საერთო ლიკვიდობა</span>
+          <strong className="stat-value text-xl">{money(summary.liquidity)}</strong>
+          <small className="stat-desc">პორტფელის {percentage(liquidity)}</small>
         </div>
-        <div>
-          <span>აქტიური პოზიციები</span>
-          <strong>{active.length}</strong>
-          <small>ფასიანი აქტივები</small>
+        <div className="stat">
+          <span className="stat-title">აქტიური პოზიციები</span>
+          <strong className="stat-value text-xl">{active.length}</strong>
+          <small className="stat-desc">ფასიანი აქტივები</small>
         </div>
-        <div>
-          <span>ფასის სტატუსი</span>
-          <strong>{summary.complete ? "სრული" : "ნაწილობრივი"}</strong>
-          <small>
+        <div className="stat">
+          <span className="stat-title">ფასის სტატუსი</span>
+          <strong className="stat-value text-xl">{summary.complete ? "სრული" : "ნაწილობრივი"}</strong>
+          <small className="stat-desc">
             {summary.stale ? "განახლება საჭიროა" : "ფასები აქტუალურია"}
           </small>
         </div>
       </section>
-      <section className="portfolio-layout">
-        <article className="portfolio-structure">
+      <section className="grid gap-4 lg:grid-cols-2">
+        <article className="card card-border bg-base-200"><div className="card-body">
           <header>
-            <h3>პორტფელის სტრუქტურა</h3>
-            <span>ქეში და სტეიბლები — ლიკვიდობა</span>
+            <h3 className="card-title text-base">პორტფელის სტრუქტურა</h3>
+            <span className="text-xs text-base-content/60">ქეში და სტეიბლები — ლიკვიდობა</span>
           </header>
           <div className="portfolio-segments">
             {segments
@@ -236,15 +234,15 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
               </div>
             ))}
           </div>
-        </article>
-        <article className="portfolio-holdings">
+        </div></article>
+        <article className="card card-border bg-base-200"><div className="card-body">
           <header>
-            <h3>უმსხვილესი პოზიციები</h3>
-            <span>ღირებულებით</span>
+            <h3 className="card-title text-base">უმსხვილესი პოზიციები</h3>
+            <span className="text-xs text-base-content/60">ღირებულებით</span>
           </header>
           {holdings.length ? (
             holdings.map((position) => (
-              <div className="portfolio-holding" key={position.assetId}>
+              <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-base-300 py-3 last:border-0" key={position.assetId}>
                 <span>
                   {position.asset.symbol} · {position.asset.name}
                 </span>
@@ -253,11 +251,11 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
               </div>
             ))
           ) : (
-            <div className="portfolio-holding">
+            <div className="alert alert-info alert-soft">
               <span>აქტიური კრიპტო პოზიცია არ არის</span>
             </div>
           )}
-        </article>
+        </div></article>
       </section>
     </div>
   );
@@ -278,12 +276,12 @@ export function StatisticsWorkspace({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold">ბაზრის მიმოხილვა</p>
-          <p className="mt-1 text-xs text-muted">
+          <p className="mt-1 text-xs text-base-content/60">
             კრიპტო ბაზარი, მაკრო და თქვენი პორტფელი
           </p>
         </div>
         <div
-          className="tabs tabs-box ccx-tabs overflow-x-auto"
+          className="tabs tabs-box overflow-x-auto"
           role="group"
           aria-label="სტატისტიკის კატეგორია"
         >
@@ -299,7 +297,7 @@ export function StatisticsWorkspace({
               type="button"
               aria-pressed={tab === id}
               onClick={() => setTab(id)}
-              className="min-w-max"
+              className={`tab min-w-max ${tab === id ? "tab-active" : ""}`}
             >
               {label}
             </button>
