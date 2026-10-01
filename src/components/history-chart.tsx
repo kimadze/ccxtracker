@@ -94,7 +94,7 @@ export function HistoryChart({
       {points.length < 2 && (
         <p role="status" className="mb-2 text-xs text-muted">
           {points.length
-            ? "ამ პერიოდში მხოლოდ ერთი შენახული შეფასებაა. ხაზისთვის ორი შეფასებაა საჭირო."
+            ? "ხაზი გამოჩნდება მეორე შეფასების შენახვის შემდეგ."
             : "ამ პერიოდისთვის შეფასებები არ მოიძებნა."}
         </p>
       )}
@@ -179,12 +179,6 @@ export function HistoryChart({
           </ResponsiveContainer>
         )}
       </div>
-      {snapshots.length === 1 && (
-        <p className="mt-3 rounded-md border border-brand/15 bg-brand/5 px-3 py-2 text-[10px] leading-5 text-muted">
-          საწყისი შეფასება შენახულია. მომდევნო ყოველდღიური შეფასების შემდეგ აქ
-          გამოჩნდება ცვლილების ხაზი.
-        </p>
-      )}
       <details className="mt-3 text-[10px] text-muted">
         <summary>მონაცემების ცხრილი</summary>
         <div className="mt-2 max-h-40 overflow-auto">
