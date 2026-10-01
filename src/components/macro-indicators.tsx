@@ -6,29 +6,29 @@ const groups = [
     title: "მონეტარული პოლიტიკა",
     caption: "FED და ობლიგაციების შემოსავლიანობა",
     ids: ["FED_FUNDS", "US_2Y", "US_10Y"],
-    tone: "border-t-brand",
-    marker: "bg-brand",
+    tone: "border-t-primary",
+    marker: "bg-primary",
   },
   {
     title: "ინფლაცია",
     caption: "სამომხმარებლო ფასების წლიური ცვლილება",
     ids: ["CPI_YOY", "CORE_CPI_YOY"],
-    tone: "border-t-amber-300/70",
-    marker: "bg-amber-300",
+    tone: "border-t-warning",
+    marker: "bg-warning",
   },
   {
     title: "შრომის ბაზარი",
     caption: "აშშ-ის დასაქმების მდგომარეობა",
     ids: ["UNEMPLOYMENT"],
-    tone: "border-t-positive/70",
-    marker: "bg-positive",
+    tone: "border-t-success",
+    marker: "bg-success",
   },
   {
     title: "ზრდა და ბაზრის პირობები",
     caption: "ეკონომიკური ზრდა და დოლარის ძალა",
     ids: ["GDP_GROWTH", "DOLLAR_INDEX"],
-    tone: "border-t-sky-300/70",
-    marker: "bg-sky-300",
+    tone: "border-t-info",
+    marker: "bg-info",
   },
 ] as const;
 
@@ -52,36 +52,36 @@ function IndicatorCard({
 }) {
   const primary = metrics[0];
   return (
-    <article className={`panel macro-module overflow-hidden border-t-2 ${tone}`}>
+    <article className={`card card-border overflow-hidden border-t-2 bg-base-200 ${tone}`}>
       <div className="p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <span className={`mt-1 size-2 shrink-0 rounded-full ${marker}`} />
           <div>
             <h3 className="text-sm font-medium">{title}</h3>
-            <p className="mt-1.5 text-[10px] leading-5 text-muted">{caption}</p>
+            <p className="mt-1.5 text-xs leading-5 text-base-content/60">{caption}</p>
           </div>
         </div>
         {primary ? (
           <div className="mt-7">
-            <p className="text-[11px] text-muted">{primary.label}</p>
+            <p className="text-xs text-base-content/60">{primary.label}</p>
             <p className="numeric mt-2 text-3xl font-semibold tracking-tight">
               {metricValue(primary)}
             </p>
-            <p className="mt-2 text-[10px] text-muted">
+            <p className="mt-2 text-xs text-base-content/60">
               {primary.source} · {primary.observationDate ?? "განახლების თარიღი უცნობია"}
             </p>
           </div>
         ) : (
-          <p className="mt-7 text-xs text-muted">მონაცემი დროებით მიუწვდომელია.</p>
+          <p className="mt-7 text-xs text-base-content/60">მონაცემი დროებით მიუწვდომელია.</p>
         )}
       </div>
       {metrics.length > 1 && (
-        <div className="divide-y divide-line border-t border-line bg-raised/25 px-5 sm:px-6">
+        <div className="divide-y divide-base-300 border-t border-base-300 bg-base-100 px-5 sm:px-6">
           {metrics.slice(1).map((metric) => (
             <div key={metric.id} className="flex items-center justify-between gap-5 py-4">
               <div>
                 <p className="text-xs">{metric.label}</p>
-                <p className="mt-1 text-[10px] text-muted">{metric.observationDate ?? "—"}</p>
+                <p className="mt-1 text-xs text-base-content/60">{metric.observationDate ?? "—"}</p>
               </div>
               <p className="numeric text-base font-medium">{metricValue(metric)}</p>
             </div>
@@ -94,18 +94,18 @@ function IndicatorCard({
 
 export function MacroIndicators({ data }: { data: MacroStatistics }) {
   return (
-    <div className="macro-workspace space-y-6">
-      <header className="macro-commandbar flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-6">
+      <header className="card card-border flex-row flex-wrap items-end justify-between gap-4 bg-base-200 p-5">
         <div>
           <h2 className="text-lg font-semibold">ეკონომიკური მაჩვენებლები</h2>
-          <p className="mt-2 text-xs leading-6 text-muted">
+          <p className="mt-2 text-xs leading-6 text-base-content/60">
             აშშ-ის ეკონომიკის უახლესი ოფიციალური მონაცემები.
           </p>
         </div>
-        <p className="text-[10px] text-muted">შემოწმდა {dateTime(data.fetchedAt)}</p>
+        <p className="text-xs text-base-content/60">შემოწმდა {dateTime(data.fetchedAt)}</p>
       </header>
       {data.metrics.length ? (
-        <div className="macro-grid grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {groups.map((group) => (
             <IndicatorCard
               key={group.title}
@@ -121,12 +121,12 @@ export function MacroIndicators({ data }: { data: MacroStatistics }) {
           ))}
         </div>
       ) : (
-        <div className="card panel macro-empty p-10 text-center">
+        <div role="alert" className="alert alert-warning alert-soft justify-center p-10 text-center">
           <h3 className="text-sm font-medium">მაკრო მონაცემები მიუწვდომელია</h3>
-          <p className="mt-3 text-xs leading-6 text-muted">სცადეთ გვერდის განახლება მოგვიანებით.</p>
+          <p className="mt-3 text-xs leading-6">სცადეთ გვერდის განახლება მოგვიანებით.</p>
         </div>
       )}
-      <p className="macro-source text-[10px] leading-5 text-muted">
+      <p className="text-xs leading-5 text-base-content/60">
         წყარო: Federal Reserve Economic Data (FRED). თითოეული მაჩვენებლის თარიღი
         ასახავს წყაროში არსებულ ბოლო დაკვირვებას.
       </p>

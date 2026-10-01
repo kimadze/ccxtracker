@@ -22,9 +22,9 @@ export function PerformanceAttribution({
   const [showAllAssets, setShowAllAssets] = useState(false);
   if (!attribution.complete || !attribution.reconciled)
     return (
-      <section className="card panel p-6">
+      <section className="card card-border bg-base-200 p-6">
         <h2 className="text-sm font-medium">შედეგის წყარო</h2>
-        <p className="mt-4 text-xs leading-6 text-muted">
+        <p className="mt-4 text-xs leading-6 text-base-content/60">
           სრული ანალიზისთვის საჭიროა ყველა აქტივის მიმდინარე ფასი და ცნობილი
           თვითღირებულება. არასრული მონაცემებით შედეგის განაწილება არ გამოჩნდება,
           რადგან მისი პორტფელის P&amp;L-თან შეჯერება შეუძლებელია.
@@ -42,14 +42,14 @@ export function PerformanceAttribution({
     .sort((a, b) => decimal(b.totalPnl!).cmp(a.totalPnl!))[0];
   return (
     <section className="space-y-6" aria-labelledby="attribution-heading">
-      <div className="card panel p-6">
+      <div className="card card-border bg-base-200 p-6">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
-            <p className="eyebrow">სრული პერიოდი</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">სრული პერიოდი</p>
             <h2 id="attribution-heading" className="mt-2 text-lg font-medium">
               პორტფელის შედეგის წყარო
             </h2>
-            <p className="mt-2 max-w-2xl text-xs leading-6 text-muted">
+            <p className="mt-2 max-w-2xl text-xs leading-6 text-base-content/60">
               თანხის შეტანა და გატანა მოგებად ან ზარალად არ ითვლება. აქტივის
               შემოსავლიანობა მის თვითღირებულებას ადარებს; შედეგში წილი კი
               აჩვენებს, რამდენი დოლარი დაამატა აქტივმა მთლიან P&amp;L-ს.
@@ -96,15 +96,15 @@ export function PerformanceAttribution({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
-        <div className="card panel overflow-hidden">
-          <div className="border-b border-line p-6">
+        <div className="card card-border overflow-hidden bg-base-200">
+          <div className="border-b border-base-300 p-6">
             <h3 className="text-sm font-medium">აქტივების წვლილი</h3>
-            <p className="mt-2 text-[11px] leading-5 text-muted">
+            <p className="mt-2 text-xs leading-5 text-base-content/60">
               დალაგებულია სრული P&amp;L-ის მიხედვით. ზოლი ასახავს დოლარში
               წვლილის სიდიდეს და არა აქტივის შემოსავლიანობას.
             </p>
           </div>
-          <div className="divide-y divide-line">
+          <div className="divide-y divide-base-300">
             {(showAllAssets ? attribution.assets : attribution.assets.slice(0, 8)).map((row) => {
               const width = denominator
                 ? (Math.abs(Number(row.totalPnl)) / denominator) * 100
@@ -114,13 +114,13 @@ export function PerformanceAttribution({
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-medium">
-                        <span className="mr-2 text-muted">#{row.rank}</span>
+                        <span className="mr-2 text-base-content/50">#{row.rank}</span>
                         {row.symbol}
-                        <span className="ml-2 text-[10px] font-normal text-muted">
+                        <span className="ml-2 text-xs font-normal text-base-content/50">
                           {row.name}
                         </span>
                       </p>
-                      <p className="mt-2 text-[10px] text-muted">
+                      <p className="mt-2 text-xs text-base-content/60">
                         რეალიზებული {money(row.realizedPnl)} · არარეალიზებული{" "}
                         {money(row.unrealizedPnl)}
                       </p>
@@ -131,21 +131,21 @@ export function PerformanceAttribution({
                       >
                         {money(row.totalPnl)}
                       </p>
-                      <p className="mt-1 text-[10px] text-muted">
+                      <p className="mt-1 text-xs text-base-content/60">
                         {portfolioLoss && decimal(row.totalPnl!).gt(0)
                           ? `ხარჯის შემცირება: ${percentage(decimal(row.contributionPercent!).abs().toString())}`
                           : `${portfolioLoss ? "მთლიანი ხარჯის წილი" : "მთლიან შედეგში წილი"}: ${percentage(row.contributionPercent)}`}
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-raised">
+                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-base-300">
                     <div
-                      className={`h-full rounded-full ${decimal(row.totalPnl!).gte(0) ? "bg-positive" : "bg-negative"}`}
+                      className={`h-full rounded-full ${decimal(row.totalPnl!).gte(0) ? "bg-success" : "bg-error"}`}
                       style={{ width: `${width}%` }}
                     />
                   </div>
                   {!row.isFee && (
-                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[10px] text-muted">
+                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-base-content/60">
                       <span>
                         აქტივის შემოსავლიანობა:{" "}
                         {percentage(row.returnPercent, true)}
@@ -159,9 +159,9 @@ export function PerformanceAttribution({
                 </div>
               );
             })}
-            {attribution.assets.length > 8 && <button type="button" className="attribution-more" onClick={() => setShowAllAssets((open) => !open)}>{showAllAssets ? "ნაკლების ნახვა" : `ყველა ${attribution.assets.length} აქტივის ნახვა`}</button>}
+            {attribution.assets.length > 8 && <button type="button" className="btn btn-block rounded-none" onClick={() => setShowAllAssets((open) => !open)}>{showAllAssets ? "ნაკლების ნახვა" : `ყველა ${attribution.assets.length} აქტივის ნახვა`}</button>}
             {!attribution.assets.length && (
-              <p className="p-8 text-center text-xs text-muted">
+              <p className="p-8 text-center text-xs text-base-content/60">
                 შედეგის გასაანალიზებლად ტრანზაქციები ჯერ არ არის.
               </p>
             )}
@@ -170,13 +170,13 @@ export function PerformanceAttribution({
 
         <div className="space-y-4">
           {attribution.categories.map((category) => (
-            <article key={category.category} className="card panel p-5">
+            <article key={category.category} className="card card-border bg-base-200 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-xs font-medium">
                     {categoryLabels[category.category] ?? category.category}
                   </h3>
-                  <p className="mt-2 text-[10px] text-muted">
+                  <p className="mt-2 text-xs text-base-content/60">
                     {category.assets.join(" · ") || "USD ხარჯი"}
                   </p>
                 </div>
@@ -184,7 +184,7 @@ export function PerformanceAttribution({
                   {money(category.totalPnl)}
                 </p>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-4 text-[10px] text-muted">
+              <div className="mt-4 grid grid-cols-2 gap-4 text-xs text-base-content/60">
                 <span>
                   პორტფელის მიმდინარე წილი: {percentage(category.allocation)}
                 </span>
@@ -200,7 +200,7 @@ export function PerformanceAttribution({
               </div>
             </article>
           ))}
-          <p className="px-1 text-[11px] leading-6 text-muted">
+          <p className="px-1 text-xs leading-6 text-base-content/60">
             ისტორიული შემადგენლობა და აქტივის დღიური ფასები ჯერ არ ინახება,
             ამიტომ პერიოდების ღილაკები ზემოთ მხოლოდ შესრულების შეფასებას ცვლის;
             შედეგის წყარო უსაფრთხოდ ნაჩვენებია სრული პერიოდისთვის.

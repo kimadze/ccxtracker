@@ -37,8 +37,8 @@ export function DcaPlanner({
     /* Incomplete drafts have no result. */
   }
   return (
-    <div className="dca-workspace">
-      <section className="dca-controls">
+    <div className="grid gap-5 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <section className="space-y-4 rounded-box bg-base-100 p-5">
         <h2 className="text-sm font-medium">დამატებითი შესყიდვა</h2>
         <Field label="დამატებითი კაპიტალი, საკომისიოს ჩათვლით (USD)">
           <input className="input input-bordered"
@@ -61,18 +61,18 @@ export function DcaPlanner({
             onChange={(e) => setFee(e.target.value)}
           />
         </Field>
-        <p className="text-xs leading-6 text-muted">
+        <p className="text-xs leading-6 text-base-content/60">
           სიმულაცია ვარაუდობს ახალი კაპიტალის დამატებას. წილი ფასდება აქტივის
           მიმდინარე ფასით. ტრანზაქცია ავტომატურად არ იქმნება.
         </p>
       </section>
-      <section className="dca-result">
+      <section className="rounded-box bg-base-100 p-5">
         <h2 className="mb-7 text-sm font-medium">
           შესყიდვის მოსალოდნელი შედეგი
         </h2>
         {result ? (
           <>
-            <div className="dca-result-grid">
+            <div className="stats stats-vertical w-full sm:stats-horizontal sm:flex-wrap">
               <Metric
                 label="მიმდინარე საშუალო ფასი"
                 value={money(result.currentAverage)}
@@ -80,7 +80,7 @@ export function DcaPlanner({
               <Metric
                 label="ახალი საშუალო ფასი"
                 value={money(result.newAverage)}
-                tone="text-brand"
+                tone="text-primary"
               />
               <Metric
                 label="მიმდინარე რაოდენობა"
@@ -107,7 +107,7 @@ export function DcaPlanner({
                 value={percentage(result.projectedAllocation)}
               />
             </div>
-            <p className="mt-7 border-t border-line pt-5 text-xs leading-6 text-muted">
+            <p className="mt-7 border-t border-base-300 pt-5 text-xs leading-6 text-base-content/60">
               თუ შესყიდვა რეალურად განახორციელეთ, დაამატეთ ტრანზაქცია ფაქტობრივი
               რაოდენობით, ფასითა და საკომისიოთი.
             </p>
@@ -119,7 +119,7 @@ export function DcaPlanner({
                   draft={{ quantity: result.addedQuantity, price, fee }}
                   triggerLabel="შესყიდვის ჩანაწერის მომზადება"
                 />
-                <p className="text-xs leading-6 text-muted">
+                <p className="text-xs leading-6 text-base-content/60">
                   შეამოწმეთ ფაქტობრივი შესრულება და თარიღი, შემდეგ დაადასტურეთ
                   შენახვა. ახალი დაფინანსება წინასწარ უნდა აღრიცხოთ USD-ის
                   შეტანით.
@@ -175,17 +175,17 @@ export function ExitPlanner({
     setMessage("");
   }
   return (
-    <div className="exit-planner">
-      <section className="card panel exit-editor">
-        <div className="exit-editor-heading">
+    <div className="space-y-5">
+      <section className="card card-border bg-base-100">
+        <div className="card-body"><div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-sm font-medium">გაყიდვის ეტაპები</h2>
-            <p className="mt-2 text-xs leading-6 text-muted">
+            <p className="mt-2 text-xs leading-6 text-base-content/60">
               ყველა წილი ითვლება მიმდინარე {quantity(position.quantity)}{" "}
               {position.asset.symbol}-იდან. ფასები ეტაპობრივად უნდა იზრდებოდეს.
             </p>
           </div>
-          <div className="exit-fee-field">
+          <div className="w-40">
             <Field label="საკომისიო (%)">
               <input className="input input-bordered"
                 value={feePercent}
@@ -198,14 +198,13 @@ export function ExitPlanner({
             </Field>
           </div>
         </div>
-        <div className="exit-levels" role="table" aria-label="გაყიდვის ეტაპები">
-          <div className="exit-level-head" role="row"><span>ეტაპი</span><span>სამიზნე ფასი</span><span>გასაყიდი %</span><span>რაოდენობა</span><span>შემოსავალი</span><span /></div>
+        <div className="mt-4 divide-y divide-base-300" role="table" aria-label="გაყიდვის ეტაპები">
           {levels.map((level, i) => (
             <div
               key={i}
-              className="exit-level-row"
+              className="grid gap-3 py-4 sm:grid-cols-[3rem_1fr_1fr_auto_auto_auto] sm:items-end"
             >
-              <span className="exit-level-name">TP{i + 1}</span>
+              <span className="badge badge-primary mb-2">TP{i + 1}</span>
               <Field label="სამიზნე ფასი (USD)">
                 <input className="input input-bordered"
                   value={level.price}
@@ -221,10 +220,10 @@ export function ExitPlanner({
                   onChange={(e) => update(i, "percentage", e.target.value)}
                 />
               </Field>
-              <span className="exit-level-quantity">{result?.levels[i] ? quantity(result.levels[i].quantity) : "—"}</span>
-              <span className="exit-level-revenue">{result?.levels[i] ? money(result.levels[i].revenue) : "—"}</span>
+              <span className="numeric pb-3 text-sm">{result?.levels[i] ? quantity(result.levels[i].quantity) : "—"}</span>
+              <span className="numeric pb-3 text-sm">{result?.levels[i] ? money(result.levels[i].revenue) : "—"}</span>
               <button
-                className="mb-2 rounded p-2 text-muted hover:text-negative"
+                className="btn btn-ghost btn-square btn-sm mb-2 text-error"
                 aria-label={`TP${i + 1}-ის წაშლა`}
                 disabled={levels.length <= 1}
                 onClick={() => {
@@ -237,8 +236,8 @@ export function ExitPlanner({
             </div>
           ))}
         </div>
-        <div className="exit-editor-actions"><button
-          className="btn btn-ghost button-secondary"
+        <div className="card-actions mt-4"><button
+          className="btn"
           disabled={levels.length >= 12}
           onClick={() =>
             setLevels((l) => [...l, { price: "", percentage: "10" }])
@@ -246,16 +245,16 @@ export function ExitPlanner({
         >
           <Plus size={15} />
           ეტაპის დამატება
-        </button>{!preview && <button className="btn btn-primary button-primary" disabled={!result || pending} onClick={async () => {
+        </button>{!preview && <button className="btn btn-primary" disabled={!result || pending} onClick={async () => {
           setPending(true);
           try { const response = await saveExitPlan({ portfolioId, assetId: position.assetId, feePercent, levels }); setError(!response.ok); setMessage(response.ok ? "გასვლის გეგმა შენახულია." : response.error); }
           catch { setError(true); setMessage("შენახვა ვერ მოხერხდა."); }
           finally { setPending(false); }
-        }}>{pending ? "ინახება…" : "გეგმის შენახვა"}</button>}</div>
+        }}>{pending ? "ინახება…" : "გეგმის შენახვა"}</button>}</div></div>
       </section>
       {result ? (
-        <aside className="exit-results">
-          <div className="card panel exit-summary">
+        <aside className="grid gap-5 xl:grid-cols-2">
+          <div className="stats stats-vertical bg-base-100 sm:stats-horizontal sm:flex-wrap">
             <Metric
               label="მოსალოდნელი წმინდა შემოსავალი"
               value={money(result.revenue)}
@@ -270,9 +269,9 @@ export function ExitPlanner({
               value={money(result.weightedExitPrice)}
             />
           </div>
-          <section className="card panel exit-recovery">
+          <section className="card card-border bg-base-100 p-5">
             <h2 className="text-sm font-medium">კაპიტალის ამოღება</h2>
-            <p className="mt-3 text-xs leading-7 text-muted">
+            <p className="mt-3 text-xs leading-7 text-base-content/60">
               აღსადგენი თვითღირებულება: {money(position.costBasis)}.{" "}
               {result.alreadyRecovered
                 ? "დარჩენილ პოზიციას ნულოვანი თვითღირებულება აქვს."
@@ -281,17 +280,17 @@ export function ExitPlanner({
                   : "მოცემული ეტაპებით საწყისი თვითღირებულება სრულად ვერ ამოიღება."}{" "}
               დარჩება პოზიციის {percentage(result.remainingPercent)}.
             </p>
-            <div className="mt-5 divide-y divide-line">
+            <div className="mt-5 divide-y divide-base-300">
               {result.levels.map((l, i) => (
                 <div
                   key={i}
                   className="flex flex-wrap justify-between gap-3 py-3 text-xs"
                 >
-                  <span className="text-brand">
+                  <span className="text-primary">
                     TP{i + 1} · {quantity(l.quantity)} {position.asset.symbol}
                   </span>
                   <span>შემოსავალი: {money(l.revenue)}</span>
-                  <span className="text-muted">მოგება: {money(l.profit)}</span>
+                  <span className="text-base-content/60">მოგება: {money(l.profit)}</span>
                 </div>
               ))}
             </div>
