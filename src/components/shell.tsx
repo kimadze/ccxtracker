@@ -98,7 +98,12 @@ function Navigation({
                   aria-label={label}
                   title={label}
                   onClick={onNavigate}
-                  className={clsx("ccx-nav-link", compact && "justify-center")}
+                  className={clsx(
+                    "menu-item btn btn-ghost min-h-11 justify-start gap-3 rounded-box text-sm",
+                    active && "menu-active bg-primary/15 text-primary",
+                    compact && "justify-center",
+                    "ccx-nav-link",
+                  )}
                 >
                   <Icon
                     aria-hidden="true"
@@ -135,7 +140,7 @@ function BalancePrivacyToggle() {
   return (
     <button
       type="button"
-      className="ccx-icon-button ccx-privacy-toggle"
+      className="btn btn-ghost btn-square ccx-icon-button ccx-privacy-toggle"
       aria-pressed={hidden}
       aria-label={hidden ? "თანხების ჩვენება" : "თანხების დამალვა"}
       title={hidden ? "თანხების ჩვენება" : "თანხების დამალვა"}
@@ -190,10 +195,10 @@ export function Shell({
     .filter((group) => group.links.length);
 
   return (
-    <div className="ccx-shell">
+    <div className="drawer lg:drawer-open min-h-screen bg-base-100 ccx-shell">
       <aside
         className={clsx(
-          "ccx-sidebar overflow-y-auto px-3 py-5",
+          "menu drawer-side z-30 w-64 max-w-[85vw] overflow-y-auto border-r border-base-300 bg-base-200 px-3 py-5",
           collapsed && "compact",
         )}
         aria-label="გვერდითი მენიუ"
@@ -216,15 +221,15 @@ export function Shell({
           </p>
         </div>
       </aside>
-      <div className={clsx("ccx-content", collapsed && "compact")}>
-        <header className="ccx-topbar">
+      <div className={clsx("drawer-content flex min-w-0 flex-1 flex-col bg-base-100", collapsed && "compact", "ccx-content")}>
+        <header className="navbar sticky top-0 z-20 min-h-16 border-b border-base-300 bg-base-100/95 px-4 backdrop-blur-xl lg:px-6 ccx-topbar">
           <div className="flex min-w-0 items-center gap-3">
             <div className="mobile-topbar-brand">
               <Brand compact />
             </div>
             <button
               type="button"
-              className="ccx-icon-button desktop-menu-trigger"
+              className="btn btn-ghost btn-square desktop-menu-trigger ccx-icon-button"
               aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"}
               aria-expanded={!collapsed}
               onClick={() => setCollapsed((value) => !value)}
@@ -235,7 +240,7 @@ export function Shell({
               <Dialog.Trigger asChild>
                 <button
                   type="button"
-                  className="ccx-icon-button mobile-menu-trigger"
+                  className="btn btn-ghost btn-square mobile-menu-trigger ccx-icon-button"
                   aria-label="მენიუს გახსნა"
                 >
                   <Menu size={19} />
@@ -253,7 +258,7 @@ export function Shell({
                     </Dialog.Title>
                     <Brand />
                     <Dialog.Close
-                      className="ccx-icon-button"
+                      className="btn btn-ghost btn-square ccx-icon-button"
                       aria-label="მენიუს დახურვა"
                     >
                       <X size={18} />
@@ -307,7 +312,7 @@ export function Shell({
             </label>
             <details className="dropdown dropdown-end relative">
               <summary
-                className="flex min-h-10 max-w-40 items-center gap-2 rounded-lg border border-line bg-raised px-2 text-xs"
+                className="btn btn-ghost min-h-10 max-w-40 items-center gap-2 border border-base-300 bg-base-200 px-2 text-xs"
                 aria-label="მომხმარებლის მენიუ"
               >
                 <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand/15 font-semibold text-brand">
@@ -316,7 +321,7 @@ export function Shell({
                 <span className="hidden truncate sm:block">{userName}</span>
                 <ChevronDown size={13} className="text-muted" />
               </summary>
-              <div className="absolute right-0 top-12 z-40 w-48 rounded-xl border border-line bg-surface p-2">
+              <div className="menu absolute right-0 top-12 z-40 w-48 rounded-box border border-base-300 bg-base-200 p-2 shadow-xl">
                 <Link href={base + "/settings"} className="ccx-nav-link">
                   <Settings2 size={16} /> პარამეტრები
                 </Link>
@@ -325,7 +330,7 @@ export function Shell({
             </details>
           </div>
         </header>
-        <main id="main" className="ccx-main">
+        <main id="main" className="container mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 lg:px-8 lg:py-8 ccx-main">
           {children}
         </main>
         <nav className="dock mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
