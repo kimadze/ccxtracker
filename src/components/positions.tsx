@@ -78,7 +78,7 @@ export function PositionsTable({
   return (
     <>
       <div className={view === "cards" ? "hidden" : "hidden overflow-x-auto md:block"}>
-        <table className="w-full">
+        <table className="table w-full">
           <thead className="bg-raised/35">
             <tr>
               {[

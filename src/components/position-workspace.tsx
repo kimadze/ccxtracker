@@ -36,7 +36,7 @@ export function PositionWorkspace({
   return (
     <div className="position-workspace">
       <div className="position-workspace-toolbar">
-        <div className="position-tabs ccx-tabs">
+        <div className="tabs tabs-box position-tabs ccx-tabs">
           {[
             ["overview", "მიმოხილვა"],
             ["transactions", "ტრანზაქციები"],

@@ -283,7 +283,7 @@ export function StatisticsWorkspace({
           </p>
         </div>
         <div
-          className="ccx-tabs overflow-x-auto"
+          className="tabs tabs-box ccx-tabs overflow-x-auto"
           role="group"
           aria-label="სტატისტიკის კატეგორია"
         >

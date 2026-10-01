@@ -291,7 +291,7 @@ export function Shell({
                 onChange={(event) =>
                   router.push("/portfolios/" + event.target.value)
                 }
-                className="min-w-0 appearance-none pr-8 text-xs"
+                className="select select-bordered min-w-0 appearance-none pr-8 text-xs"
               >
                 {portfolios.map((portfolio) => (
                   <option key={portfolio.id} value={portfolio.id}>
@@ -305,7 +305,7 @@ export function Shell({
                 className="pointer-events-none absolute right-2 top-3 text-muted"
               />
             </label>
-            <details className="relative">
+            <details className="dropdown dropdown-end relative">
               <summary
                 className="flex min-h-10 max-w-40 items-center gap-2 rounded-lg border border-line bg-raised px-2 text-xs"
                 aria-label="მომხმარებლის მენიუ"

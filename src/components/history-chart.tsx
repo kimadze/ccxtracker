@@ -188,7 +188,7 @@ export function HistoryChart({
       <details className="mt-3 text-[10px] text-muted">
         <summary>მონაცემების ცხრილი</summary>
         <div className="mt-2 max-h-40 overflow-auto">
-          <table className="w-full">
+          <table className="table w-full">
             <thead>
               <tr>
                 <th className="text-left">თარიღი</th>

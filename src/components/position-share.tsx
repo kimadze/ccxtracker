@@ -715,9 +715,9 @@ export function PositionShare({
       </button>
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="ccx-modal-overlay position-share-overlay" />
+          <Dialog.Overlay className="modal-backdrop ccx-modal-overlay position-share-overlay" />
           <Dialog.Content
-            className="position-share-sheet"
+            className="modal-box position-share-sheet"
             aria-describedby="position-share-description position-share-data"
           >
             <Dialog.Title>პოზიციის გაზიარება</Dialog.Title>
@@ -725,12 +725,12 @@ export function PositionShare({
               აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა
               გამოჩენაც გსურთ.
             </Dialog.Description>
-            <Dialog.Close className="position-share-close" aria-label="დახურვა">
+            <Dialog.Close className="btn btn-circle btn-ghost position-share-close" aria-label="დახურვა">
               <X size={18} />
             </Dialog.Close>
             <div className="position-share-dialog">
               <div
-                className="position-share-templates"
+                className="tabs tabs-box position-share-templates"
                 role="group"
                 aria-label="გაზიარების შაბლონი"
               >

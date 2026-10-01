@@ -89,13 +89,33 @@ export function Field({
   children: ReactNode;
 }) {
   const id = useId();
+  const childProps = isValidElement(children)
+    ? (children.props as { type?: string; className?: string })
+    : undefined;
+  const control = isValidElement(children)
+    ? typeof children.type === "string"
+      ? children.type === "select"
+        ? "select select-bordered w-full"
+        : children.type === "textarea"
+          ? "textarea textarea-bordered w-full"
+          : children.type === "input" && childProps?.type !== "checkbox"
+            ? "input input-bordered w-full"
+            : ""
+      : ""
+    : "";
   return (
     <div>
       <label htmlFor={id} className="field-label">
         {label}
       </label>
       {isValidElement(children)
-        ? cloneElement(children as ReactElement<{ id?: string }>, { id })
+        ? cloneElement(
+            children as ReactElement<{ id?: string; className?: string }>,
+            {
+              id,
+              className: clsx(control, childProps?.className),
+            },
+          )
         : children}
     </div>
   );

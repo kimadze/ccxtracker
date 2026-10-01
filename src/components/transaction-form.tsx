@@ -329,7 +329,7 @@ export function TransactionForm({
           </Field>
           {entry && (
             <label className="flex items-start gap-3 text-xs leading-5 text-muted">
-              <input type="checkbox" required className="mt-1" />
+              <input type="checkbox" required className="checkbox checkbox-primary mt-1" />
               ვადასტურებ ისტორიის შესწორებასა და შემდგომი ტრანზაქციების თავიდან
               გამოთვლას.
             </label>

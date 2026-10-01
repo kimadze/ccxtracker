@@ -5,11 +5,11 @@ export default function Loading() {
       aria-label="იტვირთება"
       className="loading-workspace mx-auto max-w-6xl space-y-4 p-6"
     >
-      <div className="h-8 w-60 animate-pulse rounded bg-raised" />
-      <div className="h-52 animate-pulse rounded-xl border border-line bg-surface" />
+      <div className="skeleton h-8 w-60" />
+      <div className="skeleton h-52 rounded-xl" />
       <div className="grid grid-cols-2 gap-6">
-        <div className="h-64 animate-pulse rounded-xl border border-line bg-surface" />
-        <div className="h-64 animate-pulse rounded-xl border border-line bg-surface" />
+        <div className="skeleton h-64 rounded-xl" />
+        <div className="skeleton h-64 rounded-xl" />
       </div>
     </div>
   );

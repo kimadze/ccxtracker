@@ -56,7 +56,7 @@ export function DeletePosition({
           }}
         >
           <label className="flex items-center gap-3 text-xs">
-            <input type="checkbox" required />
+            <input type="checkbox" required className="checkbox checkbox-error" />
             ვადასტურებ პოზიციის ისტორიის წაშლას.
           </label>
           {error && <Message error>{error}</Message>}
