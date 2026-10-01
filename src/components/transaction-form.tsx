@@ -24,6 +24,7 @@ export function TransactionForm({
   draft,
   triggerLabel,
   initialKind,
+  defaultOpen = false,
 }: {
   portfolioId: string;
   revision: number;
@@ -34,8 +35,9 @@ export function TransactionForm({
   draft?: { quantity: string; price: string; fee: string };
   triggerLabel?: string;
   initialKind?: TransactionKind;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false),
+  const [open, setOpen] = useState(defaultOpen && !entry),
     [kind, setKind] = useState<TransactionKind>(
       entry?.kind ?? initialKind ?? (opening ? "deposit" : "buy"),
     ),
@@ -48,7 +50,9 @@ export function TransactionForm({
     [pending, setPending] = useState(false),
     [searching, setSearching] = useState(false);
   const [currentRevision, setCurrentRevision] = useState(revision);
-  const [submissionId, setSubmissionId] = useState(entry?.id ?? "");
+  const [submissionId, setSubmissionId] = useState(
+    () => entry?.id ?? (defaultOpen ? crypto.randomUUID() : ""),
+  );
   const router = useRouter();
   const isCash = assetId === "USD";
   const defaultDate = () => {
@@ -118,15 +122,25 @@ export function TransactionForm({
                     String(form.get("occurredAt")),
                   ).toISOString(),
                   notes: String(form.get("notes") ?? ""),
-                  airdropSource: kind === "airdrop" ? String(form.get("airdropSource") ?? "") : "",
-                  airdropNetwork: kind === "airdrop" ? String(form.get("airdropNetwork") ?? "") : "",
-                  airdropStatus: kind === "airdrop" ? String(form.get("airdropStatus") ?? "received") : null,
+                  airdropSource:
+                    kind === "airdrop"
+                      ? String(form.get("airdropSource") ?? "")
+                      : "",
+                  airdropNetwork:
+                    kind === "airdrop"
+                      ? String(form.get("airdropNetwork") ?? "")
+                      : "",
+                  airdropStatus:
+                    kind === "airdrop"
+                      ? String(form.get("airdropStatus") ?? "received")
+                      : null,
                 },
                 entry ? "update" : "create",
                 Math.max(revision, currentRevision),
               );
               if (result.ok) {
-                if (result.revision !== undefined) setCurrentRevision(result.revision);
+                if (result.revision !== undefined)
+                  setCurrentRevision(result.revision);
                 setOpen(false);
                 router.refresh();
               } else setError(result.error);
@@ -141,9 +155,20 @@ export function TransactionForm({
         >
           <div>
             <p className="field-label">ტრანზაქციის ტიპი</p>
-            <div className="transaction-kind-selector" role="group" aria-label="ტრანზაქციის ტიპი">
+            <div
+              className="transaction-kind-selector"
+              role="group"
+              aria-label="ტრანზაქციის ტიპი"
+            >
               {Object.entries(kindLabels).map(([value, label]) => (
-                <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value as TransactionKind)}>{label}</button>
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={kind === value}
+                  onClick={() => setKind(value as TransactionKind)}
+                >
+                  {label}
+                </button>
               ))}
             </div>
           </div>
@@ -183,8 +208,10 @@ export function TransactionForm({
                         (a) => !current.some((c) => c.id === a.id),
                       ),
                     ]);
-                    if (result.assets[0]) { setAssetId(result.assets[0].id); setQuery(""); }
-                    else setError("აქტივი ვერ მოიძებნა.");
+                    if (result.assets[0]) {
+                      setAssetId(result.assets[0].id);
+                      setQuery("");
+                    } else setError("აქტივი ვერ მოიძებნა.");
                   } else setError(result.error);
                 } catch {
                   setError("ძიება ვერ მოხერხდა.");
@@ -208,12 +235,17 @@ export function TransactionForm({
               />
             </Field>
             {!isCash &&
-              (kind === "buy" || kind === "sell" || kind === "deposit" || kind === "airdrop") && (
+              (kind === "buy" ||
+                kind === "sell" ||
+                kind === "deposit" ||
+                kind === "airdrop") && (
                 <Field
                   label={
                     kind === "deposit"
                       ? "საშუალო თვითღირებულება (USD)"
-                      : kind === "airdrop" ? "მიღების მომენტში ფასი (USD)" : "ერთეულის ფასი (USD)"
+                      : kind === "airdrop"
+                        ? "მიღების მომენტში ფასი (USD)"
+                        : "ერთეულის ფასი (USD)"
                   }
                 >
                   <input
@@ -257,19 +289,33 @@ export function TransactionForm({
             <>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field label="პროექტი / წყარო">
-                  <input name="airdropSource" defaultValue={entry?.airdropSource ?? ""} placeholder="მაგ. Jupiter" />
+                  <input
+                    name="airdropSource"
+                    defaultValue={entry?.airdropSource ?? ""}
+                    placeholder="მაგ. Jupiter"
+                  />
                 </Field>
                 <Field label="ქსელი">
-                  <input name="airdropNetwork" defaultValue={entry?.airdropNetwork ?? ""} placeholder="მაგ. Solana" />
+                  <input
+                    name="airdropNetwork"
+                    defaultValue={entry?.airdropNetwork ?? ""}
+                    placeholder="მაგ. Solana"
+                  />
                 </Field>
                 <Field label="სტატუსი">
-                  <select name="airdropStatus" defaultValue={entry?.airdropStatus ?? "received"}>
+                  <select
+                    name="airdropStatus"
+                    defaultValue={entry?.airdropStatus ?? "received"}
+                  >
                     <option value="received">მიღებული</option>
                     <option value="locked">დაბლოკილი</option>
                   </select>
                 </Field>
               </div>
-              <p className="text-xs leading-6 text-muted">Airdrop პორტფელში დაემატება თანხის ნაშთის შემცირების გარეშე. მიღების ფასი გახდება მისი საწყისი თვითღირებულება.</p>
+              <p className="text-xs leading-6 text-muted">
+                Airdrop პორტფელში დაემატება თანხის ნაშთის შემცირების გარეშე.
+                მიღების ფასი გახდება მისი საწყისი თვითღირებულება.
+              </p>
             </>
           )}
           <Field label="შენიშვნა">

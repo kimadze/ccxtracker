@@ -176,7 +176,7 @@ export function Shell({
   const mobileLinks: NavItem[] = [
     ["", "მიმოხილვა", LayoutDashboard],
     ["positions", "პოზიციები", Wallet],
-    ["transactions", "ტრანზაქციები", ArrowLeftRight],
+    ["transactions", "დამატება", Plus],
     ["analytics", "ანალიტიკა", ChartNoAxesCombined],
   ];
   const moreGroups = groups
@@ -330,7 +330,10 @@ export function Shell({
         </main>
         <nav className="mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
           {mobileLinks.map(([segment, label, Icon]) => {
-            const href = base + (segment ? "/" + segment : "");
+            const href =
+              segment === "transactions"
+                ? base + "/transactions?new=1"
+                : base + (segment ? "/" + segment : "");
             const active =
               path === href ||
               (segment === "positions" && path.startsWith(href + "/"));
@@ -340,9 +343,14 @@ export function Shell({
                 href={href}
                 aria-current={active ? "page" : undefined}
                 aria-label={String(label)}
-                className="mobile-bottom-link"
+                className={clsx(
+                  "mobile-bottom-link",
+                  segment === "transactions" && "mobile-bottom-primary",
+                )}
               >
-                <Icon size={19} />
+                <span className="mobile-bottom-icon">
+                  <Icon size={segment === "transactions" ? 24 : 19} />
+                </span>
                 <span>{label}</span>
               </Link>
             );

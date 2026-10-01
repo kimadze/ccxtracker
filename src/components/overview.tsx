@@ -187,9 +187,20 @@ export function Overview({
           </div>
         </section>
         <div className="mobile-quick-actions">
-          {action}
-          <Link href={base + "/positions"} className="button-secondary">
-            პოზიციები <ArrowUpRight size={15} />
+          <div className="mobile-quick-action mobile-quick-add">
+            {action}
+          </div>
+          <Link href={base + "/positions"} className="mobile-quick-action">
+            <span><Wallet size={21} /></span>
+            <b>პოზიციები</b>
+          </Link>
+          <Link href={base + "/allocation"} className="mobile-quick-action">
+            <span><PieChart size={21} /></span>
+            <b>განაწილება</b>
+          </Link>
+          <Link href={base + "/transactions"} className="mobile-quick-action">
+            <span><BarChart3 size={21} /></span>
+            <b>ისტორია</b>
           </Link>
         </div>
         <section className="mobile-liquidity-strip" aria-label="ლიკვიდობა">
