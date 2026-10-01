@@ -72,7 +72,7 @@ export function ScenarioLab({
     setMessage("");
   }
   const priceRow = (p: typeof cryptoPositions[number], i: number) => (
-    <div key={p.assetId} className="scenario-price-row grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]">
+    <div key={p.assetId} className="grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]">
       <div className="flex items-center gap-3"><AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} /><div><p className="text-xs font-medium">{p.asset.symbol}</p><p className="mt-1 text-[10px] text-muted">{quantity(p.quantity)} · ახლა {money(p.quote?.price ?? null)}</p></div></div>
       <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}><input className="input input-bordered" inputMode="decimal" value={prices[p.assetId] ?? ""} placeholder={p.quote?.price ?? "შეიყვანეთ ფასი"} onChange={(e) => { setPrices((current) => ({ ...current, [p.assetId]: e.target.value })); setMessage(""); }} /></Field>
     </div>
@@ -110,13 +110,13 @@ export function ScenarioLab({
     }
   }
   return (
-    <div className="scenario-lab space-y-6">
-      <div className="scenario-toolbar">
+    <div className="space-y-6">
+      <div className="card card-border flex-row gap-3 bg-base-200 p-4">
         <select
           aria-label="შენახული სცენარი"
           value={active}
           onChange={(e) => choose(e.target.value)}
-          className="max-w-sm"
+          className="select w-full max-w-sm"
         >
           <option value="">სწრაფი სცენარი</option>
           {saved.map((s) => (
@@ -125,24 +125,24 @@ export function ScenarioLab({
             </option>
           ))}
         </select>
-        <button className="btn btn-ghost button-secondary" onClick={() => choose("")}>
+        <button className="btn" onClick={() => choose("")}>
           <Plus size={15} />
           ახალი სცენარი
         </button>
       </div>
-      <div className="scenario-workspace-grid">
-        <section className="scenario-editor">
-          <div className="scenario-editor-heading">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <section className="card card-border bg-base-200"><div className="card-body">
+          <div>
             <div><h2 className="text-sm font-medium">რა მოხდება, თუ…</h2>
-            <p className="mt-2 text-xs leading-6 text-muted">
+            <p className="mt-2 text-xs leading-6 text-base-content/60">
               შეცვალეთ ფასები. რაოდენობები ავტომატურად აიღება მიმდინარე
               პორტფელიდან.
             </p></div>
-            <div className="scenario-quick-controls"><label><Percent size={13} /><input className="input input-bordered" aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="btn btn-ghost button-secondary" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="btn btn-ghost button-secondary" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
+            <div className="mt-4 flex flex-wrap gap-2"><label className="input"><Percent size={13} /><input aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="btn" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="btn" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
           </div>
-          <div className="divide-y divide-line">
+          <div className="divide-y divide-base-300">
             {cryptoPositions.slice(0, 6).map(priceRow)}
-            {cryptoPositions.length > 6 && <details className="scenario-remaining-assets"><summary>დარჩენილი {cryptoPositions.length - 6} აქტივის რედაქტირება</summary>{cryptoPositions.slice(6).map((p, i) => priceRow(p, i + 6))}</details>}
+            {cryptoPositions.length > 6 && <details className="collapse collapse-arrow"><summary className="collapse-title">დარჩენილი {cryptoPositions.length - 6} აქტივის რედაქტირება</summary><div className="collapse-content">{cryptoPositions.slice(6).map((p, i) => priceRow(p, i + 6))}</div></details>}
             {!cryptoPositions.length && (
               <p className="py-10 text-center text-xs text-muted">
                 სცენარისთვის ჯერ დაამატეთ პოზიცია.
@@ -153,14 +153,14 @@ export function ScenarioLab({
             ცარიელ ველში გამოიყენება მიმდინარე ხელმისაწვდომი ფასი. Cash და სტეიბლკოინები
             ამ სცენარისგან გამოთიშულია. ნულოვანი ფასი აქტივის ღირებულების სრულ დაკარგვას ნიშნავს.
           </p>
-        </section>
-        <div className="scenario-results">
-          <section className="scenario-summary">
+        </div></section>
+        <div className="space-y-5">
+          <section className="card card-border bg-base-200"><div className="card-body">
             <p className="text-xs text-muted">სცენარის კრიპტო ღირებულება</p>
-            <p className="numeric mt-5 text-4xl text-brand">
+            <p className="numeric mt-5 text-4xl text-primary">
               {money(result?.value ?? null)}
             </p>
-            <div className="scenario-summary-grid">
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Metric
                 label="მიმდინარე ღირებულება"
                 value={money(cryptoValue)}
@@ -179,13 +179,13 @@ export function ScenarioLab({
                 value={money(result?.unrealizedPnl ?? null)}
               />
             </div>
-          </section>
-          <section className="scenario-allocation">
+          </div></section>
+          <section className="card card-border bg-base-200"><div className="card-body">
             <h2 className="mb-4 text-sm font-medium">სცენარის განაწილება</h2>
             {result?.positions.map((p) => (
               <div
                 key={p.assetId}
-                className="flex justify-between gap-3 border-b border-line py-3 text-xs"
+                className="flex justify-between gap-3 border-b border-base-300 py-3 text-xs"
               >
                 <Link href={`/portfolios/${portfolioId}/strategy?asset=${encodeURIComponent(p.assetId)}`} className="scenario-result-asset">
                   {p.symbol}
@@ -200,7 +200,7 @@ export function ScenarioLab({
                 </span>
               </div>
             ))}
-          </section>
+          </div></section>
         </div>
       </div>
       {!result && (
@@ -210,7 +210,7 @@ export function ScenarioLab({
       )}
       {message && <Message error={error}>{message}</Message>}
       {!preview && (
-        <div className="scenario-savebar">
+        <div className="card card-border flex-row flex-wrap items-end gap-3 bg-base-200 p-4">
           <div className="min-w-52 flex-1">
             <Field label="სცენარის სახელი">
               <input className="input input-bordered"
@@ -222,7 +222,7 @@ export function ScenarioLab({
             </Field>
           </div>
           <button
-            className="btn btn-primary button-primary"
+            className="btn btn-primary"
             disabled={pending || !result || !cryptoPositions.length}
             onClick={() => void save()}
           >
@@ -232,7 +232,7 @@ export function ScenarioLab({
           {active && (
             <>
               <button
-                className="btn btn-ghost button-secondary"
+                className="btn"
                 disabled={pending}
                 onClick={() => void save(true)}
               >
@@ -240,7 +240,7 @@ export function ScenarioLab({
                 ასლის შექმნა
               </button>
               <button
-                className="btn btn-error button-danger"
+                className="btn btn-error"
                 disabled={pending}
                 onClick={() => setDeleting(true)}
               >
@@ -265,7 +265,7 @@ export function ScenarioLab({
         description="სცენარი წაიშლება. პორტფელის რეალური ტრანზაქციები ამ მოქმედებით არ იცვლება."
       >
         <button
-          className="btn btn-error button-danger"
+          className="btn btn-error"
           disabled={pending}
           onClick={async () => {
             setPending(true);
@@ -322,7 +322,7 @@ function GoalPlanner({
     /* A goal is optional until entered. */
   }
   return (
-    <section className="card panel p-6">
+    <section className="card card-border bg-base-200"><div className="card-body">
       <div className="mb-6">
         <h2 className="text-sm font-medium">პორტფელის მიზანი</h2>
         <p className="mt-2 text-xs text-muted">
@@ -355,7 +355,7 @@ function GoalPlanner({
           </Field>
           {!preview && (
             <button
-              className="btn btn-ghost button-secondary"
+              className="btn"
               disabled={!progress || pending}
               onClick={async () => {
                 setPending(true);
@@ -439,6 +439,6 @@ function GoalPlanner({
           <Message error={error}>{message}</Message>
         </div>
       )}
-    </section>
+    </div></section>
   );
 }

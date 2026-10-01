@@ -49,11 +49,11 @@ export function Settings({
     }
   }
   return (
-    <div className="settings-workspace space-y-4">
+    <div className="space-y-5">
       {message && <Message error={error}>{message}</Message>}
       <div className="grid gap-6 lg:grid-cols-2">
         <form
-          className="card panel space-y-5 p-6"
+          className="card card-border bg-base-200 p-6"
           onSubmit={async (e) => {
             e.preventDefault();
             if (preview) return;
@@ -68,7 +68,7 @@ export function Settings({
             );
           }}
         >
-          <h2 className="text-sm font-medium">პროფილი</h2>
+          <h2 className="card-title text-base">პროფილი</h2>
           <Field label="სახელი">
             <input className="input input-bordered"
               name="name"
@@ -81,10 +81,10 @@ export function Settings({
           <Field label="ელფოსტა">
             <input className="input input-bordered" type="email" value={user.email} readOnly />
           </Field>
-          <p className="text-xs text-muted">
+          <p className="text-xs text-base-content/60">
             ელფოსტა დაკავშირებულია თქვენს Google ანგარიშთან.
           </p>
-          <label className="profile-value-option">
+          <label className="label cursor-pointer items-start justify-start gap-3 rounded-box bg-base-100 p-4">
             <input className="input input-bordered"
               type="checkbox"
               name="cryptoOnlyPortfolioValue"
@@ -97,13 +97,13 @@ export function Settings({
             </span>
           </label>
           {!preview && (
-            <button className="btn btn-ghost button-secondary" disabled={pending}>
+            <button className="btn" disabled={pending}>
               პროფილის შენახვა
             </button>
           )}
         </form>
         <form
-          className="card panel space-y-5 p-6"
+          className="card card-border bg-base-200 p-6"
           onSubmit={async (e) => {
             e.preventDefault();
             if (preview) return;
@@ -114,7 +114,7 @@ export function Settings({
             );
           }}
         >
-          <h2 className="text-sm font-medium">პორტფელის პარამეტრები</h2>
+          <h2 className="card-title text-base">პორტფელის პარამეტრები</h2>
           <Field label="პორტფელის სახელი">
             <input className="input input-bordered"
               name="name"
@@ -132,32 +132,32 @@ export function Settings({
               <input className="input input-bordered" value="თბილისი (UTC+4)" readOnly />
             </Field>
           </div>
-          <p className="text-xs leading-6 text-muted">
+          <p className="text-xs leading-6 text-base-content/60">
             ამ ვერსიაში შეფასებები გამოითვლება USD-ში. ტრანზაქციის შეყვანის დრო
             მითითებულია ფორმაში.
           </p>
           {!preview && (
-            <button className="btn btn-ghost button-secondary" disabled={pending}>
+            <button className="btn" disabled={pending}>
               სახელის შენახვა
             </button>
           )}
         </form>
       </div>
-      <section className="card panel p-6">
-        <h2 className="text-sm font-medium">მონაცემების წყარო</h2>
+      <section className="card card-border bg-base-200"><div className="card-body">
+        <h2 className="card-title text-base">მონაცემების წყარო</h2>
         <div className="mt-5 flex flex-wrap justify-between gap-4 text-xs">
-          <span className="text-muted">ფასების წყარო</span>
+          <span className="text-base-content/60">ფასების წყარო</span>
           <a
             href="https://www.coingecko.com/"
             target="_blank"
             rel="noreferrer"
-            className="text-brand"
+            className="link link-primary"
           >
             CoinGecko
           </a>
         </div>
         <div className="mt-4 flex justify-between gap-4 text-xs">
-          <span className="text-muted">მდგომარეობა</span>
+          <span className="text-base-content/60">მდგომარეობა</span>
           <span>
             {preview
               ? "სადემონსტრაციო მონაცემები"
@@ -167,20 +167,20 @@ export function Settings({
           </span>
         </div>
         <div className="mt-4 flex flex-wrap justify-between gap-4 text-xs">
-          <span className="text-muted">ბოლო ხელმისაწვდომი ფასის დრო</span>
+          <span className="text-base-content/60">ბოლო ხელმისაწვდომი ფასის დრო</span>
           <span>{lastQuote ? dateTime(lastQuote) : "—"}</span>
         </div>
-        <p className="mt-5 text-xs leading-6 text-muted">
+        <p className="mt-5 text-xs leading-6 text-base-content/60">
           ფასების საერთო ქეში 5 წუთით ინახება. 15 წუთზე ძველი ფასი მონიშნულია
           როგორც მოძველებული. გამოტოვებული ფასი ნულად არ ითვლება.
         </p>
-      </section>
-      <section className="card panel p-6">
+      </div></section>
+      <section className="card card-border bg-base-200"><div className="card-body">
         <h2 className="flex items-center gap-2 text-sm font-medium">
-          <ShieldCheck size={17} className="text-brand" />
+          <ShieldCheck size={17} className="text-primary" />
           მონაცემები და უსაფრთხოება
         </h2>
-        <p className="mt-4 text-xs leading-7 text-muted">
+        <p className="mt-4 text-xs leading-7 text-base-content/60">
           ჩამოტვირთეთ პორტფელის ტრანზაქციებისა და გეგმების ასლი. ფინანსური
           მონაცემების ფაილი შეინახეთ დაცულ ადგილას.
         </p>
@@ -188,33 +188,33 @@ export function Settings({
           <div className="mt-5 flex flex-wrap gap-3">
             <a
               href={`/api/portfolios/${portfolioId}/export`}
-              className="btn btn-ghost button-secondary"
+              className="btn"
             >
               <Download size={15} />
               მონაცემების ჩამოტვირთვა
             </a>
             <button
-              className="btn btn-ghost button-secondary"
+              className="btn"
               onClick={() => setConfirm("sessions")}
             >
               ყველა მოწყობილობიდან გასვლა
             </button>
           </div>
         )}
-      </section>
+      </div></section>
       {!preview && (
-        <section className="rounded-xl border border-negative/20 p-6">
+        <section className="card card-border border-error/30 bg-error/5"><div className="card-body">
           <h2 className="text-sm font-medium">პორტფელის წაშლა</h2>
-          <p className="mt-3 text-xs leading-6 text-muted">
+          <p className="mt-3 text-xs leading-6 text-base-content/60">
             წაიშლება ამ პორტფელის ტრანზაქციები, გეგმები, ჟურნალი და დანართები.
           </p>
           <button
-            className="btn btn-error button-danger mt-5"
+            className="btn btn-error mt-5"
             onClick={() => setConfirm("portfolio")}
           >
             პორტფელის წაშლა
           </button>
-        </section>
+        </div></section>
       )}
       <Modal
         open={confirm !== null}
@@ -258,7 +258,7 @@ export function Settings({
             </Field>
           )}
           {error && message && <Message error>{message}</Message>}
-          <button className="btn btn-error button-danger" disabled={pending}>
+          <button className="btn btn-error" disabled={pending}>
             {pending ? "მიმდინარეობს…" : "დადასტურება"}
           </button>
         </form>

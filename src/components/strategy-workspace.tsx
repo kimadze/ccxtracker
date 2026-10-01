@@ -48,15 +48,15 @@ export function StrategyWorkspace({
   const p = investablePositions(summary).find((p) => p.assetId === assetId);
   if (!options.length || (mode !== "journal" && !p))
     return (
-      <div className="card panel p-10 text-center text-sm text-muted">
+      <div role="alert" className="alert alert-info alert-soft justify-center p-10 text-sm">
         ჯერ დაამატეთ პოზიცია.
       </div>
     );
   return (
-    <div className="strategy-workspace space-y-6">
-      <div className="strategy-toolbar">
+    <div className="space-y-6">
+      <div className="card card-border bg-base-200 p-4">
         <select
-          className="max-w-xs"
+          className="select w-full sm:max-w-xs"
           aria-label="პოზიციის არჩევა"
           value={assetId}
           onChange={(e) => setAssetId(e.target.value)}
@@ -79,11 +79,11 @@ export function StrategyWorkspace({
           />
         </div>
       ) : (
-        <div className="strategy-plan-stack space-y-6">
-          <section>
-            <div className="strategy-plan-heading">
-              <span>შესვლის გეგმა</span>
-              <p>
+        <div className="space-y-6">
+          <section className="card card-border bg-base-200"><div className="card-body">
+            <div>
+              <h2 className="card-title text-base">შესვლის გეგმა</h2>
+              <p className="mt-1 text-sm text-base-content/60">
                 DCA განაწილება მიმდინარე პოზიციისა და პორტფელის ზომის მიხედვით.
               </p>
             </div>
@@ -92,11 +92,11 @@ export function StrategyWorkspace({
               position={p!}
               portfolioValue={investableValue(summary)}
             />
-          </section>
-          <section>
-            <div className="strategy-plan-heading">
-              <span>გასვლის გეგმა</span>
-              <p>სამიზნე ფასები და გასაყიდი წილები.</p>
+          </div></section>
+          <section className="card card-border bg-base-200"><div className="card-body">
+            <div>
+              <h2 className="card-title text-base">გასვლის გეგმა</h2>
+              <p className="mt-1 text-sm text-base-content/60">სამიზნე ფასები და გასაყიდი წილები.</p>
             </div>
             <ExitPlanner
               key={`${assetId}-exit`}
@@ -105,7 +105,7 @@ export function StrategyWorkspace({
               initial={data[assetId]?.plan}
               preview={preview}
             />
-          </section>
+          </div></section>
         </div>
       )}
     </div>
