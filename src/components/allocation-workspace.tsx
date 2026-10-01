@@ -114,30 +114,26 @@ export function AllocationWorkspace({
   };
 
   return (
-    <div className="allocation-ledger">
-      <section className="allocation-ribbon" aria-label="მიზნობრივი განაწილება">
-        <div className="allocation-ribbon-title">
-          <span>კრიპტოაქტივების განაწილება</span>
-          <small>
+    <div className="space-y-5">
+      <section className="card card-border bg-base-200" aria-label="მიზნობრივი განაწილება">
+        <div className="card-body gap-5">
+        <div>
+          <h2 className="card-title">კრიპტოაქტივების განაწილება</h2>
+          <small className="text-base-content/60">
             {valid ? "მიზნები მზადაა" : "წონები უნდა უდრიდეს 100%-ს"}
           </small>
         </div>
-        <div className="allocation-ribbon-stats">
-          <span>
-            <small>სულ წილი</small>
-            <strong>{inputNumber(total.toFixed())}%</strong>
-          </span>
-          <span>
-            <small>აქტიური კრიპტო</small>
-            <strong>{cryptoPositions.length}</strong>
-          </span>
+        <div className="stats stats-vertical bg-base-100 sm:stats-horizontal">
+          <span className="stat"><small className="stat-title">სულ წილი</small><strong className="stat-value text-2xl">{inputNumber(total.toFixed())}%</strong></span>
+          <span className="stat"><small className="stat-title">აქტიური კრიპტო</small><strong className="stat-value text-2xl">{cryptoPositions.length}</strong></span>
         </div>
-        <div className="allocation-ribbon-bar">
+        <div className="flex h-12 overflow-hidden rounded-box bg-base-100">
           {rows
             .filter((row) => decimal(row.weight).gt(0))
             .map((row, index) => (
               <span
                 key={row.assetId}
+                className="flex min-w-12 flex-col items-center justify-center border-r border-base-300 bg-primary/20 px-2 text-xs last:border-0"
                 style={{
                   flexGrow: Number(row.weight),
                   opacity: Math.max(0.45, 1 - index * 0.045),
@@ -147,20 +143,20 @@ export function AllocationWorkspace({
                 <small>{inputNumber(row.weight)}%</small>
               </span>
             ))}
-        </div>
+        </div></div>
       </section>
 
-      <div className="allocation-ledger-grid">
-        <section className="card panel allocation-ledger-table">
-          <header>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <section className="card card-border overflow-hidden bg-base-200">
+          <header className="flex items-center justify-between border-b border-base-300 p-5">
             <div>
-              <p className="allocation-kicker">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-wider text-primary">
                 <SlidersHorizontal size={13} /> ალოკაციის ქენვისი
               </p>
-              <h2>მიზნობრივი განაწილება</h2>
+              <h2 className="mt-1 font-semibold">მიზნობრივი განაწილება</h2>
             </div>
             <button
-              className="btn btn-ghost button-secondary"
+              className="btn"
               onClick={() =>
                 setMessage("შეიყვანეთ თითო აქტივის სამიზნე წილი და შეინახეთ.")
               }
@@ -168,14 +164,14 @@ export function AllocationWorkspace({
               რედაქტირება
             </button>
           </header>
-          <div className="allocation-ledger-head">
+          <div className="hidden grid-cols-[minmax(14rem,1fr)_9rem_8rem_8rem_8rem] gap-3 border-b border-base-300 px-5 py-3 text-xs text-base-content/50 lg:grid">
             <span>აქტივი</span>
             <span>სამიზნე წილი</span>
             <span>მიმდინარე წილი</span>
             <span>გადახრა</span>
             <span>ღირებულება</span>
           </div>
-          <div className="allocation-ledger-rows">
+          <div className="divide-y divide-base-300">
             {rows.map((row, index) => {
               const current = currentWeight(row.assetId);
               const deviation =
@@ -184,11 +180,11 @@ export function AllocationWorkspace({
                   : decimal(current).minus(row.weight).toFixed();
               return (
                 <div
-                  className={`allocation-ledger-row ${index > 5 && !showAllRows ? "allocation-row-optional" : ""}`}
+                  className={`grid gap-3 p-4 lg:grid-cols-[minmax(14rem,1fr)_9rem_8rem_8rem_8rem] lg:items-center lg:px-5 ${index > 5 && !showAllRows ? "hidden lg:grid" : ""}`}
                   key={row.assetId}
                 >
                   <Link
-                    className="allocation-ledger-asset"
+                    className="flex min-w-0 items-center gap-3"
                     href={`/portfolios/${portfolioId}/strategy?asset=${encodeURIComponent(row.assetId)}`}
                   >
                     <AssetIcon
@@ -197,14 +193,14 @@ export function AllocationWorkspace({
                       index={index}
                     />
                     <span>
-                      <strong>{symbol(row.assetId)}</strong>
-                      <small>
+                      <strong className="block">{symbol(row.assetId)}</strong>
+                      <small className="block truncate text-base-content/50">
                         {asset(row.assetId)?.name} · გეგმის გახსნა ↗
                       </small>
                     </span>
                   </Link>
-                  <label className="allocation-ledger-input">
-                    <input className="input input-bordered"
+                  <label className="input input-sm">
+                    <input
                       aria-label={`${symbol(row.assetId)} სამიზნე წილი`}
                       inputMode="decimal"
                       value={displayNumber(row.weight)}
@@ -218,11 +214,11 @@ export function AllocationWorkspace({
                     />
                     <span>%</span>
                   </label>
-                  <span>{percentage(current)}</span>
+                  <span className="text-sm"><small className="mr-2 text-base-content/40 lg:hidden">მიმდინარე</small>{percentage(current)}</span>
                   <span className={pnlClass(deviation)}>
                     {percentage(deviation, true)}
                   </span>
-                  <strong>{money(row.value)}</strong>
+                  <strong className="numeric">{money(row.value)}</strong>
                 </div>
               );
             })}
@@ -230,7 +226,7 @@ export function AllocationWorkspace({
           {rows.length > 6 && (
             <button
               type="button"
-              className="allocation-mobile-more button-secondary"
+              className="btn btn-block rounded-none lg:hidden"
               onClick={() => setShowAllRows((open) => !open)}
             >
               {showAllRows
@@ -238,8 +234,8 @@ export function AllocationWorkspace({
                 : `კიდევ ${rows.length - 6} აქტივის რედაქტირება`}
             </button>
           )}
-          <footer>
-            <select className="select select-bordered"
+          <footer className="flex flex-wrap gap-2 border-t border-base-300 p-4 sm:p-5">
+            <select className="select min-w-0 flex-1"
               aria-label="აქტივის დამატება"
               value={addId}
               onChange={(event) => setAddId(event.target.value)}
@@ -254,7 +250,7 @@ export function AllocationWorkspace({
                 ))}
             </select>
             <button
-              className="btn btn-ghost button-secondary"
+              className="btn"
               disabled={!addId}
               onClick={() => {
                 setWeights((w) => ({ ...w, [addId]: "0" }));
@@ -265,7 +261,7 @@ export function AllocationWorkspace({
             </button>
             {!preview && (
               <button
-                className="btn btn-primary button-primary"
+                className="btn btn-primary"
                 disabled={!valid || pending}
                 onClick={save}
               >
@@ -274,23 +270,11 @@ export function AllocationWorkspace({
               </button>
             )}
           </footer>
-          {!preview && (
-            <button
-              className="allocation-mobile-save button-primary"
-              disabled={!valid || pending}
-              onClick={save}
-            >
-              <Save size={15} />
-              {pending ? "ინახება…" : "განაწილების შენახვა"}
-            </button>
-          )}
         </section>
 
-        <aside className="allocation-ledger-side">
-          <section className="card panel concentration-card">
-            <header>
-              <h2>კონცენტრაცია</h2>
-              <span>არასტეიბლ კრიპტო</span>
+        <aside className="space-y-5">
+          <section className="card card-border bg-base-200"><div className="card-body">
+            <header><h2 className="card-title text-base">კონცენტრაცია</h2><span className="text-xs text-base-content/50">არასტეიბლ კრიპტო</span>
             </header>
             {[3, 5].map((count) => {
               const value = [...rows]
@@ -302,44 +286,38 @@ export function AllocationWorkspace({
                   ? value.div(cryptoValue).mul(100).toFixed()
                   : "0";
               return (
-                <div key={count}>
-                  <span>Top {count}</span>
-                  <i>
-                    <b style={{ width: `${Math.min(100, Number(share))}%` }} />
-                  </i>
-                  <strong>{percentage(share)}</strong>
+                <div className="grid grid-cols-[3rem_1fr_auto] items-center gap-3" key={count}>
+                  <span className="text-xs">Top {count}</span>
+                  <progress className="progress progress-primary" value={Math.min(100, Number(share))} max="100" />
+                  <strong className="numeric text-sm">{percentage(share)}</strong>
                 </div>
               );
             })}
-          </section>
-          <section className="card panel rebalance-card">
+          </div></section>
+          <section className="card card-border bg-base-200"><div className="card-body">
             <header>
               <div>
-                <p className="allocation-kicker">Rebalance</p>
-                <h2>ახალი კაპიტალი</h2>
+                <p className="text-xs uppercase tracking-wider text-primary">Rebalance</p>
+                <h2 className="card-title text-base">ახალი კაპიტალი</h2>
               </div>
             </header>
-            <label>
-              <span>დასამატებელი თანხა</span>
-              <div>
-                <b>$</b>
-                <input className="input input-bordered"
+            <fieldset className="fieldset"><legend className="fieldset-legend">დასამატებელი თანხა</legend>
+              <label className="input"><b>$</b><input
                   inputMode="decimal"
                   value={capital}
                   placeholder="0"
                   onChange={(event) => setCapital(event.target.value)}
-                />
-              </div>
-            </label>
+                /></label>
+            </fieldset>
             {result ? (
-              <div className="rebalance-actions">
-                <p>რეკომენდებული შესყიდვები</p>
+              <div className="space-y-2">
+                <p className="text-xs text-base-content/60">რეკომენდებული შესყიდვები</p>
                 {result.rows
                   .filter((row) => decimal(row.capital).gt(0))
                   .slice(0, 5)
                   .map((row, index) => (
-                    <div key={row.assetId}>
-                      <span className="allocation-ledger-asset">
+                    <div className="flex items-center justify-between gap-2 rounded-box bg-base-100 p-3" key={row.assetId}>
+                      <span className="flex items-center gap-2">
                         <AssetIcon
                           symbol={symbol(row.assetId)}
                           logoUrl={asset(row.assetId)?.logoUrl}
@@ -347,7 +325,7 @@ export function AllocationWorkspace({
                         />
                         <strong>{symbol(row.assetId)}</strong>
                       </span>
-                      <strong className="text-brand">
+                      <strong className="numeric text-primary">
                         {money(row.capital)}
                       </strong>
                       {!preview && (
@@ -363,12 +341,12 @@ export function AllocationWorkspace({
                   ))}
               </div>
             ) : (
-              <p className="rebalance-empty">
+              <div role="alert" className="alert alert-info alert-soft text-xs leading-6">
                 შეიყვანეთ თანხა, რომ გამოჩნდეს მიზნობრივ წონებამდე საჭირო
                 შესყიდვები.
-              </p>
+              </div>
             )}
-          </section>
+          </div></section>
         </aside>
       </div>
       {message && <Message error={error}>{message}</Message>}
