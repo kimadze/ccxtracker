@@ -1,11 +1,12 @@
 "use client";
-import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { clsx } from "clsx";
 import {
   cloneElement,
   isValidElement,
+  useEffect,
   useId,
+  useRef,
   type ReactNode,
   type ReactElement,
 } from "react";
@@ -31,33 +32,49 @@ export function Modal({
   wide?: boolean;
   className?: string;
 }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="modal-backdrop ccx-modal-overlay fixed inset-0 z-50 bg-black/70" />
-        <Dialog.Content
-          className={clsx(
-            "modal-box ccx-modal fixed z-50 max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-xl border border-line bg-surface p-5 sm:p-7",
-            wide ? "max-w-2xl" : "max-w-lg",
-            className,
-          )}
-        >
-          <Dialog.Title className="pr-8 text-base font-semibold tracking-tight">
+    <dialog
+      ref={dialogRef}
+      className="modal modal-middle"
+      onClose={() => onOpenChange(false)}
+      onCancel={() => onOpenChange(false)}
+    >
+      <div
+        className={clsx(
+          "modal-box max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto border border-base-300 bg-base-200 p-5 sm:p-7",
+          wide ? "max-w-2xl" : "max-w-lg",
+          className,
+        )}
+      >
+          <h2 className="pr-10 text-lg font-semibold tracking-tight">
             {title}
-          </Dialog.Title>
-          <Dialog.Description className="mt-2 text-xs leading-6 text-muted">
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-base-content/60">
             {description}
-          </Dialog.Description>
-          <Dialog.Close
-            className="absolute right-5 top-5 rounded-lg border border-transparent p-1 text-muted hover:border-line hover:text-foreground"
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost btn-circle btn-sm absolute right-5 top-5"
             aria-label="დახურვა"
+            onClick={() => onOpenChange(false)}
           >
             <X size={18} />
-          </Dialog.Close>
+          </button>
           <div className="mt-6">{children}</div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+      </div>
+      <form method="dialog" className="modal-backdrop">
+        <button aria-label="დახურვა">დახურვა</button>
+      </form>
+    </dialog>
   );
 }
 export function Message({
@@ -68,17 +85,17 @@ export function Message({
   error?: boolean;
 }) {
   return (
-    <p
+    <div
       role={error ? "alert" : "status"}
       className={clsx(
-        "alert rounded-lg border p-3 text-xs leading-6",
+        "alert alert-soft text-sm",
         error
-          ? "alert-error border-negative/20 bg-negative/5 text-negative"
-          : "alert-info border-brand/20 bg-brand/5 text-brand",
+          ? "alert-error"
+          : "alert-info",
       )}
     >
       {children}
-    </p>
+    </div>
   );
 }
 export function Field({
@@ -104,10 +121,8 @@ export function Field({
       : ""
     : "";
   return (
-    <div>
-      <label htmlFor={id} className="field-label">
-        {label}
-      </label>
+    <fieldset className="fieldset">
+      <legend className="fieldset-legend">{label}</legend>
       {isValidElement(children)
         ? cloneElement(
             children as ReactElement<{ id?: string; className?: string }>,
@@ -117,6 +132,6 @@ export function Field({
             },
           )
         : children}
-    </div>
+    </fieldset>
   );
 }

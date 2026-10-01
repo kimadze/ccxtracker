@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, Eye, EyeOff, Share2 } from "lucide-react";
-import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import QRCode from "qrcode";
 import type { ValuedPosition } from "@/domain/types";
@@ -77,10 +76,18 @@ export function PositionShare({
     [status, setStatus] = useState(""),
     [template, setTemplate] = useState<ShareTemplate>("performance");
   const canvas = useRef<HTMLCanvasElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const sharedImage = useRef<Blob | null>(null);
   const renderVersion = useRef(0);
   const positive =
     position.unrealizedPnl !== null && Number(position.unrealizedPnl) >= 0;
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
   const render = useCallback(async () => {
     const preview = canvas.current;
     if (!preview) return;
@@ -705,7 +712,7 @@ export function PositionShare({
     <>
       <button
         type="button"
-        className={compact ? "ccx-icon-button" : "button-secondary"}
+        className={compact ? "btn btn-ghost btn-square" : "btn"}
         aria-label={compact ? "პოზიციის გაზიარება" : undefined}
         title={compact ? "პოზიციის გაზიარება" : undefined}
         onClick={openShare}
@@ -713,44 +720,48 @@ export function PositionShare({
         <Share2 size={15} />
         {!compact && " გაზიარება"}
       </button>
-      <Dialog.Root open={open} onOpenChange={setOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="modal-backdrop ccx-modal-overlay position-share-overlay" />
-          <Dialog.Content
-            className="modal-box position-share-sheet"
+      <dialog
+            ref={dialogRef}
+            className="modal modal-middle"
+            onClose={() => setOpen(false)}
+            onCancel={() => setOpen(false)}
             aria-describedby="position-share-description position-share-data"
           >
-            <Dialog.Title>პოზიციის გაზიარება</Dialog.Title>
-            <Dialog.Description id="position-share-description">
+          <div className="modal-box max-h-[92dvh] max-w-3xl overflow-y-auto border border-base-300 bg-base-200">
+            <h2 className="text-lg font-semibold">პოზიციის გაზიარება</h2>
+            <p id="position-share-description" className="mt-2 text-sm text-base-content/60">
               აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა
               გამოჩენაც გსურთ.
-            </Dialog.Description>
-            <Dialog.Close className="btn btn-circle btn-ghost position-share-close" aria-label="დახურვა">
+            </p>
+            <button type="button" onClick={() => setOpen(false)} className="btn btn-circle btn-ghost btn-sm absolute right-5 top-5" aria-label="დახურვა">
               <X size={18} />
-            </Dialog.Close>
-            <div className="position-share-dialog">
+            </button>
+            <div className="mt-6 grid gap-5">
               <div
-                className="tabs tabs-box position-share-templates"
-                role="group"
+                className="tabs tabs-box"
+                role="tablist"
                 aria-label="გაზიარების შაბლონი"
               >
-                <button className="btn btn-ghost"
+                <button className={`tab ${template === "performance" ? "tab-active" : ""}`}
                   type="button"
-                  aria-pressed={template === "performance"}
+                  role="tab"
+                  aria-selected={template === "performance"}
                   onClick={() => chooseTemplate("performance")}
                 >
                   კლასიკური
                 </button>
-                <button className="btn btn-ghost"
+                <button className={`tab ${template === "reaction" ? "tab-active" : ""}`}
                   type="button"
-                  aria-pressed={template === "reaction"}
+                  role="tab"
+                  aria-selected={template === "reaction"}
                   onClick={() => chooseTemplate("reaction")}
                 >
                   რეაქცია
                 </button>
-                <button className="btn btn-ghost"
+                <button className={`tab ${template === "mood" ? "tab-active" : ""}`}
                   type="button"
-                  aria-pressed={template === "mood"}
+                  role="tab"
+                  aria-selected={template === "mood"}
                   onClick={() => chooseTemplate("mood")}
                 >
                   პერსონაჟი
@@ -766,15 +777,15 @@ export function PositionShare({
               </p>
               <canvas
                 ref={canvas}
-                className="position-share-preview"
+                className="mx-auto block h-auto w-full max-w-xl rounded-box border border-base-300 bg-base-300"
                 role="img"
                 aria-label={`${position.asset.symbol} პოზიციის გაზიარების ბარათი`}
                 aria-describedby="position-share-data"
               />
-              <div className="position-share-controls">
+              <div className="modal-action mt-0 flex-wrap">
                 <button
                   type="button"
-                  className="btn btn-ghost button-secondary"
+                  className="btn"
                   onClick={() => {
                     sharedImage.current = null;
                     setReady(false);
@@ -787,7 +798,7 @@ export function PositionShare({
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost button-secondary"
+                  className="btn"
                   disabled={!ready}
                   onClick={download}
                 >
@@ -795,7 +806,7 @@ export function PositionShare({
                 </button>
                 <button
                   type="button"
-                  className="btn btn-primary button-primary"
+                  className="btn btn-primary"
                   disabled={!ready}
                   onClick={share}
                 >
@@ -803,14 +814,16 @@ export function PositionShare({
                 </button>
               </div>
               {status && (
-                <p role="status" className="text-xs text-muted">
+                <p role="status" className="text-sm text-base-content/60">
                   {status}
                 </p>
               )}
             </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button aria-label="დახურვა">დახურვა</button>
+          </form>
+      </dialog>
     </>
   );
 }

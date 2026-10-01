@@ -9,213 +9,47 @@ import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
 import { BalanceValue } from "./ui";
 import { highResLogoUrl } from "@/lib/asset-logo";
 
-const colors = [
-  "var(--accent)",
-  "var(--violet)",
-  "var(--teal)",
-  "var(--orange)",
-  "var(--blue)",
-  "var(--grey)",
-];
-export function AssetIcon({
-  symbol,
-  logoUrl,
-  index = 0,
-  size = 36,
-}: {
-  symbol: string;
-  logoUrl?: string | null;
-  index?: number;
-  size?: number;
-}) {
+const colors = ["text-primary", "text-secondary", "text-accent", "text-warning", "text-info"];
+
+export function AssetIcon({ symbol, logoUrl, index = 0, size = 36 }: { symbol: string; logoUrl?: string | null; index?: number; size?: number }) {
   const [imageFailed, setImageFailed] = useState(false);
   const source = highResLogoUrl(logoUrl);
-  return (
-    <span
-      className="flex shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold"
-      style={{
-        width: size,
-        height: size,
-        color: colors[index % colors.length],
-        borderColor: `color-mix(in srgb, ${colors[index % colors.length]} 25%, transparent)`,
-        background: `color-mix(in srgb, ${colors[index % colors.length]} 12%, transparent)`,
-      }}
-    >
-      {source && !imageFailed ? <Image unoptimized src={source} alt="" width={size} height={size} onError={() => setImageFailed(true)} className="size-full rounded-full object-contain p-px" /> : symbol.slice(0, 3)}
-    </span>
-  );
+  return <div className="avatar avatar-placeholder shrink-0">
+    <div className={`mask mask-circle grid place-items-center border border-base-300 bg-base-300 ${colors[index % colors.length]}`} style={{ width: size, height: size }}>
+      {source && !imageFailed ? <Image unoptimized src={source} alt="" width={size} height={size} onError={() => setImageFailed(true)} className="size-full object-contain p-px" /> : <span className="text-xs font-semibold">{symbol.slice(0, 3)}</span>}
+    </div>
+  </div>;
 }
-export function PositionsTable({
-  positions,
-  base,
-  preview = false,
-  view = "auto",
-  selectedAssetId,
-  onSelect,
-}: {
-  positions: ValuedPosition[];
-  base: string;
-  preview?: boolean;
-  view?: "auto" | "cards";
-  selectedAssetId?: string;
-  onSelect?: (assetId: string) => void;
+
+export function PositionsTable({ positions, base, preview = false, view = "auto", selectedAssetId, onSelect }: {
+  positions: ValuedPosition[]; base: string; preview?: boolean; view?: "auto" | "cards"; selectedAssetId?: string; onSelect?: (assetId: string) => void;
 }) {
-  if (!positions.length)
-    return (
-      <div className="flex min-h-64 flex-col items-center justify-center px-5 text-center">
-        <span className="mb-4 rounded-xl border border-line bg-raised p-3 text-brand">
-          <Layers3 size={22} />
-        </span>
-        <h3 className="text-sm font-medium">
-          პოზიციები ჯერ არ არის დამატებული
-        </h3>
-        <p className="mt-2 max-w-sm text-xs leading-6 text-muted">
-          დაამატეთ არსებული აქტივი ან ჩაიწერეთ პირველი შესყიდვა. ყველა
-          მაჩვენებელი ავტომატურად გამოითვლება.
-        </p>
-      </div>
-    );
-  return (
-    <>
-      <div className={view === "cards" ? "hidden" : "hidden overflow-x-auto md:block"}>
-        <table className="table w-full">
-          <thead className="bg-raised/35">
-            <tr>
-              {[
-                "აქტივი",
-                "რაოდენობა",
-                "საშუალო ფასი",
-                "მიმდინარე ფასი",
-                "ღირებულება",
-                "მოგება / ზარალი",
-                "წილი",
-              ].map((h, i) => (
-                <th
-                  key={h}
-                  className={`table-head ${i === 0 ? "text-left! pl-6!" : ""}`}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {positions.map((p, i) => (
-              <tr key={p.assetId} onClick={() => onSelect?.(p.assetId)} className={selectedAssetId === p.assetId ? "position-selected" : ""}>
-                <td className="table-cell pl-6! text-left!">
-                  <div className="flex items-center gap-3">
-                    <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
-                    <div>
-                      {preview ? (
-                        <span className="text-xs font-medium">
-                          {p.asset.name}
-                        </span>
-                      ) : (
-                        <Link
-                          className="text-xs font-medium hover:text-brand"
-                          href={`${base}/positions/${p.assetId}`}
-                        >
-                          {p.asset.name}
-                        </Link>
-                      )}
-                      <p className="mt-1 text-[10px] text-muted">
-                        {p.asset.symbol}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-                <td className="table-cell numeric text-xs">
-                  {quantity(p.quantity)}
-                </td>
-                <td className="table-cell numeric text-xs text-muted">
-                  {money(p.averagePrice)}
-                </td>
-                <td className="table-cell">
-                  <div className="numeric text-xs">
-                    {money(p.quote?.price ?? null)}
-                  </div>
-                  <div
-                    className={`mt-1 text-[10px] ${pnlClass(p.quote?.change24h ?? null)}`}
-                  >
-                    {percentage(p.quote?.change24h ?? null, true)}
-                  </div>
-                </td>
-                <td className="table-cell numeric text-sm font-medium">
-                  <BalanceValue>{money(p.value)}</BalanceValue>
-                </td>
-                <td className={`table-cell ${pnlClass(p.unrealizedPnl)}`}>
-                  <div className="numeric text-xs">
-                    <BalanceValue>{p.unrealizedPnl && Number(p.unrealizedPnl) > 0 ? "+" : ""}{money(p.unrealizedPnl)}</BalanceValue>
-                  </div>
-                  <div className="mt-1 text-[10px]">
-                    {percentage(p.returnPercent, true)}
-                  </div>
-                </td>
-                <td className="table-cell text-xs">
-                  <div>{percentage(p.allocation)}</div>
-                  <div className="ml-auto mt-2 h-1 w-12 rounded-full bg-line">
-                    <div
-                      className="h-full rounded-full bg-brand"
-                      style={{
-                        width: `${Math.min(Number(p.allocation ?? 0), 100)}%`,
-                      }}
-                    />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className={view === "cards" ? "positions-card-grid" : "dashboard-position-cards md:hidden"}>
-        {positions.map((p, i) => (
-          <div key={p.assetId} onClick={() => onSelect?.(p.assetId)} className={`dashboard-position-card ${selectedAssetId === p.assetId ? "position-selected" : ""}`}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
-                <div>
-                  <p className="text-sm font-medium">{p.asset.symbol}</p>
-                  <p className="mt-1 text-xs text-muted">{p.asset.name}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="numeric font-medium"><BalanceValue>{money(p.value)}</BalanceValue></p>
-                <p className="mt-1 text-xs text-muted">პორტფელის {percentage(p.allocation)}</p>
-              </div>
-            </div>
-            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 text-xs">
-              <div><dt className="text-muted">რაოდენობა</dt><dd className="numeric mt-1">{quantity(p.quantity)}</dd></div>
-              <div><dt className="text-muted">საშუალო ფასი</dt><dd className="numeric mt-1">{money(p.averagePrice)}</dd></div>
-              <div><dt className="text-muted">მიმდინარე ფასი</dt><dd className="numeric mt-1">{money(p.quote?.price ?? null)}</dd></div>
-              <div><dt className="text-muted">24 საათი</dt><dd className={`numeric mt-1 ${pnlClass(p.quote?.change24h ?? null)}`}>{percentage(p.quote?.change24h ?? null, true)}</dd></div>
-              <div className="col-span-2"><dt className="text-muted">არარეალიზებული P/L</dt><dd className={`numeric mt-1 ${pnlClass(p.unrealizedPnl)}`}><BalanceValue>{money(p.unrealizedPnl)}</BalanceValue> · {percentage(p.returnPercent, true)}</dd></div>
-            </dl>
-            <details className="mobile-position-disclosure">
-              <summary>
-                <span className={pnlClass(p.unrealizedPnl)}>
-                  {money(p.unrealizedPnl)} · {percentage(p.returnPercent, true)}
-                </span>
-                <span>დეტალები</span>
-              </summary>
-              <dl>
-                <div><dt>რაოდენობა</dt><dd>{quantity(p.quantity)}</dd></div>
-                <div><dt>საშუალო ფასი</dt><dd>{money(p.averagePrice)}</dd></div>
-                <div><dt>მიმდინარე ფასი</dt><dd>{money(p.quote?.price ?? null)}</dd></div>
-                <div><dt>24 საათი</dt><dd className={pnlClass(p.quote?.change24h ?? null)}>{percentage(p.quote?.change24h ?? null, true)}</dd></div>
-              </dl>
-            </details>
-            <div className="position-card-workflows">
-              {!preview && (
-                <>
-                  <Link href={`${base}/positions/${p.assetId}?tab=exit}`}><TrendingUp size={14} /> გეგმა</Link>
-                  <Link href={`${base}/positions/${p.assetId}?tab=journal`}><NotebookPen size={14} /> ჟურნალი</Link>
-                  <Link href={`${base}/positions/${p.assetId}`} className="btn btn-ghost button-secondary">დეტალები <ArrowUpRight size={14} /></Link>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </>
-  );
+  if (!positions.length) return <div className="hero min-h-72 rounded-box border border-dashed border-base-300 bg-base-200"><div className="hero-content text-center"><div className="max-w-md"><span className="mx-auto grid size-12 place-items-center rounded-box bg-base-300 text-primary"><Layers3 size={24} /></span><h3 className="mt-4 text-lg font-semibold">პოზიციები ჯერ არ არის დამატებული</h3><p className="mt-2 text-sm text-base-content/55">დაამატეთ არსებული აქტივი ან ჩაიწერეთ პირველი შესყიდვა. მაჩვენებლები ავტომატურად გამოითვლება.</p></div></div></div>;
+
+  return <>
+    <div className={view === "cards" ? "hidden" : "hidden overflow-x-auto rounded-box border border-base-300 bg-base-200 md:block"}>
+      <table className="table table-md">
+        <thead><tr>{["აქტივი", "რაოდენობა", "საშუალო ფასი", "მიმდინარე ფასი", "ღირებულება", "მოგება / ზარალი", "წილი"].map((heading) => <th key={heading}>{heading}</th>)}</tr></thead>
+        <tbody>{positions.map((position, index) => <tr key={position.assetId} className={`cursor-pointer hover:bg-base-300/50 ${selectedAssetId === position.assetId ? "bg-primary/10" : ""}`} onClick={() => onSelect?.(position.assetId)}>
+          <td><div className="flex items-center gap-3"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} index={index} /><div>{preview ? <span className="font-semibold">{position.asset.name}</span> : <Link className="font-semibold hover:text-primary" href={`${base}/positions/${position.assetId}`}>{position.asset.name}</Link>}<div className="text-xs text-base-content/50">{position.asset.symbol}</div></div></div></td>
+          <td className="numeric">{quantity(position.quantity)}</td>
+          <td className="numeric text-base-content/60">{money(position.averagePrice)}</td>
+          <td><div className="numeric">{money(position.quote?.price ?? null)}</div><div className={`text-xs ${pnlClass(position.quote?.change24h ?? null)}`}>{percentage(position.quote?.change24h ?? null, true)}</div></td>
+          <td className="numeric font-semibold"><BalanceValue>{money(position.value)}</BalanceValue></td>
+          <td className={pnlClass(position.unrealizedPnl)}><div className="numeric"><BalanceValue>{position.unrealizedPnl && Number(position.unrealizedPnl) > 0 ? "+" : ""}{money(position.unrealizedPnl)}</BalanceValue></div><div className="text-xs">{percentage(position.returnPercent, true)}</div></td>
+          <td><div className="numeric">{percentage(position.allocation)}</div><progress className="progress progress-primary mt-2 w-16" value={Math.min(Number(position.allocation ?? 0), 100)} max="100" /></td>
+        </tr>)}</tbody>
+      </table>
+    </div>
+
+    <div className={view === "cards" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3 md:hidden"}>
+      {positions.map((position, index) => <article key={position.assetId} onClick={() => onSelect?.(position.assetId)} className={`card border bg-base-200 ${selectedAssetId === position.assetId ? "border-primary" : "border-base-300"}`}>
+        <div className="card-body gap-4 p-4">
+          <div className="flex items-center gap-3"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} index={index} size={42} /><div className="min-w-0 flex-1"><h3 className="font-semibold">{position.asset.symbol}</h3><p className="truncate text-sm text-base-content/50">{position.asset.name}</p></div><div className="text-right"><p className="font-semibold"><BalanceValue>{money(position.value)}</BalanceValue></p><p className={`text-sm ${pnlClass(position.returnPercent)}`}>{percentage(position.returnPercent, true)}</p></div></div>
+          <div className="stats stats-vertical border border-base-300 bg-base-100 sm:stats-horizontal"><div className="stat p-3"><div className="stat-title text-xs">მიმდინარე ფასი</div><div className="stat-value text-base">{money(position.quote?.price ?? null)}</div></div><div className="stat p-3"><div className="stat-title text-xs">საშ. შესყიდვა</div><div className="stat-value text-base">{money(position.averagePrice)}</div></div></div>
+          {!preview && <div className="card-actions grid grid-cols-3"><Link href={`${base}/positions/${position.assetId}?tab=exit`} className="btn btn-sm"><TrendingUp size={14} /> გეგმა</Link><Link href={`${base}/positions/${position.assetId}?tab=journal`} className="btn btn-sm"><NotebookPen size={14} /> ჟურნალი</Link><Link href={`${base}/positions/${position.assetId}`} className="btn btn-sm btn-primary">დეტალები <ArrowUpRight size={14} /></Link></div>}
+        </div>
+      </article>)}
+    </div>
+  </>;
 }

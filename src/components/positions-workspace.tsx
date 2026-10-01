@@ -56,18 +56,18 @@ export function PositionsWorkspace({
   const reset = () => { setSearch(""); setFilter("all"); setSort("value"); setPage(0); };
   const selected = filtered.find((position) => position.assetId === selectedAssetId) ?? filtered[0] ?? positions[0];
   return (
-    <div className="positions-workspace space-y-4">
-      <section className="position-summary" aria-label="პოზიციების ფილტრები">
-        <button type="button" className={filter === "all" ? "active" : ""} onClick={() => { setFilter("all"); setPage(0); }}><span>ყველა</span><strong>{positions.length}</strong></button>
-        <button type="button" className={filter === "profit" ? "active positive" : "positive"} onClick={() => { setFilter("profit"); setPage(0); }}><span>მოგებაში</span><strong>{profitable}</strong></button>
-        <button type="button" className={filter === "loss" ? "active negative" : "negative"} onClick={() => { setFilter("loss"); setPage(0); }}><span>ზარალში</span><strong>{losing}</strong></button>
-        <button type="button" className={filter === "unpriced" ? "active warning" : "warning"} onClick={() => { setFilter("unpriced"); setPage(0); }}><span>ფასის გარეშე</span><strong>{unpriced}</strong></button>
+    <div className="space-y-4">
+      <section className="tabs tabs-box w-full overflow-x-auto bg-base-200" role="tablist" aria-label="პოზიციების ფილტრები">
+        <button role="tab" type="button" className={`tab gap-2 ${filter === "all" ? "tab-active" : ""}`} onClick={() => { setFilter("all"); setPage(0); }}>ყველა <span className="badge badge-sm">{positions.length}</span></button>
+        <button role="tab" type="button" className={`tab gap-2 ${filter === "profit" ? "tab-active" : ""}`} onClick={() => { setFilter("profit"); setPage(0); }}>მოგებაში <span className="badge badge-success badge-sm">{profitable}</span></button>
+        <button role="tab" type="button" className={`tab gap-2 ${filter === "loss" ? "tab-active" : ""}`} onClick={() => { setFilter("loss"); setPage(0); }}>ზარალში <span className="badge badge-error badge-sm">{losing}</span></button>
+        <button role="tab" type="button" className={`tab gap-2 ${filter === "unpriced" ? "tab-active" : ""}`} onClick={() => { setFilter("unpriced"); setPage(0); }}>ფასის გარეშე <span className="badge badge-warning badge-sm">{unpriced}</span></button>
       </section>
-      <div className="positions-toolbar">
-        <label className="positions-search">
+      <div className="card border border-base-300 bg-base-200"><div className="card-body flex-row flex-wrap gap-3 p-4">
+        <label className="input min-w-64 flex-1">
           <Search size={16} aria-hidden="true" />
           <span className="sr-only">პოზიციების ძიება</span>
-          <input className="input input-bordered"
+          <input
           aria-label="პოზიციების ძიება"
           placeholder="მოძებნეთ აქტივი ან სიმბოლო"
           value={search}
@@ -77,9 +77,9 @@ export function PositionsWorkspace({
           }}
           />
         </label>
-        <div className="positions-filter desktop-position-filter"><SlidersHorizontal size={15} aria-hidden="true" /><select
+        <label className="input hidden md:flex"><SlidersHorizontal size={15} aria-hidden="true" /><select
           aria-label="შედეგის ფილტრი"
-          className="max-w-44"
+          className="grow"
           value={filter}
           onChange={(e) => {
             setFilter(e.target.value);
@@ -90,8 +90,8 @@ export function PositionsWorkspace({
           <option value="profit">მოგებით</option>
           <option value="loss">ზარალით</option>
           <option value="unpriced">ფასის გარეშე</option>
-        </select></div>
-        <select className="desktop-position-filter max-w-48"
+        </select></label>
+        <select className="select hidden max-w-48 md:block"
           aria-label="პოზიციების დალაგება"
           value={sort}
           onChange={(e) => setSort(e.target.value)}
@@ -100,9 +100,9 @@ export function PositionsWorkspace({
           <option value="return">შემოსავლიანობით</option>
           <option value="name">სახელით</option>
         </select>
-        <div className="view-switcher desktop-position-filter" role="group" aria-label="პოზიციების ხედი">
-          <button type="button" className={view === "table" ? "active" : ""} onClick={() => setView("table")} aria-label="ცხრილის ხედი"><List size={16} /></button>
-          <button type="button" className={view === "cards" ? "active" : ""} onClick={() => setView("cards")} aria-label="ბარათების ხედი"><Grid2X2 size={16} /></button>
+        <div className="join hidden md:flex" role="group" aria-label="პოზიციების ხედი">
+          <button type="button" className={`btn btn-square join-item ${view === "table" ? "btn-active" : ""}`} onClick={() => setView("table")} aria-label="ცხრილის ხედი"><List size={16} /></button>
+          <button type="button" className={`btn btn-square join-item ${view === "cards" ? "btn-active" : ""}`} onClick={() => setView("cards")} aria-label="ბარათების ხედი"><Grid2X2 size={16} /></button>
         </div>
         <div className="mobile-position-filter">
           <MobileBottomSheet title="პოზიციების ფილტრი" trigger={<button type="button" className="btn btn-ghost button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
@@ -113,11 +113,11 @@ export function PositionsWorkspace({
             {(search || filter !== "all" || sort !== "value") && <button type="button" className="btn btn-ghost button-secondary w-full" onClick={reset}><RotateCcw size={15} /> ფილტრების გასუფთავება</button>}
           </MobileBottomSheet>
         </div>
-        {(search || filter !== "all" || sort !== "value") && <button type="button" className="toolbar-reset desktop-position-filter" onClick={reset}><RotateCcw size={14} /> გასუფთავება</button>}
-      </div>
-      <div className="positions-result-meta"><span><strong>{filtered.length}</strong> შედეგი</span>{search && <span>ძიება: “{search}”</span>}</div>
-      <div className="positions-command-grid">
-        <section className="positions-results">
+        {(search || filter !== "all" || sort !== "value") && <button type="button" className="btn hidden md:inline-flex" onClick={reset}><RotateCcw size={14} /> გასუფთავება</button>}
+      </div></div>
+      <div className="flex items-center gap-3 text-sm text-base-content/55"><span><strong className="text-base-content">{filtered.length}</strong> შედეგი</span>{search && <span>ძიება: “{search}”</span>}</div>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="min-w-0">
           <PositionsTable
             positions={filtered.slice(current * 20, current * 20 + 20)}
             base={base}
@@ -138,7 +138,7 @@ export function PositionsWorkspace({
           >
             წინა
           </button>
-          <span className="text-xs text-muted">
+          <span className="text-sm text-base-content/55">
             {current + 1} / {pages}
           </span>
           <button
@@ -156,17 +156,17 @@ export function PositionsWorkspace({
 
 function PositionBrief({ position, base, assets, revision, preview }: { position: ValuedPosition; base: string; assets: Asset[]; revision: number; preview: boolean }) {
   const positive = position.unrealizedPnl !== null && decimal(position.unrealizedPnl).gt(0);
-  return <aside className="position-brief" aria-label={`${position.asset.symbol} პოზიციის მოკლე ინფორმაცია`}>
-    <header><div className="position-brief-asset"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} /><div><h2>{position.asset.symbol}</h2><span>{position.asset.name}</span></div></div>{!preview && <div className="position-brief-header-actions"><PositionShare position={position} compact /><Link className="btn btn-ghost button-secondary" href={`${base}/positions/${position.assetId}`}>სრული გვერდი ↗</Link></div>}</header>
-    <div className="position-brief-price"><span>მიმდინარე ფასი</span><strong>{money(position.quote?.price ?? null)}</strong><b className={pnlClass(position.quote?.change24h ?? null)}>{percentage(position.quote?.change24h ?? null, true)} · 24სთ</b></div>
-    <div className="position-brief-grid"><div><span>რაოდენობა</span><b>{quantity(position.quantity)}</b></div><div><span>საშ. შესყიდვა</span><b>{money(position.averagePrice)}</b></div><div><span>ღირებულება</span><b><BalanceValue>{money(position.value)}</BalanceValue></b></div><div><span>პორტფელის წილი</span><b>{percentage(position.allocation)}</b></div></div>
-    <div className={`position-brief-pnl ${positive ? "positive" : "negative"}`}><span>არარეალიზებული P/L</span><strong><BalanceValue>{position.unrealizedPnl && positive ? "+" : ""}{money(position.unrealizedPnl)}</BalanceValue></strong><b>{percentage(position.returnPercent, true)}</b></div>
+  return <aside className="card h-fit border border-base-300 bg-base-200 xl:sticky xl:top-24" aria-label={`${position.asset.symbol} პოზიციის მოკლე ინფორმაცია`}><div className="card-body p-5">
+    <header className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><AssetIcon symbol={position.asset.symbol} logoUrl={position.asset.logoUrl} size={44} /><div><h2 className="text-lg font-semibold">{position.asset.symbol}</h2><span className="text-sm text-base-content/50">{position.asset.name}</span></div></div>{!preview && <PositionShare position={position} compact />}</header>
+    <div className="mt-3"><span className="text-sm text-base-content/55">მიმდინარე ფასი</span><strong className="mt-1 block text-3xl">{money(position.quote?.price ?? null)}</strong><span className={`mt-1 block text-sm ${pnlClass(position.quote?.change24h ?? null)}`}>{percentage(position.quote?.change24h ?? null, true)} · 24სთ</span></div>
+    <div className="stats stats-vertical border border-base-300 bg-base-100"><div className="stat py-3"><div className="stat-title">რაოდენობა</div><div className="stat-value text-base">{quantity(position.quantity)}</div></div><div className="stat py-3"><div className="stat-title">საშ. შესყიდვა</div><div className="stat-value text-base">{money(position.averagePrice)}</div></div><div className="stat py-3"><div className="stat-title">ღირებულება</div><div className="stat-value text-base"><BalanceValue>{money(position.value)}</BalanceValue></div></div><div className="stat py-3"><div className="stat-title">პორტფელის წილი</div><div className="stat-value text-base">{percentage(position.allocation)}</div></div></div>
+    <div className={`alert alert-soft ${positive ? "alert-success" : "alert-error"}`}><div><span className="text-xs opacity-70">არარეალიზებული P/L</span><strong className="block text-xl"><BalanceValue>{position.unrealizedPnl && positive ? "+" : ""}{money(position.unrealizedPnl)}</BalanceValue></strong></div><b className="ml-auto">{percentage(position.returnPercent, true)}</b></div>
     {!preview && <>
-      <div className="position-brief-actions"><TransactionForm portfolioId={base.split("/").at(-1) ?? ""} revision={revision} assets={assets} initialAsset={position.assetId} triggerLabel="ტრანზაქცია" /><Link className="btn btn-ghost button-secondary" href={`${base}/positions/${position.assetId}`}>მართვა</Link></div>
-      <div className="position-brief-workflows" aria-label={`${position.asset.symbol} დაგეგმვის მოქმედებები`}>
-        <Link href={`${base}/positions/${position.assetId}?tab=exit`}><TrendingUp size={14} /><span>გასვლის გეგმა</span></Link>
-        <Link href={`${base}/positions/${position.assetId}?tab=journal`}><NotebookPen size={14} /><span>ჟურნალი</span></Link>
+      <div className="card-actions grid grid-cols-2"><TransactionForm portfolioId={base.split("/").at(-1) ?? ""} revision={revision} assets={assets} initialAsset={position.assetId} triggerLabel="ტრანზაქცია" /><Link className="btn" href={`${base}/positions/${position.assetId}`}>მართვა</Link></div>
+      <div className="grid grid-cols-2 gap-2" aria-label={`${position.asset.symbol} დაგეგმვის მოქმედებები`}>
+        <Link className="btn btn-ghost btn-sm" href={`${base}/positions/${position.assetId}?tab=exit`}><TrendingUp size={14} /><span>გასვლის გეგმა</span></Link>
+        <Link className="btn btn-ghost btn-sm" href={`${base}/positions/${position.assetId}?tab=journal`}><NotebookPen size={14} /><span>ჟურნალი</span></Link>
       </div>
     </>}
-  </aside>;
+  </div></aside>;
 }

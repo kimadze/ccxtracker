@@ -1,6 +1,5 @@
 "use client";
 
-import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -24,7 +23,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
@@ -168,6 +167,7 @@ export function Shell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const moreDialogRef = useRef<HTMLDialogElement>(null);
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
   const base = "/portfolios/" + activeId;
   const currentSection =
@@ -193,6 +193,13 @@ export function Shell({
       ),
     }))
     .filter((group) => group.links.length);
+
+  useEffect(() => {
+    const dialog = moreDialogRef.current;
+    if (!dialog) return;
+    if (moreOpen && !dialog.open) dialog.showModal();
+    if (!moreOpen && dialog.open) dialog.close();
+  }, [moreOpen]);
 
   return (
     <div className="drawer lg:drawer-open min-h-screen bg-base-100 ccx-shell">
@@ -306,37 +313,37 @@ export function Shell({
               </Link>
             );
           })}
-          <Dialog.Root open={moreOpen} onOpenChange={setMoreOpen}>
-            <Dialog.Trigger asChild>
-              <button
-                type="button"
-                className="mobile-bottom-link"
-                aria-label="მეტი გვერდი"
-              >
-                <Menu size={19} />
-                <span className="dock-label">მეტი</span>
-              </button>
-            </Dialog.Trigger>
-            <Dialog.Portal>
-              <Dialog.Overlay className="mobile-sheet-overlay" />
-              <Dialog.Content
-                className="modal-box mobile-bottom-sheet mobile-more-sheet"
-                aria-describedby={undefined}
-              >
-                <div className="mobile-sheet-handle" aria-hidden="true" />
-                <div className="mobile-sheet-heading">
+          <button
+            type="button"
+            className={clsx("mobile-bottom-link", moreOpen && "dock-active")}
+            aria-label="მეტი გვერდი"
+            onClick={() => setMoreOpen(true)}
+          >
+            <Menu size={19} />
+            <span className="dock-label">მეტი</span>
+          </button>
+          <dialog
+            ref={moreDialogRef}
+            className="modal modal-bottom"
+            onClose={() => setMoreOpen(false)}
+            onCancel={() => setMoreOpen(false)}
+          >
+              <div className="modal-box max-h-[85dvh] rounded-t-box border border-base-300 bg-base-200">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <Dialog.Title>ყველა ხელსაწყო</Dialog.Title>
-                    <p>კვლევა, დაგეგმვა და ანგარიშის მართვა</p>
+                    <h2 className="text-lg font-semibold">ყველა ხელსაწყო</h2>
+                    <p className="mt-1 text-sm text-base-content/60">კვლევა, დაგეგმვა და ანგარიშის მართვა</p>
                   </div>
-                  <Dialog.Close
-                    className="mobile-sheet-close"
+                  <button
+                    type="button"
+                    className="btn btn-circle btn-ghost btn-sm"
                     aria-label="დახურვა"
+                    onClick={() => setMoreOpen(false)}
                   >
                     <X size={18} />
-                  </Dialog.Close>
+                  </button>
                 </div>
-                <div className="mobile-more-grid">
+                <div className="mt-5 grid grid-cols-2 gap-2">
                   {moreGroups
                     .flatMap((group) => group.links)
                     .map(([segment, label, Icon]) => {
@@ -349,7 +356,7 @@ export function Shell({
                           aria-current={active ? "page" : undefined}
                           onClick={() => setMoreOpen(false)}
                         >
-                          <span>
+                          <span className="grid size-9 place-items-center rounded-selector bg-base-300 text-primary">
                             <Icon size={19} />
                           </span>
                           <strong>{label}</strong>
@@ -357,12 +364,14 @@ export function Shell({
                       );
                     })}
                 </div>
-                <div className="mobile-more-account">
+                <div className="mt-5 border-t border-base-300 pt-4">
                   <LogoutButton />
                 </div>
-              </Dialog.Content>
-            </Dialog.Portal>
-          </Dialog.Root>
+              </div>
+              <form method="dialog" className="modal-backdrop">
+                <button aria-label="დახურვა">დახურვა</button>
+              </form>
+          </dialog>
         </nav>
         <footer className="mx-4 flex flex-wrap justify-between gap-3 border-t border-line py-5 text-xs text-muted sm:mx-6">
           <span>© {new Date().getFullYear()} Crypto Collective X</span>
