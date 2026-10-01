@@ -62,22 +62,22 @@ export function JournalForm({
         </p>
       </div>
       <Field label="საინვესტიციო თეზისი">
-        <textarea name="thesis" rows={4} maxLength={10000} defaultValue={initial?.thesis ?? ""} placeholder="რა არის მთავარი არგუმენტი ამ პოზიციისთვის?" />
+        <textarea className="textarea textarea-bordered" name="thesis" rows={4} maxLength={10000} defaultValue={initial?.thesis ?? ""} placeholder="რა არის მთავარი არგუმენტი ამ პოზიციისთვის?" />
       </Field>
       <section className="journal-section">
         <header><h3>შესვლა და მოლოდინი</h3><p>რატომ არის ეს პოზიცია თქვენს პორტფელში და რა შეიძლება შეცვალოს მისი თეზისი.</p></header>
         <div className="grid gap-5 md:grid-cols-2">
-          <Field label="რატომ გავხსენი პოზიცია"><textarea name="entryReason" rows={3} maxLength={5000} defaultValue={initial?.entryReason ?? ""} placeholder="შესვლის მიზეზი…" /></Field>
-          <Field label="კატალიზატორები"><textarea name="catalysts" rows={3} maxLength={5000} defaultValue={initial?.catalysts ?? ""} placeholder="რა უნდა მოხდეს, რომ თეზისი გამყარდეს?" /></Field>
-          <Field label="თეზისის გაუქმების პირობები"><textarea name="invalidation" rows={3} maxLength={5000} defaultValue={initial?.invalidation ?? ""} placeholder="რომელი ფაქტი შეცვლის თქვენს ხედვას?" /></Field>
-          <Field label="სამიზნე ფასები"><textarea name="targets" rows={3} maxLength={2000} defaultValue={initial?.targets ?? ""} placeholder="სამიზნეები და გასვლის პირობები…" /></Field>
+          <Field label="რატომ გავხსენი პოზიცია"><textarea className="textarea textarea-bordered" name="entryReason" rows={3} maxLength={5000} defaultValue={initial?.entryReason ?? ""} placeholder="შესვლის მიზეზი…" /></Field>
+          <Field label="კატალიზატორები"><textarea className="textarea textarea-bordered" name="catalysts" rows={3} maxLength={5000} defaultValue={initial?.catalysts ?? ""} placeholder="რა უნდა მოხდეს, რომ თეზისი გამყარდეს?" /></Field>
+          <Field label="თეზისის გაუქმების პირობები"><textarea className="textarea textarea-bordered" name="invalidation" rows={3} maxLength={5000} defaultValue={initial?.invalidation ?? ""} placeholder="რომელი ფაქტი შეცვლის თქვენს ხედვას?" /></Field>
+          <Field label="სამიზნე ფასები"><textarea className="textarea textarea-bordered" name="targets" rows={3} maxLength={2000} defaultValue={initial?.targets ?? ""} placeholder="სამიზნეები და გასვლის პირობები…" /></Field>
         </div>
       </section>
       <section className="journal-section">
         <header><h3>რწმენა და დრო</h3><p>მოკლე კონტექსტი, რომელიც შემდეგ გადახედვებს გაამარტივებს.</p></header>
         <div className="grid gap-5 md:grid-cols-2">
         <Field label="დარწმუნებულობის დონე">
-          <select
+          <select className="select select-bordered"
             name="conviction"
             defaultValue={initial?.conviction ?? "medium"}
           >
@@ -87,7 +87,7 @@ export function JournalForm({
           </select>
         </Field>
         <Field label="საინვესტიციო ჰორიზონტი">
-          <input
+          <input className="input input-bordered"
             name="horizon"
             maxLength={200}
             defaultValue={initial?.horizon ?? ""}
@@ -96,7 +96,7 @@ export function JournalForm({
         </Field></div>
       </section>
       <Field label="დამატებითი შენიშვნები">
-        <textarea name="notes" rows={4} maxLength={10000} defaultValue={initial?.notes ?? ""} placeholder="გადახედვის შედეგი, პირადი შენიშვნა ან ბმული…" />
+        <textarea className="textarea textarea-bordered" name="notes" rows={4} maxLength={10000} defaultValue={initial?.notes ?? ""} placeholder="გადახედვის შედეგი, პირადი შენიშვნა ან ბმული…" />
       </Field>
       {message && <Message error={error}>{message}</Message>}
       {!preview && (

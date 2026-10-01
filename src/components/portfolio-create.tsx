@@ -58,7 +58,7 @@ export function PortfolioCreate({
           }}
         >
           <Field label="პორტფელის სახელი">
-            <input
+            <input className="input input-bordered"
               name="name"
               required
               maxLength={60}

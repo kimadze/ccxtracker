@@ -41,21 +41,21 @@ export function DcaPlanner({
       <section className="dca-controls">
         <h2 className="text-sm font-medium">დამატებითი შესყიდვა</h2>
         <Field label="დამატებითი კაპიტალი, საკომისიოს ჩათვლით (USD)">
-          <input
+          <input className="input input-bordered"
             inputMode="decimal"
             value={capital}
             onChange={(e) => setCapital(e.target.value)}
           />
         </Field>
         <Field label="მოსალოდნელი შესყიდვის ფასი (USD)">
-          <input
+          <input className="input input-bordered"
             inputMode="decimal"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
           />
         </Field>
         <Field label="საკომისიო (USD)">
-          <input
+          <input className="input input-bordered"
             inputMode="decimal"
             value={fee}
             onChange={(e) => setFee(e.target.value)}
@@ -187,7 +187,7 @@ export function ExitPlanner({
           </div>
           <div className="exit-fee-field">
             <Field label="საკომისიო (%)">
-              <input
+              <input className="input input-bordered"
                 value={feePercent}
                 inputMode="decimal"
                 onChange={(e) => {
@@ -207,7 +207,7 @@ export function ExitPlanner({
             >
               <span className="exit-level-name">TP{i + 1}</span>
               <Field label="სამიზნე ფასი (USD)">
-                <input
+                <input className="input input-bordered"
                   value={level.price}
                   inputMode="decimal"
                   onChange={(e) => update(i, "price", e.target.value)}
@@ -215,7 +215,7 @@ export function ExitPlanner({
                 />
               </Field>
               <Field label="გასაყიდი წილი (%)">
-                <input
+                <input className="input input-bordered"
                   value={level.percentage}
                   inputMode="decimal"
                   onChange={(e) => update(i, "percentage", e.target.value)}

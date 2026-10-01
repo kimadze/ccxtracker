@@ -74,7 +74,7 @@ export function ScenarioLab({
   const priceRow = (p: typeof cryptoPositions[number], i: number) => (
     <div key={p.assetId} className="scenario-price-row grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]">
       <div className="flex items-center gap-3"><AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} /><div><p className="text-xs font-medium">{p.asset.symbol}</p><p className="mt-1 text-[10px] text-muted">{quantity(p.quantity)} · ახლა {money(p.quote?.price ?? null)}</p></div></div>
-      <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}><input inputMode="decimal" value={prices[p.assetId] ?? ""} placeholder={p.quote?.price ?? "შეიყვანეთ ფასი"} onChange={(e) => { setPrices((current) => ({ ...current, [p.assetId]: e.target.value })); setMessage(""); }} /></Field>
+      <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}><input className="input input-bordered" inputMode="decimal" value={prices[p.assetId] ?? ""} placeholder={p.quote?.price ?? "შეიყვანეთ ფასი"} onChange={(e) => { setPrices((current) => ({ ...current, [p.assetId]: e.target.value })); setMessage(""); }} /></Field>
     </div>
   );
   async function save(copy = false) {
@@ -138,7 +138,7 @@ export function ScenarioLab({
               შეცვალეთ ფასები. რაოდენობები ავტომატურად აიღება მიმდინარე
               პორტფელიდან.
             </p></div>
-            <div className="scenario-quick-controls"><label><Percent size={13} /><input aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="btn btn-ghost button-secondary" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="btn btn-ghost button-secondary" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
+            <div className="scenario-quick-controls"><label><Percent size={13} /><input className="input input-bordered" aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="btn btn-ghost button-secondary" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="btn btn-ghost button-secondary" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
           </div>
           <div className="divide-y divide-line">
             {cryptoPositions.slice(0, 6).map(priceRow)}
@@ -213,7 +213,7 @@ export function ScenarioLab({
         <div className="scenario-savebar">
           <div className="min-w-52 flex-1">
             <Field label="სცენარის სახელი">
-              <input
+              <input className="input input-bordered"
                 value={name}
                 maxLength={80}
                 onChange={(e) => setName(e.target.value)}
@@ -332,7 +332,7 @@ function GoalPlanner({
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-4">
           <Field label="მიზნობრივი ღირებულება (USD)">
-            <input
+            <input className="input input-bordered"
               inputMode="decimal"
               value={target}
               onChange={(e) => {
@@ -343,7 +343,7 @@ function GoalPlanner({
             />
           </Field>
           <Field label="შუალედური მიზნები — გამოყავით წერტილ-მძიმით">
-            <input
+            <input className="input input-bordered"
               value={milestones}
               maxLength={500}
               onChange={(e) => {

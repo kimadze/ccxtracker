@@ -232,7 +232,7 @@ export function DemoClient() {
             return (
               <button
                 key={item.screen}
-                className={screen === item.screen ? "active" : ""}
+                className={`menu-item btn btn-ghost justify-start ${screen === item.screen ? "active" : ""}`}
                 onClick={() => navigate(item.screen)}
               >
                 <Icon size={18} /> {item.label}
@@ -252,16 +252,16 @@ export function DemoClient() {
       <section className="wallet-hybrid-app">
         <header className="wallet-hybrid-topbar">
           <div className="mobile-wallet-tools">
-            <button aria-label="პროფილი">
+            <button className="btn btn-ghost btn-square" aria-label="პროფილი">
               <UserRound size={24} />
             </button>
-            <button aria-label="QR კოდი">
+            <button className="btn btn-ghost btn-square" aria-label="QR კოდი">
               <QrCode size={22} />
             </button>
           </div>
           <label>
             <Search size={16} />
-            <input
+            <input className="input input-bordered"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={
@@ -269,10 +269,10 @@ export function DemoClient() {
               }
             />
           </label>
-          <button aria-label="შეტყობინებები">
+          <button className="btn btn-ghost btn-square" aria-label="შეტყობინებები">
             <Bell size={18} />
           </button>
-          <button aria-label="თანხების დამალვა">
+          <button className="btn btn-ghost btn-square" aria-label="თანხების დამალვა">
             <Eye size={18} />
           </button>
         </header>
@@ -300,33 +300,33 @@ export function DemoClient() {
         </div>
         <nav className="wallet-hybrid-bottom">
           <button
-            className={screen === "overview" ? "active" : ""}
+            className={`btn btn-ghost ${screen === "overview" ? "active" : ""}`}
             onClick={() => navigate("overview")}
           >
             <LayoutDashboard size={19} />
             <span>მიმოხილვა</span>
           </button>
           <button
-            className={screen === "positions" ? "active" : ""}
+            className={`btn btn-ghost ${screen === "positions" ? "active" : ""}`}
             onClick={() => navigate("positions")}
           >
             <Wallet size={19} />
             <span>პოზიციები</span>
           </button>
-          <button className="add" onClick={openForm}>
+          <button className="btn btn-primary add" onClick={openForm}>
             <i>
               <Plus size={26} />
             </i>
             <span>დამატება</span>
           </button>
           <button
-            className={screen === "analytics" ? "active" : ""}
+            className={`btn btn-ghost ${screen === "analytics" ? "active" : ""}`}
             onClick={() => navigate("analytics")}
           >
             <BarChart3 size={19} />
             <span>ანალიტიკა</span>
           </button>
-          <button onClick={() => setMoreOpen(true)} className={moreOpen ? "active" : ""}>
+          <button onClick={() => setMoreOpen(true)} className={`btn btn-ghost ${moreOpen ? "active" : ""}`}>
             <Menu size={19} />
             <span>მეტი</span>
           </button>
@@ -359,11 +359,11 @@ function Overview({
 }) {
   return (
     <>
-      <section className="wallet-balance-card">
+      <section className="card card-border wallet-balance-card">
         <div className="wallet-balance-copy">
           <div className="wallet-balance-meta">
             <span>კრიპტო კოლექცია</span>
-            <button aria-label="თანხის დამალვა">
+            <button className="btn btn-ghost btn-square" aria-label="თანხის დამალვა">
               <Eye size={16} />
             </button>
           </div>
@@ -397,32 +397,32 @@ function Overview({
         </svg>
       </section>
       <div className="wallet-action-grid">
-        <button className="primary-action" onClick={openForm}>
+        <button className="btn btn-primary primary-action" onClick={openForm}>
           <i>
             <Plus size={23} />
           </i>
           <span>დამატება</span>
         </button>
-        <button onClick={() => navigate("positions")}>
+        <button className="btn btn-ghost" onClick={() => navigate("positions")}>
           <i>
             <Wallet size={22} />
           </i>
           <span>პოზიციები</span>
         </button>
-        <button onClick={() => navigate("allocation")}>
+        <button className="btn btn-ghost" onClick={() => navigate("allocation")}>
           <i>
             <PieChart size={22} />
           </i>
           <span>განაწილება</span>
         </button>
-        <button onClick={() => navigate("transactions")}>
+        <button className="btn btn-ghost" onClick={() => navigate("transactions")}>
           <i>
             <BarChart3 size={22} />
           </i>
           <span>ისტორია</span>
         </button>
       </div>
-      <section className="wallet-liquidity">
+      <section className="card card-border wallet-liquidity">
         <div>
           <span>ქეში</span>
           <b>$2,310.00</b>
@@ -433,13 +433,13 @@ function Overview({
           <b>$2,515.10</b>
         </div>
       </section>
-      <section className="wallet-list-card">
+      <section className="card card-border wallet-list-card">
         <header>
           <div>
             <small>აქტივები</small>
             <h2>ძირითადი პოზიციები</h2>
           </div>
-          <button onClick={() => navigate("positions")}>
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate("positions")}>
             ყველა <ChevronRight size={15} />
           </button>
         </header>
@@ -480,7 +480,7 @@ function History({
     (typeof transactions)[number][] | readonly (typeof transactions)[number][];
 }) {
   return (
-    <section className="wallet-history-card">
+    <section className="card card-border wallet-history-card">
       <div className="wallet-history-summary">
         <div>
           <small>ამ თვეში</small>
@@ -492,10 +492,10 @@ function History({
         </div>
       </div>
       <div className="wallet-history-filters">
-        <button className="active">ყველა</button>
-        <button>შესყიდვა</button>
-        <button>გაყიდვა</button>
-        <button>შეტანა</button>
+        <button className="btn btn-sm btn-primary active">ყველა</button>
+        <button className="btn btn-sm btn-ghost">შესყიდვა</button>
+        <button className="btn btn-sm btn-ghost">გაყიდვა</button>
+        <button className="btn btn-sm btn-ghost">შეტანა</button>
       </div>
       {items.map((item) => (
         <article key={`${item.kind}-${item.date}`}>
@@ -543,8 +543,8 @@ function FeatureScreen({
             ["პოზიციები", "6"],
           ]}
         />
-        <section className="wallet-list-card wallet-feature-card">
-          <header><div><small>პორტფელი</small><h2>ყველა პოზიცია</h2></div><button onClick={() => navigate("allocation")}>განაწილება <ChevronRight size={15} /></button></header>
+        <section className="card card-border wallet-list-card wallet-feature-card">
+          <header><div><small>პორტფელი</small><h2>ყველა პოზიცია</h2></div><button className="btn btn-ghost btn-sm" onClick={() => navigate("allocation")}>განაწილება <ChevronRight size={15} /></button></header>
           <div className="wallet-list-body">
             {queryAssets.map((asset, index) => (
               <article key={asset.symbol}>
@@ -605,12 +605,12 @@ function FeatureScreen({
   const page = content[screen];
   return (
     <div className="wallet-feature-stack">
-      <section className="wallet-feature-intro">
+      <section className="card card-border wallet-feature-intro">
         <small>{page.eyebrow}</small>
         <h2>{page.title}</h2>
         <p>{page.description}</p>
       </section>
-      <section className="wallet-feature-card wallet-simple-list">
+      <section className="card card-border wallet-feature-card wallet-simple-list">
         {page.rows.map(([name, meta, value, tone]) => (
           <article key={name}>
             <i><ChevronRight size={17} /></i>
@@ -631,11 +631,11 @@ function AnalyticsScreen() {
   return (
     <div className="wallet-feature-stack">
       <MetricStrip items={[["მთლიანი P/L", "+$8,904", "gain"], ["ROI", "+18.7%", "gain"], ["რეალიზებული", "$1,840"]]} />
-      <section className="wallet-chart-card">
+      <section className="card card-border wallet-chart-card">
         <header><div><small>პორტფელის დინამიკა</small><h2>ღირებულება დროში</h2></div><span>1 წელი</span></header>
         <div className="wallet-chart-visual"><span>$48.2k</span><svg viewBox="0 0 600 190" preserveAspectRatio="none"><path d="M0 154 C65 151 79 120 132 130 S207 77 265 101 S342 62 407 74 S486 25 600 35" /></svg></div>
       </section>
-      <section className="wallet-feature-card wallet-simple-list">
+      <section className="card card-border wallet-feature-card wallet-simple-list">
         <article><i><TrendingUp size={17} /></i><div><strong>საუკეთესო შედეგი</strong><span>Solana</span></div><b className="gain">+42.8%</b></article>
         <article><i><ShieldCheck size={17} /></i><div><strong>ლიკვიდობა</strong><span>ქეში და სტეიბლკოინები</span></div><b>10.0%</b></article>
       </section>
@@ -646,8 +646,8 @@ function AnalyticsScreen() {
 function AllocationScreen() {
   return (
     <div className="wallet-feature-stack wallet-allocation-layout">
-      <section className="wallet-donut-card"><div className="wallet-donut"><span><b>$48.2k</b><small>სულ</small></span></div><div><small>კონცენტრაცია</small><strong>Top 3 · 63%</strong><p>ლიკვიდობა ცალკეა: $4,825</p></div></section>
-      <section className="wallet-feature-card wallet-simple-list">
+      <section className="card card-border wallet-donut-card"><div className="wallet-donut"><span><b>$48.2k</b><small>სულ</small></span></div><div><small>კონცენტრაცია</small><strong>Top 3 · 63%</strong><p>ლიკვიდობა ცალკეა: $4,825</p></div></section>
+      <section className="card card-border wallet-feature-card wallet-simple-list">
         {assets.slice(0, 5).map((asset, index) => <article key={asset.symbol}><AssetIcon symbol={asset.symbol} logoUrl={asset.logoUrl} index={index} size={38} /><div><strong>{asset.name}</strong><span>{asset.value}</span></div><b>{["38.2%", "19.3%", "12.4%", "8.1%", "6.4%"][index]}</b></article>)}
       </section>
     </div>
@@ -658,9 +658,9 @@ function MoreSheet({ screen, navigate, close }: { screen: Screen; navigate: (scr
   const groups = ["პორტფელი", "კვლევა", "დაგეგმვა", "ანგარიში"] as const;
   return (
     <div className="wallet-more-backdrop" onMouseDown={(event) => event.currentTarget === event.target && close()}>
-      <section className="wallet-more-sheet">
-        <header><div><small>ნავიგაცია</small><h2>ყველა განყოფილება</h2></div><button onClick={close} aria-label="დახურვა"><X size={20} /></button></header>
-        {groups.map((group) => <div className="wallet-more-group" key={group}><span>{group}</span><div>{navigation.filter((item) => item.group === group).map((item) => { const Icon = item.icon; return <button key={item.screen} className={screen === item.screen ? "active" : ""} onClick={() => navigate(item.screen)}><Icon size={18} /><span>{item.label}</span></button>; })}</div></div>)}
+      <section className="modal-box card card-border wallet-more-sheet">
+        <header><div><small>ნავიგაცია</small><h2>ყველა განყოფილება</h2></div><button className="btn btn-ghost btn-square" onClick={close} aria-label="დახურვა"><X size={20} /></button></header>
+        {groups.map((group) => <div className="wallet-more-group" key={group}><span>{group}</span><div>{navigation.filter((item) => item.group === group).map((item) => { const Icon = item.icon; return <button key={item.screen} className={`btn btn-ghost justify-start ${screen === item.screen ? "active" : ""}`} onClick={() => navigate(item.screen)}><Icon size={18} /><span>{item.label}</span></button>; })}</div></div>)}
       </section>
     </div>
   );
@@ -688,6 +688,7 @@ function DemoForm({
       }}
     >
       <section
+        className="modal-box card card-border"
         role="dialog"
         aria-modal="true"
         aria-labelledby="demo-form-title"
@@ -697,7 +698,7 @@ function DemoForm({
             <small>პორტფელის განახლება</small>
             <h2 id="demo-form-title">ტრანზაქციის დამატება</h2>
           </div>
-          <button onClick={close} aria-label="დახურვა">
+          <button className="btn btn-ghost btn-square" onClick={close} aria-label="დახურვა">
             <X size={20} />
           </button>
         </header>
@@ -708,7 +709,7 @@ function DemoForm({
             </i>
             <h3>ტრანზაქცია მზად არის</h3>
             <p>ეს დემო რეჟიმია — მონაცემები არ შენახულა.</p>
-            <button className="wallet-hybrid-primary" onClick={close}>
+            <button className="btn btn-primary wallet-hybrid-primary" onClick={close}>
               დახურვა
             </button>
           </div>
@@ -719,7 +720,7 @@ function DemoForm({
                 <button
                   type="button"
                   key={item}
-                  className={kind === item ? "active" : ""}
+                  className={`btn btn-sm btn-ghost ${kind === item ? "active" : ""}`}
                   onClick={() => setKind(item)}
                 >
                   {item}
@@ -729,7 +730,7 @@ function DemoForm({
             <div className="wallet-form-grid">
               <label>
                 <span>აქტივი</span>
-                <select defaultValue="bitcoin">
+                <select className="select select-bordered" defaultValue="bitcoin">
                   <option value="bitcoin">BTC · Bitcoin</option>
                   <option value="ethereum">ETH · Ethereum</option>
                   <option value="solana">SOL · Solana</option>
@@ -737,19 +738,20 @@ function DemoForm({
               </label>
               <label>
                 <span>რაოდენობა</span>
-                <input inputMode="decimal" placeholder="0.00" required />
+                <input className="input input-bordered" inputMode="decimal" placeholder="0.00" required />
               </label>
               <label>
                 <span>ერთეულის ფასი (USD)</span>
-                <input inputMode="decimal" placeholder="0.00" required />
+                <input className="input input-bordered" inputMode="decimal" placeholder="0.00" required />
               </label>
               <label>
                 <span>საკომისიო (USD)</span>
-                <input inputMode="decimal" defaultValue="0" />
+                <input className="input input-bordered" inputMode="decimal" defaultValue="0" />
               </label>
               <label>
                 <span>თარიღი და დრო</span>
                 <input
+                  className="input input-bordered"
                   type="datetime-local"
                   defaultValue="2026-10-01T14:32"
                   required
@@ -757,15 +759,15 @@ function DemoForm({
               </label>
               <label className="wide">
                 <span>შენიშვნა</span>
-                <textarea placeholder="სურვილისამებრ" />
+                <textarea className="textarea textarea-bordered" placeholder="სურვილისამებრ" />
               </label>
             </div>
             <div className="wallet-form-actions">
-              <button type="button" onClick={close}>
+              <button className="btn btn-ghost" type="button" onClick={close}>
                 გაუქმება
               </button>
               <button
-                className="wallet-hybrid-primary"
+                className="btn btn-primary wallet-hybrid-primary"
                 disabled={status === "loading"}
               >
                 {status === "loading" ? "მზადდება…" : "ტრანზაქციის დამატება"}

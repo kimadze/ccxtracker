@@ -16,7 +16,7 @@ import {
 } from "@/domain/analytics";
 import { calculatePortfolioAttribution } from "@/domain/attribution";
 import { replayLedger } from "@/domain/ledger";
-import { percentage, money, pnlClass } from "@/lib/formatters";
+import { percentage, pnlClass } from "@/lib/formatters";
 import { HistoryChart } from "./history-chart";
 import { PerformanceAttribution } from "./performance-attribution";
 import { isInvestableCrypto } from "@/domain/portfolio-segments";

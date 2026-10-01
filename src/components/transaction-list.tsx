@@ -56,7 +56,7 @@ export function TransactionList({
           {(["buy", "sell", "deposit", "withdrawal", "fee", "airdrop"] as const).map((value) => <button key={value} type="button" className={kind === value ? "is-active" : ""} onClick={() => { setKind(value); setPage(0); }}>{kindLabels[value]} <span>{entries.filter((entry) => entry.kind === value).length}</span></button>)}
         </div>
       <div className="flex flex-wrap items-end gap-3">
-        <label className="positions-search max-w-sm"><Search size={16} aria-hidden="true" /><span className="sr-only">ტრანზაქციების ძიება</span><input
+        <label className="positions-search max-w-sm"><Search size={16} aria-hidden="true" /><span className="sr-only">ტრანზაქციების ძიება</span><input className="input input-bordered"
           aria-label="ტრანზაქციების ძიება"
           placeholder="აქტივის ან შენიშვნის ძიება…"
           value={search}
@@ -82,7 +82,7 @@ export function TransactionList({
         </select>
         <label className="desktop-ledger-filter max-w-44 text-[10px] text-muted">
           თარიღიდან (თბილისი)
-          <input
+          <input className="input input-bordered"
             type="date"
             value={from}
             onChange={(e) => {
@@ -93,7 +93,7 @@ export function TransactionList({
         </label>
         <label className="desktop-ledger-filter max-w-44 text-[10px] text-muted">
           თარიღამდე (თბილისი)
-          <input
+          <input className="input input-bordered"
             type="date"
             value={to}
             onChange={(e) => {
@@ -103,8 +103,8 @@ export function TransactionList({
           />
         </label>
         <div className="mobile-ledger-filter"><MobileBottomSheet title="ტრანზაქციების ფილტრი" trigger={<button type="button" className="btn btn-ghost button-secondary"><SlidersHorizontal size={16} /> ფილტრი</button>}>
-          <label className="mobile-filter-select"><span>ტრანზაქციის ტიპი</span><select value={kind} onChange={(event) => { setKind(event.target.value); setPage(0); }}><option value="">ყველა ტიპი</option>{Object.entries(kindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <div className="mobile-ledger-dates"><label><span>თარიღიდან</span><input type="date" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0); }} /></label><label><span>თარიღამდე</span><input type="date" value={to} onChange={(event) => { setTo(event.target.value); setPage(0); }} /></label></div>
+          <label className="mobile-filter-select"><span>ტრანზაქციის ტიპი</span><select className="select select-bordered" value={kind} onChange={(event) => { setKind(event.target.value); setPage(0); }}><option value="">ყველა ტიპი</option>{Object.entries(kindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <div className="mobile-ledger-dates"><label><span>თარიღიდან</span><input className="input input-bordered" type="date" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0); }} /></label><label><span>თარიღამდე</span><input className="input input-bordered" type="date" value={to} onChange={(event) => { setTo(event.target.value); setPage(0); }} /></label></div>
           {hasFilters && <button type="button" className="btn btn-ghost button-secondary w-full" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}
         </MobileBottomSheet></div>
         {hasFilters && <button type="button" className="desktop-ledger-filter button-secondary" onClick={resetFilters}><RotateCcw size={14} /> გასუფთავება</button>}

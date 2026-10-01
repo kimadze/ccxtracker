@@ -204,7 +204,7 @@ export function AllocationWorkspace({
                     </span>
                   </Link>
                   <label className="allocation-ledger-input">
-                    <input
+                    <input className="input input-bordered"
                       aria-label={`${symbol(row.assetId)} სამიზნე წილი`}
                       inputMode="decimal"
                       value={displayNumber(row.weight)}
@@ -239,7 +239,7 @@ export function AllocationWorkspace({
             </button>
           )}
           <footer>
-            <select
+            <select className="select select-bordered"
               aria-label="აქტივის დამატება"
               value={addId}
               onChange={(event) => setAddId(event.target.value)}
@@ -323,7 +323,7 @@ export function AllocationWorkspace({
               <span>დასამატებელი თანხა</span>
               <div>
                 <b>$</b>
-                <input
+                <input className="input input-bordered"
                   inputMode="decimal"
                   value={capital}
                   placeholder="0"

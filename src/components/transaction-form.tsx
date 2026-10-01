@@ -161,7 +161,7 @@ export function TransactionForm({
               aria-label="ტრანზაქციის ტიპი"
             >
               {Object.entries(kindLabels).map(([value, label]) => (
-                <button
+                <button className="btn btn-ghost"
                   key={value}
                   type="button"
                   aria-pressed={kind === value}
@@ -174,7 +174,7 @@ export function TransactionForm({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="აქტივი">
-              <select
+              <select className="select select-bordered"
                 value={assetId}
                 onChange={(e) => setAssetId(e.target.value)}
               >
@@ -187,7 +187,7 @@ export function TransactionForm({
             </Field>
           </div>
           <div className="flex gap-2">
-            <input
+            <input className="input input-bordered"
               aria-label="სხვა აქტივის ძიება"
               placeholder="სხვა აქტივის ძიება…"
               value={query}
@@ -226,7 +226,7 @@ export function TransactionForm({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={isCash ? "თანხა (USD)" : "რაოდენობა"}>
-              <input
+              <input className="input input-bordered"
                 name="quantity"
                 inputMode="decimal"
                 required
@@ -248,7 +248,7 @@ export function TransactionForm({
                         : "ერთეულის ფასი (USD)"
                   }
                 >
-                  <input
+                  <input className="input input-bordered"
                     name="price"
                     inputMode="decimal"
                     required={kind !== "deposit"}
@@ -258,14 +258,14 @@ export function TransactionForm({
                 </Field>
               )}
             <Field label="საკომისიო (USD)">
-              <input
+              <input className="input input-bordered"
                 name="fee"
                 inputMode="decimal"
                 defaultValue={entry?.fee ?? draft?.fee ?? "0"}
               />
             </Field>
             <Field label="თარიღი და დრო (თქვენი მოწყობილობის დრო)">
-              <input
+              <input className="input input-bordered"
                 name="occurredAt"
                 type="datetime-local"
                 required
@@ -289,21 +289,21 @@ export function TransactionForm({
             <>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field label="პროექტი / წყარო">
-                  <input
+                  <input className="input input-bordered"
                     name="airdropSource"
                     defaultValue={entry?.airdropSource ?? ""}
                     placeholder="მაგ. Jupiter"
                   />
                 </Field>
                 <Field label="ქსელი">
-                  <input
+                  <input className="input input-bordered"
                     name="airdropNetwork"
                     defaultValue={entry?.airdropNetwork ?? ""}
                     placeholder="მაგ. Solana"
                   />
                 </Field>
                 <Field label="სტატუსი">
-                  <select
+                  <select className="select select-bordered"
                     name="airdropStatus"
                     defaultValue={entry?.airdropStatus ?? "received"}
                   >
@@ -319,7 +319,7 @@ export function TransactionForm({
             </>
           )}
           <Field label="შენიშვნა">
-            <textarea
+            <textarea className="textarea textarea-bordered"
               name="notes"
               rows={2}
               maxLength={2000}

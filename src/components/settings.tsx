@@ -70,7 +70,7 @@ export function Settings({
         >
           <h2 className="text-sm font-medium">პროფილი</h2>
           <Field label="სახელი">
-            <input
+            <input className="input input-bordered"
               name="name"
               defaultValue={user.name}
               required
@@ -79,13 +79,13 @@ export function Settings({
             />
           </Field>
           <Field label="ელფოსტა">
-            <input type="email" value={user.email} readOnly />
+            <input className="input input-bordered" type="email" value={user.email} readOnly />
           </Field>
           <p className="text-xs text-muted">
             ელფოსტა დაკავშირებულია თქვენს Google ანგარიშთან.
           </p>
           <label className="profile-value-option">
-            <input
+            <input className="input input-bordered"
               type="checkbox"
               name="cryptoOnlyPortfolioValue"
               defaultChecked={user.cryptoOnlyPortfolioValue}
@@ -116,7 +116,7 @@ export function Settings({
         >
           <h2 className="text-sm font-medium">პორტფელის პარამეტრები</h2>
           <Field label="პორტფელის სახელი">
-            <input
+            <input className="input input-bordered"
               name="name"
               defaultValue={portfolioName}
               required
@@ -126,10 +126,10 @@ export function Settings({
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="საანგარიშო ვალუტა">
-              <input value="USD" readOnly />
+              <input className="input input-bordered" value="USD" readOnly />
             </Field>
             <Field label="საათობრივი სარტყელი">
-              <input value="თბილისი (UTC+4)" readOnly />
+              <input className="input input-bordered" value="თბილისი (UTC+4)" readOnly />
             </Field>
           </div>
           <p className="text-xs leading-6 text-muted">
@@ -254,7 +254,7 @@ export function Settings({
         >
           {confirm === "portfolio" && (
             <Field label={`პორტფელის სახელი: ${portfolioName}`}>
-              <input name="confirm" required autoComplete="off" />
+              <input className="input input-bordered" name="confirm" required autoComplete="off" />
             </Field>
           )}
           {error && message && <Message error>{message}</Message>}

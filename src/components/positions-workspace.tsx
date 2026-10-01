@@ -67,7 +67,7 @@ export function PositionsWorkspace({
         <label className="positions-search">
           <Search size={16} aria-hidden="true" />
           <span className="sr-only">პოზიციების ძიება</span>
-          <input
+          <input className="input input-bordered"
           aria-label="პოზიციების ძიება"
           placeholder="მოძებნეთ აქტივი ან სიმბოლო"
           value={search}
@@ -109,7 +109,7 @@ export function PositionsWorkspace({
             <div className="mobile-filter-options" role="group" aria-label="შედეგის ფილტრი">
               {[["all", "ყველა", positions.length], ["profit", "მოგებაში", profitable], ["loss", "ზარალში", losing], ["unpriced", "ფასის გარეშე", unpriced]].map(([value, label, count]) => <button key={String(value)} type="button" className={filter === value ? "active" : ""} onClick={() => { setFilter(String(value)); setPage(0); }}><span>{String(label)}</span><strong>{String(count)}</strong></button>)}
             </div>
-            <label className="mobile-filter-select"><span>დალაგება</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="value">ღირებულებით</option><option value="return">შემოსავლიანობით</option><option value="name">სახელით</option></select></label>
+            <label className="mobile-filter-select"><span>დალაგება</span><select className="select select-bordered" value={sort} onChange={(event) => setSort(event.target.value)}><option value="value">ღირებულებით</option><option value="return">შემოსავლიანობით</option><option value="name">სახელით</option></select></label>
             {(search || filter !== "all" || sort !== "value") && <button type="button" className="btn btn-ghost button-secondary w-full" onClick={reset}><RotateCcw size={15} /> ფილტრების გასუფთავება</button>}
           </MobileBottomSheet>
         </div>

@@ -734,21 +734,21 @@ export function PositionShare({
                 role="group"
                 aria-label="გაზიარების შაბლონი"
               >
-                <button
+                <button className="btn btn-ghost"
                   type="button"
                   aria-pressed={template === "performance"}
                   onClick={() => chooseTemplate("performance")}
                 >
                   კლასიკური
                 </button>
-                <button
+                <button className="btn btn-ghost"
                   type="button"
                   aria-pressed={template === "reaction"}
                   onClick={() => chooseTemplate("reaction")}
                 >
                   რეაქცია
                 </button>
-                <button
+                <button className="btn btn-ghost"
                   type="button"
                   aria-pressed={template === "mood"}
                   onClick={() => chooseTemplate("mood")}

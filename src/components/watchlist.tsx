@@ -30,6 +30,7 @@ export function Watchlist({
   quotes: Quote[];
   preview?: boolean;
 }) {
+  void revision;
   const [open, setOpen] = useState(false),
     [selected, setSelected] = useState<WatchItem | null>(null),
     [deleting, setDeleting] = useState<string | null>(null),
@@ -136,7 +137,7 @@ export function Watchlist({
         <div className="watchlist-toolbar">
           <label className="watchlist-search">
             <Search size={17} />
-            <input
+            <input className="input input-bordered"
               value={filterQuery}
               onChange={(event) => setFilterQuery(event.target.value)}
               placeholder="მოძებნეთ აქტივი ან სიმბოლო…"
@@ -222,7 +223,7 @@ export function Watchlist({
               </div>
               {!preview && (
                 <div className="watchlist-actions">
-                  <button
+                  <button className="btn btn-ghost"
                     aria-label={`${item.asset.symbol} რედაქტირება`}
                     onClick={() => {
                       setSelected(item);
@@ -305,7 +306,7 @@ export function Watchlist({
           }}
         >
           <Field label="აქტივი">
-            <select
+            <select className="select select-bordered"
               value={assetId}
               disabled={!!selected}
               onChange={(e) => setAssetId(e.target.value)}
@@ -319,7 +320,7 @@ export function Watchlist({
           </Field>
           {!selected && (
             <div className="flex gap-2">
-              <input
+              <input className="input input-bordered"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="აქტივის ძიება"
@@ -356,7 +357,7 @@ export function Watchlist({
             </div>
           )}
           <Field label="სასურველი შესვლის ფასი (USD)">
-            <input
+            <input className="input input-bordered"
               name="entryPrice"
               inputMode="decimal"
               defaultValue={selected?.entryPrice ?? ""}
@@ -364,7 +365,7 @@ export function Watchlist({
             />
           </Field>
           <Field label="შენიშვნები">
-            <textarea
+            <textarea className="textarea textarea-bordered"
               name="notes"
               rows={3}
               maxLength={5000}
