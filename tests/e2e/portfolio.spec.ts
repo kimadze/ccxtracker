@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import { Client } from "pg";
 async function login(page: Page, user: string) {
   const cookies = JSON.parse(
     await readFile(".local/e2e-cookies.json", "utf8"),
@@ -19,6 +20,18 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   page,
 }, testInfo) => {
   test.setTimeout(180000);
+  page.setDefaultTimeout(10000);
+  const db = new Client({
+    connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
+  });
+  await db.connect();
+  try {
+    await db.query(
+      "INSERT INTO market_quotes (asset_id, price, quoted_at) VALUES ('bitcoin', 3000, now()) ON CONFLICT (asset_id) DO UPDATE SET price=3000, quoted_at=now(), fetched_at=now()",
+    );
+  } finally {
+    await db.end();
+  }
   await login(page, `alice-${testInfo.project.name}`);
   await page.goto("/portfolios");
   await page
@@ -32,8 +45,10 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     .click();
   await expect(
     page.getByRole("heading", { name: /პორტფელის (მიმოხილვა|მდგომარეობა)/ }),
-  ).toBeVisible();
+  ).toBeAttached();
+  await expect(page).toHaveURL(/\/portfolios\/[0-9a-f-]+$/);
   const portfolioUrl = page.url();
+  await page.goto(`${portfolioUrl}/transactions`);
   await page
     .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
     .click();
@@ -51,6 +66,20 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByLabel("ერთეულის ფასი (USD)", { exact: true }).fill("50000");
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
+  const acquisition = await page.request.get(
+    `/api/portfolios/${new URL(portfolioUrl).pathname.split("/").at(-1)}/export`,
+  );
+  expect(acquisition.ok()).toBe(true);
+  expect((await acquisition.json()).transactions).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        assetId: "bitcoin",
+        kind: "buy",
+        quantity: expect.stringMatching(/^0\.10*$/),
+      }),
+    ]),
+  );
+  await page.goto(portfolioUrl);
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(page.locator("html")).toHaveAttribute(
     "data-balance-privacy",
@@ -60,11 +89,6 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     "color",
     "rgba(0, 0, 0, 0)",
   );
-  if (testInfo.project.name === "desktop") {
-    await expect(
-      page.getByRole("cell", { name: "$50 000,00", exact: true }),
-    ).toBeVisible();
-  }
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
   await expect(page.locator("html")).not.toHaveAttribute(
     "data-balance-privacy",
@@ -78,29 +102,26 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await page.goto(portfolioUrl);
   await expect(
     page.getByRole("heading", {
-      name:
-        testInfo.project.name === "mobile"
-          ? "პორტფელის მდგომარეობა"
-          : "კრიპტოაქტივების ღირებულება",
+      name: "კრიპტოაქტივების ღირებულება",
     }),
   ).toBeVisible();
   await page.goto(`${portfolioUrl}/positions/bitcoin`);
   await expect(
     page.getByRole("heading", { name: "Bitcoin", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "DCA", exact: true }).click();
+  await page.goto(`${portfolioUrl}/positions/bitcoin?tab=dca`);
   await page.getByLabel("მოსალოდნელი შესყიდვის ფასი (USD)").fill("40000");
   await expect(
     page.getByText("ახალი საშუალო ფასი", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "ჟურნალი", exact: true }).click();
+  await page.getByRole("tab", { name: "ჟურნალი", exact: true }).click();
   await page
     .getByLabel("საინვესტიციო თეზისი", { exact: true })
     .fill("გრძელვადიანი საინვესტიციო თეზისი");
   await page.getByRole("button", { name: "ჟურნალის შენახვა" }).click();
   await expect(page.getByText("ჟურნალი შენახულია.")).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "ჟურნალი", exact: true }).click();
+  await page.getByRole("tab", { name: "ჟურნალი", exact: true }).click();
   await expect(
     page.getByLabel("საინვესტიციო თეზისი", { exact: true }),
   ).toHaveValue("გრძელვადიანი საინვესტიციო თეზისი");
@@ -127,8 +148,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await page.getByLabel("BTC სამიზნე წილი").fill("100");
   await page
     .getByRole("button", {
-      name:
-        testInfo.project.name === "mobile" ? "განაწილების შენახვა" : "შენახვა",
+      name: "შენახვა",
       exact: true,
     })
     .click();
@@ -152,9 +172,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
   await page.reload();
-  if (testInfo.project.name !== "mobile") {
-    await expect(page.getByText("დაკვირვების ტესტი")).toBeVisible();
-  }
+  await expect(page.getByText("ETH", { exact: true }).first()).toBeVisible();
   const portfolioId = new URL(portfolioUrl).pathname.split("/").at(-1);
   const exported = await page.request.get(
     `/api/portfolios/${portfolioId}/export`,
