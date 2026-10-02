@@ -114,15 +114,25 @@ export function PositionShare({
     target.height = H;
     const resultColor = positive ? "#46eeb2" : "#ff668b";
     if (template === "king") {
-      target.width = 1536;
-      target.height = 1024;
+      target.width = 1586;
+      target.height = 1000;
       const artwork = await loadImage(
         positive
-          ? "/position-share-king-profit.webp"
-          : "/position-share-king-loss.webp",
+          ? "/position-share-king-profit-v2.webp"
+          : "/position-share-king-loss-v2.webp",
         12000,
       );
-      context.drawImage(artwork, 0, 0, 1536, 1024);
+      const scale = Math.max(
+        target.width / artwork.naturalWidth,
+        target.height / artwork.naturalHeight,
+      );
+      context.drawImage(
+        artwork,
+        (target.width - artwork.naturalWidth * scale) / 2,
+        (target.height - artwork.naturalHeight * scale) / 2,
+        artwork.naturalWidth * scale,
+        artwork.naturalHeight * scale,
+      );
       const fitText = (
         text: string,
         x: number,
@@ -939,7 +949,7 @@ export function PositionShare({
             <canvas
               ref={canvas}
               id={previewId}
-              className="mx-auto block h-auto w-full max-w-xl rounded-box border border-base-300 bg-base-300"
+              className={`mx-auto block h-auto w-full max-w-xl rounded-box bg-base-300 ${template === "king" ? "border-0" : "border border-base-300"}`}
               role="img"
               aria-label={`${position.asset.symbol} პოზიციის გაზიარების ბარათი`}
               aria-describedby="position-share-data"

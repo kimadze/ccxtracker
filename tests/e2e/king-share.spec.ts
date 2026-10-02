@@ -59,8 +59,9 @@ test("king share exports landscape profit and loss with privacy and legacy templ
       const png = page.getByRole("button", { name: "PNG", exact: true });
       await expect(png).toBeEnabled({ timeout: 25000 });
       const canvas = page.locator("dialog[open] canvas");
-      await expect(canvas).toHaveAttribute("width", "1536");
-      await expect(canvas).toHaveAttribute("height", "1024");
+      await expect(canvas).toHaveAttribute("width", "1586");
+      await expect(canvas).toHaveAttribute("height", "1000");
+      await expect(canvas).toHaveCSS("border-top-width", "0px");
       const download = page.waitForEvent("download");
       await png.click();
       await (
