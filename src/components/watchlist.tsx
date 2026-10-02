@@ -76,17 +76,9 @@ export function Watchlist({
       ) < 0,
   );
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 lg:space-y-4">
       {!preview && (
-        <section className="card card-border bg-base-200">
-          <div className="card-body gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-              <Eye size={14} /> ბაზრის სიგნალები
-            </span>
-            <h2 className="card-title mt-2">საყურადღებო აქტივები</h2>
-            <p className="mt-1 text-sm text-base-content/60">პორტფელისგან დამოუკიდებელი ფასების მოკლე სამუშაო სია.</p>
-          </div>
+        <div className="flex justify-end">
           <button
             className="btn btn-primary"
             onClick={() => {
@@ -96,41 +88,47 @@ export function Watchlist({
             }}
           >
             <Plus size={16} /> აქტივის დამატება
-          </button></div>
-        </section>
+          </button>
+        </div>
       )}
       {!preview && (
         <section
-          className="stats stats-vertical w-full border border-base-300 bg-base-200 shadow-sm sm:stats-horizontal"
+          className="grid grid-cols-2 gap-px overflow-hidden rounded-box border border-base-300 bg-base-200 lg:grid-cols-4"
           aria-label="დაკვირვების სიის შეჯამება"
         >
           <button
-            className={`stat cursor-pointer text-left ${movement === "all" ? "bg-primary/10" : ""}`}
+            className={`stat min-h-11 cursor-pointer p-3 text-left ${movement === "all" ? "bg-primary/10" : ""}`}
             onClick={() => setMovement("all")}
           >
             <span className="stat-title">სულ აქტივი</span>
-            <strong className="stat-value text-2xl">{items.length}</strong>
+            <strong className="stat-value text-lg">{items.length}</strong>
           </button>
           <button
-            className={`stat cursor-pointer text-left ${movement === "up" ? "bg-success/10" : ""}`}
+            className={`stat min-h-11 cursor-pointer p-3 text-left ${movement === "up" ? "bg-success/10" : ""}`}
             onClick={() => setMovement("up")}
           >
             <span className="stat-title">დღეს ზრდაში</span>
-            <strong className="stat-value text-2xl text-success">{risingItems.length}</strong>
+            <strong className="stat-value text-lg text-success">
+              {risingItems.length}
+            </strong>
           </button>
           <button
-            className={`stat cursor-pointer text-left ${movement === "down" ? "bg-error/10" : ""}`}
+            className={`stat min-h-11 cursor-pointer p-3 text-left ${movement === "down" ? "bg-error/10" : ""}`}
             onClick={() => setMovement("down")}
           >
             <span className="stat-title">დღეს კლებაში</span>
-            <strong className="stat-value text-2xl text-error">{fallingItems.length}</strong>
+            <strong className="stat-value text-lg text-error">
+              {fallingItems.length}
+            </strong>
           </button>
           <button
-            className={`stat cursor-pointer text-left ${movement === "unpriced" ? "bg-warning/10" : ""}`}
+            className={`stat min-h-11 cursor-pointer p-3 text-left ${movement === "unpriced" ? "bg-warning/10" : ""}`}
             onClick={() => setMovement("unpriced")}
           >
             <span className="stat-title">ფასის გარეშე</span>
-            <strong className="stat-value text-2xl">{items.length - pricedItems.length}</strong>
+            <strong className="stat-value text-lg">
+              {items.length - pricedItems.length}
+            </strong>
           </button>
         </section>
       )}
@@ -141,10 +139,13 @@ export function Watchlist({
             <input
               value={filterQuery}
               onChange={(event) => setFilterQuery(event.target.value)}
+              aria-label="დაკვირვების სიის ძიება"
               placeholder="მოძებნეთ აქტივი ან სიმბოლო…"
             />
           </label>
-          <span className="badge mt-3 sm:mt-0">{filteredItems.length} აქტივი</span>
+          <span className="badge mt-3 sm:mt-0">
+            {filteredItems.length} აქტივი
+          </span>
         </div>
       )}
       <ul className="list rounded-box border border-base-300 bg-base-200">
@@ -161,26 +162,40 @@ export function Watchlist({
           const closeToTarget =
             targetGap !== null && Math.abs(Number(targetGap)) <= 5;
           return (
-            <li key={item.id} className="list-row border-b border-base-300 last:border-0">
-              <div className="flex min-w-0 items-center gap-3">
+            <li
+              key={item.id}
+              className="list-row grid-cols-2 gap-3 border-b border-base-300 p-3 last:border-0 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto]"
+            >
+              <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-3">
                 <AssetIcon
                   symbol={item.asset.symbol}
                   logoUrl={item.asset.logoUrl}
                   index={i}
                 />
-                <div>
+                <div className="min-w-0">
                   <p className="truncate font-semibold">
-                    {item.asset.name} <span className="badge badge-sm ml-1">{item.asset.symbol}</span>
+                    {item.asset.name}{" "}
+                    <span className="badge badge-sm ml-1">
+                      {item.asset.symbol}
+                    </span>
                   </p>
-                  <small className="block text-base-content/50">დამატებულია {dateTime(item.createdAt, true)}</small>
+                  <small className="block text-base-content/50">
+                    დამატებულია {dateTime(item.createdAt, true)}
+                  </small>
                   {item.notes && (
-                    <small className="mt-1 block max-w-md truncate text-base-content/60">{item.notes}</small>
+                    <small className="mt-1 block max-w-md truncate text-base-content/60">
+                      {item.notes}
+                    </small>
                   )}
                 </div>
               </div>
-              <div className="hidden text-right sm:block">
-                <span className="text-xs text-base-content/50">მიმდინარე ფასი</span>
-                <strong className="numeric block">{money(quote?.price ?? null)}</strong>
+              <div className="col-start-1 row-start-2 min-w-0 text-left lg:col-start-2 lg:row-start-1 lg:text-right">
+                <span className="text-xs text-base-content/50">
+                  მიმდინარე ფასი
+                </span>
+                <strong className="numeric block whitespace-nowrap">
+                  {money(quote?.price ?? null)}
+                </strong>
                 <small
                   className={pnlClass(
                     quote?.change24h === null || quote?.change24h === undefined
@@ -197,16 +212,16 @@ export function Watchlist({
                   {quote?.stale ? " · მოძველებულია" : ""}
                 </small>
               </div>
-              <div className="hidden text-right lg:block">
+              <div className="col-start-2 row-start-2 min-w-0 text-right lg:col-start-3 lg:row-start-1">
                 <span className="flex items-center justify-end gap-1 text-xs text-base-content/50">
                   <Target size={13} /> სასურველი შესვლა
                 </span>
-                <strong className="numeric block">{money(item.entryPrice)}</strong>
+                <strong className="numeric block whitespace-nowrap">
+                  {money(item.entryPrice)}
+                </strong>
                 <small
                   className={
-                    closeToTarget
-                      ? "text-warning"
-                      : pnlClass(targetGap)
+                    closeToTarget ? "text-warning" : pnlClass(targetGap)
                   }
                 >
                   {targetGap === null
@@ -217,8 +232,9 @@ export function Watchlist({
                 </small>
               </div>
               {!preview && (
-                <div className="flex gap-1">
-                  <button className="btn btn-ghost btn-square btn-sm"
+                <div className="col-start-2 row-start-1 flex justify-end gap-1 lg:col-start-4">
+                  <button
+                    className="btn btn-ghost btn-square min-h-11 min-w-11"
                     aria-label={`${item.asset.symbol} რედაქტირება`}
                     onClick={() => {
                       setSelected(item);
@@ -230,7 +246,7 @@ export function Watchlist({
                     <Pencil size={15} />
                   </button>
                   <button
-                    className="btn btn-ghost btn-square btn-sm text-error"
+                    className="btn btn-ghost btn-square min-h-11 min-w-11 text-error"
                     aria-label={`${item.asset.symbol} წაშლა`}
                     onClick={() => {
                       setDeleting(item.id);
@@ -245,7 +261,7 @@ export function Watchlist({
           );
         })}
         {!filteredItems.length && (
-          <li className="flex flex-col items-center px-6 py-16 text-center">
+          <li className="flex flex-col items-center px-6 py-6 text-center">
             <Eye size={22} />
             <h2 className="mt-3 font-semibold">
               {items.length
@@ -258,10 +274,7 @@ export function Watchlist({
                 : "დაამატეთ აქტივები, რომელთა ფასსაც აკვირდებით. ისინი პორტფელის ღირებულებაში არ ჩაითვლება."}
             </p>
             {!items.length && !preview && (
-              <button
-                className="btn mt-4"
-                onClick={() => setOpen(true)}
-              >
+              <button className="btn mt-4" onClick={() => setOpen(true)}>
                 <Plus size={15} /> პირველი აქტივის დამატება
               </button>
             )}
@@ -277,7 +290,7 @@ export function Watchlist({
         description="აქტივის დამატება რეალურ პოზიციას ან ტრანზაქციას არ ქმნის."
       >
         <form
-          className="space-y-5"
+          className="space-y-3 lg:space-y-4"
           onSubmit={async (e) => {
             e.preventDefault();
             const form = new FormData(e.currentTarget);
@@ -301,7 +314,8 @@ export function Watchlist({
           }}
         >
           <Field label="აქტივი">
-            <select className="select select-bordered"
+            <select
+              className="select"
               value={assetId}
               disabled={!!selected}
               onChange={(e) => setAssetId(e.target.value)}
@@ -315,7 +329,8 @@ export function Watchlist({
           </Field>
           {!selected && (
             <div className="join flex w-full">
-              <input className="input join-item min-w-0 flex-1"
+              <input
+                className="input join-item min-w-0 flex-1"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="აქტივის ძიება"
@@ -352,7 +367,8 @@ export function Watchlist({
             </div>
           )}
           <Field label="სასურველი შესვლის ფასი (USD)">
-            <input className="input input-bordered"
+            <input
+              className="input"
               name="entryPrice"
               inputMode="decimal"
               defaultValue={selected?.entryPrice ?? ""}
@@ -360,7 +376,8 @@ export function Watchlist({
             />
           </Field>
           <Field label="შენიშვნები">
-            <textarea className="textarea textarea-bordered"
+            <textarea
+              className="textarea"
               name="notes"
               rows={3}
               maxLength={5000}

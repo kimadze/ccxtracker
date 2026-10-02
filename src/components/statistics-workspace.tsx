@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { WorkspaceTabs, useWorkspaceTab } from "./workspace-tabs";
 import { MacroIndicators } from "./macro-indicators";
 import { BarChart3 } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
@@ -17,9 +17,9 @@ import {
   percentage,
   pnlClass,
 } from "@/lib/formatters";
+import { BalanceValue } from "./ui";
 import { AssetIcon } from "./positions";
 
-type Tab = "market" | "macro" | "portfolio";
 function compact(value: string | null) {
   return compactMoney(value);
 }
@@ -51,10 +51,10 @@ function MarketTab({ data }: { data: MarketStatistics }) {
   const movers = topMovers(data.assets);
   const overview = data.overview;
   return (
-    <div className="space-y-7">
+    <div className="space-y-3 lg:space-y-4">
       {overview ? (
         <>
-          <div className="stats stats-vertical w-full border border-base-300 bg-base-200 shadow-sm md:stats-horizontal">
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-box border border-base-300 bg-base-200 lg:grid-cols-3">
             <MetricCard
               label="კრიპტო ბაზრის კაპიტალიზაცია"
               value={compact(overview.totalMarketCap)}
@@ -81,7 +81,10 @@ function MarketTab({ data }: { data: MarketStatistics }) {
           </p>
         </>
       ) : (
-        <div role="alert" className="alert alert-warning alert-soft text-xs leading-6">
+        <div
+          role="alert"
+          className="alert alert-warning alert-soft text-xs leading-6"
+        >
           ბაზრის მონაცემები ამჟამად მიუწვდომელია. შეამოწმეთ CoinGecko API-ის
           კონფიგურაცია.
         </div>
@@ -113,25 +116,41 @@ function MoverBlock({
   positive?: boolean;
 }) {
   return (
-    <section className={`card card-border bg-base-200 ${positive ? "border-success/30" : "border-error/30"}`}>
-      <div className="card-body p-4 sm:p-5"><h3 className="card-title text-base">{title}</h3>
-      <ul className="list">
-        {rows.map((asset) => (
-          <li className="list-row items-center border-b border-base-300 px-0 last:border-0" key={asset.id}>
-            <span className="flex items-center gap-2">
-              <AssetIcon
-                symbol={asset.symbol}
-                logoUrl={asset.image}
-                size={23}
+    <section
+      className={`card card-border bg-base-200 ${positive ? "border-success/30" : "border-error/30"}`}
+    >
+      <div className="card-body p-4">
+        <h3 className="card-title text-base">{title}</h3>
+        <ul className="list">
+          {rows.map((asset) => (
+            <li
+              className="list-row items-center border-b border-base-300 px-0 last:border-0"
+              key={asset.id}
+            >
+              <span className="flex items-center gap-2">
+                <AssetIcon
+                  symbol={asset.symbol}
+                  logoUrl={asset.image}
+                  size={23}
+                />
+                <b>{asset.symbol}</b>
+                <small>#{asset.rank}</small>
+              </span>
+              <progress
+                className={`progress w-full ${positive ? "progress-success" : "progress-error"}`}
+                value={Math.min(
+                  100,
+                  Math.max(8, Math.abs(Number(asset.change24h ?? 0))),
+                )}
+                max="100"
               />
-              <b>{asset.symbol}</b>
-              <small>#{asset.rank}</small>
-            </span>
-            <progress className={`progress w-full ${positive ? "progress-success" : "progress-error"}`} value={Math.min(100, Math.max(8, Math.abs(Number(asset.change24h ?? 0))))} max="100" />
-            <strong className={positive ? "text-success" : "text-error"}>{percentage(asset.change24h, true)}</strong>
-          </li>
-        ))}
-      </ul></div>
+              <strong className={positive ? "text-success" : "text-error"}>
+                {percentage(asset.change24h, true)}
+              </strong>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -170,27 +189,35 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
     { label: "ნაღდი ფული", value: cash, color: "#8c96aa" },
   ];
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 lg:space-y-4">
       <header className="card card-border bg-base-200">
         <div className="card-body sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-widest text-primary">Portfolio pulse</span>
-          <h2 className="card-title mt-1">ჩემი პორტფელი</h2>
-        </div>
-        <strong className="numeric text-2xl">{money(summary.value)}</strong>
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-primary">
+              პორტფელი
+            </span>
+            <h2 className="card-title mt-1">ჩემი პორტფელი</h2>
+          </div>
+          <strong className="numeric text-2xl">
+            <BalanceValue>{money(summary.value)}</BalanceValue>
+          </strong>
         </div>
       </header>
-      <section className="stats stats-vertical w-full border border-base-300 bg-base-200 shadow-sm lg:stats-horizontal">
+      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-box border border-base-300 bg-base-200 lg:grid-cols-4">
         <div className="stat">
           <span className="stat-title">სრული P/L</span>
-          <strong className={`stat-value text-xl ${pnlClass(summary.totalPnl)}`}>
-            {money(summary.totalPnl)}
+          <strong
+            className={`stat-value text-xl ${pnlClass(summary.totalPnl)}`}
+          >
+            <BalanceValue>{money(summary.totalPnl)}</BalanceValue>
           </strong>
           <small className="stat-desc">რეალიზებული და მიმდინარე</small>
         </div>
         <div className="stat">
           <span className="stat-title">საერთო ლიკვიდობა</span>
-          <strong className="stat-value text-xl">{money(summary.liquidity)}</strong>
+          <strong className="stat-value text-xl">
+            <BalanceValue>{money(summary.liquidity)}</BalanceValue>
+          </strong>
           <small className="stat-desc">პორტფელის {percentage(liquidity)}</small>
         </div>
         <div className="stat">
@@ -200,62 +227,87 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
         </div>
         <div className="stat">
           <span className="stat-title">ფასის სტატუსი</span>
-          <strong className="stat-value text-xl">{summary.complete ? "სრული" : "ნაწილობრივი"}</strong>
+          <strong className="stat-value text-xl">
+            {summary.complete ? "სრული" : "ნაწილობრივი"}
+          </strong>
           <small className="stat-desc">
             {summary.stale ? "განახლება საჭიროა" : "ფასები აქტუალურია"}
           </small>
         </div>
       </section>
       <section className="grid gap-4 lg:grid-cols-2">
-        <article className="card card-border bg-base-200"><div className="card-body">
-          <header>
-            <h3 className="card-title text-base">პორტფელის სტრუქტურა</h3>
-            <span className="text-xs text-base-content/60">ქეში და სტეიბლები — ლიკვიდობა</span>
-          </header>
-          <div className="portfolio-segments">
-            {segments
-              .filter((segment) => segment.value > 0)
-              .map((segment) => (
-                <span
-                  key={segment.label}
-                  style={{ flex: segment.value, background: segment.color }}
-                  title={`${segment.label} ${percentage(String(segment.value))}`}
-                />
-              ))}
-          </div>
-          <div className="portfolio-breakdown">
-            {segments.map((segment) => (
-              <div key={segment.label}>
-                <span>
-                  <i style={{ background: segment.color }} />
-                  {segment.label}
-                </span>
-                <strong>{percentage(String(segment.value))}</strong>
-              </div>
-            ))}
-          </div>
-        </div></article>
-        <article className="card card-border bg-base-200"><div className="card-body">
-          <header>
-            <h3 className="card-title text-base">უმსხვილესი პოზიციები</h3>
-            <span className="text-xs text-base-content/60">ღირებულებით</span>
-          </header>
-          {holdings.length ? (
-            holdings.map((position) => (
-              <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-base-300 py-3 last:border-0" key={position.assetId}>
-                <span>
-                  {position.asset.symbol} · {position.asset.name}
-                </span>
-                <span>{percentage(position.allocation)}</span>
-                <strong>{money(position.value)}</strong>
-              </div>
-            ))
-          ) : (
-            <div className="alert alert-info alert-soft">
-              <span>აქტიური კრიპტო პოზიცია არ არის</span>
+        <article className="card card-border bg-base-200">
+          <div className="card-body min-w-0 gap-3 p-4">
+            <header>
+              <h3 className="card-title text-base">პორტფელის სტრუქტურა</h3>
+              <span className="text-xs text-base-content/60">
+                ქეში და სტეიბლები — ლიკვიდობა
+              </span>
+            </header>
+            <div
+              className="flex h-3 overflow-hidden rounded-full bg-base-300"
+              aria-hidden={!summary.complete}
+            >
+              {segments
+                .filter(
+                  (segment) =>
+                    summary.complete &&
+                    summary.value !== null &&
+                    segment.value > 0,
+                )
+                .map((segment) => (
+                  <span
+                    key={segment.label}
+                    style={{ flex: segment.value, background: segment.color }}
+                    title={`${segment.label} ${percentage(String(segment.value))}`}
+                  />
+                ))}
             </div>
-          )}
-        </div></article>
+            <div className="space-y-2 text-sm [&>div]:flex [&>div]:justify-between [&_i]:mr-2 [&_i]:inline-block [&_i]:size-2 [&_i]:rounded-full">
+              {segments.map((segment) => (
+                <div key={segment.label}>
+                  <span>
+                    <i style={{ background: segment.color }} />
+                    {segment.label}
+                  </span>
+                  <strong>
+                    {summary.complete && summary.value !== null
+                      ? percentage(String(segment.value))
+                      : "—"}
+                  </strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </article>
+        <article className="card card-border bg-base-200">
+          <div className="card-body min-w-0 gap-3 p-4">
+            <header>
+              <h3 className="card-title text-base">უმსხვილესი პოზიციები</h3>
+              <span className="text-xs text-base-content/60">ღირებულებით</span>
+            </header>
+            {holdings.length ? (
+              holdings.map((position) => (
+                <div
+                  className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-base-300 py-3 last:border-0"
+                  key={position.assetId}
+                >
+                  <span>
+                    {position.asset.symbol} · {position.asset.name}
+                  </span>
+                  <span>{percentage(position.allocation)}</span>
+                  <strong>
+                    <BalanceValue>{money(position.value)}</BalanceValue>
+                  </strong>
+                </div>
+              ))
+            ) : (
+              <div className="alert alert-info alert-soft">
+                <span>აქტიური კრიპტო პოზიცია არ არის</span>
+              </div>
+            )}
+          </div>
+        </article>
       </section>
     </div>
   );
@@ -270,43 +322,24 @@ export function StatisticsWorkspace({
   macro: MacroStatistics;
   summary: PortfolioSummary;
 }) {
-  const [tab, setTab] = useState<Tab>("market");
+  const [tab, setTab] = useWorkspaceTab(
+    ["market", "macro", "portfolio"],
+    "market",
+  );
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold">ბაზრის მიმოხილვა</p>
-          <p className="mt-1 text-xs text-base-content/60">
-            კრიპტო ბაზარი, მაკრო და თქვენი პორტფელი
-          </p>
-        </div>
-        <div
-          className="tabs tabs-box overflow-x-auto"
-          role="group"
-          aria-label="სტატისტიკის კატეგორია"
-        >
-          {(
-            [
-              ["market", "კრიპტო ბაზარი"],
-              ["macro", "მაკრო"],
-              ["portfolio", "ჩემი პორტფელი"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              aria-pressed={tab === id}
-              onClick={() => setTab(id)}
-              className={`tab min-w-max ${tab === id ? "tab-active" : ""}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <WorkspaceTabs
+      label="სტატისტიკის კატეგორია"
+      value={tab}
+      onChange={setTab}
+      items={[
+        ["market", "კრიპტო ბაზარი"],
+        ["macro", "მაკრო"],
+        ["portfolio", "ჩემი პორტფელი"],
+      ]}
+    >
       {tab === "market" && <MarketTab data={market} />}
       {tab === "macro" && <MacroTab data={macro} />}
       {tab === "portfolio" && <PortfolioTab summary={summary} />}
-    </div>
+    </WorkspaceTabs>
   );
 }

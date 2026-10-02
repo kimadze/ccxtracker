@@ -21,8 +21,8 @@ export function PortfolioCreate({
         onClick={() => setOpen(true)}
         className={
           compact
-            ? "flex w-full items-center gap-3 px-3 py-3 text-xs text-brand"
-            : "button-primary"
+            ? "btn btn-ghost min-h-11 w-full justify-start gap-3 text-xs"
+            : "btn btn-primary min-h-11"
         }
       >
         <Plus size={16} />
@@ -35,7 +35,7 @@ export function PortfolioCreate({
         description="შექმენით დამოუკიდებელი სივრცე თქვენი საინვესტიციო სტრატეგიისთვის."
       >
         <form
-          className="space-y-5"
+          className="space-y-3"
           onSubmit={async (e) => {
             e.preventDefault();
             setPending(true);
@@ -58,7 +58,8 @@ export function PortfolioCreate({
           }}
         >
           <Field label="პორტფელის სახელი">
-            <input className="input input-bordered"
+            <input
+              className="input input-bordered"
               name="name"
               required
               maxLength={60}
@@ -66,9 +67,9 @@ export function PortfolioCreate({
               autoFocus
             />
           </Field>
-          <p className="text-xs text-muted">საანგარიშო ვალუტა: USD</p>
+          <p className="text-xs text-base-content/60">საანგარიშო ვალუტა: USD</p>
           {error && <Message error>{error}</Message>}
-          <button disabled={pending} className="btn btn-primary button-primary w-full">
+          <button disabled={pending} className="btn btn-primary w-full">
             {pending ? "იქმნება…" : "პორტფელის შექმნა"}
           </button>
         </form>

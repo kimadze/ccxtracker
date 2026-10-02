@@ -48,12 +48,15 @@ export function StrategyWorkspace({
   const p = investablePositions(summary).find((p) => p.assetId === assetId);
   if (!options.length || (mode !== "journal" && !p))
     return (
-      <div role="alert" className="alert alert-info alert-soft justify-center p-10 text-sm">
+      <div
+        role="alert"
+        className="alert alert-info alert-soft justify-center p-10 text-sm"
+      >
         ჯერ დაამატეთ პოზიცია.
       </div>
     );
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 lg:space-y-4">
       <div className="card card-border bg-base-200 p-4">
         <select
           className="select w-full sm:max-w-xs"
@@ -69,7 +72,7 @@ export function StrategyWorkspace({
         </select>
       </div>
       {mode === "journal" ? (
-        <div className="space-y-6">
+        <div className="space-y-3 lg:space-y-4">
           <JournalForm
             key={assetId}
             portfolioId={portfolioId}
@@ -79,33 +82,33 @@ export function StrategyWorkspace({
           />
         </div>
       ) : (
-        <div className="space-y-6">
-          <section className="card card-border bg-base-200"><div className="card-body">
-            <div>
-              <h2 className="card-title text-base">შესვლის გეგმა</h2>
-              <p className="mt-1 text-sm text-base-content/60">
-                DCA განაწილება მიმდინარე პოზიციისა და პორტფელის ზომის მიხედვით.
-              </p>
+        <div className="grid items-start gap-3 lg:grid-cols-2 lg:gap-4">
+          <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open">
+            <summary className="collapse-title min-h-11 text-sm font-semibold">
+              შესვლის გეგმა
+            </summary>
+            <div className="collapse-content">
+              <DcaPlanner
+                key={`${assetId}-dca`}
+                position={p!}
+                portfolioValue={investableValue(summary)}
+              />
             </div>
-            <DcaPlanner
-              key={`${assetId}-dca`}
-              position={p!}
-              portfolioValue={investableValue(summary)}
-            />
-          </div></section>
-          <section className="card card-border bg-base-200"><div className="card-body">
-            <div>
-              <h2 className="card-title text-base">გასვლის გეგმა</h2>
-              <p className="mt-1 text-sm text-base-content/60">სამიზნე ფასები და გასაყიდი წილები.</p>
+          </details>
+          <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open">
+            <summary className="collapse-title min-h-11 text-sm font-semibold">
+              გასვლის გეგმა
+            </summary>
+            <div className="collapse-content">
+              <ExitPlanner
+                key={`${assetId}-exit`}
+                position={p!}
+                portfolioId={portfolioId}
+                initial={data[assetId]?.plan}
+                preview={preview}
+              />
             </div>
-            <ExitPlanner
-              key={`${assetId}-exit`}
-              position={p!}
-              portfolioId={portfolioId}
-              initial={data[assetId]?.plan}
-              preview={preview}
-            />
-          </div></section>
+          </details>
         </div>
       )}
     </div>

@@ -12,7 +12,7 @@ export function LoginButton({ enabled }: { enabled: boolean }) {
     <div className="space-y-3">
       <button
         disabled={!enabled || pending}
-        className="btn btn-primary button-primary w-full"
+        className="btn btn-primary w-full"
         onClick={async () => {
           setPending(true);
           setError("");
@@ -43,7 +43,7 @@ export function LogoutButton() {
   return (
     <>
       <button
-        className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted hover:bg-raised"
+        className="btn btn-ghost min-h-11 w-full justify-start gap-3 text-xs"
         onClick={async () => {
           try {
             const result = await auth.signOut();
@@ -61,7 +61,7 @@ export function LogoutButton() {
         გასვლა
       </button>
       {error && (
-        <p role="alert" className="text-xs text-negative">
+        <p role="alert" className="text-xs text-error">
           გასვლა ვერ მოხერხდა.
         </p>
       )}

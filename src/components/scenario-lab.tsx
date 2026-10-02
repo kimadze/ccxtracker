@@ -14,7 +14,10 @@ import {
 import { AssetIcon } from "./positions";
 import { Field, Message, Modal } from "./ui";
 import { Metric } from "./overview";
-import { investablePositions, investableValue } from "@/domain/portfolio-segments";
+import {
+  investablePositions,
+  investableValue,
+} from "@/domain/portfolio-segments";
 
 export interface SavedScenario {
   id: string;
@@ -65,16 +68,51 @@ export function ScenarioLab({
   function applyPercentageChange() {
     const change = Number(bulkChange);
     if (!Number.isFinite(change)) return;
-    setPrices(Object.fromEntries(cryptoPositions.flatMap((position) => {
-      const price = Number(position.quote?.price ?? 0);
-      return Number.isFinite(price) && price >= 0 ? [[position.assetId, String(price * (1 + change / 100))]] : [];
-    })));
+    setPrices(
+      Object.fromEntries(
+        cryptoPositions.flatMap((position) => {
+          const price = Number(position.quote?.price ?? 0);
+          return Number.isFinite(price) && price >= 0
+            ? [[position.assetId, String(price * (1 + change / 100))]]
+            : [];
+        }),
+      ),
+    );
     setMessage("");
   }
-  const priceRow = (p: typeof cryptoPositions[number], i: number) => (
-    <div key={p.assetId} className="grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]">
-      <div className="flex items-center gap-3"><AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} /><div><p className="text-xs font-medium">{p.asset.symbol}</p><p className="mt-1 text-[10px] text-muted">{quantity(p.quantity)} · ახლა {money(p.quote?.price ?? null)}</p></div></div>
-      <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}><input className="input input-bordered" inputMode="decimal" value={prices[p.assetId] ?? ""} placeholder={p.quote?.price ?? "შეიყვანეთ ფასი"} onChange={(e) => { setPrices((current) => ({ ...current, [p.assetId]: e.target.value })); setMessage(""); }} /></Field>
+  const priceRow = (p: (typeof cryptoPositions)[number], i: number) => (
+    <div
+      key={p.assetId}
+      className="grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]"
+    >
+      <div className="flex items-center gap-3">
+        <AssetIcon
+          symbol={p.asset.symbol}
+          logoUrl={p.asset.logoUrl}
+          index={i}
+        />
+        <div>
+          <p className="text-xs font-medium">{p.asset.symbol}</p>
+          <p className="mt-1 text-[10px] text-base-content/60">
+            {quantity(p.quantity)} · ახლა {money(p.quote?.price ?? null)}
+          </p>
+        </div>
+      </div>
+      <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}>
+        <input
+          className="input"
+          inputMode="decimal"
+          value={prices[p.assetId] ?? ""}
+          placeholder={p.quote?.price ?? "შეიყვანეთ ფასი"}
+          onChange={(e) => {
+            setPrices((current) => ({
+              ...current,
+              [p.assetId]: e.target.value,
+            }));
+            setMessage("");
+          }}
+        />
+      </Field>
     </div>
   );
   async function save(copy = false) {
@@ -110,8 +148,8 @@ export function ScenarioLab({
     }
   }
   return (
-    <div className="space-y-6">
-      <div className="card card-border flex-row gap-3 bg-base-200 p-4">
+    <div className="space-y-3 lg:space-y-4">
+      <div className="card card-border flex-row flex-wrap gap-3 bg-base-200 p-4">
         <select
           aria-label="შენახული სცენარი"
           value={active}
@@ -130,77 +168,131 @@ export function ScenarioLab({
           ახალი სცენარი
         </button>
       </div>
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-        <section className="card card-border bg-base-200"><div className="card-body">
-          <div>
-            <div><h2 className="text-sm font-medium">რა მოხდება, თუ…</h2>
-            <p className="mt-2 text-xs leading-6 text-base-content/60">
-              შეცვალეთ ფასები. რაოდენობები ავტომატურად აიღება მიმდინარე
-              პორტფელიდან.
-            </p></div>
-            <div className="mt-4 flex flex-wrap gap-2"><label className="input"><Percent size={13} /><input aria-label="საერთო პროცენტული ცვლილება" inputMode="decimal" value={bulkChange} onChange={(event) => setBulkChange(event.target.value)} placeholder="მაგ. -20" /><span>%</span></label><button type="button" className="btn" onClick={applyPercentageChange} disabled={!bulkChange.trim()}>გამოყენება</button><button type="button" className="btn" onClick={() => { setPrices({}); setBulkChange(""); setMessage(""); }}><RotateCcw size={14} /> მიმდინარე ფასები</button></div>
-          </div>
-          <div className="divide-y divide-base-300">
-            {cryptoPositions.slice(0, 6).map(priceRow)}
-            {cryptoPositions.length > 6 && <details className="collapse collapse-arrow"><summary className="collapse-title">დარჩენილი {cryptoPositions.length - 6} აქტივის რედაქტირება</summary><div className="collapse-content">{cryptoPositions.slice(6).map((p, i) => priceRow(p, i + 6))}</div></details>}
-            {!cryptoPositions.length && (
-              <p className="py-10 text-center text-xs text-muted">
-                სცენარისთვის ჯერ დაამატეთ პოზიცია.
-              </p>
-            )}
-          </div>
-          <p className="mt-5 text-[11px] leading-6 text-muted">
-            ცარიელ ველში გამოიყენება მიმდინარე ხელმისაწვდომი ფასი. Cash და სტეიბლკოინები
-            ამ სცენარისგან გამოთიშულია. ნულოვანი ფასი აქტივის ღირებულების სრულ დაკარგვას ნიშნავს.
-          </p>
-        </div></section>
-        <div className="space-y-5">
-          <section className="card card-border bg-base-200"><div className="card-body">
-            <p className="text-xs text-muted">სცენარის კრიპტო ღირებულება</p>
-            <p className="numeric mt-5 text-4xl text-primary">
-              {money(result?.value ?? null)}
-            </p>
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Metric
-                label="მიმდინარე ღირებულება"
-                value={money(cryptoValue)}
-              />
-              <Metric
-                label="ცვლილება მიმდინარე ღირებულებიდან"
-                value={money(result?.growth ?? null)}
-                tone={pnlClass(result?.growth ?? null)}
-              />
-              <Metric
-                label="პოტენციური ზრდა"
-                value={percentage(result?.returnPercent ?? null, true)}
-              />
-              <Metric
-                label="სცენარის არარეალიზებული მოგება / ზარალი"
-                value={money(result?.unrealizedPnl ?? null)}
-              />
-            </div>
-          </div></section>
-          <section className="card card-border bg-base-200"><div className="card-body">
-            <h2 className="mb-4 text-sm font-medium">სცენარის განაწილება</h2>
-            {result?.positions.map((p) => (
-              <div
-                key={p.assetId}
-                className="flex justify-between gap-3 border-b border-base-300 py-3 text-xs"
-              >
-                <Link href={`/portfolios/${portfolioId}/strategy?asset=${encodeURIComponent(p.assetId)}`} className="scenario-result-asset">
-                  {p.symbol}
-                  {p.assumedCurrentPrice && (
-                    <span className="ml-2 text-[10px] text-muted">
-                      მიმდინარე ფასი
-                    </span>
-                  )}
-                </Link>
-                <span className="text-muted">
-                  {money(p.value)} · {percentage(p.allocation)}
-                </span>
+      <div className="grid gap-3 lg:gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
+        <section className="card card-border bg-base-200">
+          <div className="card-body min-w-0 gap-3 p-4">
+            <div>
+              <div>
+                <h2 className="text-sm font-medium">რა მოხდება, თუ…</h2>
+                <p className="mt-2 text-xs leading-6 text-base-content/60">
+                  შეცვალეთ ფასები. რაოდენობები ავტომატურად აიღება მიმდინარე
+                  პორტფელიდან.
+                </p>
               </div>
-            ))}
-          </div></section>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <label className="input">
+                  <Percent size={13} />
+                  <input
+                    aria-label="საერთო პროცენტული ცვლილება"
+                    inputMode="decimal"
+                    value={bulkChange}
+                    onChange={(event) => setBulkChange(event.target.value)}
+                    placeholder="მაგ. -20"
+                  />
+                  <span>%</span>
+                </label>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={applyPercentageChange}
+                  disabled={!bulkChange.trim()}
+                >
+                  გამოყენება
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => {
+                    setPrices({});
+                    setBulkChange("");
+                    setMessage("");
+                  }}
+                >
+                  <RotateCcw size={14} /> მიმდინარე ფასები
+                </button>
+              </div>
+            </div>
+            <div className="divide-y divide-base-300">
+              {cryptoPositions.slice(0, 6).map(priceRow)}
+              {cryptoPositions.length > 6 && (
+                <details className="collapse collapse-arrow">
+                  <summary className="collapse-title">
+                    დარჩენილი {cryptoPositions.length - 6} აქტივის რედაქტირება
+                  </summary>
+                  <div className="collapse-content">
+                    {cryptoPositions.slice(6).map((p, i) => priceRow(p, i + 6))}
+                  </div>
+                </details>
+              )}
+              {!cryptoPositions.length && (
+                <p className="py-10 text-center text-xs text-base-content/60">
+                  სცენარისთვის ჯერ დაამატეთ პოზიცია.
+                </p>
+              )}
+            </div>
+            <p className="mt-5 text-[11px] leading-6 text-base-content/60">
+              ცარიელ ველში გამოიყენება მიმდინარე ხელმისაწვდომი ფასი. Cash და
+              სტეიბლკოინები ამ სცენარისგან გამოთიშულია. ნულოვანი ფასი აქტივის
+              ღირებულების სრულ დაკარგვას ნიშნავს.
+            </p>
+          </div>
+        </section>
+        <div className="space-y-3 lg:space-y-4">
+          <section className="card card-border bg-base-200">
+            <div className="card-body min-w-0 gap-3 p-4">
+              <p className="text-xs text-base-content/60">
+                სცენარის კრიპტო ღირებულება
+              </p>
+              <p className="numeric mt-2 whitespace-nowrap text-2xl text-base-content">
+                {money(result?.value ?? null)}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <Metric
+                  label="მიმდინარე ღირებულება"
+                  value={money(cryptoValue)}
+                />
+                <Metric
+                  label="ცვლილება მიმდინარე ღირებულებიდან"
+                  value={money(result?.growth ?? null)}
+                  tone={pnlClass(result?.growth ?? null)}
+                />
+                <Metric
+                  label="პოტენციური ზრდა"
+                  value={percentage(result?.returnPercent ?? null, true)}
+                />
+                <Metric
+                  label="სცენარის არარეალიზებული მოგება / ზარალი"
+                  value={money(result?.unrealizedPnl ?? null)}
+                />
+              </div>
+            </div>
+          </section>
+          <section className="card card-border bg-base-200">
+            <div className="card-body min-w-0 gap-3 p-4">
+              <h2 className="mb-4 text-sm font-medium">სცენარის განაწილება</h2>
+              {result?.positions.map((p) => (
+                <div
+                  key={p.assetId}
+                  className="flex justify-between gap-3 border-b border-base-300 py-3 text-xs"
+                >
+                  <Link
+                    href={`/portfolios/${portfolioId}/strategy?asset=${encodeURIComponent(p.assetId)}`}
+                    className="scenario-result-asset"
+                  >
+                    {p.symbol}
+                    {p.assumedCurrentPrice && (
+                      <span className="ml-2 text-[10px] text-base-content/60">
+                        მიმდინარე ფასი
+                      </span>
+                    )}
+                  </Link>
+                  <span className="text-base-content/60">
+                    {money(p.value)} · {percentage(p.allocation)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
       {!result && (
@@ -213,7 +305,8 @@ export function ScenarioLab({
         <div className="card card-border flex-row flex-wrap items-end gap-3 bg-base-200 p-4">
           <div className="min-w-52 flex-1">
             <Field label="სცენარის სახელი">
-              <input className="input input-bordered"
+              <input
+                className="input"
                 value={name}
                 maxLength={80}
                 onChange={(e) => setName(e.target.value)}
@@ -322,123 +415,130 @@ function GoalPlanner({
     /* A goal is optional until entered. */
   }
   return (
-    <section className="card card-border bg-base-200"><div className="card-body">
-      <div className="mb-6">
-        <h2 className="text-sm font-medium">პორტფელის მიზანი</h2>
-        <p className="mt-2 text-xs text-muted">
-          შეადარეთ მიმდინარე პორტფელი და სცენარი თქვენს მიზანს.
-        </p>
+    <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open">
+      <summary className="collapse-title min-h-11 text-sm font-semibold">
+        პორტფელის მიზანი
+      </summary>
+      <div className="collapse-content">
+        <div className="sr-only">
+          <h2 className="text-sm font-medium">პორტფელის მიზანი</h2>
+          <p className="mt-2 text-xs text-base-content/60">
+            შეადარეთ მიმდინარე პორტფელი და სცენარი თქვენს მიზანს.
+          </p>
+        </div>
+        <div className="grid gap-3 lg:gap-4 lg:grid-cols-2">
+          <div className="space-y-4">
+            <Field label="მიზნობრივი ღირებულება (USD)">
+              <input
+                className="input"
+                inputMode="decimal"
+                value={target}
+                onChange={(e) => {
+                  setTarget(e.target.value);
+                  setMessage("");
+                }}
+                placeholder="100000"
+              />
+            </Field>
+            <Field label="შუალედური მიზნები — გამოყავით წერტილ-მძიმით">
+              <input
+                className="input"
+                value={milestones}
+                maxLength={500}
+                onChange={(e) => {
+                  setMilestones(e.target.value);
+                  setMessage("");
+                }}
+                placeholder="50000; 75000"
+              />
+            </Field>
+            {!preview && (
+              <button
+                className="btn"
+                disabled={!progress || pending}
+                onClick={async () => {
+                  setPending(true);
+                  try {
+                    const response = await saveGoal({
+                      portfolioId,
+                      target,
+                      milestones: milestones
+                        .split(";")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    });
+                    setError(!response.ok);
+                    setMessage(
+                      response.ok ? "მიზანი შენახულია." : response.error,
+                    );
+                  } catch {
+                    setError(true);
+                    setMessage("შენახვა ვერ მოხერხდა.");
+                  } finally {
+                    setPending(false);
+                  }
+                }}
+              >
+                {pending ? "ინახება…" : "მიზნის შენახვა"}
+              </button>
+            )}
+          </div>
+          <div>
+            {progress ? (
+              <>
+                <div className="grid grid-cols-2 gap-6">
+                  <Metric
+                    label="მიმდინარე პროგრესი"
+                    value={percentage(progress.progress)}
+                  />
+                  <Metric label="დარჩენილი თანხა" value={money(progress.gap)} />
+                  <Metric
+                    label="საჭირო ზრდა"
+                    value={percentage(progress.requiredGrowth)}
+                  />
+                  <Metric
+                    label="სცენარსა და მიზანს შორის სხვაობა"
+                    value={money(scenario?.gap ?? null)}
+                  />
+                </div>
+                <div className="mt-6 h-2 overflow-hidden rounded-full bg-raised">
+                  <div
+                    className="h-full rounded-full bg-brand"
+                    style={{ width: `${Number(progress.progress ?? 0)}%` }}
+                  />
+                </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {milestones
+                    .split(";")
+                    .map((s) => s.trim())
+                    .filter((s) => /^\d{1,24}(\.\d{1,18})?$/.test(s))
+                    .slice(0, 12)
+                    .map((m, i) => (
+                      <span
+                        key={i}
+                        className={`rounded-md border px-2 py-1 text-xs ${current !== null && Number(current) >= Number(m) ? "border-brand/30 text-brand" : "border-line text-base-content/60"}`}
+                      >
+                        {money(m)}{" "}
+                        {current !== null && Number(current) >= Number(m)
+                          ? "✓"
+                          : ""}
+                      </span>
+                    ))}
+                </div>
+              </>
+            ) : (
+              <p className="pt-8 text-xs text-base-content/60">
+                მიზნის დასაყენებლად შეიყვანეთ დადებითი თანხა.
+              </p>
+            )}
+          </div>
+        </div>
+        {message && (
+          <div className="mt-5">
+            <Message error={error}>{message}</Message>
+          </div>
+        )}
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4">
-          <Field label="მიზნობრივი ღირებულება (USD)">
-            <input className="input input-bordered"
-              inputMode="decimal"
-              value={target}
-              onChange={(e) => {
-                setTarget(e.target.value);
-                setMessage("");
-              }}
-              placeholder="100000"
-            />
-          </Field>
-          <Field label="შუალედური მიზნები — გამოყავით წერტილ-მძიმით">
-            <input className="input input-bordered"
-              value={milestones}
-              maxLength={500}
-              onChange={(e) => {
-                setMilestones(e.target.value);
-                setMessage("");
-              }}
-              placeholder="50000; 75000"
-            />
-          </Field>
-          {!preview && (
-            <button
-              className="btn"
-              disabled={!progress || pending}
-              onClick={async () => {
-                setPending(true);
-                try {
-                  const response = await saveGoal({
-                    portfolioId,
-                    target,
-                    milestones: milestones
-                      .split(";")
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  });
-                  setError(!response.ok);
-                  setMessage(
-                    response.ok ? "მიზანი შენახულია." : response.error,
-                  );
-                } catch {
-                  setError(true);
-                  setMessage("შენახვა ვერ მოხერხდა.");
-                } finally {
-                  setPending(false);
-                }
-              }}
-            >
-              {pending ? "ინახება…" : "მიზნის შენახვა"}
-            </button>
-          )}
-        </div>
-        <div>
-          {progress ? (
-            <>
-              <div className="grid grid-cols-2 gap-6">
-                <Metric
-                  label="მიმდინარე პროგრესი"
-                  value={percentage(progress.progress)}
-                />
-                <Metric label="დარჩენილი თანხა" value={money(progress.gap)} />
-                <Metric
-                  label="საჭირო ზრდა"
-                  value={percentage(progress.requiredGrowth)}
-                />
-                <Metric
-                  label="სცენარსა და მიზანს შორის სხვაობა"
-                  value={money(scenario?.gap ?? null)}
-                />
-              </div>
-              <div className="mt-6 h-2 overflow-hidden rounded-full bg-raised">
-                <div
-                  className="h-full rounded-full bg-brand"
-                  style={{ width: `${Number(progress.progress ?? 0)}%` }}
-                />
-              </div>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {milestones
-                  .split(";")
-                  .map((s) => s.trim())
-                  .filter((s) => /^\d{1,24}(\.\d{1,18})?$/.test(s))
-                  .slice(0, 12)
-                  .map((m, i) => (
-                    <span
-                      key={i}
-                      className={`rounded-md border px-2 py-1 text-xs ${current !== null && Number(current) >= Number(m) ? "border-brand/30 text-brand" : "border-line text-muted"}`}
-                    >
-                      {money(m)}{" "}
-                      {current !== null && Number(current) >= Number(m)
-                        ? "✓"
-                        : ""}
-                    </span>
-                  ))}
-              </div>
-            </>
-          ) : (
-            <p className="pt-8 text-xs text-muted">
-              მიზნის დასაყენებლად შეიყვანეთ დადებითი თანხა.
-            </p>
-          )}
-        </div>
-      </div>
-      {message && (
-        <div className="mt-5">
-          <Message error={error}>{message}</Message>
-        </div>
-      )}
-    </div></section>
+    </details>
   );
 }
