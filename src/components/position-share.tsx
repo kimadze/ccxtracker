@@ -153,18 +153,6 @@ export function PositionShare({
         }
         context.fillText(text, x, y);
       };
-      const brand = await loadImage("/position-share-king-logo.png", 8000);
-      const brandScale = Math.min(
-        150 / brand.naturalWidth,
-        150 / brand.naturalHeight,
-      );
-      context.drawImage(
-        brand,
-        60 + (150 - brand.naturalWidth * brandScale) / 2,
-        55 + (150 - brand.naturalHeight * brandScale) / 2,
-        brand.naturalWidth * brandScale,
-        brand.naturalHeight * brandScale,
-      );
       const source = highResLogoUrl(position.asset.logoUrl);
       context.save();
       context.beginPath();
