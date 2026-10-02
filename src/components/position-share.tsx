@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useId } from "react";
 import { Download, Eye, EyeOff, Share2 } from "lucide-react";
 import { X } from "lucide-react";
 import QRCode from "qrcode";
@@ -70,6 +70,7 @@ export function PositionShare({
   position: ValuedPosition;
   compact?: boolean;
 }) {
+  const previewId = useId();
   const [open, setOpen] = useState(false),
     [hideAmounts, setHideAmounts] = useState(false),
     [ready, setReady] = useState(false),
@@ -721,108 +722,150 @@ export function PositionShare({
         {!compact && " გაზიარება"}
       </button>
       <dialog
-            ref={dialogRef}
-            className="modal modal-middle"
-            onClose={() => setOpen(false)}
-            onCancel={() => setOpen(false)}
-            aria-describedby="position-share-description position-share-data"
+        ref={dialogRef}
+        className="modal modal-bottom lg:modal-middle"
+        onClose={() => setOpen(false)}
+        onCancel={() => setOpen(false)}
+        aria-describedby="position-share-description position-share-data"
+      >
+        <div className="modal-box max-h-[92dvh] max-w-3xl overflow-y-auto border border-base-300 bg-base-200">
+          <h2 className="text-lg font-semibold">პოზიციის გაზიარება</h2>
+          <p
+            id="position-share-description"
+            className="mt-2 text-sm text-base-content/60"
           >
-          <div className="modal-box max-h-[92dvh] max-w-3xl overflow-y-auto border border-base-300 bg-base-200">
-            <h2 className="text-lg font-semibold">პოზიციის გაზიარება</h2>
-            <p id="position-share-description" className="mt-2 text-sm text-base-content/60">
-              აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა
-              გამოჩენაც გსურთ.
-            </p>
-            <button type="button" onClick={() => setOpen(false)} className="btn btn-circle btn-ghost btn-sm absolute right-5 top-5" aria-label="დახურვა">
-              <X size={18} />
-            </button>
-            <div className="mt-6 grid gap-5">
-              <div
-                className="tabs tabs-box"
-                role="tablist"
-                aria-label="გაზიარების შაბლონი"
+            აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც
+            გსურთ.
+          </p>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="btn btn-circle btn-ghost min-h-11 min-w-11 absolute right-5 top-5"
+            aria-label="დახურვა"
+          >
+            <X size={18} />
+          </button>
+          <div className="mt-3 grid gap-3">
+            <div
+              className="tabs tabs-box flex flex-nowrap overflow-x-auto"
+              role="tablist"
+              aria-label="გაზიარების შაბლონი"
+              onKeyDown={(event) => {
+                const items: ShareTemplate[] = [
+                  "performance",
+                  "reaction",
+                  "mood",
+                ];
+                const index = items.indexOf(template);
+                const next =
+                  event.key === "ArrowRight"
+                    ? (index + 1) % 3
+                    : event.key === "ArrowLeft"
+                      ? (index + 2) % 3
+                      : event.key === "Home"
+                        ? 0
+                        : event.key === "End"
+                          ? 2
+                          : -1;
+                if (next < 0) return;
+                event.preventDefault();
+                chooseTemplate(items[next]);
+                event.currentTarget
+                  .querySelectorAll<HTMLButtonElement>("button")
+                  [next]?.focus();
+              }}
+            >
+              <button
+                className={`tab min-h-11 shrink-0 ${template === "performance" ? "tab-active" : ""}`}
+                type="button"
+                role="tab"
+                aria-selected={template === "performance"}
+                tabIndex={template === "performance" ? 0 : -1}
+                aria-controls={previewId}
+                onClick={() => chooseTemplate("performance")}
               >
-                <button className={`tab ${template === "performance" ? "tab-active" : ""}`}
-                  type="button"
-                  role="tab"
-                  aria-selected={template === "performance"}
-                  onClick={() => chooseTemplate("performance")}
-                >
-                  კლასიკური
-                </button>
-                <button className={`tab ${template === "reaction" ? "tab-active" : ""}`}
-                  type="button"
-                  role="tab"
-                  aria-selected={template === "reaction"}
-                  onClick={() => chooseTemplate("reaction")}
-                >
-                  რეაქცია
-                </button>
-                <button className={`tab ${template === "mood" ? "tab-active" : ""}`}
-                  type="button"
-                  role="tab"
-                  aria-selected={template === "mood"}
-                  onClick={() => chooseTemplate("mood")}
-                >
-                  პერსონაჟი
-                </button>
-              </div>
-              <p id="position-share-data" className="sr-only">
-                {position.asset.symbol} პოზიცია. შედეგი{" "}
-                {percentage(position.returnPercent, true)}. მიმდინარე ფასი{" "}
-                {money(position.quote?.price ?? null)}. საშუალო შესყიდვა{" "}
-                {hideAmounts ? "დამალულია" : money(position.averagePrice)}.
-                პოზიციის ღირებულება{" "}
-                {hideAmounts ? "დამალულია" : money(position.value)}.
-              </p>
-              <canvas
-                ref={canvas}
-                className="mx-auto block h-auto w-full max-w-xl rounded-box border border-base-300 bg-base-300"
-                role="img"
-                aria-label={`${position.asset.symbol} პოზიციის გაზიარების ბარათი`}
-                aria-describedby="position-share-data"
-              />
-              <div className="modal-action mt-0 flex-wrap">
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => {
-                    sharedImage.current = null;
-                    setReady(false);
-                    setStatus("ბარათი ახლდება…");
-                    setHideAmounts((value) => !value);
-                  }}
-                >
-                  {hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}
-                  {hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}
-                </button>
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={!ready}
-                  onClick={download}
-                >
-                  <Download size={15} /> PNG
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={!ready}
-                  onClick={share}
-                >
-                  <Share2 size={15} /> გაზიარება
-                </button>
-              </div>
-              {status && (
-                <p role="status" className="text-sm text-base-content/60">
-                  {status}
-                </p>
-              )}
+                კლასიკური
+              </button>
+              <button
+                className={`tab min-h-11 shrink-0 ${template === "reaction" ? "tab-active" : ""}`}
+                type="button"
+                role="tab"
+                aria-selected={template === "reaction"}
+                tabIndex={template === "reaction" ? 0 : -1}
+                aria-controls={previewId}
+                onClick={() => chooseTemplate("reaction")}
+              >
+                რეაქცია
+              </button>
+              <button
+                className={`tab min-h-11 shrink-0 ${template === "mood" ? "tab-active" : ""}`}
+                type="button"
+                role="tab"
+                aria-selected={template === "mood"}
+                tabIndex={template === "mood" ? 0 : -1}
+                aria-controls={previewId}
+                onClick={() => chooseTemplate("mood")}
+              >
+                პერსონაჟი
+              </button>
             </div>
+            <p id="position-share-data" className="sr-only">
+              {position.asset.symbol} პოზიცია. შედეგი{" "}
+              {percentage(position.returnPercent, true)}. მიმდინარე ფასი{" "}
+              {money(position.quote?.price ?? null)}. საშუალო შესყიდვა{" "}
+              {hideAmounts ? "დამალულია" : money(position.averagePrice)}.
+              პოზიციის ღირებულება{" "}
+              {hideAmounts ? "დამალულია" : money(position.value)}.
+            </p>
+            <canvas
+              ref={canvas}
+              id={previewId}
+              className="mx-auto block h-auto w-full max-w-xl rounded-box border border-base-300 bg-base-300"
+              role="img"
+              aria-label={`${position.asset.symbol} პოზიციის გაზიარების ბარათი`}
+              aria-describedby="position-share-data"
+            />
+            <div className="modal-action sticky bottom-0 z-10 mt-0 flex-wrap bg-base-200 py-3">
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  sharedImage.current = null;
+                  setReady(false);
+                  setStatus("ბარათი ახლდება…");
+                  setHideAmounts((value) => !value);
+                }}
+              >
+                {hideAmounts ? <Eye size={15} /> : <EyeOff size={15} />}
+                {hideAmounts ? "თანხების ჩვენება" : "თანხების დამალვა"}
+              </button>
+              <button
+                type="button"
+                className="btn"
+                disabled={!ready}
+                onClick={download}
+              >
+                <Download size={15} /> PNG
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!ready}
+                onClick={share}
+              >
+                <Share2 size={15} /> გაზიარება
+              </button>
+            </div>
+            {status && (
+              <p role="status" className="text-sm text-base-content/60">
+                {status}
+              </p>
+            )}
           </div>
-          <form method="dialog" className="modal-backdrop">
-            <button aria-label="დახურვა">დახურვა</button>
-          </form>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button aria-label="დახურვა">დახურვა</button>
+        </form>
       </dialog>
     </>
   );

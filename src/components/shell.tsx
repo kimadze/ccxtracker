@@ -6,7 +6,6 @@ import {
   ArrowLeftRight,
   BookOpen,
   ChartNoAxesCombined,
-  ChevronDown,
   Eye,
   EyeOff,
   FlaskConical,
@@ -23,7 +22,13 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
-import { Fragment, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
@@ -77,47 +82,60 @@ function Navigation({
   onNavigate?: () => void;
 }) {
   return (
-    <ul aria-label="მთავარი ნავიგაცია" className="menu menu-md w-full flex-1 gap-1 p-0">
+    <ul
+      aria-label="მთავარი ნავიგაცია"
+      className="menu menu-md w-full flex-1 gap-1 p-0"
+    >
       {groups.map((group) => (
         <Fragment key={group.title}>
-          <li className={"menu-title mt-2 px-3 py-1 text-xs lg:is-drawer-close:hidden"}>{group.title}</li>
-            {group.links.map(([segment, label, Icon]) => {
-              const href = base + (segment ? "/" + segment : "");
-              const active =
-                path === href ||
-                (segment === "positions" && path.startsWith(href + "/"));
-              return (
-                <li key={segment}>
-                  <Link
-                    href={href}
-                    aria-current={active ? "page" : undefined}
-                    aria-label={label}
-                    title={label}
-                    onClick={onNavigate}
-                    className={clsx(
-                      active && "menu-active",
-                      "lg:is-drawer-close:justify-center lg:is-drawer-close:px-0",
-                      "min-h-11 gap-3 rounded-field px-3 text-sm",
-                    )}
+          <li
+            className={
+              "menu-title mt-2 px-3 py-1 text-xs lg:is-drawer-close:hidden"
+            }
+          >
+            {group.title}
+          </li>
+          {group.links.map(([segment, label, Icon]) => {
+            const href = base + (segment ? "/" + segment : "");
+            const active =
+              path === href ||
+              (segment === "positions" && path.startsWith(href + "/"));
+            return (
+              <li key={segment}>
+                <Link
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  aria-label={label}
+                  title={label}
+                  onClick={onNavigate}
+                  className={clsx(
+                    active && "menu-active",
+                    "lg:is-drawer-close:justify-center lg:is-drawer-close:px-0",
+                    "min-h-11 gap-3 rounded-field px-3 text-sm",
+                  )}
+                >
+                  <Icon
+                    aria-hidden="true"
+                    size={18}
+                    strokeWidth={1.75}
+                    className="shrink-0"
+                  />
+                  <span
+                    className={"nav-label truncate lg:is-drawer-close:hidden"}
                   >
-                    <Icon
-                      aria-hidden="true"
-                      size={18}
-                      strokeWidth={1.75}
-                      className="shrink-0"
-                    />
-                    <span className={"nav-label truncate lg:is-drawer-close:hidden"}>{label}</span>
-                  </Link>
-                </li>
-              );
-            })}
+                    {label}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </Fragment>
       ))}
     </ul>
   );
 }
 
-function BalancePrivacyToggle() {
+export function BalancePrivacyToggle() {
   const hidden = useSyncExternalStore(
     subscribePrivacy,
     readPrivacy,
@@ -152,7 +170,6 @@ function BalancePrivacyToggle() {
 export function Shell({
   children,
   portfolios,
-  userName,
 }: {
   children: React.ReactNode;
   portfolios: { id: string; name: string }[];
@@ -166,14 +183,6 @@ export function Shell({
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
   const base = "/portfolios/" + activeId;
   const isOverview = path === base;
-  const currentSection =
-    groups
-      .flatMap((group) => group.links)
-      .find(
-        ([segment]) =>
-          path === base + (segment ? "/" + segment : "") ||
-          (segment === "positions" && path.startsWith(base + "/positions/")),
-      )?.[1] ?? "პორტფელი";
   const mobileLinks: NavItem[] = [
     ["", "მიმოხილვა", LayoutDashboard],
     ["positions", "პოზიციები", Wallet],
@@ -189,6 +198,13 @@ export function Shell({
       ),
     }))
     .filter((group) => group.links.length);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const close = () => setDrawerOpen(false);
+    media.addEventListener("change", close);
+    return () => media.removeEventListener("change", close);
+  }, []);
 
   useEffect(() => {
     const dialog = moreDialogRef.current;
@@ -207,7 +223,7 @@ export function Shell({
         onChange={(event) => setDrawerOpen(event.target.checked)}
       />
       <div className="drawer-content flex min-w-0 flex-1 flex-col bg-base-100">
-        {isOverview ? <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-16 lg:px-5">
+        <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-16 lg:px-5">
           <label
             htmlFor="ccx-main-drawer"
             className="btn btn-ghost btn-square drawer-button min-h-11 min-w-11 lg:hidden"
@@ -215,84 +231,45 @@ export function Shell({
           >
             <Menu size={19} />
           </label>
-          <button type="button" className="btn btn-ghost btn-square hidden min-h-11 lg:flex" aria-label={drawerOpen ? "მენიუს შეკუმშვა" : "მენიუს გაშლა"} aria-expanded={drawerOpen} onClick={() => setDrawerOpen(v => !v)}><Menu size={18} /></button>
-          <select className="select min-h-11 w-full min-w-0 flex-1 border-0 bg-transparent px-1 text-sm lg:max-w-64 lg:flex-none" aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={event => router.push("/portfolios/" + event.target.value)}>
-            {portfolios.map(portfolio => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}
+          <button
+            type="button"
+            className="btn btn-ghost btn-square hidden min-h-11 lg:flex"
+            aria-label={drawerOpen ? "მენიუს შეკუმშვა" : "მენიუს გაშლა"}
+            aria-expanded={drawerOpen}
+            onClick={() => setDrawerOpen((v) => !v)}
+          >
+            <Menu size={18} />
+          </button>
+          <select
+            className="select min-h-11 w-full min-w-0 flex-1 border-0 bg-transparent px-1 text-sm lg:max-w-64 lg:flex-none"
+            aria-label="პორტფელის არჩევა"
+            value={activeId ?? ""}
+            onChange={(event) =>
+              router.push("/portfolios/" + event.target.value)
+            }
+          >
+            {portfolios.map((portfolio) => (
+              <option key={portfolio.id} value={portfolio.id}>
+                {portfolio.name}
+              </option>
+            ))}
           </select>
-          <div className="ml-auto"><BalancePrivacyToggle /></div>
-          <div id="overview-toolbar" className="hidden items-center gap-2 lg:flex" />
-        </header> : <header className="navbar sticky top-0 z-20 min-h-16 border-b border-base-300 bg-base-100/95 px-4 backdrop-blur-xl lg:px-6 ccx-topbar">
-          <div className="navbar-start min-w-0 gap-3">
-            <div className="mobile-topbar-brand">
-              <Brand compact />
-            </div>
-            <button
-              type="button"
-              className="btn btn-ghost btn-square desktop-menu-trigger ccx-icon-button"
-              aria-label={drawerOpen ? "მენიუს შეკუმშვა" : "მენიუს გაშლა"}
-              aria-expanded={drawerOpen}
-              onClick={() => setDrawerOpen((value) => !value)}
-            >
-              <Menu size={18} />
-            </button>
-            <label
-              htmlFor="ccx-main-drawer"
-              className="btn btn-ghost btn-square drawer-button mobile-menu-trigger ccx-icon-button min-h-11 min-w-11 lg:hidden"
-              aria-label="მენიუს გახსნა"
-            >
-              <Menu size={19} />
-            </label>
-            <div className="breadcrumb min-w-0 text-xs text-muted">
-              <span>პორტფელი</span>
-              <span className="mx-2 text-foreground/30">/</span>
-              <span className="truncate text-foreground">{currentSection}</span>
-            </div>
-          </div>
-          <div className="navbar-end min-w-0 gap-3">
+          <div className="ml-auto">
             <BalancePrivacyToggle />
-            <label className="relative block w-[clamp(126px,17vw,220px)] min-w-0">
-              <span className="sr-only">პორტფელის არჩევა</span>
-              <select
-                aria-label="პორტფელის არჩევა"
-                value={activeId ?? ""}
-                onChange={(event) =>
-                  router.push("/portfolios/" + event.target.value)
-                }
-                className="select select-bordered min-w-0 appearance-none pr-8 text-xs"
-              >
-                {portfolios.map((portfolio) => (
-                  <option key={portfolio.id} value={portfolio.id}>
-                    {portfolio.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                aria-hidden="true"
-                size={14}
-                className="pointer-events-none absolute right-2 top-3 text-muted"
-              />
-            </label>
-            <details className="dropdown dropdown-end relative">
-              <summary
-                className="btn btn-ghost min-h-10 max-w-40 items-center gap-2 border border-base-300 bg-base-200 px-2 text-xs"
-                aria-label="მომხმარებლის მენიუ"
-              >
-                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand/15 font-semibold text-brand">
-                  {userName.charAt(0)}
-                </span>
-                <span className="hidden truncate sm:block">{userName}</span>
-                <ChevronDown size={13} className="text-muted" />
-              </summary>
-              <div className="dropdown-content z-40 mt-2 w-48 rounded-box border border-base-300 bg-base-200 p-2 shadow-xl">
-                <Link href={base + "/settings"} className="ccx-nav-link">
-                  <Settings2 size={16} /> პარამეტრები
-                </Link>
-                <LogoutButton />
-              </div>
-            </details>
           </div>
-        </header>}
-        <main id="main" className={isOverview ? "mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-3 pb-[calc(80px+env(safe-area-inset-bottom))] lg:px-5 lg:py-4" : "container mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 lg:px-8 lg:py-8 ccx-main"}>
+          <div
+            id="overview-toolbar"
+            className="hidden items-center gap-2 lg:flex"
+          />
+        </header>
+        <main
+          id="main"
+          className={
+            isOverview
+              ? "mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-3 pb-[calc(80px+env(safe-area-inset-bottom))] lg:px-5 lg:py-4"
+              : "mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-3 pb-[calc(80px+env(safe-area-inset-bottom))] text-sm lg:px-5 lg:py-4"
+          }
+        >
           {children}
         </main>
         <nav className="dock mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
@@ -336,63 +313,63 @@ export function Shell({
           </button>
           <dialog
             ref={moreDialogRef}
+            aria-label="ყველა ხელსაწყო"
             className="modal modal-bottom"
             onClose={() => setMoreOpen(false)}
             onCancel={() => setMoreOpen(false)}
           >
-              <div className="modal-box max-h-[85dvh] rounded-t-box border border-base-300 bg-base-200">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold">ყველა ხელსაწყო</h2>
-                    <p className="mt-1 text-sm text-base-content/60">კვლევა, დაგეგმვა და ანგარიშის მართვა</p>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-circle btn-ghost btn-sm"
-                    aria-label="დახურვა"
-                    onClick={() => setMoreOpen(false)}
-                  >
-                    <X size={18} />
-                  </button>
+            <div className="modal-box max-h-[85dvh] rounded-t-box border border-base-300 bg-base-200">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold">ყველა ხელსაწყო</h2>
+                  <p className="mt-1 text-sm text-base-content/60">
+                    კვლევა, დაგეგმვა და ანგარიშის მართვა
+                  </p>
                 </div>
-                <div className="mt-5 grid grid-cols-2 gap-2">
-                  {moreGroups
-                    .flatMap((group) => group.links)
-                    .map(([segment, label, Icon]) => {
-                      const href = base + "/" + segment;
-                      const active = path === href;
-                      return (
-                        <Link
-                          key={segment}
-                          href={href}
-                          aria-current={active ? "page" : undefined}
-                          onClick={() => setMoreOpen(false)}
-                          className={clsx(
-                            "btn btn-ghost h-auto min-h-14 justify-start gap-3 rounded-box border border-base-300 px-3 py-2 text-left font-normal",
-                            active && "btn-active border-primary/30 bg-primary/10",
-                          )}
-                        >
-                          <span className="grid size-9 place-items-center rounded-selector bg-base-300 text-primary">
-                            <Icon size={19} />
-                          </span>
-                          <strong>{label}</strong>
-                        </Link>
-                      );
-                    })}
-                </div>
-                <div className="mt-5 border-t border-base-300 pt-4">
-                  <LogoutButton />
-                </div>
+                <button
+                  type="button"
+                  className="btn btn-circle btn-ghost btn-sm"
+                  aria-label="დახურვა"
+                  onClick={() => setMoreOpen(false)}
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <form method="dialog" className="modal-backdrop">
-                <button aria-label="დახურვა">დახურვა</button>
-              </form>
+              <div className="mt-5 grid grid-cols-2 gap-2">
+                {moreGroups
+                  .flatMap((group) => group.links)
+                  .map(([segment, label, Icon]) => {
+                    const href = base + "/" + segment;
+                    const active = path === href;
+                    return (
+                      <Link
+                        key={segment}
+                        href={href}
+                        aria-current={active ? "page" : undefined}
+                        onClick={() => setMoreOpen(false)}
+                        className={clsx(
+                          "btn btn-ghost h-auto min-h-14 justify-start gap-3 rounded-box border border-base-300 px-3 py-2 text-left font-normal",
+                          active &&
+                            "btn-active border-primary/30 bg-primary/10",
+                        )}
+                      >
+                        <span className="grid size-9 place-items-center rounded-selector bg-base-300 text-primary">
+                          <Icon size={19} />
+                        </span>
+                        <strong>{label}</strong>
+                      </Link>
+                    );
+                  })}
+              </div>
+              <div className="mt-5 border-t border-base-300 pt-4">
+                <LogoutButton />
+              </div>
+            </div>
+            <form method="dialog" className="modal-backdrop">
+              <button aria-label="დახურვა">დახურვა</button>
+            </form>
           </dialog>
         </nav>
-        <footer className={clsx("mx-4 flex-wrap justify-between gap-3 border-t border-line py-5 text-xs text-muted sm:mx-6", isOverview ? "hidden" : "flex")}>
-          <span>© {new Date().getFullYear()} Crypto Collective X</span>
-          <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
-        </footer>
       </div>
       <div className="drawer-side z-50 lg:z-30">
         <label
@@ -407,14 +384,23 @@ export function Shell({
           )}
           aria-label="გვერდითი მენიუ"
         >
-          <div className={"mb-4 flex shrink-0 items-center px-1 lg:is-drawer-close:justify-center lg:is-drawer-close:px-0"}>
-            <Brand compact={!drawerOpen} />
+          <div
+            className={
+              "mb-4 flex shrink-0 items-center px-1 lg:is-drawer-close:justify-center lg:is-drawer-close:px-0"
+            }
+          >
+            <Brand
+              compact={!drawerOpen}
+              href="/portfolios"
+              label="პორტფელების სია"
+            />
           </div>
           <Navigation
             base={base}
             path={path}
             onNavigate={() => {
-              if (window.matchMedia("(max-width: 1023px)").matches) setDrawerOpen(false);
+              if (window.matchMedia("(max-width: 1023px)").matches)
+                setDrawerOpen(false);
             }}
           />
           <div className="mt-5 border-t border-base-300 pt-4">
@@ -424,7 +410,11 @@ export function Shell({
             <div className={"nav-label lg:is-drawer-close:hidden"}>
               <LogoutButton />
             </div>
-            <p className={"nav-label mt-4 px-3 text-xs text-base-content/50 lg:is-drawer-close:hidden"}>
+            <p
+              className={
+                "nav-label mt-4 px-3 text-xs text-base-content/50 lg:is-drawer-close:hidden"
+              }
+            >
               Crypto Collective X
             </p>
           </div>
@@ -439,23 +429,24 @@ export function PageHeading({
   title,
   description,
   action,
+  icon,
 }: {
   eyebrow: string;
   title: string;
   description: React.ReactNode;
   action?: React.ReactNode;
+  icon?: React.ReactNode;
 }) {
   return (
-    <div className="workspace-heading mb-7 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p className="eyebrow mb-2">პორტფელი / {eyebrow}</p>
-        <h1 className="text-[clamp(24px,2.3vw,28px)] font-semibold tracking-tight">
-          {title}
-        </h1>
-        <div className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-          {description}
-        </div>
-      </div>
+    <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-3 lg:mb-4">
+      <h1
+        className="flex min-w-0 items-center gap-2 text-lg font-semibold lg:text-xl"
+        title={eyebrow}
+      >
+        {icon}
+        <span className="truncate">{title}</span>
+      </h1>
+      {description && <span className="sr-only">{description}</span>}
       {action}
     </div>
   );
@@ -463,7 +454,11 @@ export function PageHeading({
 
 export function AddButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="btn btn-primary button-primary">
+    <button
+      type="button"
+      onClick={onClick}
+      className="btn btn-primary button-primary"
+    >
       <Plus size={16} />
       ტრანზაქციის დამატება
     </button>

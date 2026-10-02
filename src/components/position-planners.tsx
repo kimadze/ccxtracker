@@ -19,7 +19,9 @@ export function DcaPlanner({
   execution?: { portfolioId: string; revision: number; assets: Asset[] };
 }) {
   const [capital, setCapital] = useState("1000"),
-    [price, setPrice] = useState(position.quote?.price ?? ""),
+    [price, setPrice] = useState(
+      position.quote ? inputNumber(position.quote.price) : "",
+    ),
     [fee, setFee] = useState("0");
   let result: ReturnType<typeof calculateDca> | null = null;
   try {
@@ -37,25 +39,28 @@ export function DcaPlanner({
     /* Incomplete drafts have no result. */
   }
   return (
-    <div className="grid gap-5 xl:grid-cols-[20rem_minmax(0,1fr)]">
-      <section className="space-y-4 rounded-box bg-base-100 p-5">
+    <div className="grid gap-3 lg:gap-4 ">
+      <section className="space-y-4 rounded-box bg-base-100 p-3">
         <h2 className="text-sm font-medium">დამატებითი შესყიდვა</h2>
         <Field label="დამატებითი კაპიტალი, საკომისიოს ჩათვლით (USD)">
-          <input className="input input-bordered"
+          <input
+            className="input"
             inputMode="decimal"
             value={capital}
             onChange={(e) => setCapital(e.target.value)}
           />
         </Field>
         <Field label="მოსალოდნელი შესყიდვის ფასი (USD)">
-          <input className="input input-bordered"
+          <input
+            className="input"
             inputMode="decimal"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
           />
         </Field>
         <Field label="საკომისიო (USD)">
-          <input className="input input-bordered"
+          <input
+            className="input"
             inputMode="decimal"
             value={fee}
             onChange={(e) => setFee(e.target.value)}
@@ -66,13 +71,13 @@ export function DcaPlanner({
           მიმდინარე ფასით. ტრანზაქცია ავტომატურად არ იქმნება.
         </p>
       </section>
-      <section className="rounded-box bg-base-100 p-5">
-        <h2 className="mb-7 text-sm font-medium">
+      <section className="rounded-box bg-base-100 p-3">
+        <h2 className="mb-3 text-sm font-medium">
           შესყიდვის მოსალოდნელი შედეგი
         </h2>
         {result ? (
           <>
-            <div className="stats stats-vertical w-full sm:stats-horizontal sm:flex-wrap">
+            <div className="grid grid-cols-2 gap-2">
               <Metric
                 label="მიმდინარე საშუალო ფასი"
                 value={money(result.currentAverage)}
@@ -150,7 +155,10 @@ export function ExitPlanner({
   preview?: boolean;
 }) {
   const [levels, setLevels] = useState<ExitLevel[]>(
-      initial?.levels.map((level) => ({ price: inputNumber(level.price), percentage: inputNumber(level.percentage) })) ?? [{ price: "", percentage: "25" }],
+      initial?.levels.map((level) => ({
+        price: inputNumber(level.price),
+        percentage: inputNumber(level.percentage),
+      })) ?? [{ price: "", percentage: "25" }],
     ),
     [feePercent, setFee] = useState(inputNumber(initial?.feePercent ?? "0")),
     [message, setMessage] = useState(""),
@@ -175,86 +183,124 @@ export function ExitPlanner({
     setMessage("");
   }
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 lg:space-y-4">
       <section className="card card-border bg-base-100">
-        <div className="card-body"><div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-sm font-medium">გაყიდვის ეტაპები</h2>
-            <p className="mt-2 text-xs leading-6 text-base-content/60">
-              ყველა წილი ითვლება მიმდინარე {quantity(position.quantity)}{" "}
-              {position.asset.symbol}-იდან. ფასები ეტაპობრივად უნდა იზრდებოდეს.
-            </p>
+        <div className="card-body min-w-0 gap-3 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-medium">გაყიდვის ეტაპები</h2>
+              <p className="mt-2 text-xs leading-6 text-base-content/60">
+                ყველა წილი ითვლება მიმდინარე {quantity(position.quantity)}{" "}
+                {position.asset.symbol}-იდან. ფასები ეტაპობრივად უნდა
+                იზრდებოდეს.
+              </p>
+            </div>
+            <div className="w-40">
+              <Field label="საკომისიო (%)">
+                <input
+                  className="input"
+                  value={feePercent}
+                  inputMode="decimal"
+                  onChange={(e) => {
+                    setFee(e.target.value);
+                    setMessage("");
+                  }}
+                />
+              </Field>
+            </div>
           </div>
-          <div className="w-40">
-            <Field label="საკომისიო (%)">
-              <input className="input input-bordered"
-                value={feePercent}
-                inputMode="decimal"
-                onChange={(e) => {
-                  setFee(e.target.value);
-                  setMessage("");
-                }}
-              />
-            </Field>
+          <div
+            className="mt-4 divide-y divide-base-300"
+            role="table"
+            aria-label="გაყიდვის ეტაპები"
+          >
+            {levels.map((level, i) => (
+              <div key={i} className="grid gap-3 py-4 grid-cols-2 items-end">
+                <span className="badge badge-primary mb-2">TP{i + 1}</span>
+                <Field label="სამიზნე ფასი (USD)">
+                  <input
+                    className="input"
+                    value={level.price}
+                    inputMode="decimal"
+                    onChange={(e) => update(i, "price", e.target.value)}
+                    placeholder="0.00"
+                  />
+                </Field>
+                <Field label="გასაყიდი წილი (%)">
+                  <input
+                    className="input"
+                    value={level.percentage}
+                    inputMode="decimal"
+                    onChange={(e) => update(i, "percentage", e.target.value)}
+                  />
+                </Field>
+                <span className="numeric pb-3 text-sm">
+                  {result?.levels[i]
+                    ? quantity(result.levels[i].quantity)
+                    : "—"}
+                </span>
+                <span className="numeric pb-3 text-sm">
+                  {result?.levels[i] ? money(result.levels[i].revenue) : "—"}
+                </span>
+                <button
+                  className="btn btn-ghost btn-square min-h-11 min-w-11 mb-2 text-error"
+                  aria-label={`TP${i + 1}-ის წაშლა`}
+                  disabled={levels.length <= 1}
+                  onClick={() => {
+                    setLevels((l) => l.filter((_, n) => n !== i));
+                    setMessage("");
+                  }}
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            ))}
           </div>
-        </div>
-        <div className="mt-4 divide-y divide-base-300" role="table" aria-label="გაყიდვის ეტაპები">
-          {levels.map((level, i) => (
-            <div
-              key={i}
-              className="grid gap-3 py-4 sm:grid-cols-[3rem_1fr_1fr_auto_auto_auto] sm:items-end"
+          <div className="card-actions mt-4">
+            <button
+              className="btn"
+              disabled={levels.length >= 12}
+              onClick={() =>
+                setLevels((l) => [...l, { price: "", percentage: "10" }])
+              }
             >
-              <span className="badge badge-primary mb-2">TP{i + 1}</span>
-              <Field label="სამიზნე ფასი (USD)">
-                <input className="input input-bordered"
-                  value={level.price}
-                  inputMode="decimal"
-                  onChange={(e) => update(i, "price", e.target.value)}
-                  placeholder="0.00"
-                />
-              </Field>
-              <Field label="გასაყიდი წილი (%)">
-                <input className="input input-bordered"
-                  value={level.percentage}
-                  inputMode="decimal"
-                  onChange={(e) => update(i, "percentage", e.target.value)}
-                />
-              </Field>
-              <span className="numeric pb-3 text-sm">{result?.levels[i] ? quantity(result.levels[i].quantity) : "—"}</span>
-              <span className="numeric pb-3 text-sm">{result?.levels[i] ? money(result.levels[i].revenue) : "—"}</span>
+              <Plus size={15} />
+              ეტაპის დამატება
+            </button>
+            {!preview && (
               <button
-                className="btn btn-ghost btn-square btn-sm mb-2 text-error"
-                aria-label={`TP${i + 1}-ის წაშლა`}
-                disabled={levels.length <= 1}
-                onClick={() => {
-                  setLevels((l) => l.filter((_, n) => n !== i));
-                  setMessage("");
+                className="btn btn-primary"
+                disabled={!result || pending}
+                onClick={async () => {
+                  setPending(true);
+                  try {
+                    const response = await saveExitPlan({
+                      portfolioId,
+                      assetId: position.assetId,
+                      feePercent,
+                      levels,
+                    });
+                    setError(!response.ok);
+                    setMessage(
+                      response.ok ? "გასვლის გეგმა შენახულია." : response.error,
+                    );
+                  } catch {
+                    setError(true);
+                    setMessage("შენახვა ვერ მოხერხდა.");
+                  } finally {
+                    setPending(false);
+                  }
                 }}
               >
-                <Trash2 size={15} />
+                {pending ? "ინახება…" : "გეგმის შენახვა"}
               </button>
-            </div>
-          ))}
+            )}
+          </div>
         </div>
-        <div className="card-actions mt-4"><button
-          className="btn"
-          disabled={levels.length >= 12}
-          onClick={() =>
-            setLevels((l) => [...l, { price: "", percentage: "10" }])
-          }
-        >
-          <Plus size={15} />
-          ეტაპის დამატება
-        </button>{!preview && <button className="btn btn-primary" disabled={!result || pending} onClick={async () => {
-          setPending(true);
-          try { const response = await saveExitPlan({ portfolioId, assetId: position.assetId, feePercent, levels }); setError(!response.ok); setMessage(response.ok ? "გასვლის გეგმა შენახულია." : response.error); }
-          catch { setError(true); setMessage("შენახვა ვერ მოხერხდა."); }
-          finally { setPending(false); }
-        }}>{pending ? "ინახება…" : "გეგმის შენახვა"}</button>}</div></div>
       </section>
       {result ? (
-        <aside className="grid gap-5 xl:grid-cols-2">
-          <div className="stats stats-vertical bg-base-100 sm:stats-horizontal sm:flex-wrap">
+        <aside className="grid gap-3 lg:gap-4 xl:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2 bg-base-100">
             <Metric
               label="მოსალოდნელი წმინდა შემოსავალი"
               value={money(result.revenue)}
@@ -290,7 +336,9 @@ export function ExitPlanner({
                     TP{i + 1} · {quantity(l.quantity)} {position.asset.symbol}
                   </span>
                   <span>შემოსავალი: {money(l.revenue)}</span>
-                  <span className="text-base-content/60">მოგება: {money(l.profit)}</span>
+                  <span className="text-base-content/60">
+                    მოგება: {money(l.profit)}
+                  </span>
                 </div>
               ))}
             </div>

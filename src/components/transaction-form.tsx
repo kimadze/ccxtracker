@@ -64,9 +64,8 @@ export function TransactionForm({
   return (
     <>
       <button
-        className={
-          entry ? "btn btn-ghost btn-xs" : "btn btn-primary"
-        }
+        className={entry ? "btn btn-ghost btn-xs" : "btn btn-primary"}
+        aria-label={triggerLabel ? "ტრანზაქციის დამატება" : undefined}
         onClick={() => {
           setSubmissionId(entry?.id ?? crypto.randomUUID());
           setError("");
@@ -101,7 +100,7 @@ export function TransactionForm({
         wide
       >
         <form
-          className="space-y-5"
+          className="space-y-3 lg:space-y-4"
           onSubmit={async (e) => {
             e.preventDefault();
             const form = new FormData(e.currentTarget);
@@ -161,7 +160,8 @@ export function TransactionForm({
               aria-label="ტრანზაქციის ტიპი"
             >
               {Object.entries(kindLabels).map(([value, label]) => (
-                <button className={`tab h-auto min-h-11 whitespace-normal px-2 py-2 ${kind === value ? "tab-active" : ""}`}
+                <button
+                  className={`tab h-auto min-h-11 whitespace-normal px-2 py-2 ${kind === value ? "tab-active" : ""}`}
                   key={value}
                   type="button"
                   aria-pressed={kind === value}
@@ -174,7 +174,8 @@ export function TransactionForm({
           </fieldset>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="აქტივი">
-              <select className="select select-bordered"
+              <select
+                className="select"
                 value={assetId}
                 onChange={(e) => setAssetId(e.target.value)}
               >
@@ -187,7 +188,8 @@ export function TransactionForm({
             </Field>
           </div>
           <div className="join flex w-full">
-            <input className="input join-item min-w-0 flex-1"
+            <input
+              className="input join-item min-w-0 flex-1"
               aria-label="სხვა აქტივის ძიება"
               placeholder="სხვა აქტივის ძიება…"
               value={query}
@@ -226,7 +228,8 @@ export function TransactionForm({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={isCash ? "თანხა (USD)" : "რაოდენობა"}>
-              <input className="input input-bordered"
+              <input
+                className="input"
                 name="quantity"
                 inputMode="decimal"
                 required
@@ -248,7 +251,8 @@ export function TransactionForm({
                         : "ერთეულის ფასი (USD)"
                   }
                 >
-                  <input className="input input-bordered"
+                  <input
+                    className="input"
                     name="price"
                     inputMode="decimal"
                     required={kind !== "deposit"}
@@ -258,14 +262,16 @@ export function TransactionForm({
                 </Field>
               )}
             <Field label="საკომისიო (USD)">
-              <input className="input input-bordered"
+              <input
+                className="input"
                 name="fee"
                 inputMode="decimal"
                 defaultValue={entry?.fee ?? draft?.fee ?? "0"}
               />
             </Field>
             <Field label="თარიღი და დრო (თქვენი მოწყობილობის დრო)">
-              <input className="input input-bordered"
+              <input
+                className="input"
                 name="occurredAt"
                 type="datetime-local"
                 required
@@ -274,13 +280,19 @@ export function TransactionForm({
             </Field>
           </div>
           {kind === "buy" && (
-            <div role="alert" className="alert alert-info alert-soft text-xs leading-6">
+            <div
+              role="alert"
+              className="alert alert-info alert-soft text-xs leading-6"
+            >
               შესყიდვა თანხის ნაშთიდან დაიფარება. საჭიროების შემთხვევაში ჯერ
               ჩაიწერეთ USD-ის შეტანა.
             </div>
           )}
           {kind === "deposit" && !isCash && (
-            <div role="alert" className="alert alert-info alert-soft text-xs leading-6">
+            <div
+              role="alert"
+              className="alert alert-info alert-soft text-xs leading-6"
+            >
               თუ თვითღირებულება უცნობია, დატოვეთ ცარიელი. შესაბამისი მოგება /
               ზარალი არ გამოითვლება.
             </div>
@@ -289,21 +301,24 @@ export function TransactionForm({
             <>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field label="პროექტი / წყარო">
-                  <input className="input input-bordered"
+                  <input
+                    className="input"
                     name="airdropSource"
                     defaultValue={entry?.airdropSource ?? ""}
                     placeholder="მაგ. Jupiter"
                   />
                 </Field>
                 <Field label="ქსელი">
-                  <input className="input input-bordered"
+                  <input
+                    className="input"
                     name="airdropNetwork"
                     defaultValue={entry?.airdropNetwork ?? ""}
                     placeholder="მაგ. Solana"
                   />
                 </Field>
                 <Field label="სტატუსი">
-                  <select className="select select-bordered"
+                  <select
+                    className="select"
                     name="airdropStatus"
                     defaultValue={entry?.airdropStatus ?? "received"}
                   >
@@ -312,30 +327,45 @@ export function TransactionForm({
                   </select>
                 </Field>
               </div>
-              <div role="alert" className="alert alert-info alert-soft text-xs leading-6">
+              <div
+                role="alert"
+                className="alert alert-info alert-soft text-xs leading-6"
+              >
                 Airdrop პორტფელში დაემატება თანხის ნაშთის შემცირების გარეშე.
                 მიღების ფასი გახდება მისი საწყისი თვითღირებულება.
               </div>
             </>
           )}
-          <Field label="შენიშვნა">
-            <textarea className="textarea textarea-bordered"
-              name="notes"
-              rows={2}
-              maxLength={2000}
-              defaultValue={entry?.notes}
-              placeholder="არასავალდებულო"
-            />
-          </Field>
+          <details className="collapse collapse-arrow border border-base-300 bg-base-100">
+            <summary className="collapse-title min-h-11 text-sm">
+              შენიშვნა
+            </summary>
+            <div className="collapse-content">
+              <Field label="შენიშვნა">
+                <textarea
+                  className="textarea"
+                  name="notes"
+                  rows={2}
+                  maxLength={2000}
+                  defaultValue={entry?.notes}
+                  placeholder="არასავალდებულო"
+                />
+              </Field>
+            </div>
+          </details>
           {entry && (
             <label className="label cursor-pointer items-start justify-start gap-3 text-xs leading-5">
-              <input type="checkbox" required className="checkbox checkbox-primary mt-1" />
+              <input
+                type="checkbox"
+                required
+                className="checkbox checkbox-primary mt-1"
+              />
               ვადასტურებ ისტორიის შესწორებასა და შემდგომი ტრანზაქციების თავიდან
               გამოთვლას.
             </label>
           )}
           {error && <Message error>{error}</Message>}
-          <div className="flex justify-end gap-3">
+          <div className="modal-action sticky bottom-0 z-10 mt-0 justify-end gap-3 border-t border-base-300 bg-base-200 py-3">
             <button
               type="button"
               className="btn"
@@ -345,7 +375,9 @@ export function TransactionForm({
               გაუქმება
             </button>
             <button disabled={pending} className="btn btn-primary">
-              {pending && <span className="loading loading-spinner loading-xs" />}
+              {pending && (
+                <span className="loading loading-spinner loading-xs" />
+              )}
               {pending ? "ინახება…" : "შენახვა"}
             </button>
           </div>

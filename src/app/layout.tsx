@@ -11,7 +11,11 @@ export const metadata: Metadata = {
     "თქვენი კრიპტოპორტფელი ერთ სივრცეში — მონიტორინგი, ანალიტიკა და სტრატეგიის დაგეგმვა.",
   applicationName: "Crypto Collective X",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "CCX Portfolio", statusBarStyle: "black-translucent" },
+  appleWebApp: {
+    capable: true,
+    title: "CCX Portfolio",
+    statusBarStyle: "black-translucent",
+  },
   openGraph: {
     title: "Crypto Collective X",
     description: "გააზრებული გადაწყვეტილებები იწყება სრული სურათით.",
@@ -25,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ka" data-theme="dark">
+    <html lang="ka" data-theme="ccx">
       <body>
         <a
           href="#main"

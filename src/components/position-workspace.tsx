@@ -1,10 +1,16 @@
 "use client";
-import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { WorkspaceTabs, useWorkspaceTab } from "./workspace-tabs";
 import type { Asset, LedgerEntry, ValuedPosition } from "@/domain/types";
 import type { ExitLevel } from "@/domain/planning";
 import { Metric } from "./overview";
-import { DcaPlanner, ExitPlanner } from "./position-planners";
+import dynamic from "next/dynamic";
+const DcaPlanner = dynamic(() =>
+  import("./position-planners").then((m) => m.DcaPlanner),
+);
+const ExitPlanner = dynamic(() =>
+  import("./position-planners").then((m) => m.ExitPlanner),
+);
 import { JournalForm, type JournalData } from "./journal";
 import { TransactionList } from "./transaction-list";
 import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
@@ -29,57 +35,59 @@ export function PositionWorkspace({
 }) {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
-  const supportedTabs = ["overview", "transactions", "dca", "exit", "journal"];
-  const [tab, setTab] = useState(() =>
-    supportedTabs.includes(requestedTab ?? "") ? requestedTab! : "overview",
+  const [requested, setTab] = useWorkspaceTab(
+    ["overview", "transactions", "plan", "dca", "exit", "journal"],
+    "overview",
   );
+  const tab = requested === "dca" || requested === "exit" ? "plan" : requested;
   return (
-    <div className="position-workspace">
-      <div className="position-workspace-toolbar">
-        <div className="tabs tabs-box position-tabs ccx-tabs">
-          {[
-            ["overview", "მიმოხილვა"],
-            ["transactions", "ტრანზაქციები"],
-            ["dca", "DCA"],
-            ["exit", "გასვლის გეგმა"],
-            ["journal", "ჟურნალი"],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              aria-pressed={tab === key}
-              onClick={() => setTab(key)}
-              className="text-xs"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <WorkspaceTabs
+      label="პოზიციის სექციები"
+      value={tab}
+      onChange={setTab}
+      items={[
+        ["overview", "მიმოხილვა"],
+        ["transactions", "ტრანზაქციები"],
+        ["plan", "გეგმა"],
+        ["journal", "ჟურნალი"],
+      ]}
+    >
       {tab === "overview" && (
-        <div className="position-overview-grid">
-          <Metric label="რაოდენობა" value={quantity(p.quantity)} />
-          <Metric
-            label="მიმდინარე ღირებულება"
-            value={money(p.value)}
-            sensitive
-          />
-          <Metric
-            label="საშუალო შესყიდვის ფასი"
-            value={money(p.averagePrice)}
-          />
-          <Metric
-            label="შემოსავალი / დანახარჯი"
-            value={money(p.unrealizedPnl)}
-            tone={pnlClass(p.unrealizedPnl)}
-            sensitive
-          />
-          <Metric label="თვითღირებულება" value={money(p.costBasis)} sensitive />
-          <Metric
-            label="მიმდინარე ფასი"
-            value={money(p.quote?.price ?? null)}
-          />
-          <Metric label="შემოსავლიანობა" value={percentage(p.returnPercent)} />
-          <Metric label="წილი პორტფელში" value={percentage(p.allocation)} />
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 rounded-box border border-base-300 bg-base-200 p-3">
+            <Metric
+              label="მიმდინარე ღირებულება"
+              value={money(p.value)}
+              sensitive
+            />
+            <Metric
+              label="მოგება / ზარალი"
+              value={money(p.unrealizedPnl)}
+              tone={pnlClass(p.unrealizedPnl)}
+              sensitive
+            />
+          </div>
+          <div className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-3">
+            <Metric label="რაოდენობა" value={quantity(p.quantity)} />
+            <Metric
+              label="საშუალო შესყიდვის ფასი"
+              value={money(p.averagePrice)}
+            />
+            <Metric
+              label="თვითღირებულება"
+              value={money(p.costBasis)}
+              sensitive
+            />
+            <Metric
+              label="მიმდინარე ფასი"
+              value={money(p.quote?.price ?? null)}
+            />
+            <Metric
+              label="შემოსავლიანობა"
+              value={percentage(p.returnPercent)}
+            />
+            <Metric label="წილი პორტფელში" value={percentage(p.allocation)} />
+          </div>
         </div>
       )}
       {tab === "transactions" && (
@@ -90,15 +98,40 @@ export function PositionWorkspace({
           revision={revision}
         />
       )}
-      {tab === "dca" && (
-        <DcaPlanner
-          position={p}
-          portfolioValue={portfolioValue}
-          execution={{ portfolioId, revision, assets }}
-        />
-      )}
-      {tab === "exit" && (
-        <ExitPlanner position={p} portfolioId={portfolioId} initial={plan} />
+      {tab === "plan" && (
+        <div className="grid items-start gap-3 lg:grid-cols-2">
+          <details
+            key={requested}
+            open={requestedTab !== "exit"}
+            className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open"
+          >
+            <summary className="collapse-title min-h-11 text-sm font-semibold">
+              შესვლის გეგმა
+            </summary>
+            <div className="collapse-content">
+              <DcaPlanner
+                position={p}
+                portfolioValue={portfolioValue}
+                execution={{ portfolioId, revision, assets }}
+              />
+            </div>
+          </details>
+          <details
+            open={requestedTab === "exit"}
+            className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open"
+          >
+            <summary className="collapse-title min-h-11 text-sm font-semibold">
+              გასვლის გეგმა
+            </summary>
+            <div className="collapse-content">
+              <ExitPlanner
+                position={p}
+                portfolioId={portfolioId}
+                initial={plan}
+              />
+            </div>
+          </details>
+        </div>
       )}
       {tab === "journal" && (
         <div className="space-y-6">
@@ -109,6 +142,6 @@ export function PositionWorkspace({
           />
         </div>
       )}
-    </div>
+    </WorkspaceTabs>
   );
 }

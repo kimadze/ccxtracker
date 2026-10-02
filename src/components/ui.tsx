@@ -33,6 +33,7 @@ export function Modal({
   className?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -44,32 +45,31 @@ export function Modal({
   return (
     <dialog
       ref={dialogRef}
-      className="modal modal-middle"
+      aria-labelledby={titleId}
+      className="modal modal-bottom lg:modal-middle"
       onClose={() => onOpenChange(false)}
       onCancel={() => onOpenChange(false)}
     >
       <div
         className={clsx(
-          "modal-box max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto border border-base-300 bg-base-200 p-5 sm:p-7",
+          "modal-box max-h-[90dvh] w-full overflow-y-auto rounded-t-box border border-base-300 bg-base-200 p-4 pb-[calc(16px+env(safe-area-inset-bottom))] lg:w-[calc(100%-2rem)] lg:rounded-box lg:p-5",
           wide ? "max-w-2xl" : "max-w-lg",
           className,
         )}
       >
-          <h2 className="pr-10 text-lg font-semibold tracking-tight">
-            {title}
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-base-content/60">
-            {description}
-          </p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-circle btn-sm absolute right-5 top-5"
-            aria-label="დახურვა"
-            onClick={() => onOpenChange(false)}
-          >
-            <X size={18} />
-          </button>
-          <div className="mt-6">{children}</div>
+        <h2 id={titleId} className="pr-10 text-lg font-semibold tracking-tight">
+          {title}
+        </h2>
+        <p className="mt-1 text-xs text-base-content/60">{description}</p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-circle min-h-11 min-w-11 absolute right-5 top-5"
+          aria-label="დახურვა"
+          onClick={() => onOpenChange(false)}
+        >
+          <X size={18} />
+        </button>
+        <div className="mt-3">{children}</div>
       </div>
       <form method="dialog" className="modal-backdrop">
         <button aria-label="დახურვა">დახურვა</button>
@@ -89,9 +89,7 @@ export function Message({
       role={error ? "alert" : "status"}
       className={clsx(
         "alert alert-soft text-sm",
-        error
-          ? "alert-error"
-          : "alert-info",
+        error ? "alert-error" : "alert-info",
       )}
     >
       {children}
@@ -112,17 +110,19 @@ export function Field({
   const control = isValidElement(children)
     ? typeof children.type === "string"
       ? children.type === "select"
-        ? "select select-bordered w-full"
+        ? "select w-full"
         : children.type === "textarea"
-          ? "textarea textarea-bordered w-full"
+          ? "textarea w-full"
           : children.type === "input" && childProps?.type !== "checkbox"
-            ? "input input-bordered w-full"
+            ? "input w-full"
             : ""
       : ""
     : "";
   return (
-    <fieldset className="fieldset">
-      <legend className="fieldset-legend"><label htmlFor={id}>{label}</label></legend>
+    <fieldset className="fieldset min-w-0">
+      <legend className="fieldset-legend max-w-full whitespace-normal">
+        <label htmlFor={id}>{label}</label>
+      </legend>
       {isValidElement(children)
         ? cloneElement(
             children as ReactElement<{ id?: string; className?: string }>,

@@ -1,16 +1,19 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import { deletePosition } from "@/server/actions";
 import { Modal, Message } from "./ui";
 export function DeletePosition({
   portfolioId,
   assetId,
   revision,
+  compact = false,
 }: {
   portfolioId: string;
   assetId: string;
   revision: number;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false),
     [pending, setPending] = useState(false),
@@ -19,13 +22,16 @@ export function DeletePosition({
   return (
     <>
       <button
-        className="btn btn-error button-danger"
+        className={
+          compact ? "btn btn-ghost btn-square text-error" : "btn btn-error"
+        }
+        aria-label="პოზიციის წაშლა"
         onClick={() => {
           setOpen(true);
           setError("");
         }}
       >
-        პოზიციის წაშლა
+        {compact ? <Trash2 size={17} /> : "პოზიციის წაშლა"}
       </button>
       <Modal
         open={open}
@@ -56,11 +62,15 @@ export function DeletePosition({
           }}
         >
           <label className="flex items-center gap-3 text-xs">
-            <input type="checkbox" required className="checkbox checkbox-error" />
+            <input
+              type="checkbox"
+              required
+              className="checkbox checkbox-error"
+            />
             ვადასტურებ პოზიციის ისტორიის წაშლას.
           </label>
           {error && <Message error>{error}</Message>}
-          <button className="btn btn-error button-danger" disabled={pending}>
+          <button className="btn btn-error" disabled={pending}>
             {pending ? "იშლება…" : "წაშლა"}
           </button>
         </form>

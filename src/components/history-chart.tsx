@@ -65,10 +65,12 @@ export function HistoryChart({
     return (
       <div className={compact ? "py-2 text-left" : "py-4 text-left"}>
         <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
-        {!compact && <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
-          მიმდინარე შეფასება ავტომატურად შეინახება და ყოველდღიური განახლებები
-          მას გააგრძელებს.
-        </p>}
+        {!compact && (
+          <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
+            მიმდინარე შეფასება ავტომატურად შეინახება და ყოველდღიური განახლებები
+            მას გააგრძელებს.
+          </p>
+        )}
         {emptyAction && <div className="mt-4">{emptyAction}</div>}
       </div>
     );
@@ -102,7 +104,13 @@ export function HistoryChart({
       )}
       <div
         ref={chartRef}
-        className={points.length < 2 ? "hidden" : compact ? "h-[140px] w-full min-w-0 lg:h-[220px]" : "h-56 w-full min-w-0"}
+        className={
+          points.length < 2
+            ? "hidden"
+            : compact
+              ? "h-[140px] w-full min-w-0 lg:h-[220px]"
+              : "h-56 w-full min-w-0"
+        }
         role="img"
         aria-label={
           illustrative
@@ -158,7 +166,7 @@ export function HistoryChart({
                 formatter={(v) => [money(String(v)), "ღირებულება"]}
                 contentStyle={{
                   background: "var(--surface-2)",
-                  border: "1px solid var(--border)",
+                  border: "1px solid var(--ccx-border)",
                   borderRadius: 10,
                   fontSize: 11,
                 }}

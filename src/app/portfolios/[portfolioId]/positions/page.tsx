@@ -24,16 +24,20 @@ export default async function Page({
           />
         }
       />
+      {(!w.summary.complete || w.summary.stale) && (
+        <div
+          role="status"
+          className="alert alert-warning alert-soft mb-3 text-xs"
+        >
+          {!w.summary.complete ? "ფასები არასრულია" : "ფასები მოძველებულია"}
+        </div>
+      )}
       <PositionsWorkspace
         positions={w.summary.positions}
         base={`/portfolios/${portfolioId}`}
         assets={w.assets}
         revision={w.portfolio.revision}
       />
-      <p className="mt-5 text-xs leading-6 text-muted">
-        რაოდენობის ან თვითღირებულების შესაცვლელად გახსენით პოზიცია და შეასწორეთ
-        შესაბამისი ტრანზაქცია.
-      </p>
     </>
   );
 }
