@@ -58,12 +58,11 @@ export function Overview({ summary: s, base, cryptoOnlyValue = false, history, a
       <section className="card card-border min-w-0 bg-base-200 lg:col-start-1 lg:row-start-1" aria-label="ღირებულება და ისტორია">
         <div className="card-body gap-3 p-3! sm:p-4!">
           <div className="flex items-center justify-between gap-2"><h2 className="text-xs text-base-content/65">{cryptoOnlyValue ? "კრიპტოაქტივების ღირებულება" : "პორტფელის ღირებულება"}</h2><div className="lg:hidden">{status}</div></div>
-          <div className="hover-3d w-full min-w-0 [@media(hover:none)]:pointer-events-none motion-reduce:pointer-events-none [&>:first-child]:scale-100! [@media(hover:none)]:[&>:first-child]:transform-none! motion-reduce:[&>:first-child]:transform-none! motion-reduce:[&>:first-child]:transition-none!">
-            <div className="min-w-0 rounded-box bg-base-200">
+          <div className="aura aura-dual aura-sm block w-full min-w-0 text-primary">
+            <div className="min-w-0 rounded-box border border-primary/20 bg-base-200 p-3">
               <p className="overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums"><BalanceValue>{money(displayedValue)}</BalanceValue></p>
               <p className="mt-2 flex flex-wrap items-baseline gap-2 text-sm"><span className={`whitespace-nowrap font-semibold tabular-nums ${pnlClass(s.totalPnl)}`}><BalanceValue>{money(s.totalPnl)}</BalanceValue></span><span className="text-xs text-base-content/60">მთლიანი P/L</span></p>
             </div>
-            <div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" />
           </div>
           {(!s.complete || s.stale) && <p role="status" className="text-xs text-warning">{!s.complete ? "ზოგი აქტივის ფასი მიუწვდომელია" : "ფასები დაგვიანებულია"}</p>}
           <div className="min-w-0 border-t border-base-300 pt-3">
