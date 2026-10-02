@@ -47,7 +47,9 @@ export async function capturePortfolioSnapshot(
     ? await db.select().from(assets).where(inArray(assets.id, initialAssetIds))
     : [];
   const quotes = requiredAssets.length
-    ? await (dependencies.loadQuotes ?? getQuotes)(requiredAssets)
+    ? await (dependencies.loadQuotes ?? getQuotes)(requiredAssets, {
+        mode: "blocking",
+      })
     : [];
   return db.transaction(async (tx) => {
     const [locked] = await tx
@@ -88,12 +90,17 @@ export async function capturePortfolioSnapshot(
   });
 }
 
-export async function runSnapshots(dependencies?: {
-  db: Database;
-  loadQuotes: typeof getQuotes;
-}) {
-  const db = dependencies?.db ?? getDb(),
-    now = new Date();
+export async function runSnapshots(
+  dependencies: {
+    db?: Database;
+    loadQuotes?: typeof getQuotes;
+    timeBudgetMs?: number;
+  } = {},
+) {
+  const db = dependencies.db ?? getDb(),
+    now = new Date(),
+    startedAt = Date.now(),
+    timeBudgetMs = dependencies.timeBudgetMs ?? 45000;
   await db
     .insert(jobState)
     .values({ key: "snapshots", leaseUntil: new Date(0) })
@@ -103,7 +110,8 @@ export async function runSnapshots(dependencies?: {
     .set({ leaseUntil: new Date(now.getTime() + 70000) })
     .where(and(eq(jobState.key, "snapshots"), lt(jobState.leaseUntil, now)))
     .returning();
-  if (!lock) return { busy: true, processed: 0, complete: false };
+  if (!lock)
+    return { busy: true, processed: 0, skipped: 0, complete: false, cursor: null };
   let processed = 0,
     skipped = 0,
     cursor = lock.cursor,
@@ -137,10 +145,12 @@ export async function runSnapshots(dependencies?: {
       ? await db.select().from(assets).where(inArray(assets.id, wantedAssetIds))
       : [];
     const quotes = batchAssets.length
-      ? await (dependencies?.loadQuotes ?? getQuotes)(batchAssets)
+      ? await (dependencies.loadQuotes ?? getQuotes)(batchAssets, {
+          mode: "blocking",
+        })
       : [];
     for (const p of batch) {
-      if (Date.now() - now.getTime() > 45000) break;
+      if (Date.now() - startedAt > timeBudgetMs) break;
       await db.transaction(async (tx) => {
         const [locked] = await tx
           .select()
@@ -192,7 +202,7 @@ export async function runSnapshots(dependencies?: {
     }
     complete = processed === batch.length && batch.length < 100;
     if (complete) cursor = null;
-    return { busy: false, processed, skipped, complete };
+    return { busy: false, processed, skipped, complete, cursor };
   } finally {
     await db
       .update(jobState)

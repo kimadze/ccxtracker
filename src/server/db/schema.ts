@@ -329,6 +329,21 @@ export const journalAttachments = pgTable(
     index("attachments_journal_idx").on(t.journalId),
   ],
 );
+export const blobCleanupJobs = pgTable(
+  "blob_cleanup_jobs",
+  {
+    blobPath: text("blob_path").primaryKey(),
+    attempts: integer("attempts").default(0).notNull(),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("blob_cleanup_next_attempt_idx").on(t.nextAttemptAt)],
+);
 export const scenarios = pgTable(
   "portfolio_scenarios",
   {

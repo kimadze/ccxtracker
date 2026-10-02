@@ -78,6 +78,13 @@
       "when": 1790017725693,
       "tag": "0010_crypto_only_portfolio_value",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790965633455,
+      "tag": "0011_durable_blob_cleanup",
+      "breakpoints": true
     }
   ]
 }

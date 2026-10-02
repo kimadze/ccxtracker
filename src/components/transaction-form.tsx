@@ -24,6 +24,7 @@ export function TransactionForm({
   opening = false,
   draft,
   triggerLabel,
+  triggerClassName,
   initialKind,
   defaultOpen = false,
 }: {
@@ -35,6 +36,7 @@ export function TransactionForm({
   opening?: boolean;
   draft?: { quantity: string; price: string; fee: string };
   triggerLabel?: string;
+  triggerClassName?: string;
   initialKind?: TransactionKind;
   defaultOpen?: boolean;
 }) {
@@ -66,7 +68,7 @@ export function TransactionForm({
   return (
     <>
       <button
-        className={entry ? "btn btn-ghost btn-xs" : "btn btn-primary"}
+        className={`${entry ? "btn btn-ghost btn-xs" : "btn btn-primary"} ${triggerClassName ?? ""}`}
         aria-label={
           triggerLabel
             ? entry

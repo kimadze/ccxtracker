@@ -5,7 +5,7 @@ import { Eye, Pencil, Plus, Search, Target, Trash2 } from "lucide-react";
 import type { Asset, Quote } from "@/domain/types";
 import { saveWatchlist, removeWatchlist } from "@/server/settings-actions";
 import { searchAssets } from "@/server/actions";
-import { money, dateTime, percentage, pnlClass, unitPrice } from "@/lib/formatters";
+import { dateTime, percentage, pnlClass, unitPrice } from "@/lib/formatters";
 import { AssetIcon } from "./positions";
 import { BalanceValue, Field, Message, Modal } from "./ui";
 export interface WatchItem {

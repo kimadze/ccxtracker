@@ -9,9 +9,8 @@ import { seedAssets } from "./market";
 import { CoinGeckoProvider } from "./market/provider";
 import { userError, type ActionResult } from "./errors";
 import { consumeRateLimit } from "./rate-limit";
-import { journalAttachments } from "./db/schema";
-import { del } from "@vercel/blob";
 import { capturePortfolioSnapshot } from "./snapshots";
+import { processBlobCleanupJobs } from "./blob-cleanup";
 
 export async function captureInitialSnapshot(
   portfolioId: string,
@@ -116,18 +115,10 @@ export async function renamePortfolio(
 export async function removePortfolio(id: string): Promise<ActionResult> {
   const user = await requireUser();
   try {
-    const db = getDb();
-    const service = portfolioService(db, user.id);
-    await service.owned(id);
-    const files = await db
-      .select({ path: journalAttachments.blobPath })
-      .from(journalAttachments)
-      .where(eq(journalAttachments.portfolioId, id));
-    await service.remove(id);
-    if (files.length)
-      await del(files.map((f) => f.path)).catch((error: unknown) =>
-        console.error("Portfolio attachment cleanup failed", { portfolioId: id, error }),
-      );
+    await portfolioService(getDb(), user.id).remove(id);
+    await processBlobCleanupJobs().catch(() => {
+      console.error("BLOB_CLEANUP_BATCH_FAILED", { retryable: true });
+    });
     revalidatePath("/portfolios", "layout");
     return { ok: true };
   } catch (e) {

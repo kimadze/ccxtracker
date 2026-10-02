@@ -40,7 +40,8 @@ const socket = new PGLiteSocketServer({
   db,
   host: "127.0.0.1",
   port: 55439,
-  maxConnections: 1,
+  // Playwright specs hold their own SQL connection while the app serves requests.
+  maxConnections: 8,
 });
 await socket.start();
 const child = spawn(

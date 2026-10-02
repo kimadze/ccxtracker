@@ -205,19 +205,19 @@ function Metric({
   value,
   hint,
   tone = "text-base-content",
+  sensitive = false,
 }: {
   label: string;
   value: string;
   hint: string;
   tone?: string;
+  sensitive?: boolean;
 }) {
   return (
     <div className="stat min-w-0 p-3">
       <p className="stat-title whitespace-normal text-xs">{label}</p>
-      <p
-        className={`stat-value numeric mt-1 whitespace-nowrap text-xl ${tone}`}
-      >
-        {value}
+      <p className={`stat-value numeric mt-1 whitespace-nowrap text-xl ${tone}`}>
+        {sensitive ? <BalanceValue>{value}</BalanceValue> : value}
       </p>
       <p className="stat-desc hidden lg:block mt-2 whitespace-normal text-xs">
         {hint}

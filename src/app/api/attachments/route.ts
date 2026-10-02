@@ -5,6 +5,7 @@ import { getDb } from "@/server/db";
 import { journalAttachments, journals } from "@/server/db/schema";
 import { portfolioService } from "@/server/services/portfolio";
 import { idSchema } from "@/domain/validation";
+import { enqueueBlobCleanup, processBlobCleanupJobs } from "@/server/blob-cleanup";
 const MAX_FILE = 2 * 1024 * 1024;
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -103,12 +104,23 @@ export async function POST(request: Request) {
         size: file.size,
       });
     });
+    // Cleanup failures must not roll back or delete the successfully saved upload.
+    await processBlobCleanupJobs(db, 10).catch(() => {
+      console.error("BLOB_CLEANUP_BATCH_FAILED", { retryable: true });
+    });
     return Response.json({ ok: true });
   } catch {
-    if (uploaded)
-      await del(uploaded).catch(() =>
-        console.error("Attachment cleanup required"),
-      );
+    if (uploaded) {
+      await del(uploaded).catch(async () => {
+        try {
+          await enqueueBlobCleanup([uploaded!]);
+        } catch {
+          console.error("Unqueued Blob cleanup after upload rollback", {
+            cleanupRequired: true,
+          });
+        }
+      });
+    }
     return Response.json(
       {
         error:

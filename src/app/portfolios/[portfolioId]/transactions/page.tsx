@@ -19,15 +19,23 @@ export default async function Page({
         title="ტრანზაქციები"
         description="თქვენი პორტფელის სრული ისტორია და ყველა ცვლილების საფუძველი."
         actionClassName="hidden lg:block"
-        action={
+        action={!openNewTransaction ? (
           <TransactionForm
             portfolioId={portfolioId}
             revision={w.portfolio.revision}
             assets={w.assets}
-            defaultOpen={openNewTransaction}
           />
-        }
+        ) : undefined}
       />
+      {openNewTransaction && (
+        <TransactionForm
+          portfolioId={portfolioId}
+          revision={w.portfolio.revision}
+          assets={w.assets}
+          defaultOpen
+          triggerClassName="hidden"
+        />
+      )}
       <TransactionList
         entries={w.entries}
         assets={w.assets}

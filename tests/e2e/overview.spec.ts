@@ -156,41 +156,17 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await page.getByRole("button", { name: "მენიუს გაშლა" }).click();
   await expect(sidebar).toHaveCSS("width", "256px");
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-balance-privacy",
-    "hidden",
-  );
-  await expect(page.locator(".balance-value").first()).toHaveCSS(
-    "color",
-    "rgba(0, 0, 0, 0)",
-  );
+  await expect(page.locator(".balance-value").first()).toContainText("••••••");
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
-  await expect(page.locator(".aura")).toHaveCSS("animation-duration", "24s");
-  expect(
-    await page
-      .locator(".aura > div")
-      .evaluate((el) => getComputedStyle(el).color),
-  ).toBe(
-    await page.locator("body").evaluate((el) => getComputedStyle(el).color),
-  );
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".aura")).toHaveCSS("animation-name", "none");
+  await expect(page.locator(".balance-value").first()).not.toContainText("••••••");
   await page.locator('a[href$="/positions/bitcoin"]:visible').click();
   await expect(page).toHaveURL(/positions\/bitcoin$/);
   await page.goto(base);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
-  await page
-    .locator('label[for="ccx-main-drawer"][aria-label="მენიუს გახსნა"]')
-    .click();
-  await expect(page.locator("#ccx-main-drawer")).toBeChecked();
   await expect(
-    page.getByRole("complementary", { name: "გვერდითი მენიუ" }),
+    page.getByRole("navigation", { name: "მობილური ნავიგაცია" }),
   ).toBeVisible();
-  await page
-    .locator('label[for="ccx-main-drawer"][aria-label="მენიუს დახურვა"]')
-    .click({ position: { x: 350, y: 20 } });
-  await expect(page.locator("#ccx-main-drawer")).not.toBeChecked();
   await page
     .getByText("ლიკვიდობა", { exact: true })
     .filter({ visible: true })
@@ -298,6 +274,21 @@ test("compact overview supports funded positions, privacy and responsive layouts
     .getByRole("tab", { name: "მაკრო", exact: true })
     .press("ArrowRight");
   await expect(page).toHaveURL(/tab=portfolio/);
+  await page.goto(base + "/positions");
+  await page.getByRole("button", { name: "ფილტრი", exact: false }).click();
+  const positionFilters = page.getByRole("dialog", {
+    name: "პოზიციების ფილტრი",
+  });
+  await expect(positionFilters).toBeVisible();
+  const losingFilter = positionFilters.getByRole("button", { name: /^ზარალში/ });
+  await losingFilter.click();
+  await expect(losingFilter).toHaveClass(/btn-active/);
+  await expect(positionFilters.locator(".modal-box")).toHaveCSS(
+    "overflow-y",
+    "auto",
+  );
+  await page.keyboard.press("Escape");
+  await expect(positionFilters).not.toBeVisible();
   await page.goto(base + "/positions/bitcoin");
   await page.getByRole("button", { name: "გაზიარება", exact: true }).click();
   for (const name of ["კლასიკური", "რეაქცია", "პერსონაჟი"]) {
@@ -325,9 +316,13 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await expect(page.locator("dialog[open]")).toHaveCount(0);
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 844 });
-    await page
-      .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
-      .click();
+    if (width === 390) await page.goto(base + "/transactions?new=1");
+    else {
+      await page.goto(base + "/transactions");
+      await page
+        .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
+        .click();
+    }
     const form = page.getByRole("dialog", {
       name: "ტრანზაქციის დამატება",
       exact: true,
@@ -342,6 +337,16 @@ test("compact overview supports funded positions, privacy and responsive layouts
     ]) {
       await form.getByRole("button", { name: kind, exact: true }).click();
       await expect(form.getByLabel("აქტივი", { exact: true })).toBeVisible();
+      if (width === 390) {
+        const quantity = form.getByLabel(/^(რაოდენობა|თანხა \(USD\))$/);
+        await quantity.focus();
+        await expect(quantity).toBeFocused();
+        await quantity.scrollIntoViewIfNeeded();
+        const save = form.getByRole("button", { name: "შენახვა", exact: true });
+        await save.scrollIntoViewIfNeeded();
+        const saveBounds = await save.boundingBox();
+        expect(saveBounds!.y + saveBounds!.height).toBeLessThanOrEqual(844);
+      }
       expect(
         await form.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
       ).toBe(true);

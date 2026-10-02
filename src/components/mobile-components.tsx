@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useDialogViewport } from "./use-dialog-viewport";
 import {
   cloneElement,
   isValidElement,
@@ -42,6 +43,7 @@ export function MobileBottomSheet({
 }) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  useDialogViewport(dialogRef, open);
 
   useEffect(() => {
     const dialog = dialogRef.current;

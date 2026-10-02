@@ -8,6 +8,8 @@ import {
   positions,
   transactions,
   snapshots,
+  journalAttachments,
+  blobCleanupJobs,
 } from "@/server/db/schema";
 import {
   idSchema,
@@ -63,10 +65,28 @@ export function portfolioService(db: Database, userId: string) {
         .where(and(eq(portfolios.id, id), eq(portfolios.userId, userId)));
     },
     async remove(id: string) {
-      await owned(id);
-      await db
-        .delete(portfolios)
-        .where(and(eq(portfolios.id, id), eq(portfolios.userId, userId)));
+      idSchema.parse(id);
+      return db.transaction(async (tx) => {
+        const [portfolio] = await tx
+          .select({ id: portfolios.id })
+          .from(portfolios)
+          .where(and(eq(portfolios.id, id), eq(portfolios.userId, userId)))
+          .for("update");
+        if (!portfolio) throw new AccessError();
+        const files = await tx
+          .select({ blobPath: journalAttachments.blobPath })
+          .from(journalAttachments)
+          .where(eq(journalAttachments.portfolioId, id));
+        if (files.length)
+          await tx
+            .insert(blobCleanupJobs)
+            .values(files.map((file) => ({ blobPath: file.blobPath })))
+            .onConflictDoNothing();
+        await tx
+          .delete(portfolios)
+          .where(and(eq(portfolios.id, id), eq(portfolios.userId, userId)));
+        return files.map((file) => file.blobPath);
+      });
     },
     async entries(id: string) {
       await owned(id);

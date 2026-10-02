@@ -1,5 +1,6 @@
 import "server-only";
 import { inArray, and, eq, lt } from "drizzle-orm";
+import { after } from "next/server";
 import { getDb } from "@/server/db";
 import {
   assets as assetTable,
@@ -72,7 +73,75 @@ export async function seedAssets() {
     });
 }
 
-export async function getQuotes(assets: Asset[]): Promise<Quote[]> {
+async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
+  if (!expired.length || !process.env.COINGECKO_DEMO_API_KEY) return [];
+  const db = getDb();
+  let leased = false;
+  try {
+    await db
+      .insert(jobState)
+      .values({ key: "market-refresh", leaseUntil: new Date(0) })
+      .onConflictDoNothing();
+    const now = new Date();
+    const [lease] = await db
+      .update(jobState)
+      .set({ leaseUntil: new Date(now.getTime() + 60000), updatedAt: now })
+      .where(
+        and(eq(jobState.key, "market-refresh"), lt(jobState.leaseUntil, now)),
+      )
+      .returning();
+    if (!lease) return [];
+    leased = true;
+
+    const provider = new CoinGeckoProvider();
+    const fresh: Quote[] = [];
+    for (let i = 0; i < Math.min(expired.length, 200); i += 100)
+      fresh.push(...(await provider.quotes(expired.slice(i, i + 100))));
+    for (const quote of fresh)
+      await db
+        .insert(marketQuotes)
+        .values({
+          assetId: quote.assetId,
+          price: quote.price,
+          change24h: quote.change24h,
+          quotedAt: new Date(quote.updatedAt),
+        })
+        .onConflictDoUpdate({
+          target: marketQuotes.assetId,
+          set: {
+            price: quote.price,
+            change24h: quote.change24h,
+            quotedAt: new Date(quote.updatedAt),
+            fetchedAt: new Date(),
+          },
+        });
+    return fresh;
+  } catch (error) {
+    console.warn("Market quote refresh failed", {
+      retryable: true,
+      reason: error instanceof Error ? error.message : "UNKNOWN",
+    });
+    return [];
+  } finally {
+    if (leased) {
+      try {
+        await db
+          .update(jobState)
+          .set({ leaseUntil: new Date(0), updatedAt: new Date() })
+          .where(eq(jobState.key, "market-refresh"));
+      } catch {
+        console.error("Market refresh lease release failed", {
+          retryable: true,
+        });
+      }
+    }
+  }
+}
+
+export async function getQuotes(
+  assets: Asset[],
+  options: { mode?: "background" | "blocking" } = {},
+): Promise<Quote[]> {
   const requested = assets.filter((a) => a.id !== "USD");
   if (!requested.length) return [];
   const db = getDb();
@@ -89,56 +158,16 @@ export async function getQuotes(assets: Asset[]): Promise<Quote[]> {
     const hit = cached.find((q) => q.assetId === a.id);
     return !hit || Date.now() - hit.fetchedAt.getTime() > 5 * 60000;
   });
-  const fresh: Quote[] = [];
-  if (expired.length && process.env.COINGECKO_DEMO_API_KEY) {
-    await db
-      .insert(jobState)
-      .values({ key: "market-refresh", leaseUntil: new Date(0) })
-      .onConflictDoNothing();
-    const [lease] = await db
-      .update(jobState)
-      .set({ leaseUntil: new Date(Date.now() + 30000), updatedAt: new Date() })
-      .where(
-        and(
-          eq(jobState.key, "market-refresh"),
-          lt(jobState.leaseUntil, new Date()),
-        ),
-      )
-      .returning();
-    if (lease) {
-      try {
-        const provider = new CoinGeckoProvider();
-        for (let i = 0; i < Math.min(expired.length, 200); i += 100)
-          fresh.push(...(await provider.quotes(expired.slice(i, i + 100))));
-        for (const q of fresh)
-          await db
-            .insert(marketQuotes)
-            .values({
-              assetId: q.assetId,
-              price: q.price,
-              change24h: q.change24h,
-              quotedAt: new Date(q.updatedAt),
-            })
-            .onConflictDoUpdate({
-              target: marketQuotes.assetId,
-              set: {
-                price: q.price,
-                change24h: q.change24h,
-                quotedAt: new Date(q.updatedAt),
-                fetchedAt: new Date(),
-              },
-            });
-        await db
-          .update(jobState)
-          .set({ leaseUntil: new Date(0), updatedAt: new Date() })
-          .where(eq(jobState.key, "market-refresh"));
-      } catch {
-        console.warn(
-          "Market quote refresh failed; serving available cached quotes with retry backoff",
-        );
-      }
-    }
-  }
+  const fresh =
+    expired.length && options.mode === "blocking"
+      ? await refreshExpired(expired)
+      : [];
+  if (
+    expired.length &&
+    options.mode !== "blocking" &&
+    process.env.COINGECKO_DEMO_API_KEY
+  )
+    after(() => refreshExpired(expired));
   return [
     ...fresh,
     ...cached

@@ -1,8 +1,13 @@
 import { and, eq } from "drizzle-orm";
-import { get, del } from "@vercel/blob";
+import { get } from "@vercel/blob";
 import { getCurrentUser } from "@/server/auth";
 import { getDb } from "@/server/db";
-import { journalAttachments, portfolios } from "@/server/db/schema";
+import {
+  blobCleanupJobs,
+  journalAttachments,
+  portfolios,
+} from "@/server/db/schema";
+import { processBlobCleanupJobs } from "@/server/blob-cleanup";
 import { idSchema } from "@/domain/validation";
 async function ownedFile(id: string, userId: string) {
   idSchema.parse(id);
@@ -57,13 +62,21 @@ export async function DELETE(
     const file = await ownedFile((await params).id, user.id);
     if (!file)
       return Response.json({ error: "ფაილი ვერ მოიძებნა." }, { status: 404 });
-    await getDb()
-      .delete(journalAttachments)
-      .where(eq(journalAttachments.id, file.id));
-    await del(file.blobPath).catch((error: unknown) =>
-      console.error("Attachment blob cleanup failed", { attachmentId: file.id, error }),
-    );
-    return Response.json({ ok: true });
+    const db = getDb();
+    await db.transaction(async (tx) => {
+      await tx
+        .insert(blobCleanupJobs)
+        .values({ blobPath: file.blobPath })
+        .onConflictDoNothing();
+      await tx
+        .delete(journalAttachments)
+        .where(eq(journalAttachments.id, file.id));
+    });
+    const cleanup = await processBlobCleanupJobs(db, 10).catch(() => {
+      console.error("BLOB_CLEANUP_BATCH_FAILED", { retryable: true });
+      return null;
+    });
+    return Response.json({ ok: true, cleanupPending: !cleanup || cleanup.failed > 0 });
   } catch {
     return Response.json({ error: "წაშლა ვერ მოხერხდა." }, { status: 500 });
   }

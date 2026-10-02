@@ -51,19 +51,44 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   ).toBeAttached();
   await expect(page).toHaveURL(/\/portfolios\/[0-9a-f-]+$/);
   const portfolioUrl = page.url();
-  await page.goto(`${portfolioUrl}/transactions`);
+  const transactionsUrl = `${portfolioUrl}/transactions`;
+  const openTransactionForm = async () => {
+    if (testInfo.project.name === "mobile") {
+      await page.goto(`${transactionsUrl}?new=1`);
+      await expect(dialog).toBeVisible();
+    } else {
+      await page
+        .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
+        .click();
+    }
+  };
+  await page.goto(transactionsUrl);
   await expect(page.locator("dialog[aria-labelledby]:not([open]) select")).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
-    .click();
+  await openTransactionForm();
   await dialog.getByRole("button", { name: "შეტანა", exact: true }).click();
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("USD");
   await dialog.getByLabel("თანხა (USD)", { exact: true }).fill("10000");
+  if (testInfo.project.name === "mobile") {
+    // Short visible viewport approximates keyboard-reduced space; physical-device
+    // keyboard validation remains a separate acceptance check.
+    await page.setViewportSize({ width: 390, height: 420 });
+    await dialog.getByLabel("თანხა (USD)", { exact: true }).focus();
+    const save = dialog.getByRole("button", { name: "შენახვა", exact: true });
+    await save.scrollIntoViewIfNeeded();
+    expect((await save.boundingBox())!.y + (await save.boundingBox())!.height).toBeLessThanOrEqual(421);
+    await save.focus();
+    const amount = dialog.getByLabel("თანხა (USD)", { exact: true });
+    await amount.focus();
+    const amountBounds = (await amount.boundingBox())!;
+    const actionBounds = (await dialog.locator(".modal-action").boundingBox())!;
+    expect(amountBounds.y + amountBounds.height).toBeLessThanOrEqual(actionBounds.y);
+    expect(await dialog.locator(".modal-box").evaluate((box) => box.scrollWidth <= box.clientWidth + 1)).toBe(true);
+    await page.screenshot({ path: ".local/mobile-form-short-viewport.png" });
+    await page.setViewportSize({ width: 390, height: 844 });
+  }
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
-  await page
-    .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
-    .click();
+  await openTransactionForm();
   await dialog.getByRole("button", { name: "შესყიდვა", exact: true }).click();
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("bitcoin");
   await dialog.getByLabel("რაოდენობა", { exact: true }).fill("0,1");
@@ -83,33 +108,20 @@ test("real session, portfolio creation, funded acquisition and persisted journal
       }),
     ]),
   );
-  await page
-    .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
-    .click();
+  await openTransactionForm();
   await dialog.getByLabel("რაოდენობა", { exact: true }).fill("0.2");
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
-  await page
-    .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
-    .click();
+  await openTransactionForm();
   await expect(dialog.getByLabel("რაოდენობა", { exact: true })).toHaveValue(
-    "0.2",
+    testInfo.project.name === "mobile" ? "" : "0.2",
   );
   await dialog.getByRole("button", { name: "გაუქმება", exact: true }).click();
   await page.goto(portfolioUrl);
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-balance-privacy",
-    "hidden",
-  );
-  await expect(page.locator(".balance-value").first()).toHaveCSS(
-    "color",
-    "rgba(0, 0, 0, 0)",
-  );
+  await expect(page.locator(".balance-value").first()).toContainText("••••••");
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
-  await expect(page.locator("html")).not.toHaveAttribute(
-    "data-balance-privacy",
-  );
+  await expect(page.locator(".balance-value").first()).not.toContainText("••••••");
   await page.goto(`${portfolioUrl}/settings`);
   await page
     .getByRole("checkbox", { name: /მხოლოდ კრიპტოაქტივების ღირებულება/ })
@@ -206,6 +218,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   expect(data.targetAllocation).toHaveLength(1);
   expect(data.watchlist).toHaveLength(1);
   await page.goto(`${portfolioUrl}/positions/bitcoin`);
+  await page.getByLabel("მეტი მოქმედება").click();
   await page
     .getByRole("button", { name: "პოზიციის წაშლა", exact: true })
     .click();

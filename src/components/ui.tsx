@@ -13,6 +13,7 @@ import {
   type ReactElement,
 } from "react";
 import { readPrivacy, serverPrivacy, subscribePrivacy } from "./balance-privacy";
+import { useDialogViewport } from "./use-dialog-viewport";
 
 export function BalanceValue({ children }: { children: ReactNode }) {
   const hidden = useSyncExternalStore(
@@ -45,6 +46,7 @@ export function Modal({
   className?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  useDialogViewport(dialogRef, open);
   const titleId = useId();
   const [hasOpened, setHasOpened] = useState(open);
   if (open && !hasOpened) setHasOpened(true);

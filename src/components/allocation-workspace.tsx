@@ -145,9 +145,9 @@ export function AllocationWorkspace({
               {valid
                 ? "მიზნები მზადაა"
                 : total.lt(100)
-                  ? `აკლია ${percentage(decimal(100).minus(total))} 100%-მდე`
+                  ? `აკლია ${percentage(decimal(100).minus(total).toString())} 100%-მდე`
                   : total.gt(100)
-                    ? `ზედმეტია ${percentage(total.minus(100))} 100%-ზე`
+                    ? `ზედმეტია ${percentage(total.minus(100).toString())} 100%-ზე`
                     : "წონები უნდა უდრიდეს 100%-ს"}
             </small>
           </div>
