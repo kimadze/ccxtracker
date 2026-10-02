@@ -194,6 +194,7 @@ export function Shell({
       ...group,
       links: group.links.filter(
         ([segment]) =>
+          segment === "transactions" ||
           !mobileLinks.some(([mobileSegment]) => mobileSegment === segment),
       ),
     }))

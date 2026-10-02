@@ -33,7 +33,7 @@ export function WorkspaceTabs({
   return (
     <div className="min-w-0 space-y-3 lg:space-y-4">
       <div
-        className="tabs tabs-box flex w-full flex-nowrap overflow-x-auto bg-base-200"
+        className="tabs tabs-box flex w-full flex-nowrap overflow-x-auto bg-base-200 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         role="tablist"
         aria-label={label}
       >

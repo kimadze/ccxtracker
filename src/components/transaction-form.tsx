@@ -65,7 +65,13 @@ export function TransactionForm({
     <>
       <button
         className={entry ? "btn btn-ghost btn-xs" : "btn btn-primary"}
-        aria-label={triggerLabel ? "ტრანზაქციის დამატება" : undefined}
+        aria-label={
+          triggerLabel
+            ? entry
+              ? "ტრანზაქციის რედაქტირება"
+              : "ტრანზაქციის დამატება"
+            : undefined
+        }
         onClick={() => {
           setSubmissionId(entry?.id ?? crypto.randomUUID());
           setError("");

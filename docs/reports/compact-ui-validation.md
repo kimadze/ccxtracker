@@ -23,3 +23,9 @@ Screenshots and Playwright traces are local artifacts in `.local` and `test-resu
 ## Limits
 
 The isolated test server disables external market credentials, so market statistics and macro sources exercise their unavailable-data states locally. A browser viewport test cannot reproduce a physical phone's software keyboard; modal height, scrolling, focus and navigation clearance are checked in browser emulation.
+
+## Published verification
+
+The deployed `ccx` theme was verified in the signed-in production browser at 390px and 1440px. Positions, transactions, watchlist, airdrops, analytics, allocation, strategy, scenarios, journal, settings, all three statistics tabs and all four position tabs loaded without page-level horizontal overflow. Live market and macro values were present. The desktop portfolio list loaded correctly. No financial records were changed during these checks.
+
+The final mobile navigation correction keeps a direct Transactions-history link in More alongside the central add action. Its isolated mobile workflow passed independently of the responsive-matrix test.

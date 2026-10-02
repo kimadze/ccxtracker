@@ -27,6 +27,9 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await db.connect();
   try {
     await db.query(
+      "INSERT INTO assets (id, symbol, name, provider_id) VALUES ('bitcoin', 'BTC', 'Bitcoin', 'bitcoin') ON CONFLICT DO NOTHING",
+    );
+    await db.query(
       "INSERT INTO market_quotes (asset_id, price, quoted_at) VALUES ('bitcoin', 3000, now()) ON CONFLICT (asset_id) DO UPDATE SET price=3000, quoted_at=now(), fetched_at=now()",
     );
   } finally {
@@ -155,6 +158,10 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await expect(page.getByText("განაწილება შენახულია.")).toBeVisible();
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "მეტი გვერდი" }).click();
+    await expect(
+      page.getByRole("dialog", { name: "ყველა ხელსაწყო" })
+        .getByRole("link", { name: "ტრანზაქციები", exact: true }),
+    ).toBeVisible();
     await page
       .getByRole("dialog", { name: "ყველა ხელსაწყო" })
       .getByRole("link", { name: "დაკვირვების სია" })
