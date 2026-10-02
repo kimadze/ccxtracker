@@ -58,6 +58,30 @@ test("king share exports landscape profit and loss with privacy and legacy templ
         .click();
       const png = page.getByRole("button", { name: "PNG", exact: true });
       await expect(png).toBeEnabled({ timeout: 25000 });
+      const choices = page.getByRole("tablist", { name: "გაზიარების შაბლონი" });
+      await expect(choices.getByRole("tab")).toHaveCount(4);
+      await expect(choices.locator("img")).toHaveCount(4);
+      await expect(
+        page.getByRole("tab", { name: "მეფე და დათვი", exact: true }),
+      ).toHaveText("4");
+      await expect
+        .poll(() =>
+          choices
+            .locator("img")
+            .evaluateAll((images) =>
+              images.every(
+                (image) =>
+                  (image as HTMLImageElement).complete &&
+                  (image as HTMLImageElement).naturalWidth > 0,
+              ),
+            ),
+        )
+        .toBe(true);
+      await page
+        .locator("dialog[open]")
+        .screenshot({
+          path: `.local/king-selector-${state}-${info.project.name}.png`,
+        });
       const canvas = page.locator("dialog[open] canvas");
       await expect(canvas).toHaveAttribute("width", "1586");
       await expect(canvas).toHaveAttribute("height", "1000");
@@ -82,6 +106,13 @@ test("king share exports landscape profit and loss with privacy and legacy templ
       await page.getByRole("tab", { name: "კლასიკური", exact: true }).click();
       await expect(png).toBeEnabled({ timeout: 25000 });
       await expect(canvas).toHaveAttribute("width", "1080");
+      await page
+        .getByRole("tab", { name: "კლასიკური", exact: true })
+        .press("ArrowLeft");
+      await expect(
+        page.getByRole("tab", { name: "მეფე და დათვი", exact: true }),
+      ).toBeFocused();
+      await expect(png).toBeEnabled({ timeout: 25000 });
       await page.keyboard.press("Escape");
     }
   } finally {

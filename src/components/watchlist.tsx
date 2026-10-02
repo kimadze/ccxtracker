@@ -5,9 +5,9 @@ import { Eye, Pencil, Plus, Search, Target, Trash2 } from "lucide-react";
 import type { Asset, Quote } from "@/domain/types";
 import { saveWatchlist, removeWatchlist } from "@/server/settings-actions";
 import { searchAssets } from "@/server/actions";
-import { money, dateTime, percentage, pnlClass } from "@/lib/formatters";
+import { money, dateTime, percentage, pnlClass, unitPrice } from "@/lib/formatters";
 import { AssetIcon } from "./positions";
-import { Field, Message, Modal } from "./ui";
+import { BalanceValue, Field, Message, Modal } from "./ui";
 export interface WatchItem {
   id: string;
   asset: Asset;
@@ -194,7 +194,7 @@ export function Watchlist({
                   მიმდინარე ფასი
                 </span>
                 <strong className="numeric block whitespace-nowrap">
-                  {money(quote?.price ?? null)}
+                  {unitPrice(quote?.price ?? null)}
                 </strong>
                 <small
                   className={pnlClass(
@@ -217,7 +217,7 @@ export function Watchlist({
                   <Target size={13} /> სასურველი შესვლა
                 </span>
                 <strong className="numeric block whitespace-nowrap">
-                  {money(item.entryPrice)}
+                  <BalanceValue>{unitPrice(item.entryPrice)}</BalanceValue>
                 </strong>
                 <small
                   className={

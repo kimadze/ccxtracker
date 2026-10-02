@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
-import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
+import { dateTime, money, percentage, pnlClass, unitPrice } from "@/lib/formatters";
 import { AssetIcon } from "./positions";
 import { BalanceValue } from "./ui";
 import { OverviewToolbar } from "./overview-toolbar";
@@ -185,8 +185,8 @@ export function Overview({
               </h2>
               <div className="lg:hidden">{status}</div>
             </div>
-            <div className="aura aura-dual aura-sm block w-full min-w-0 text-primary duration-[24s] motion-reduce:animate-none!">
-              <div className="min-w-0 rounded-box border border-primary/20 bg-base-200 p-3 text-base-content">
+            <div className="block w-full min-w-0">
+              <div className="min-w-0 rounded-box border border-base-300 bg-base-100 p-3 text-base-content">
                 <p className="overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums">
                   <BalanceValue>{money(displayedValue)}</BalanceValue>
                 </p>
@@ -348,7 +348,7 @@ export function Overview({
                         </Link>
                       </td>
                       <td className="whitespace-nowrap text-right tabular-nums">
-                        {money(p.quote?.price)}
+                        {unitPrice(p.quote?.price)}
                       </td>
                       <td className="whitespace-nowrap text-right font-semibold tabular-nums">
                         <BalanceValue>{money(p.value)}</BalanceValue>

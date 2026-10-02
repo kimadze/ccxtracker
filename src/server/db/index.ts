@@ -9,7 +9,7 @@ export function getDb() {
   if (!database) {
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      max: 3,
+      max: Math.max(1, Number(process.env.DATABASE_POOL_MAX) || 3),
       idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 10000,
       statement_timeout: 15000,

@@ -40,6 +40,8 @@ export interface MacroMetric {
   observationDate: string | null;
   source: string;
   change: string | null;
+  changeUnit: "პპ" | "პუნქტი" | "%";
+  available: boolean;
 }
 
 export interface MacroStatistics {

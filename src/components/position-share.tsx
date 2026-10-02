@@ -4,8 +4,10 @@ import { useCallback, useEffect, useRef, useState, useId } from "react";
 import { Download, Eye, EyeOff, Share2 } from "lucide-react";
 import { X } from "lucide-react";
 import QRCode from "qrcode";
+import NextImage from "next/image";
+import { Check } from "lucide-react";
 import type { ValuedPosition } from "@/domain/types";
-import { money, percentage } from "@/lib/formatters";
+import { money, percentage, unitPrice } from "@/lib/formatters";
 import { highResLogoUrl } from "@/lib/asset-logo";
 
 type ShareTemplate = "performance" | "reaction" | "mood" | "king";
@@ -206,14 +208,14 @@ export function PositionShare({
       fitText("შესყიდვის ფასი", 65, 760, 24, 270, "#aab2c5", 400);
       fitText("მიმდინარე ფასი", 375, 760, 24, 240, "#aab2c5", 400);
       fitText(
-        hideAmounts ? "••••••" : money(position.averagePrice),
+        hideAmounts ? "••••••" : unitPrice(position.averagePrice),
         65,
         836,
         48,
         270,
       );
       fitText(
-        hideAmounts ? "••••••" : money(position.quote?.price ?? null),
+        hideAmounts ? "••••••" : unitPrice(position.quote?.price ?? null),
         375,
         836,
         48,
@@ -334,8 +336,8 @@ export function PositionShare({
       context.strokeStyle = "rgba(121,145,214,.28)";
       context.stroke();
       const moodValues = [
-        ["მიმდინარე ფასი", money(position.quote?.price ?? null)],
-        ["საშ. შესყიდვა", money(position.averagePrice)],
+        ["მიმდინარე ფასი", unitPrice(position.quote?.price ?? null)],
+        ["საშ. შესყიდვა", unitPrice(position.averagePrice)],
       ];
       moodValues.forEach(([label, value], i) => {
         const x = 76 + i * 285;
@@ -482,8 +484,8 @@ export function PositionShare({
       context.textAlign = "left";
       line(context, 68, 892, 1012, 892, "rgba(135,157,220,.3)");
       const reactionValues = [
-        ["მიმდინარე ფასი", money(position.quote?.price ?? null)],
-        ["საშ. შესყიდვა", money(position.averagePrice)],
+        ["მიმდინარე ფასი", unitPrice(position.quote?.price ?? null)],
+        ["საშ. შესყიდვა", unitPrice(position.averagePrice)],
         ["პოზიციის ღირებულება", money(position.value)],
       ];
       reactionValues.forEach(([label, value], index) => {
@@ -684,8 +686,8 @@ export function PositionShare({
     line(context, 776, 772, 776, 744, "#ff9b23", 5);
     line(context, 776, 772, 803, 772, "#ff9b23", 5);
     const values = [
-      ["მიმდინარე ფასი", money(position.quote?.price ?? null)],
-      ["საშ. შესყიდვა", money(position.averagePrice)],
+      ["მიმდინარე ფასი", unitPrice(position.quote?.price ?? null)],
+      ["საშ. შესყიდვა", unitPrice(position.averagePrice)],
       ["პოზიციის ღირებულება", money(position.value)],
     ];
     values.forEach(([label, value], index) => {
@@ -843,28 +845,43 @@ export function PositionShare({
         className="modal modal-bottom lg:modal-middle"
         onClose={() => setOpen(false)}
         onCancel={() => setOpen(false)}
+        aria-labelledby={`${previewId}-title`}
         aria-describedby="position-share-description position-share-data"
       >
-        <div className="modal-box max-h-[92dvh] max-w-3xl overflow-y-auto border border-base-300 bg-base-200">
-          <h2 className="text-lg font-semibold">პოზიციის გაზიარება</h2>
-          <p
-            id="position-share-description"
-            className="mt-2 text-sm text-base-content/60"
-          >
+        <div className="modal-box max-h-[92dvh] w-full max-w-3xl overflow-y-auto border border-base-300 bg-base-200 p-4 lg:p-5">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <Share2
+                size={18}
+                className="shrink-0 text-base-content/60"
+                aria-hidden="true"
+              />
+              <h2
+                id={`${previewId}-title`}
+                className="truncate text-base font-semibold"
+              >
+                გაზიარება{" "}
+                <span className="ml-2 text-sm font-normal text-base-content/60">
+                  {position.asset.symbol}
+                </span>
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="btn btn-circle btn-ghost min-h-11 min-w-11 shrink-0"
+              aria-label="დახურვა"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <p id="position-share-description" className="sr-only">
             აირჩიეთ დიზაინი და გააზიარეთ მხოლოდ ის მონაცემები, რომელთა გამოჩენაც
             გსურთ.
           </p>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="btn btn-circle btn-ghost min-h-11 min-w-11 absolute right-5 top-5"
-            aria-label="დახურვა"
-          >
-            <X size={18} />
-          </button>
-          <div className="mt-3 grid gap-3">
+          <div className="mt-1 grid min-w-0 gap-3">
             <div
-              className="tabs tabs-box flex flex-nowrap overflow-x-auto"
+              className="flex min-w-0 gap-2 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               role="tablist"
               aria-label="გაზიარების შაბლონი"
               onKeyDown={(event) => {
@@ -893,56 +910,70 @@ export function PositionShare({
                   [next]?.focus();
               }}
             >
-              <button
-                className={`tab min-h-11 shrink-0 ${template === "performance" ? "tab-active" : ""}`}
-                type="button"
-                role="tab"
-                aria-selected={template === "performance"}
-                tabIndex={template === "performance" ? 0 : -1}
-                aria-controls={previewId}
-                onClick={() => chooseTemplate("performance")}
-              >
-                კლასიკური
-              </button>
-              <button
-                className={`tab min-h-11 shrink-0 ${template === "reaction" ? "tab-active" : ""}`}
-                type="button"
-                role="tab"
-                aria-selected={template === "reaction"}
-                tabIndex={template === "reaction" ? 0 : -1}
-                aria-controls={previewId}
-                onClick={() => chooseTemplate("reaction")}
-              >
-                რეაქცია
-              </button>
-              <button
-                className={`tab min-h-11 shrink-0 ${template === "mood" ? "tab-active" : ""}`}
-                type="button"
-                role="tab"
-                aria-selected={template === "mood"}
-                tabIndex={template === "mood" ? 0 : -1}
-                aria-controls={previewId}
-                onClick={() => chooseTemplate("mood")}
-              >
-                პერსონაჟი
-              </button>
-              <button
-                className={`tab min-h-11 shrink-0 ${template === "king" ? "tab-active" : ""}`}
-                type="button"
-                role="tab"
-                aria-selected={template === "king"}
-                tabIndex={template === "king" ? 0 : -1}
-                aria-controls={previewId}
-                onClick={() => chooseTemplate("king")}
-              >
-                მეფე და დათვი
-              </button>
+              {(
+                [
+                  [
+                    "performance",
+                    "კლასიკური",
+                    "/position-share-neon-reference.webp",
+                  ],
+                  [
+                    "reaction",
+                    "რეაქცია",
+                    positive
+                      ? "/position-share-reaction-profit.webp"
+                      : "/position-share-reaction-loss.webp",
+                  ],
+                  [
+                    "mood",
+                    "პერსონაჟი",
+                    positive
+                      ? "/position-share-scene-profit.webp"
+                      : "/position-share-scene-loss.webp",
+                  ],
+                  [
+                    "king",
+                    "მეფე და დათვი",
+                    positive
+                      ? "/position-share-king-profit-v2.webp"
+                      : "/position-share-king-loss-v2.webp",
+                  ],
+                ] as const
+              ).map(([key, label, src], index) => (
+                <button
+                  key={key}
+                  className={`btn relative h-16 w-24 shrink-0 overflow-hidden rounded-field border-2 p-0 shadow-none sm:h-20 sm:w-28 ${template === key ? "border-primary" : "border-base-300"}`}
+                  type="button"
+                  role="tab"
+                  aria-label={label}
+                  aria-selected={template === key}
+                  tabIndex={template === key ? 0 : -1}
+                  aria-controls={previewId}
+                  onClick={() => chooseTemplate(key)}
+                >
+                  <NextImage
+                    src={src}
+                    alt=""
+                    fill
+                    sizes="112px"
+                    className="object-cover"
+                  />
+                  <span className="badge badge-neutral badge-sm absolute bottom-1 left-1">
+                    {index + 1}
+                  </span>
+                  {template === key && (
+                    <span className="badge badge-primary badge-sm absolute right-1 top-1 px-1">
+                      <Check size={12} aria-hidden="true" />
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
             <p id="position-share-data" className="sr-only">
               {position.asset.symbol} პოზიცია. შედეგი{" "}
               {percentage(position.returnPercent, true)}. მიმდინარე ფასი{" "}
-              {money(position.quote?.price ?? null)}. საშუალო შესყიდვა{" "}
-              {hideAmounts ? "დამალულია" : money(position.averagePrice)}.
+              {unitPrice(position.quote?.price ?? null)}. საშუალო შესყიდვა{" "}
+              {hideAmounts ? "დამალულია" : unitPrice(position.averagePrice)}.
               პოზიციის ღირებულება{" "}
               {hideAmounts ? "დამალულია" : money(position.value)}.
             </p>

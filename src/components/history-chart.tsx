@@ -12,6 +12,8 @@ import { money, dateTime } from "@/lib/formatters";
 import type { Snapshot } from "@/domain/analytics";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useBalancesHidden } from "./balance-privacy";
+import { BalanceValue } from "./ui";
 export function HistoryChart({
   snapshots,
   illustrative = false,
@@ -28,6 +30,7 @@ export function HistoryChart({
   const [period, setPeriod] = useState<
     "1D" | "7D" | "1M" | "3M" | "1Y" | "ALL"
   >("1M");
+  const balancesHidden = useBalancesHidden();
   const chartRef = useRef<HTMLDivElement>(null);
   const [hasChartWidth, setHasChartWidth] = useState(false);
   useEffect(() => {
@@ -76,7 +79,7 @@ export function HistoryChart({
     );
   return (
     <div>
-      {showPeriodControls && (
+      {showPeriodControls && snapshots.length >= 2 && (
         <div
           className="tabs tabs-box mb-1 flex flex-wrap"
           role="group"
@@ -154,7 +157,7 @@ export function HistoryChart({
               />
               <YAxis
                 orientation="right"
-                tickFormatter={(v) => money(String(v), true)}
+                tickFormatter={(v) => balancesHidden ? "••••" : money(String(v), true)}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "var(--text-low)", fontSize: 11 }}
@@ -163,7 +166,7 @@ export function HistoryChart({
               />
               <Tooltip
                 labelFormatter={(v) => dateTime(Number(v))}
-                formatter={(v) => [money(String(v)), "ღირებულება"]}
+                formatter={(v) => [balancesHidden ? "••••••" : money(String(v)), "ღირებულება"]}
                 contentStyle={{
                   background: "var(--surface-2)",
                   border: "1px solid var(--ccx-border)",
@@ -189,7 +192,7 @@ export function HistoryChart({
           </ResponsiveContainer>
         )}
       </div>
-      <details className="mt-3 text-[10px] text-muted">
+      {snapshots.length >= 2 && <details className="mt-3 text-[10px] text-muted">
         <summary>მონაცემების ცხრილი</summary>
         <div className="mt-2 max-h-40 overflow-auto">
           <table className="table w-full">
@@ -209,13 +212,13 @@ export function HistoryChart({
                 .map((s) => (
                   <tr key={s.capturedAt}>
                     <td className="py-1">{dateTime(s.capturedAt, true)}</td>
-                    <td className="text-right">{money(s.value)}</td>
+                    <td className="text-right"><BalanceValue>{money(s.value)}</BalanceValue></td>
                   </tr>
                 ))}
             </tbody>
           </table>
         </div>
-      </details>
+      </details>}
     </div>
   );
 }

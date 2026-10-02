@@ -5,6 +5,7 @@ import { Search, Plus } from "lucide-react";
 import type { Asset, LedgerEntry, TransactionKind } from "@/domain/types";
 import { saveTransaction, searchAssets } from "@/server/actions";
 import { Field, Message, Modal } from "./ui";
+import { useBalancesHidden } from "./balance-privacy";
 
 export const kindLabels: Record<TransactionKind, string> = {
   buy: "შესყიდვა",
@@ -54,6 +55,7 @@ export function TransactionForm({
     () => entry?.id ?? (defaultOpen ? crypto.randomUUID() : ""),
   );
   const router = useRouter();
+  const balancesHidden = useBalancesHidden();
   const isCash = assetId === "USD";
   const defaultDate = () => {
     const d = entry ? new Date(entry.occurredAt) : new Date();
@@ -161,13 +163,13 @@ export function TransactionForm({
           <fieldset className="fieldset">
             <legend className="fieldset-legend">ტრანზაქციის ტიპი</legend>
             <div
-              className="tabs tabs-box grid grid-cols-2 gap-1 sm:grid-cols-3"
+              className="grid grid-cols-2 gap-1 rounded-box bg-base-100 p-1 sm:grid-cols-3"
               role="group"
               aria-label="ტრანზაქციის ტიპი"
             >
               {Object.entries(kindLabels).map(([value, label]) => (
                 <button
-                  className={`tab h-auto min-h-11 whitespace-normal px-2 py-2 ${kind === value ? "tab-active" : ""}`}
+                  className={`btn btn-sm h-auto min-h-11 whitespace-normal px-2 py-2 ${kind === value ? "btn-active" : "btn-ghost"}`}
                   key={value}
                   type="button"
                   aria-pressed={kind === value}
@@ -237,6 +239,7 @@ export function TransactionForm({
               <input
                 className="input"
                 name="quantity"
+                type={balancesHidden ? "password" : "text"}
                 inputMode="decimal"
                 required
                 defaultValue={entry?.quantity ?? draft?.quantity}
@@ -260,6 +263,7 @@ export function TransactionForm({
                   <input
                     className="input"
                     name="price"
+                    type={balancesHidden ? "password" : "text"}
                     inputMode="decimal"
                     required={kind !== "deposit"}
                     defaultValue={entry?.price ?? draft?.price ?? ""}
@@ -271,6 +275,7 @@ export function TransactionForm({
               <input
                 className="input"
                 name="fee"
+                type={balancesHidden ? "password" : "text"}
                 inputMode="decimal"
                 defaultValue={entry?.fee ?? draft?.fee ?? "0"}
               />

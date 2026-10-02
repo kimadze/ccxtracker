@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import type { Asset, LedgerEntry, PortfolioSummary } from "@/domain/types";
 import { amount, decimal } from "@/domain/decimal";
-import { dateTime, money, pnlClass, quantity } from "@/lib/formatters";
+import { dateTime, money, pnlClass, quantity, unitPrice } from "@/lib/formatters";
 import { TransactionForm } from "./transaction-form";
 import { deleteTransaction } from "@/server/actions";
-import { Message, Modal } from "./ui";
+import { BalanceValue, Message, Modal } from "./ui";
 import { AssetIcon } from "./positions";
 
 export function AirdropWorkspace({
@@ -79,11 +79,13 @@ export function AirdropWorkspace({
         <Metric
           label="ღირებულება მიღებისას"
           value={money(received)}
+          sensitive
           hint="საწყისი თვითღირებულება"
         />
         <Metric
           label="დღევანდელი სავარაუდო ღირებულება"
           value={money(estimated)}
+          sensitive
           hint="მიღებული რაოდენობის მიხედვით"
         />
         <Metric
@@ -94,6 +96,7 @@ export function AirdropWorkspace({
               : `${Number(movement) > 0 ? "+" : ""}${money(movement)}`
           }
           tone={pnlClass(movement)}
+          sensitive
           hint="გაყიდვების გარეშე შეფასება"
         />
       </div>
@@ -150,11 +153,12 @@ export function AirdropWorkspace({
                   </p>
                 </div>
                 <div className="col-span-2 row-start-2 grid min-w-0 grid-cols-2 gap-3 text-right lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:grid-cols-4">
-                  <Data label="რაოდენობა" value={quantity(entry.quantity)} />
-                  <Data label="მიღების ფასი" value={money(entry.price)} />
+                  <Data label="რაოდენობა" value={quantity(entry.quantity)} sensitive />
+                  <Data label="მიღების ფასი" value={unitPrice(entry.price)} sensitive />
                   <Data
                     label="საწყისი ღირებულება"
                     value={money(receivedValue)}
+                    sensitive
                   />
                   <Data
                     label="ფასის ცვლილება"
@@ -164,6 +168,7 @@ export function AirdropWorkspace({
                         : `${Number(movement) > 0 ? "+" : ""}${money(movement)}`
                     }
                     tone={pnlClass(movement)}
+                    sensitive
                   />
                 </div>
                 {!preview && (
@@ -224,15 +229,19 @@ function Data({
   label,
   value,
   tone = "",
+  sensitive = false,
 }: {
   label: string;
   value: string;
   tone?: string;
+  sensitive?: boolean;
 }) {
   return (
     <div>
       <p className="text-xs text-base-content/50">{label}</p>
-      <p className={`numeric mt-1 text-xs font-medium ${tone}`}>{value}</p>
+      <p className={`numeric mt-1 text-xs font-medium ${tone}`}>
+        {sensitive ? <BalanceValue>{value}</BalanceValue> : value}
+      </p>
     </div>
   );
 }

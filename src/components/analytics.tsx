@@ -155,13 +155,13 @@ export function Analytics({
                   <div className="grid grid-cols-2 gap-2 bg-base-100">
                     <AnalyticsMetric
                       icon={<ShieldCheck size={17} />}
-                      label="ყველაზე დიდი პოზიცია"
+                      label="უდიდესი წილი კრიპტოში"
                       value={percentage(health.largest)}
                       tone="brand"
                     />
                     <AnalyticsMetric
                       icon={<Activity size={17} />}
-                      label="სამი უდიდესი პოზიციის წილი"
+                      label="Top 3-ის წილი კრიპტოში"
                       value={percentage(health.topThree)}
                       tone="brand"
                     />
@@ -191,7 +191,7 @@ export function Analytics({
                           : "დაბალი"}
                       .
                     </span>{" "}
-                    {health.largestSymbol} პორტფელის{" "}
+                    {health.largestSymbol} კრიპტო ნაწილის{" "}
                     {percentage(health.largest)}-ს შეადგენს.
                   </div>
                   <details className="collapse collapse-arrow mt-3 bg-base-100 text-xs leading-6">

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { decimal } from "@/domain/decimal";
 import type { Asset, LedgerEntry } from "@/domain/types";
-import { dateTime, money, quantity } from "@/lib/formatters";
+import { dateTime, money, quantity, unitPrice } from "@/lib/formatters";
 import { deleteTransaction } from "@/server/actions";
 import { TransactionForm, kindLabels } from "./transaction-form";
 import { BalanceValue, Message, Modal } from "./ui";
@@ -76,6 +76,7 @@ export function TransactionList({
           >
             <button
               type="button"
+              aria-pressed={!kind}
               className={`tab min-h-11 shrink-0 ${!kind ? "tab-active" : ""}`}
               onClick={() => {
                 setKind("");
@@ -98,6 +99,7 @@ export function TransactionList({
               <button
                 key={value}
                 type="button"
+                aria-pressed={kind === value}
                 className={`tab min-h-11 shrink-0 ${kind === value ? "tab-active" : ""}`}
                 onClick={() => {
                   setKind(value);
@@ -265,10 +267,10 @@ export function TransactionList({
                         e.assetId}
                     </td>
                     <td className="text-right tabular-nums">
-                      {quantity(e.quantity)}
+                      <BalanceValue>{quantity(e.quantity)}</BalanceValue>
                     </td>
                     <td className="text-right tabular-nums">
-                      {money(e.price)}
+                      <BalanceValue>{unitPrice(e.price)}</BalanceValue>
                     </td>
                     <td className="text-right tabular-nums">
                       <BalanceValue>{money(e.fee)}</BalanceValue>
@@ -344,7 +346,7 @@ export function TransactionList({
                     </div>
                   </div>
                   <div className="col-start-2 row-start-1 whitespace-nowrap text-right tabular-nums lg:hidden">
-                    <p className="text-sm">{quantity(e.quantity)}</p>
+                    <p className="text-sm"><BalanceValue>{quantity(e.quantity)}</BalanceValue></p>
                     <p className="text-xs text-base-content/60">
                       <BalanceValue>
                         {money(
@@ -368,10 +370,10 @@ export function TransactionList({
                         </p>
                       )}
                       <p className="text-xs text-base-content/60">
-                        {e.price
-                          ? `ფასი: ${money(e.price)}`
-                          : "ფასი არ არის მითითებული"}{" "}
-                        · საკომისიო: {money(e.fee)}
+                        {e.price ? (
+                          <>ფასი: <BalanceValue>{unitPrice(e.price)}</BalanceValue></>
+                        ) : "ფასი არ არის მითითებული"}{" "}
+                        · საკომისიო: <BalanceValue>{money(e.fee)}</BalanceValue>
                       </p>
                       <div className="mt-3 flex gap-2">
                         <TransactionForm

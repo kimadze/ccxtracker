@@ -32,16 +32,9 @@ import {
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
+import { privacyEvent, readPrivacy, serverPrivacy, subscribePrivacy } from "./balance-privacy";
 
 type NavItem = [string, string, LucideIcon];
-const privacyEvent = "ccx-balance-privacy";
-const subscribePrivacy = (callback: () => void) => {
-  window.addEventListener(privacyEvent, callback);
-  return () => window.removeEventListener(privacyEvent, callback);
-};
-const readPrivacy = () =>
-  window.localStorage.getItem("ccx-hide-balances") === "true";
-const serverPrivacy = () => false;
 const groups: { title: string; links: NavItem[] }[] = [
   {
     title: "პორტფელი",
@@ -142,14 +135,6 @@ export function BalancePrivacyToggle() {
     serverPrivacy,
   );
 
-  useEffect(() => {
-    if (!hidden) {
-      document.documentElement.removeAttribute("data-balance-privacy");
-      return;
-    }
-    document.documentElement.setAttribute("data-balance-privacy", "hidden");
-  }, [hidden]);
-
   return (
     <button
       type="button"
@@ -228,13 +213,6 @@ export function Shell({
       />
       <div className="drawer-content flex min-w-0 flex-1 flex-col bg-base-100">
         <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-16 lg:px-5">
-          <label
-            htmlFor="ccx-main-drawer"
-            className="btn btn-ghost btn-square drawer-button min-h-11 min-w-11 lg:hidden"
-            aria-label="მენიუს გახსნა"
-          >
-            <Menu size={19} />
-          </label>
           <button
             type="button"
             className="btn btn-ghost btn-square hidden min-h-11 lg:flex"
@@ -441,12 +419,14 @@ export function PageHeading({
   title,
   description,
   action,
+  actionClassName,
   icon,
 }: {
   eyebrow: string;
   title: string;
   description: React.ReactNode;
   action?: React.ReactNode;
+  actionClassName?: string;
   icon?: React.ReactNode;
 }) {
   return (
@@ -459,7 +439,7 @@ export function PageHeading({
         <span className="truncate">{title}</span>
       </h1>
       {description && <span className="sr-only">{description}</span>}
-      {action}
+      {action && <div className={actionClassName}>{action}</div>}
     </div>
   );
 }

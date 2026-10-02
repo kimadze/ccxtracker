@@ -5,14 +5,15 @@ import Link from "next/link";
 import { Copy, Percent, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { calculateScenario, goalProgress } from "@/domain/scenarios";
-import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
+import { money, percentage, quantity, pnlClass, unitPrice } from "@/lib/formatters";
 import {
   saveScenario,
   deleteScenario,
   saveGoal,
 } from "@/server/scenario-actions";
 import { AssetIcon } from "./positions";
-import { Field, Message, Modal } from "./ui";
+import { BalanceValue, Field, Message, Modal } from "./ui";
+import { useBalancesHidden } from "./balance-privacy";
 import { Metric } from "./overview";
 import {
   investablePositions,
@@ -50,6 +51,7 @@ export function ScenarioLab({
     [deleting, setDeleting] = useState(false),
     [bulkChange, setBulkChange] = useState("");
   const router = useRouter();
+  const balancesHidden = useBalancesHidden();
   const cryptoPositions = investablePositions(summary);
   const cryptoValue = investableValue(summary);
   let result: ReturnType<typeof calculateScenario> | null = null;
@@ -83,7 +85,7 @@ export function ScenarioLab({
   const priceRow = (p: (typeof cryptoPositions)[number], i: number) => (
     <div
       key={p.assetId}
-      className="grid grid-cols-[1fr_130px] items-center gap-4 py-4 sm:grid-cols-[1fr_180px]"
+      className="grid grid-cols-[minmax(0,1fr)_130px] items-center gap-3 py-2 sm:grid-cols-[minmax(0,1fr)_180px]"
     >
       <div className="flex items-center gap-3">
         <AssetIcon
@@ -94,16 +96,17 @@ export function ScenarioLab({
         <div>
           <p className="text-xs font-medium">{p.asset.symbol}</p>
           <p className="mt-1 text-[10px] text-base-content/60">
-            {quantity(p.quantity)} · ახლა {money(p.quote?.price ?? null)}
+            <BalanceValue>{quantity(p.quantity)}</BalanceValue> · ახლა {unitPrice(p.quote?.price ?? null)}
           </p>
         </div>
       </div>
       <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}>
         <input
           className="input"
+          type={balancesHidden ? "password" : "text"}
           inputMode="decimal"
           value={prices[p.assetId] ?? ""}
-          placeholder={p.quote?.price ?? "შეიყვანეთ ფასი"}
+          placeholder={unitPrice(p.quote?.price ?? null) === "—" ? "შეიყვანეთ ფასი" : unitPrice(p.quote?.price ?? null)}
           onChange={(e) => {
             setPrices((current) => ({
               ...current,
@@ -244,17 +247,19 @@ export function ScenarioLab({
                 სცენარის კრიპტო ღირებულება
               </p>
               <p className="numeric mt-2 whitespace-nowrap text-2xl text-base-content">
-                {money(result?.value ?? null)}
+                <BalanceValue>{money(result?.value ?? null)}</BalanceValue>
               </p>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <Metric
                   label="მიმდინარე ღირებულება"
                   value={money(cryptoValue)}
+                  sensitive
                 />
                 <Metric
                   label="ცვლილება მიმდინარე ღირებულებიდან"
                   value={money(result?.growth ?? null)}
                   tone={pnlClass(result?.growth ?? null)}
+                  sensitive
                 />
                 <Metric
                   label="პოტენციური ზრდა"
@@ -263,6 +268,7 @@ export function ScenarioLab({
                 <Metric
                   label="სცენარის არარეალიზებული მოგება / ზარალი"
                   value={money(result?.unrealizedPnl ?? null)}
+                  sensitive
                 />
               </div>
             </div>
@@ -270,7 +276,7 @@ export function ScenarioLab({
           <section className="card card-border bg-base-200">
             <div className="card-body min-w-0 gap-3 p-4">
               <h2 className="mb-4 text-sm font-medium">სცენარის განაწილება</h2>
-              {result?.positions.map((p) => (
+              {result?.positions.slice(0, 6).map((p) => (
                 <div
                   key={p.assetId}
                   className="flex justify-between gap-3 border-b border-base-300 py-3 text-xs"
@@ -287,10 +293,25 @@ export function ScenarioLab({
                     )}
                   </Link>
                   <span className="text-base-content/60">
-                    {money(p.value)} · {percentage(p.allocation)}
+                    <BalanceValue>{money(p.value)}</BalanceValue> · {percentage(p.allocation)}
                   </span>
                 </div>
               ))}
+              {(result?.positions.length ?? 0) > 6 && (
+                <details className="collapse collapse-arrow">
+                  <summary className="collapse-title min-h-11 text-xs">
+                    დარჩენილი {(result?.positions.length ?? 0) - 6} აქტივი
+                  </summary>
+                  <div className="collapse-content space-y-2">
+                    {result?.positions.slice(6).map((p) => (
+                      <div key={p.assetId} className="flex justify-between gap-3 border-b border-base-300 py-2 text-xs">
+                        <span>{p.symbol}</span>
+                        <span className="text-base-content/60"><BalanceValue>{money(p.value)}</BalanceValue> · {percentage(p.allocation)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
             </div>
           </section>
         </div>
@@ -406,6 +427,7 @@ function GoalPlanner({
     [message, setMessage] = useState(""),
     [error, setError] = useState(false),
     [pending, setPending] = useState(false);
+  const balancesHidden = useBalancesHidden();
   let progress: ReturnType<typeof goalProgress> | null = null,
     scenario: ReturnType<typeof goalProgress> | null = null;
   try {
@@ -431,6 +453,7 @@ function GoalPlanner({
             <Field label="მიზნობრივი ღირებულება (USD)">
               <input
                 className="input"
+                type={balancesHidden ? "password" : "text"}
                 inputMode="decimal"
                 value={target}
                 onChange={(e) => {
@@ -443,6 +466,7 @@ function GoalPlanner({
             <Field label="შუალედური მიზნები — გამოყავით წერტილ-მძიმით">
               <input
                 className="input"
+                type={balancesHidden ? "password" : "text"}
                 value={milestones}
                 maxLength={500}
                 onChange={(e) => {
@@ -491,7 +515,7 @@ function GoalPlanner({
                     label="მიმდინარე პროგრესი"
                     value={percentage(progress.progress)}
                   />
-                  <Metric label="დარჩენილი თანხა" value={money(progress.gap)} />
+                  <Metric label="დარჩენილი თანხა" value={money(progress.gap)} sensitive />
                   <Metric
                     label="საჭირო ზრდა"
                     value={percentage(progress.requiredGrowth)}
@@ -499,6 +523,7 @@ function GoalPlanner({
                   <Metric
                     label="სცენარსა და მიზანს შორის სხვაობა"
                     value={money(scenario?.gap ?? null)}
+                    sensitive
                   />
                 </div>
                 <div className="mt-6 h-2 overflow-hidden rounded-full bg-raised">
@@ -518,7 +543,7 @@ function GoalPlanner({
                         key={i}
                         className={`rounded-md border px-2 py-1 text-xs ${current !== null && Number(current) >= Number(m) ? "border-brand/30 text-brand" : "border-line text-base-content/60"}`}
                       >
-                        {money(m)}{" "}
+                        <BalanceValue>{money(m)}</BalanceValue>{" "}
                         {current !== null && Number(current) >= Number(m)
                           ? "✓"
                           : ""}

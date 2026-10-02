@@ -18,6 +18,7 @@ export default async function Page({
         eyebrow={w.portfolio.name}
         title="ტრანზაქციები"
         description="თქვენი პორტფელის სრული ისტორია და ყველა ცვლილების საფუძველი."
+        actionClassName="hidden lg:block"
         action={
           <TransactionForm
             portfolioId={portfolioId}

@@ -81,6 +81,7 @@ export function PerformanceAttribution({
                   ? `${attribution.topPositive.symbol} · ${money(attribution.topPositive.totalPnl)}`
                   : "—"
               }
+              sensitive
             />
             <Metric
               label="ყველაზე დიდი უარყოფითი წვლილი"
@@ -89,14 +90,16 @@ export function PerformanceAttribution({
                   ? `${attribution.topNegative.symbol} · ${money(attribution.topNegative.totalPnl)}`
                   : "—"
               }
+              sensitive
             />
             <Metric
               label="უდიდესი სექტორული შედეგი"
               value={
-                topCategory
+                topCategory && attribution.categories.length > 1
                   ? `${categoryLabels[topCategory.category] ?? topCategory.category} · ${money(topCategory.totalPnl)}`
                   : "—"
               }
+              sensitive
             />
             <Metric
               label="მოგებაში მყოფი აქტივები"
@@ -150,10 +153,12 @@ export function PerformanceAttribution({
                           <BalanceValue>{money(row.totalPnl)}</BalanceValue>
                         </strong>
                         <span
-                          title="მთლიან შედეგში წილი"
+                          title={portfolioLoss && decimal(row.totalPnl!).gt(0) ? "ზარალის შემცირება" : "მთლიან შედეგში წილი"}
                           className="mt-1 block text-xs text-base-content/60"
                         >
-                          {percentage(row.contributionPercent)}
+                          {portfolioLoss && decimal(row.totalPnl!).gt(0)
+                            ? `${percentage(decimal(row.contributionPercent!).abs().toString())} ზარალის შემცირება`
+                            : percentage(row.contributionPercent)}
                         </span>
                       </div>
                     </div>
@@ -177,12 +182,7 @@ export function PerformanceAttribution({
                       <BalanceValue>{money(row.unrealizedPnl)}</BalanceValue>
                     </span>
                     {portfolioLoss && decimal(row.totalPnl!).gt(0) && (
-                      <span className="col-span-2">
-                        ხარჯის შემცირება:{" "}
-                        {percentage(
-                          decimal(row.contributionPercent!).abs().toString(),
-                        )}
-                      </span>
+                      <span className="col-span-2">დადებითი წვლილი ამცირებს მთლიან ზარალს.</span>
                     )}
                     {!row.isFee && (
                       <>
@@ -220,7 +220,7 @@ export function PerformanceAttribution({
         </div>
 
         <div className="space-y-4">
-          {attribution.categories.map((category) => (
+          {attribution.categories.length > 1 && attribution.categories.map((category) => (
             <article
               key={category.category}
               className="card card-border bg-base-200 p-3"
@@ -235,7 +235,7 @@ export function PerformanceAttribution({
                   </p>
                 </div>
                 <p className={`numeric text-sm ${pnlClass(category.totalPnl)}`}>
-                  {money(category.totalPnl)}
+                  <BalanceValue>{money(category.totalPnl)}</BalanceValue>
                 </p>
               </div>
               <details className="collapse collapse-arrow mt-2 bg-base-100">

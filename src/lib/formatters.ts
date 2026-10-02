@@ -16,6 +16,19 @@ export function money(value: string | null | undefined, compact = false) {
   const places = absolute.gt(0) && absolute.lt("0.01") ? 8 : 2;
   return `${sign}$${formatted(absolute.toFixed(), places, places > 2)}`;
 }
+/** Unit prices need more precision than portfolio-level USD totals. */
+export function unitPrice(value: string | null | undefined) {
+  if (value === null || value === undefined || value === "") return "—";
+  const number = decimal(value),
+    sign = number.lt(0) ? "-" : "",
+    absolute = number.abs();
+  if (absolute.isZero()) return "$0";
+  const magnitude = Math.floor(Math.log10(Number(absolute.toString())));
+  // Preserve eight significant digits for unit prices; portfolio totals still
+  // use money() and remain rounded to cents.
+  const places = Math.min(18, Math.max(2, 7 - magnitude));
+  return `${sign}$${formatted(absolute.toFixed(), places, true)}`;
+}
 export function inputNumber(value: string | null | undefined) {
   if (value === null || value === undefined || value === "") return "";
   const raw = decimal(value).toFixed(18);

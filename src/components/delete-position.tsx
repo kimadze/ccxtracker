@@ -23,7 +23,7 @@ export function DeletePosition({
     <>
       <button
         className={
-          compact ? "btn btn-ghost btn-square text-error" : "btn btn-error"
+          compact ? "btn btn-ghost btn-square min-h-11 min-w-11 text-error" : "btn btn-error"
         }
         aria-label="პოზიციის წაშლა"
         onClick={() => {

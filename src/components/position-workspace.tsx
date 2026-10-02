@@ -13,7 +13,7 @@ const ExitPlanner = dynamic(() =>
 );
 import { JournalForm, type JournalData } from "./journal";
 import { TransactionList } from "./transaction-list";
-import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
+import { money, percentage, quantity, pnlClass, unitPrice } from "@/lib/formatters";
 import { BalanceValue } from "./ui";
 export function PositionWorkspace({
   position: p,
@@ -77,10 +77,11 @@ export function PositionWorkspace({
             </div>
           </div>
           <div className="grid min-w-0 grid-cols-2 gap-0 rounded-box border border-base-300 bg-base-200 p-1 lg:grid-cols-3">
-            <Metric label="რაოდენობა" value={quantity(p.quantity)} />
+            <Metric label="რაოდენობა" value={quantity(p.quantity)} sensitive />
             <Metric
               label="საშუალო შესყიდვის ფასი"
-              value={money(p.averagePrice)}
+              value={unitPrice(p.averagePrice)}
+              sensitive
             />
             <Metric
               label="თვითღირებულება"
@@ -89,7 +90,7 @@ export function PositionWorkspace({
             />
             <Metric
               label="მიმდინარე ფასი"
-              value={money(p.quote?.price ?? null)}
+              value={unitPrice(p.quote?.price ?? null)}
             />
             <Metric
               label="შემოსავლიანობა"

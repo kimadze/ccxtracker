@@ -40,7 +40,7 @@ const socket = new PGLiteSocketServer({
   db,
   host: "127.0.0.1",
   port: 55439,
-  maxConnections: 10,
+  maxConnections: 1,
 });
 await socket.start();
 const child = spawn(
@@ -59,6 +59,7 @@ const child = spawn(
     env: {
       ...process.env,
       DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
+      DATABASE_POOL_MAX: "1",
       DATABASE_MIGRATION_URL: "",
       BETTER_AUTH_SECRET: secret,
       BETTER_AUTH_URL: "http://localhost:3100",

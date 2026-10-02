@@ -6,8 +6,10 @@ import { calculateDca, calculateExit, type ExitLevel } from "@/domain/planning";
 import { inputNumber, money, percentage, quantity } from "@/lib/formatters";
 import { saveExitPlan } from "@/server/strategy-actions";
 import { Field, Message } from "./ui";
+import { BalanceValue } from "./ui";
 import { Metric } from "./overview";
 import { TransactionForm } from "./transaction-form";
+import { useBalancesHidden } from "./balance-privacy";
 
 export function DcaPlanner({
   position,
@@ -18,6 +20,7 @@ export function DcaPlanner({
   portfolioValue: string | null;
   execution?: { portfolioId: string; revision: number; assets: Asset[] };
 }) {
+  const balancesHidden = useBalancesHidden();
   const [capital, setCapital] = useState("1000"),
     [price, setPrice] = useState(
       position.quote ? inputNumber(position.quote.price) : "",
@@ -45,6 +48,7 @@ export function DcaPlanner({
         <Field label="დამატებითი კაპიტალი, საკომისიოს ჩათვლით (USD)">
           <input
             className="input"
+            type={balancesHidden ? "password" : "text"}
             inputMode="decimal"
             value={capital}
             onChange={(e) => setCapital(e.target.value)}
@@ -61,6 +65,7 @@ export function DcaPlanner({
         <Field label="საკომისიო (USD)">
           <input
             className="input"
+            type={balancesHidden ? "password" : "text"}
             inputMode="decimal"
             value={fee}
             onChange={(e) => setFee(e.target.value)}
@@ -81,27 +86,33 @@ export function DcaPlanner({
               <Metric
                 label="მიმდინარე საშუალო ფასი"
                 value={money(result.currentAverage)}
+                sensitive
               />
               <Metric
                 label="ახალი საშუალო ფასი"
                 value={money(result.newAverage)}
                 tone="text-primary"
+                sensitive
               />
               <Metric
                 label="მიმდინარე რაოდენობა"
                 value={quantity(position.quantity)}
+                sensitive
               />
               <Metric
                 label="დამატებული რაოდენობა"
                 value={quantity(result.addedQuantity)}
+                sensitive
               />
               <Metric
                 label="ახალი რაოდენობა"
                 value={quantity(result.newQuantity)}
+                sensitive
               />
               <Metric
                 label="ახალი თვითღირებულება"
                 value={money(result.newBasis)}
+                sensitive
               />
               <Metric
                 label="მიმდინარე წილი"
@@ -154,6 +165,7 @@ export function ExitPlanner({
   initial?: { feePercent: string; levels: ExitLevel[] } | null;
   preview?: boolean;
 }) {
+  const balancesHidden = useBalancesHidden();
   const [levels, setLevels] = useState<ExitLevel[]>(
       initial?.levels.map((level) => ({
         price: inputNumber(level.price),
@@ -190,7 +202,7 @@ export function ExitPlanner({
             <div>
               <h2 className="text-sm font-medium">გაყიდვის ეტაპები</h2>
               <p className="mt-2 text-xs leading-6 text-base-content/60">
-                ყველა წილი ითვლება მიმდინარე {quantity(position.quantity)}{" "}
+                ყველა წილი ითვლება მიმდინარე <BalanceValue>{quantity(position.quantity)}</BalanceValue>{" "}
                 {position.asset.symbol}-იდან. ფასები ეტაპობრივად უნდა
                 იზრდებოდეს.
               </p>
@@ -220,6 +232,7 @@ export function ExitPlanner({
                 <Field label="სამიზნე ფასი (USD)">
                   <input
                     className="input"
+                    type={balancesHidden ? "password" : "text"}
                     value={level.price}
                     inputMode="decimal"
                     onChange={(e) => update(i, "price", e.target.value)}
@@ -236,11 +249,11 @@ export function ExitPlanner({
                 </Field>
                 <span className="numeric pb-3 text-sm">
                   {result?.levels[i]
-                    ? quantity(result.levels[i].quantity)
+                    ? <BalanceValue>{quantity(result.levels[i].quantity)}</BalanceValue>
                     : "—"}
                 </span>
                 <span className="numeric pb-3 text-sm">
-                  {result?.levels[i] ? money(result.levels[i].revenue) : "—"}
+                  {result?.levels[i] ? <BalanceValue>{money(result.levels[i].revenue)}</BalanceValue> : "—"}
                 </span>
                 <button
                   className="btn btn-ghost btn-square min-h-11 min-w-11 mb-2 text-error"
@@ -304,25 +317,28 @@ export function ExitPlanner({
             <Metric
               label="მოსალოდნელი წმინდა შემოსავალი"
               value={money(result.revenue)}
+              sensitive
             />
-            <Metric label="მოსალოდნელი მოგება" value={money(result.profit)} />
+            <Metric label="მოსალოდნელი მოგება" value={money(result.profit)} sensitive />
             <Metric
               label="დარჩენილი პოზიცია"
               value={`${quantity(result.remainingQuantity)} ${position.asset.symbol}`}
+              sensitive
             />
             <Metric
               label="საშუალო წმინდა გასვლის ფასი"
               value={money(result.weightedExitPrice)}
+              sensitive
             />
           </div>
           <section className="card card-border bg-base-100 p-5">
             <h2 className="text-sm font-medium">კაპიტალის ამოღება</h2>
             <p className="mt-3 text-xs leading-7 text-base-content/60">
-              აღსადგენი თვითღირებულება: {money(position.costBasis)}.{" "}
+              აღსადგენი თვითღირებულება: <BalanceValue>{money(position.costBasis)}</BalanceValue>.{" "}
               {result.alreadyRecovered
                 ? "დარჩენილ პოზიციას ნულოვანი თვითღირებულება აქვს."
                 : result.recoveryLevel
-                  ? `კაპიტალი სრულად ამოიღება TP${result.recoveryLevel} ეტაპზე, ამ ეტაპის ${quantity(result.recoveryQuantity!)} ${position.asset.symbol}-ის გაყიდვის შემდეგ.`
+                    ? <>კაპიტალი სრულად ამოიღება TP{result.recoveryLevel} ეტაპზე, ამ ეტაპის <BalanceValue>{quantity(result.recoveryQuantity!)}</BalanceValue> {position.asset.symbol}-ის გაყიდვის შემდეგ.</>
                   : "მოცემული ეტაპებით საწყისი თვითღირებულება სრულად ვერ ამოიღება."}{" "}
               დარჩება პოზიციის {percentage(result.remainingPercent)}.
             </p>
@@ -333,11 +349,11 @@ export function ExitPlanner({
                   className="flex flex-wrap justify-between gap-3 py-3 text-xs"
                 >
                   <span className="text-primary">
-                    TP{i + 1} · {quantity(l.quantity)} {position.asset.symbol}
+                    TP{i + 1} · <BalanceValue>{quantity(l.quantity)}</BalanceValue> {position.asset.symbol}
                   </span>
-                  <span>შემოსავალი: {money(l.revenue)}</span>
+                  <span>შემოსავალი: <BalanceValue>{money(l.revenue)}</BalanceValue></span>
                   <span className="text-base-content/60">
-                    მოგება: {money(l.profit)}
+                    მოგება: <BalanceValue>{money(l.profit)}</BalanceValue>
                   </span>
                 </div>
               ))}

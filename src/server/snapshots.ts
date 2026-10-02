@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, gt, lt } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, lt } from "drizzle-orm";
 import { getDb, type Database } from "./db";
 import {
   assets,
@@ -12,6 +12,12 @@ import { getQuotes } from "./market";
 import { toLedger } from "./services/portfolio";
 import { replayLedger } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
+
+function activeAssetIds(entries: ReturnType<typeof toLedger>[]) {
+  return replayLedger(entries)
+    .holdings.filter((holding) => Number(holding.quantity) > 0)
+    .map((holding) => holding.assetId);
+}
 
 type SnapshotDependencies = {
   db?: Database;
@@ -30,8 +36,19 @@ export async function capturePortfolioSnapshot(
     .where(eq(portfolios.id, portfolioId));
   if (!portfolio) throw new Error("RESOURCE_NOT_FOUND");
 
-  const allAssets = await db.select().from(assets);
-  const quotes = await (dependencies.loadQuotes ?? getQuotes)(allAssets);
+  const initialEntries = (
+    await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.portfolioId, portfolioId))
+  ).map(toLedger);
+  const initialAssetIds = activeAssetIds(initialEntries);
+  const requiredAssets = initialAssetIds.length
+    ? await db.select().from(assets).where(inArray(assets.id, initialAssetIds))
+    : [];
+  const quotes = requiredAssets.length
+    ? await (dependencies.loadQuotes ?? getQuotes)(requiredAssets)
+    : [];
   return db.transaction(async (tx) => {
     const [locked] = await tx
       .select()
@@ -45,7 +62,10 @@ export async function capturePortfolioSnapshot(
         .from(transactions)
         .where(eq(transactions.portfolioId, portfolioId))
     ).map(toLedger);
-    const summary = valuePortfolio(replayLedger(entries), allAssets, quotes);
+    const lockedAssetIds = activeAssetIds(entries);
+    if (lockedAssetIds.some((id) => !initialAssetIds.includes(id)))
+      return { created: false, reason: "INCOMPLETE_VALUATION" as const };
+    const summary = valuePortfolio(replayLedger(entries), requiredAssets, quotes);
     if (!summary.complete || summary.stale || summary.value === null)
       return { created: false, reason: "INCOMPLETE_VALUATION" as const };
 
@@ -89,14 +109,36 @@ export async function runSnapshots(dependencies?: {
     cursor = lock.cursor,
     complete = false;
   try {
-    const allAssets = await db.select().from(assets);
-    const quotes = await (dependencies?.loadQuotes ?? getQuotes)(allAssets);
     const batch = await db
       .select()
       .from(portfolios)
       .where(cursor ? gt(portfolios.id, cursor) : undefined)
       .orderBy(asc(portfolios.id))
       .limit(100);
+    const portfolioIds = batch.map((portfolio) => portfolio.id);
+    const batchEntries = portfolioIds.length
+      ? await db
+          .select()
+          .from(transactions)
+          .where(inArray(transactions.portfolioId, portfolioIds))
+      : [];
+    const entriesByPortfolio = new Map<string, ReturnType<typeof toLedger>[]>();
+    for (const row of batchEntries) {
+      const current = entriesByPortfolio.get(row.portfolioId) ?? [];
+      current.push(toLedger(row));
+      entriesByPortfolio.set(row.portfolioId, current);
+    }
+    const wantedAssetIds = [
+      ...new Set(
+        [...entriesByPortfolio.values()].flatMap(activeAssetIds),
+      ),
+    ];
+    const batchAssets = wantedAssetIds.length
+      ? await db.select().from(assets).where(inArray(assets.id, wantedAssetIds))
+      : [];
+    const quotes = batchAssets.length
+      ? await (dependencies?.loadQuotes ?? getQuotes)(batchAssets)
+      : [];
     for (const p of batch) {
       if (Date.now() - now.getTime() > 45000) break;
       await db.transaction(async (tx) => {
@@ -112,9 +154,14 @@ export async function runSnapshots(dependencies?: {
             .from(transactions)
             .where(eq(transactions.portfolioId, p.id))
         ).map(toLedger);
+        const requiredIds = activeAssetIds(entries);
+        if (requiredIds.some((id) => !wantedAssetIds.includes(id))) {
+          skipped++;
+          return;
+        }
         const summary = valuePortfolio(
           replayLedger(entries),
-          allAssets,
+          batchAssets,
           quotes,
         );
         if (!summary.complete || summary.stale || summary.value === null) {

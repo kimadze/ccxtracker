@@ -9,6 +9,7 @@ import { TransactionForm } from "@/components/transaction-form";
 import { DeletePosition } from "@/components/delete-position";
 import { AssetIcon } from "@/components/positions";
 import { PositionShare } from "@/components/position-share";
+import { MoreHorizontal } from "lucide-react";
 export default async function Page({
   params,
 }: {
@@ -39,12 +40,20 @@ export default async function Page({
         action={
           <div className="flex flex-wrap gap-2">
             <PositionShare position={p} />
-            <DeletePosition
-              compact
-              portfolioId={portfolioId}
-              assetId={assetId}
-              revision={w.portfolio.revision}
-            />
+            <details className="dropdown dropdown-end">
+              <summary className="btn btn-ghost btn-square min-h-11 min-w-11" aria-label="მეტი მოქმედება">
+                <MoreHorizontal size={18} />
+              </summary>
+              <ul className="dropdown-content z-20 mt-1 rounded-box border border-base-300 bg-base-200 p-2 shadow-lg">
+                <li>
+                  <DeletePosition
+                    portfolioId={portfolioId}
+                    assetId={assetId}
+                    revision={w.portfolio.revision}
+                  />
+                </li>
+              </ul>
+            </details>
             <TransactionForm
               triggerLabel="დამატება"
               portfolioId={portfolioId}

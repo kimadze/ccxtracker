@@ -57,10 +57,12 @@ export async function DELETE(
     const file = await ownedFile((await params).id, user.id);
     if (!file)
       return Response.json({ error: "ფაილი ვერ მოიძებნა." }, { status: 404 });
-    await del(file.blobPath);
     await getDb()
       .delete(journalAttachments)
       .where(eq(journalAttachments.id, file.id));
+    await del(file.blobPath).catch((error: unknown) =>
+      console.error("Attachment blob cleanup failed", { attachmentId: file.id, error }),
+    );
     return Response.json({ ok: true });
   } catch {
     return Response.json({ error: "წაშლა ვერ მოხერხდა." }, { status: 500 });

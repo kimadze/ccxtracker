@@ -1,6 +1,7 @@
 import "server-only";
 import type { MacroMetric, MacroStatistics } from "@/domain/statistics";
 import { latestObservation, percentageChange } from "@/domain/statistics";
+import { decimal } from "@/domain/decimal";
 
 interface SeriesDefinition {
   id: string;
@@ -38,16 +39,30 @@ async function fetchSeries(definition: SeriesDefinition): Promise<MacroMetric> {
   const observations = parseCsv(await response.text(), definition.fredId);
   const latest = latestObservation(observations);
   if (!latest)
-    return { ...definition, value: null, observationDate: null, source: "FRED", change: null };
-  let result = latest.value;
-  if (definition.transform) {
-    const offset = definition.transform === "yoy" ? 12 : 1;
-    const valid = observations.filter((item) => item.value !== ".");
-    const previous = valid[valid.length - 1 - offset];
-    result = previous ? (percentageChange(latest.value, previous.value) ?? latest.value) : latest.value;
-  }
+    return {
+      ...definition,
+      value: null,
+      observationDate: null,
+      source: "FRED",
+      change: null,
+      changeUnit: definition.unit === "index" ? "პუნქტი" : "პპ",
+      available: false,
+    };
   const valid = observations.filter((item) => item.value !== ".");
-  const prior = valid[valid.length - 2];
+  const offset = definition.transform === "yoy" ? 12 : 1;
+  const calculate = (index: number) => {
+    const current = valid[index];
+    if (!current) return null;
+    if (!definition.transform) return current.value;
+    const base = valid[index - offset];
+    return base ? percentageChange(current.value, base.value) : null;
+  };
+  const result = calculate(valid.length - 1);
+  const priorResult = calculate(valid.length - 2);
+  const change =
+    result !== null && priorResult !== null
+      ? decimal(result).minus(priorResult).toFixed()
+      : null;
   return {
     id: definition.id,
     label: definition.label,
@@ -55,20 +70,39 @@ async function fetchSeries(definition: SeriesDefinition): Promise<MacroMetric> {
     unit: definition.unit,
     observationDate: latest.date,
     source: "FRED",
-    change: prior ? String(Number(latest.value) - Number(prior.value)) : null,
+    change,
+    changeUnit:
+      definition.unit === "index"
+        ? "პუნქტი"
+        : definition.transform || definition.unit === "%"
+          ? "პპ"
+          : "%",
+    available: result !== null,
   };
 }
 
 export async function getMacroStatistics(): Promise<MacroStatistics> {
   const settled = await Promise.allSettled(series.map(fetchSeries));
-  const metrics = settled.flatMap((result) =>
-    result.status === "fulfilled" ? [result.value] : [],
+  const metrics = settled.map((result, index) =>
+    result.status === "fulfilled"
+      ? result.value
+      : {
+          id: series[index].id,
+          label: series[index].label,
+          value: null,
+          unit: series[index].unit,
+          observationDate: null,
+          source: "FRED",
+          change: null,
+          changeUnit: series[index].unit === "index" ? "პუნქტი" as const : "პპ" as const,
+          available: false,
+        },
   );
   if (settled.some((result) => result.status === "rejected"))
     console.warn("One or more FRED macro series are unavailable");
   return {
     metrics,
     fetchedAt: new Date().toISOString(),
-    error: metrics.length === 0,
+    error: metrics.every((metric) => !metric.available),
   };
 }

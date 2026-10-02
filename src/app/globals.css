@@ -450,16 +450,6 @@ tbody tr:hover {
 .balance-value {
   display: inline-grid;
 }
-[data-balance-privacy="hidden"] .balance-value {
-  color: transparent !important;
-}
-[data-balance-privacy="hidden"] .balance-value::after {
-  content: "••••••";
-  grid-area: 1 / 1;
-  color: var(--text-mid);
-  font: inherit;
-  letter-spacing: 0.08em;
-}
 .ccx-search:hover,
 .ccx-icon-button:hover {
   border-color: var(--accent);

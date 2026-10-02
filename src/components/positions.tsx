@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { ArrowUpRight, Layers3, NotebookPen, TrendingUp } from "lucide-react";
 import type { ValuedPosition } from "@/domain/types";
-import { money, percentage, quantity, pnlClass } from "@/lib/formatters";
+import { money, percentage, quantity, pnlClass, unitPrice } from "@/lib/formatters";
 import { BalanceValue } from "./ui";
 import { highResLogoUrl } from "@/lib/asset-logo";
 
@@ -156,14 +156,14 @@ export function PositionsTable({
                   </div>
                 </td>
                 <td className="numeric hidden xl:table-cell">
-                  {quantity(position.quantity)}
+                  <BalanceValue>{quantity(position.quantity)}</BalanceValue>
                 </td>
                 <td className="numeric hidden text-base-content/60 xl:table-cell">
-                  {money(position.averagePrice)}
+                  <BalanceValue>{unitPrice(position.averagePrice)}</BalanceValue>
                 </td>
                 <td>
                   <div className="numeric">
-                    {money(position.quote?.price ?? null)}
+                    {unitPrice(position.quote?.price ?? null)}
                   </div>
                   <div
                     className={`text-xs ${pnlClass(position.quote?.change24h ?? null)}`}
@@ -275,13 +275,13 @@ export function PositionsTable({
                 <div className="stat p-3">
                   <div className="stat-title text-xs">მიმდინარე ფასი</div>
                   <div className="stat-value text-base">
-                    {money(position.quote?.price ?? null)}
+                    {unitPrice(position.quote?.price ?? null)}
                   </div>
                 </div>
                 <div className="stat p-3">
                   <div className="stat-title text-xs">საშ. შესყიდვა</div>
                   <div className="stat-value text-base">
-                    {money(position.averagePrice)}
+                    <BalanceValue>{unitPrice(position.averagePrice)}</BalanceValue>
                   </div>
                 </div>
               </div>

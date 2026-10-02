@@ -8,12 +8,23 @@ import {
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
   type ReactElement,
 } from "react";
+import { readPrivacy, serverPrivacy, subscribePrivacy } from "./balance-privacy";
 
 export function BalanceValue({ children }: { children: ReactNode }) {
-  return <span className="balance-value">{children}</span>;
+  const hidden = useSyncExternalStore(
+    subscribePrivacy,
+    readPrivacy,
+    serverPrivacy,
+  );
+  return (
+    <span className="balance-value" aria-label={hidden ? "თანხა დამალულია" : undefined}>
+      {hidden ? "••••••" : children}
+    </span>
+  );
 }
 
 export function Modal({

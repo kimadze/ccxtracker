@@ -123,8 +123,11 @@ export async function removePortfolio(id: string): Promise<ActionResult> {
       .select({ path: journalAttachments.blobPath })
       .from(journalAttachments)
       .where(eq(journalAttachments.portfolioId, id));
-    if (files.length) await del(files.map((f) => f.path));
     await service.remove(id);
+    if (files.length)
+      await del(files.map((f) => f.path)).catch((error: unknown) =>
+        console.error("Portfolio attachment cleanup failed", { portfolioId: id, error }),
+      );
     revalidatePath("/portfolios", "layout");
     return { ok: true };
   } catch (e) {

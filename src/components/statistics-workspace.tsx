@@ -317,8 +317,8 @@ export function StatisticsWorkspace({
   macro,
   summary,
 }: {
-  market: MarketStatistics;
-  macro: MacroStatistics;
+  market: MarketStatistics | null;
+  macro: MacroStatistics | null;
   summary: PortfolioSummary;
 }) {
   const [tab, setTab] = useWorkspaceTab(
@@ -336,8 +336,8 @@ export function StatisticsWorkspace({
         ["portfolio", "ჩემი პორტფელი"],
       ]}
     >
-      {tab === "market" && <MarketTab data={market} />}
-      {tab === "macro" && <MacroTab data={macro} />}
+      {tab === "market" && (market ? <MarketTab data={market} /> : <div role="status" className="alert alert-info alert-soft">მონაცემები იტვირთება…</div>)}
+      {tab === "macro" && (macro ? <MacroTab data={macro} /> : <div role="status" className="alert alert-info alert-soft">მონაცემები იტვირთება…</div>)}
       {tab === "portfolio" && <PortfolioTab summary={summary} />}
     </WorkspaceTabs>
   );

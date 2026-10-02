@@ -15,8 +15,26 @@ import {
 import { inputNumber, money, percentage, pnlClass } from "@/lib/formatters";
 import { saveAllocation } from "@/server/allocation-actions";
 import { AssetIcon } from "./positions";
-import { Message } from "./ui";
+import { BalanceValue, Message } from "./ui";
 import { TransactionForm } from "./transaction-form";
+import { useBalancesHidden } from "./balance-privacy";
+
+const allocationBarColors = [
+  "bg-primary",
+  "bg-secondary",
+  "bg-accent",
+  "bg-info",
+  "bg-success",
+  "bg-warning",
+];
+const allocationStatusColors = [
+  "status-primary",
+  "status-secondary",
+  "status-accent",
+  "status-info",
+  "status-success",
+  "status-warning",
+];
 
 export function AllocationWorkspace({
   summary,
@@ -39,6 +57,7 @@ export function AllocationWorkspace({
     () => assets.filter(isInvestableCrypto),
     [assets],
   );
+  const balancesHidden = useBalancesHidden();
   const cryptoPositions = useMemo(
     () => investablePositions(summary),
     [summary],
@@ -123,7 +142,13 @@ export function AllocationWorkspace({
           <div>
             <h2 className="card-title">კრიპტოაქტივების განაწილება</h2>
             <small className="text-base-content/60">
-              {valid ? "მიზნები მზადაა" : "წონები უნდა უდრიდეს 100%-ს"}
+              {valid
+                ? "მიზნები მზადაა"
+                : total.lt(100)
+                  ? `აკლია ${percentage(decimal(100).minus(total))} 100%-მდე`
+                  : total.gt(100)
+                    ? `ზედმეტია ${percentage(total.minus(100))} 100%-ზე`
+                    : "წონები უნდა უდრიდეს 100%-ს"}
             </small>
           </div>
           <div className="grid grid-cols-2 bg-base-100">
@@ -140,23 +165,39 @@ export function AllocationWorkspace({
               </strong>
             </span>
           </div>
-          <div className="flex h-3 overflow-hidden rounded-box bg-base-100">
+          <div
+            className="flex h-3 overflow-hidden rounded-box bg-base-100"
+            role="img"
+            aria-label={`სამიზნე წილების ჯამი: ${percentage(total.toFixed())}`}
+          >
             {rows
               .filter((row) => decimal(row.weight).gt(0))
-              .map((row, index) => (
-                <span
-                  key={row.assetId}
-                  className="flex min-w-0 flex-col items-center justify-center border-r border-base-300 bg-primary/20 px-2 text-xs last:border-0"
-                  style={{
-                    flexGrow: Number(row.weight),
-                    opacity: Math.max(0.45, 1 - index * 0.045),
-                  }}
-                >
+                .map((row, index) => (
+                  <span
+                    key={row.assetId}
+                    className={`flex min-w-0 flex-col items-center justify-center border-r border-base-300 px-2 text-xs last:border-0 ${allocationBarColors[index % allocationBarColors.length]}`}
+                    style={{ flexGrow: Number(row.weight) }}
+                  >
                   <b className="sr-only">{symbol(row.assetId)}</b>
                   <small className="sr-only">{inputNumber(row.weight)}%</small>
                 </span>
               ))}
           </div>
+          <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/70">
+            {rows
+              .filter((row) => decimal(row.weight).gt(0))
+              .slice(0, 6)
+              .map((row, index) => (
+                <li key={row.assetId} className="flex items-center gap-1.5">
+                  <span className={`status status-xs ${allocationStatusColors[index % allocationStatusColors.length]}`} />
+                  <span>{symbol(row.assetId)}</span>
+                  <span className="numeric">{percentage(row.weight)}</span>
+                </li>
+              ))}
+            {rows.filter((row) => decimal(row.weight).gt(0)).length > 6 && (
+              <li>+{rows.filter((row) => decimal(row.weight).gt(0)).length - 6} სხვა</li>
+            )}
+          </ul>
         </div>
       </section>
 
@@ -230,7 +271,7 @@ export function AllocationWorkspace({
                     {percentage(deviation, true)}
                   </span>
                   <strong className="numeric whitespace-nowrap text-right">
-                    {money(row.value)}
+                    <BalanceValue>{money(row.value)}</BalanceValue>
                   </strong>
                 </div>
               );
@@ -333,8 +374,11 @@ export function AllocationWorkspace({
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">დასამატებელი თანხა</legend>
                 <label className="input">
+                  <span className="sr-only">დასამატებელი თანხა აშშ დოლარში</span>
                   <b>$</b>
                   <input
+                    aria-label="დასამატებელი თანხა აშშ დოლარში"
+                    type={balancesHidden ? "password" : "text"}
                     inputMode="decimal"
                     value={capital}
                     placeholder="0"
@@ -364,7 +408,7 @@ export function AllocationWorkspace({
                           <strong>{symbol(row.assetId)}</strong>
                         </span>
                         <strong className="numeric text-primary">
-                          {money(row.capital)}
+                          <BalanceValue>{money(row.capital)}</BalanceValue>
                         </strong>
                         {!preview && (
                           <TransactionForm
