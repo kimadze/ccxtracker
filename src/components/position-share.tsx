@@ -153,8 +153,6 @@ export function PositionShare({
         brand.naturalWidth * brandScale,
         brand.naturalHeight * brandScale,
       );
-      fitText("CCX", 250, 124, 64, 330, "#ffffff", 700);
-      fitText("Crypto Collective X", 250, 162, 30, 350, "#aab2c5", 400);
       const source = highResLogoUrl(position.asset.logoUrl);
       context.save();
       context.beginPath();
@@ -190,12 +188,11 @@ export function PositionShare({
         percentage(position.returnPercent, true),
         60,
         590,
-        160,
+        112,
         540,
         resultColor,
         800,
       );
-      fitText("მოგება / ზარალი", 65, 646, 30, 530, "#aab2c5", 400);
       fitText("შესყიდვის ფასი", 65, 760, 24, 270, "#aab2c5", 400);
       fitText("მიმდინარე ფასი", 375, 760, 24, 240, "#aab2c5", 400);
       fitText(
