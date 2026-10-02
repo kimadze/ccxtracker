@@ -8,7 +8,7 @@ import type { ValuedPosition } from "@/domain/types";
 import { money, percentage } from "@/lib/formatters";
 import { highResLogoUrl } from "@/lib/asset-logo";
 
-type ShareTemplate = "performance" | "reaction" | "mood";
+type ShareTemplate = "performance" | "reaction" | "mood" | "king";
 const templateStorageKey = "ccx-position-share-template";
 
 const loadImage = (src: string, timeoutMs = 1800) =>
@@ -113,6 +113,110 @@ export function PositionShare({
     target.width = W;
     target.height = H;
     const resultColor = positive ? "#46eeb2" : "#ff668b";
+    if (template === "king") {
+      target.width = 1536;
+      target.height = 1024;
+      const artwork = await loadImage(
+        positive
+          ? "/position-share-king-profit.webp"
+          : "/position-share-king-loss.webp",
+        12000,
+      );
+      context.drawImage(artwork, 0, 0, 1536, 1024);
+      const fitText = (
+        text: string,
+        x: number,
+        y: number,
+        size: number,
+        maxWidth: number,
+        color = "#f7f8ff",
+        weight = 600,
+      ) => {
+        context.fillStyle = color;
+        context.textAlign = "left";
+        context.font = `${weight} ${size}px "Noto Sans Georgian", Inter, Arial`;
+        while (context.measureText(text).width > maxWidth && size > 14) {
+          size -= 1;
+          context.font = `${weight} ${size}px "Noto Sans Georgian", Inter, Arial`;
+        }
+        context.fillText(text, x, y);
+      };
+      const brand = await loadImage("/position-share-king-logo.png", 8000);
+      const brandScale = Math.min(
+        150 / brand.naturalWidth,
+        150 / brand.naturalHeight,
+      );
+      context.drawImage(
+        brand,
+        60 + (150 - brand.naturalWidth * brandScale) / 2,
+        55 + (150 - brand.naturalHeight * brandScale) / 2,
+        brand.naturalWidth * brandScale,
+        brand.naturalHeight * brandScale,
+      );
+      fitText("CCX", 250, 124, 64, 330, "#ffffff", 700);
+      fitText("Crypto Collective X", 250, 162, 30, 350, "#aab2c5", 400);
+      const source = highResLogoUrl(position.asset.logoUrl);
+      context.save();
+      context.beginPath();
+      context.arc(135, 304, 70, 0, Math.PI * 2);
+      context.clip();
+      context.fillStyle = "#182032";
+      context.fillRect(65, 234, 140, 140);
+      if (source) {
+        try {
+          const logo = await loadImage(
+            `/api/asset-logo?url=${encodeURIComponent(source)}`,
+            4000,
+          );
+          const scale = Math.min(
+            140 / logo.naturalWidth,
+            140 / logo.naturalHeight,
+          );
+          context.drawImage(
+            logo,
+            135 - (logo.naturalWidth * scale) / 2,
+            304 - (logo.naturalHeight * scale) / 2,
+            logo.naturalWidth * scale,
+            logo.naturalHeight * scale,
+          );
+        } catch {
+          fitText(position.asset.symbol.slice(0, 3), 90, 319, 30, 90);
+        }
+      } else fitText(position.asset.symbol.slice(0, 3), 90, 319, 30, 90);
+      context.restore();
+      fitText(position.asset.symbol, 250, 322, 80, 350, "#ffffff", 700);
+      fitText(position.asset.name, 250, 376, 32, 350, "#aab2c5", 400);
+      fitText(
+        percentage(position.returnPercent, true),
+        60,
+        590,
+        160,
+        540,
+        resultColor,
+        800,
+      );
+      fitText("მოგება / ზარალი", 65, 646, 30, 530, "#aab2c5", 400);
+      fitText("შესყიდვის ფასი", 65, 760, 24, 270, "#aab2c5", 400);
+      fitText("მიმდინარე ფასი", 375, 760, 24, 240, "#aab2c5", 400);
+      fitText(
+        hideAmounts ? "••••••" : money(position.averagePrice),
+        65,
+        836,
+        48,
+        270,
+      );
+      fitText(
+        hideAmounts ? "••••••" : money(position.quote?.price ?? null),
+        375,
+        836,
+        48,
+        240,
+      );
+      line(context, 350, 738, 350, 847, "#697285");
+      fitText("ccxtracker.vercel.app", 65, 952, 28, 500, "#aab2c5", 400);
+      target.toBlob(publish, "image/png");
+      return;
+    }
     if (template === "mood") {
       const artwork = await loadImage(
         positive
@@ -635,7 +739,12 @@ export function PositionShare({
   };
   const openShare = () => {
     const saved = window.localStorage.getItem(templateStorageKey);
-    if (saved === "performance" || saved === "reaction" || saved === "mood")
+    if (
+      saved === "performance" ||
+      saved === "reaction" ||
+      saved === "mood" ||
+      saved === "king"
+    )
       setTemplate(saved);
     sharedImage.current = null;
     setReady(false);
@@ -756,17 +865,18 @@ export function PositionShare({
                   "performance",
                   "reaction",
                   "mood",
+                  "king",
                 ];
                 const index = items.indexOf(template);
                 const next =
                   event.key === "ArrowRight"
-                    ? (index + 1) % 3
+                    ? (index + 1) % items.length
                     : event.key === "ArrowLeft"
-                      ? (index + 2) % 3
+                      ? (index + items.length - 1) % items.length
                       : event.key === "Home"
                         ? 0
                         : event.key === "End"
-                          ? 2
+                          ? items.length - 1
                           : -1;
                 if (next < 0) return;
                 event.preventDefault();
@@ -808,6 +918,17 @@ export function PositionShare({
                 onClick={() => chooseTemplate("mood")}
               >
                 პერსონაჟი
+              </button>
+              <button
+                className={`tab min-h-11 shrink-0 ${template === "king" ? "tab-active" : ""}`}
+                type="button"
+                role="tab"
+                aria-selected={template === "king"}
+                tabIndex={template === "king" ? 0 : -1}
+                aria-controls={previewId}
+                onClick={() => chooseTemplate("king")}
+              >
+                მეფე და დათვი
               </button>
             </div>
             <p id="position-share-data" className="sr-only">
