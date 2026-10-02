@@ -170,6 +170,7 @@ export function Shell({
   const moreDialogRef = useRef<HTMLDialogElement>(null);
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
   const base = "/portfolios/" + activeId;
+  const isOverview = path === base;
   const currentSection =
     groups
       .flatMap((group) => group.links)
@@ -211,7 +212,14 @@ export function Shell({
         onChange={(event) => setMobileOpen(event.target.checked)}
       />
       <div className="drawer-content flex min-w-0 flex-1 flex-col bg-base-100">
-        <header className="navbar sticky top-0 z-20 min-h-16 border-b border-base-300 bg-base-100/95 px-4 backdrop-blur-xl lg:px-6 ccx-topbar">
+        {isOverview ? <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-16 lg:px-5">
+          <button type="button" className="btn btn-ghost btn-square hidden min-h-11 lg:flex" aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"} onClick={() => setCollapsed(v => !v)}><Menu size={18} /></button>
+          <select className="select min-h-11 w-auto min-w-0 max-w-[65%] flex-1 border-0 bg-transparent text-sm lg:max-w-64 lg:flex-none" aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={event => router.push("/portfolios/" + event.target.value)}>
+            {portfolios.map(portfolio => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}
+          </select>
+          <div className="ml-auto"><BalancePrivacyToggle /></div>
+          <div id="overview-toolbar" className="hidden items-center gap-2 lg:flex" />
+        </header> : <header className="navbar sticky top-0 z-20 min-h-16 border-b border-base-300 bg-base-100/95 px-4 backdrop-blur-xl lg:px-6 ccx-topbar">
           <div className="navbar-start min-w-0 gap-3">
             <div className="mobile-topbar-brand">
               <Brand compact />
@@ -281,8 +289,8 @@ export function Shell({
               </div>
             </details>
           </div>
-        </header>
-        <main id="main" className="container mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 lg:px-8 lg:py-8 ccx-main">
+        </header>}
+        <main id="main" className={isOverview ? "mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-3 pb-[calc(80px+env(safe-area-inset-bottom))] lg:px-5 lg:py-4" : "container mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 lg:px-8 lg:py-8 ccx-main"}>
           {children}
         </main>
         <nav className="dock mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
@@ -373,7 +381,7 @@ export function Shell({
               </form>
           </dialog>
         </nav>
-        <footer className="mx-4 flex flex-wrap justify-between gap-3 border-t border-line py-5 text-xs text-muted sm:mx-6">
+        <footer className={clsx("mx-4 flex-wrap justify-between gap-3 border-t border-line py-5 text-xs text-muted sm:mx-6", isOverview ? "hidden" : "flex")}>
           <span>© {new Date().getFullYear()} Crypto Collective X</span>
           <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
         </footer>

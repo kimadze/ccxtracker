@@ -6,8 +6,9 @@ import { decimal, percent } from "@/domain/decimal";
 import { dateTime, money, percentage, pnlClass } from "@/lib/formatters";
 import { AssetIcon } from "./positions";
 import { BalanceValue } from "./ui";
+import { OverviewToolbar } from "./overview-toolbar";
 
-export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = false, history, action }: {
+export function Overview({ summary: s, base, cryptoOnlyValue = false, history, action }: {
   summary: PortfolioSummary; base: string; portfolioName: string; cryptoOnlyValue?: boolean; history?: ReactNode; action?: ReactNode;
 }) {
   const positions = [...s.positions].sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0));
@@ -24,97 +25,86 @@ export function Overview({ summary: s, base, portfolioName, cryptoOnlyValue = fa
     share: cryptoTotal.gt(0) ? Number(percent(p.value ?? "0", cryptoTotal.toString()) ?? 0) : 0,
   }));
   if (crypto.length > 4) segments.push({ label: "სხვა", color: palette[4], share: Math.max(0, 100 - segments.reduce((sum, p) => sum + p.share, 0)) });
-  const secondary = <>
-    <Metric label="წმინდა კაპიტალი" value={money(netCapital)} hint="შეტანები − გატანები" sensitive />
-    <Metric label="რეალიზებული P/L" value={money(s.realizedPnl)} tone={pnlClass(s.realizedPnl)} sensitive />
-    <Metric label="არარეალიზებული P/L" value={money(s.unrealizedPnl)} tone={pnlClass(s.unrealizedPnl)} sensitive />
-    <Metric label="აქტიური პოზიციები" value={String(positions.length)} />
+  const metrics = [
+    ["წმინდა კაპიტალი", money(netCapital)],
+    ["რეალიზებული P/L", money(s.realizedPnl)],
+    ["არარეალიზებული P/L", money(s.unrealizedPnl)],
+    ["პოზიციები", String(positions.length)],
+  ];
+  const secondary = <dl className="space-y-3 text-sm">{metrics.map(([label, value], i) =>
+    <div key={label} className="flex flex-wrap items-baseline justify-between gap-2"><dt className="text-base-content/60">{label}</dt><dd className="whitespace-nowrap font-medium tabular-nums">{i < 3 ? <BalanceValue>{value}</BalanceValue> : value}</dd></div>
+  )}</dl>;
+  const allocation = <>{segments.length ? <>
+    <div className="flex h-2 overflow-hidden rounded-full bg-base-300">{segments.map((p) => <span key={p.label} className={p.color} style={{width: p.share + "%"}} />)}</div>
+    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">{segments.map((p) => <span key={p.label} className="flex items-center gap-1.5"><span className={`size-2 rounded-full ${p.color}`} />{p.label} <span className="text-base-content/60">{percentage(String(p.share))}</span></span>)}</div>
+  </> : <p className="text-xs text-base-content/60">აქტივები ჯერ არ არის</p>}
+    <Link href={base + "/allocation"} className="btn btn-ghost mt-2 min-h-11 text-xs">განაწილება <ArrowUpRight size={16} /></Link>
   </>;
+  const liquidityDetails = <dl className="space-y-3 text-sm">
+    <div className="flex flex-wrap justify-between gap-2"><dt className="text-base-content/60">ნაღდი ფული</dt><dd className="whitespace-nowrap"><BalanceValue>{money(s.cash)}</BalanceValue></dd></div>
+    <div className="flex flex-wrap justify-between gap-2"><dt className="text-base-content/60">სტეიბლკოინები</dt><dd className="whitespace-nowrap"><BalanceValue>{money(s.stablecoinValue)}</BalanceValue></dd></div>
+  </dl>;
+  const status = <details className="dropdown dropdown-end">
+    <summary className="btn btn-ghost min-h-11 gap-2 px-2 text-xs" aria-label="ფასების განახლების სტატუსი">
+      <span className={`status status-xs ${s.complete && !s.stale ? "status-success" : "status-warning"}`} /><span className="hidden xl:inline">{freshness}</span>
+    </summary>
+    <div className="dropdown-content z-30 w-56 rounded-box border border-base-300 bg-base-200 p-3 text-xs shadow-lg">{freshness}{updatedAt && <p className="mt-2">{dateTime(updatedAt)}</p>}</div>
+  </details>;
 
-  return <div className="mx-auto w-full min-w-0 max-w-7xl space-y-5">
-    <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <p className="truncate text-xs text-base-content/50">{portfolioName}</p>
-        <h1 className="mt-1 text-xl font-semibold sm:text-2xl">პორტფელის მიმოხილვა</h1>
-        <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-base-content/60">
-          <span className={`status status-xs ${s.complete && !s.stale ? "status-success" : "status-warning"}`} />
-          {freshness}{updatedAt && <span>· {dateTime(updatedAt)}</span>}
-        </p>
-      </div>
-      <div className="shrink-0 [&>button]:min-h-11 [&>button]:w-full sm:[&>button]:w-auto">{action}</div>
-    </header>
-
-    <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(17rem,1fr)]">
-      <section className="min-w-0 space-y-4" aria-label="ღირებულება და ისტორია">
-        <div className="hover-3d w-full min-w-0 [@media(hover:none)]:pointer-events-none motion-reduce:pointer-events-none [&>:first-child]:scale-100! [@media(hover:none)]:[&>:first-child]:transform-none! motion-reduce:[&>:first-child]:transform-none! motion-reduce:[&>:first-child]:transition-none!">
-          <div className="card card-border w-full min-w-0 bg-base-200">
-            <div className="card-body gap-3 p-5 sm:p-6">
-              <h2 className="text-sm text-base-content/65">{cryptoOnlyValue ? "კრიპტოაქტივების ღირებულება" : "პორტფელის ღირებულება"}</h2>
-              <p className="break-all text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl"><BalanceValue>{money(displayedValue)}</BalanceValue></p>
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className={`text-base font-semibold tabular-nums ${pnlClass(s.totalPnl)}`}><BalanceValue>{s.totalPnl !== null && decimal(s.totalPnl).gt(0) ? "+" : ""}{money(s.totalPnl)}</BalanceValue></span>
-                <span className="text-xs text-base-content/50">მთლიანი P/L</span>
-              </div>
-              <p className="text-xs text-base-content/45">{cryptoOnlyValue ? "ნაღდი ფულისა და სტეიბლკოინების გარეშე" : "კრიპტოაქტივები და ლიკვიდობა"}</p>
-              {!s.complete && <p role="status" className="text-xs text-warning">შეფასება ნაწილობრივია — ზოგი აქტივის ფასი მიუწვდომელია.</p>}
+  return <div className="w-full min-w-0">
+    <h1 className="sr-only">პორტფელის მიმოხილვა</h1>
+    <OverviewToolbar>{status}{action}</OverviewToolbar>
+    <div className="grid min-w-0 grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)] lg:gap-4">
+      <section className="card card-border min-w-0 bg-base-200 lg:col-start-1 lg:row-start-1" aria-label="ღირებულება და ისტორია">
+        <div className="card-body gap-3 p-3! sm:p-4!">
+          <div className="flex items-center justify-between gap-2"><h2 className="text-xs text-base-content/65">{cryptoOnlyValue ? "კრიპტოაქტივების ღირებულება" : "პორტფელის ღირებულება"}</h2><div className="lg:hidden">{status}</div></div>
+          <div className="hover-3d w-full min-w-0 [@media(hover:none)]:pointer-events-none motion-reduce:pointer-events-none [&>:first-child]:scale-100! [@media(hover:none)]:[&>:first-child]:transform-none! motion-reduce:[&>:first-child]:transform-none! motion-reduce:[&>:first-child]:transition-none!">
+            <div className="min-w-0 rounded-box bg-base-200">
+              <p className="overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums"><BalanceValue>{money(displayedValue)}</BalanceValue></p>
+              <p className="mt-2 flex flex-wrap items-baseline gap-2 text-sm"><span className={`whitespace-nowrap font-semibold tabular-nums ${pnlClass(s.totalPnl)}`}><BalanceValue>{money(s.totalPnl)}</BalanceValue></span><span className="text-xs text-base-content/60">მთლიანი P/L</span></p>
             </div>
+            <div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" />
           </div>
-          <div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" /><div aria-hidden="true" />
-        </div>
-        <div className="card card-border min-w-0 bg-base-200">
-          <div className="card-body min-w-0 gap-4 p-4 sm:p-6">
-            <h2 className="text-sm font-semibold">ღირებულების ისტორია</h2>
-            {history ?? <p className="py-4 text-sm text-base-content/55">ისტორიისთვის საჭიროა მინიმუმ ორი შეფასება.</p>}
+          {(!s.complete || s.stale) && <p role="status" className="text-xs text-warning">{!s.complete ? "ზოგი აქტივის ფასი მიუწვდომელია" : "ფასები დაგვიანებულია"}</p>}
+          <div className="min-w-0 border-t border-base-300 pt-3">
+            <h2 className="mb-1 text-xs text-base-content/60">პორტფელის ისტორია · ლიკვიდობის ჩათვლით</h2>
+            {history ?? <p className="py-2 text-xs text-base-content/60">ისტორია ჯერ არ არის</p>}
           </div>
         </div>
       </section>
 
-      <aside className="min-w-0 space-y-4">
-        <section className="card card-border bg-base-200">
-          <div className="card-body gap-3 p-5">
-            <h2 className="text-sm font-semibold">ლიკვიდობა</h2>
-            <p className="break-all text-2xl font-semibold tabular-nums"><BalanceValue>{money(s.liquidity)}</BalanceValue></p>
-            <p className="text-xs text-base-content/50">პორტფელის {percentage(liquidityShare)}</p>
-            <progress className="progress h-1.5 w-full" value={Number(liquidityShare ?? 0)} max="100" aria-label="ლიკვიდობის წილი" />
-            <dl className="space-y-3 border-t border-base-300 pt-3 text-sm">
-              <div className="flex flex-wrap justify-between gap-2"><dt className="text-base-content/55">ნაღდი ფული</dt><dd><BalanceValue>{money(s.cash)}</BalanceValue></dd></div>
-              <div className="flex flex-wrap justify-between gap-2"><dt className="text-base-content/55">სტეიბლკოინები</dt><dd><BalanceValue>{money(s.stablecoinValue)}</BalanceValue></dd></div>
-            </dl>
-            {liquidityShare !== null && Number(liquidityShare) < 10 && <p className="text-xs text-base-content/55">ლიკვიდობის წილი 10%-ზე ნაკლებია.</p>}
-          </div>
-        </section>
-        <section className="card card-border bg-base-200">
-          <div className="card-body gap-3 p-5">
-            <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold">კრიპტო განაწილება</h2><Link href={`${base}/allocation`} className="btn btn-ghost btn-square min-h-11 min-w-11" aria-label="განაწილების ნახვა"><ArrowUpRight size={18} /></Link></div>
-            {segments.length ? <>
-              <div className="flex h-2 overflow-hidden rounded-full bg-base-300">{segments.map((p) => <span key={p.label} className={p.color} style={{ width: `${p.share}%` }} />)}</div>
-              <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">{segments.map((p) => <span key={p.label} className="flex items-center gap-1.5"><span className={`size-2 rounded-full ${p.color}`} />{p.label}<span className="text-base-content/50">{percentage(String(p.share))}</span></span>)}</div>
-              {segments[0].share >= 35 && <p className="text-xs text-base-content/55">{segments[0].label} კრიპტოაქტივების უდიდესი წილია.</p>}
-            </> : <p className="text-sm text-base-content/55">კრიპტოაქტივები ჯერ არ არის.</p>}
-            <p className="text-xs text-base-content/40">ლიკვიდობის გარეშე</p>
-          </div>
-        </section>
-      </aside>
-    </div>
-
-    <section className="card card-border bg-base-200">
-      <div className="card-body gap-0 p-4 sm:p-6">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h2 className="text-base font-semibold">თქვენი აქტივები</h2><Link href={`${base}/positions`} className="btn btn-ghost min-h-11">ყველა პოზიცია <ArrowUpRight size={16} /></Link></div>
-        <ul className="list">{positions.slice(0, 6).map((p, i) => <li key={p.assetId} className="border-b border-base-300 last:border-0">
-          <Link href={`${base}/positions/${p.assetId}`} className="flex min-h-20 items-center gap-3 rounded-field py-3 transition-colors hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary">
-            <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} />
-            <div className="min-w-0 flex-1"><p className="font-semibold">{p.asset.symbol}</p><p className="truncate text-xs text-base-content/50">{p.asset.name}</p></div>
-            <div className="min-w-0 max-w-[60%] text-right tabular-nums"><p className="break-all font-semibold"><BalanceValue>{money(p.value)}</BalanceValue></p><p className={`mt-1 text-xs ${pnlClass(p.returnPercent)}`}>{percentage(p.returnPercent, true)}</p></div>
-          </Link>
-        </li>)}</ul>
-        {!positions.length && <p className="py-6 text-sm text-base-content/55">პოზიციები ჯერ არ არის. დასაწყებად დაამატეთ ტრანზაქცია.</p>}
+      <div className="grid min-w-0 items-start gap-3 md:grid-cols-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:items-stretch lg:gap-4">
+        <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:hidden">
+          <summary className="collapse-title flex min-h-14 flex-wrap items-center justify-between gap-2 py-3 pl-3 pr-10 text-sm"><span>ლიკვიდობა</span><span className="whitespace-nowrap font-semibold tabular-nums"><BalanceValue>{money(s.liquidity)}</BalanceValue><span className="ml-2 text-xs font-normal text-base-content/60">{percentage(liquidityShare)}</span></span></summary>
+          <div className="collapse-content">{liquidityDetails}</div>
+        </details>
+        <section className="card card-border hidden bg-base-200 lg:block"><div className="card-body gap-3 p-4!">
+          <h2 className="text-sm font-semibold">ლიკვიდობა</h2><p className="overflow-x-auto whitespace-nowrap text-2xl font-semibold tabular-nums"><BalanceValue>{money(s.liquidity)}</BalanceValue></p>
+          <div className="flex items-center gap-3"><progress className="progress h-1.5 flex-1" value={Number(liquidityShare ?? 0)} max="100" aria-label="ლიკვიდობის წილი" /><span className="text-xs text-base-content/60">{percentage(liquidityShare)}</span></div>{liquidityDetails}
+        </div></section>
+        <section className="card card-border hidden bg-base-200 md:block"><div className="card-body gap-3 p-4!"><h2 className="text-sm font-semibold">კრიპტო განაწილება</h2>{allocation}</div></section>
+        <section className="card card-border hidden bg-base-200 lg:block" aria-label="დამატებითი მაჩვენებლები"><div className="card-body p-4!">{secondary}</div></section>
       </div>
-    </section>
-    <details className="collapse collapse-arrow border border-base-300 bg-base-200 md:hidden">
-      <summary className="collapse-title min-h-11 text-sm font-medium">დამატებითი მაჩვენებლები</summary>
-      <div className="collapse-content"><div className="stats stats-vertical w-full bg-transparent">{secondary}</div></div>
-    </details>
-    <section aria-label="დამატებითი მაჩვენებლები" className="hidden min-w-0 rounded-box border border-base-300 bg-base-200 md:grid md:grid-cols-2 xl:grid-cols-4">{secondary}</section>
+
+      <section className="card card-border min-w-0 bg-base-200 lg:col-start-1 lg:row-start-2">
+        <div className="card-body gap-0 p-3! sm:p-4!">
+          <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold">აქტივები</h2><Link href={base + "/positions"} className="btn btn-ghost min-h-11 px-2 text-xs">ყველა <ArrowUpRight size={16} /></Link></div>
+          <ul className="list lg:hidden">{positions.slice(0,6).map((p,i) => <li key={p.assetId} className="border-b border-base-300 last:border-0">
+            <Link href={base + "/positions/" + p.assetId} className="flex min-h-[60px] items-center gap-2 py-2">
+              <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} size={32} />
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold">{p.asset.symbol}</span>
+              <span className="min-w-0 max-w-[72%] text-right tabular-nums"><span className="block overflow-x-auto whitespace-nowrap text-sm font-semibold"><BalanceValue>{money(p.value)}</BalanceValue></span><span className={`block text-xs ${pnlClass(p.returnPercent)}`}>{percentage(p.returnPercent,true)}</span></span>
+            </Link>
+          </li>)}</ul>
+          <div className="hidden overflow-x-auto lg:block"><table className="table table-sm text-xs! [&_th]:px-2! [&_td]:px-2!"><thead><tr><th>აქტივი</th><th className="text-right">ფასი</th><th className="text-right">ღირებულება</th><th className="text-right">P/L</th></tr></thead><tbody>
+            {positions.slice(0,6).map((p,i) => <tr key={p.assetId}><td><Link href={base + "/positions/" + p.assetId} className="flex min-h-11 items-center gap-2"><AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} index={i} size={32} /><span className="min-w-0"><span className="block font-semibold">{p.asset.symbol}</span><span className="block max-w-16 truncate xl:max-w-32 text-xs text-base-content/60">{p.asset.name}</span></span></Link></td><td className="whitespace-nowrap text-right tabular-nums">{money(p.quote?.price)}</td><td className="whitespace-nowrap text-right font-semibold tabular-nums"><BalanceValue>{money(p.value)}</BalanceValue></td><td className={`whitespace-nowrap text-right tabular-nums ${pnlClass(p.returnPercent)}`}>{percentage(p.returnPercent,true)}</td></tr>)}
+          </tbody></table></div>
+          {!positions.length && <p className="py-3 text-xs text-base-content/60">პოზიციები ჯერ არ არის</p>}
+        </div>
+      </section>
+      <details className="collapse collapse-arrow border border-base-300 bg-base-200 md:hidden"><summary className="collapse-title min-h-11 py-3 text-sm">კრიპტო განაწილება</summary><div className="collapse-content">{allocation}</div></details>
+      <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:hidden"><summary className="collapse-title min-h-11 py-3 text-sm">დამატებითი მაჩვენებლები</summary><div className="collapse-content">{secondary}</div></details>
+    </div>
   </div>;
 }
 

@@ -17,11 +17,13 @@ export function HistoryChart({
   illustrative = false,
   showPeriodControls = true,
   emptyAction,
+  compact = false,
 }: {
   snapshots: Pick<Snapshot, "capturedAt" | "value">[];
   illustrative?: boolean;
   showPeriodControls?: boolean;
   emptyAction?: ReactNode;
+  compact?: boolean;
 }) {
   const [period, setPeriod] = useState<
     "1D" | "7D" | "1M" | "3M" | "1Y" | "ALL"
@@ -61,12 +63,12 @@ export function HistoryChart({
   }, [snapshots, period, showPeriodControls]);
   if (!snapshots.length)
     return (
-      <div className="py-4 text-left">
+      <div className={compact ? "py-2 text-left" : "py-4 text-left"}>
         <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
-        <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
+        {!compact && <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
           მიმდინარე შეფასება ავტომატურად შეინახება და ყოველდღიური განახლებები
           მას გააგრძელებს.
-        </p>
+        </p>}
         {emptyAction && <div className="mt-4">{emptyAction}</div>}
       </div>
     );
@@ -74,7 +76,7 @@ export function HistoryChart({
     <div>
       {showPeriodControls && (
         <div
-          className="tabs tabs-box mb-3 flex flex-wrap"
+          className="tabs tabs-box mb-1 flex flex-wrap"
           role="group"
           aria-label="გრაფიკის პერიოდი"
         >
@@ -83,7 +85,7 @@ export function HistoryChart({
               key={item}
               type="button"
               aria-pressed={period === item}
-              className={`tab min-h-11 ${period === item ? "tab-active" : ""}`}
+              className={`tab min-h-11 min-w-11 px-2 ${period === item ? "tab-active" : ""}`}
               onClick={() => setPeriod(item)}
             >
               {item}
@@ -100,7 +102,7 @@ export function HistoryChart({
       )}
       <div
         ref={chartRef}
-        className={points.length < 2 ? "hidden" : "h-56 w-full min-w-0"}
+        className={points.length < 2 ? "hidden" : compact ? "h-[140px] w-full min-w-0 lg:h-[220px]" : "h-56 w-full min-w-0"}
         role="img"
         aria-label={
           illustrative
