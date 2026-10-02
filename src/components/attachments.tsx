@@ -70,7 +70,7 @@ export function Attachments({
           }}
         >
           <Field label="ფაილის არჩევა">
-            <input className="input input-bordered"
+            <input className="file-input"
               type="file"
               name="file"
               accept="application/pdf,image/png,image/jpeg"

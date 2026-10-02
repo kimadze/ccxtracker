@@ -278,7 +278,7 @@ export function Shell({
                 <span className="mobile-bottom-icon">
                   <Icon size={segment === "transactions" ? 24 : 19} />
                 </span>
-                <span className="dock-label">{label}</span>
+                <span className="dock-label max-md:hidden">{label}</span>
               </Link>
             );
           })}
@@ -291,7 +291,7 @@ export function Shell({
             <span className="mobile-bottom-icon">
               <Menu size={19} />
             </span>
-            <span className="dock-label">მეტი</span>
+            <span className="dock-label max-md:hidden">მეტი</span>
           </button>
         </nav>
         <dialog

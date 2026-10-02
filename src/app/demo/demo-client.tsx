@@ -261,7 +261,7 @@ export function DemoClient() {
           </div>
           <label>
             <Search size={16} />
-            <input className="input input-bordered"
+            <input className="input"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={
@@ -730,7 +730,7 @@ function DemoForm({
             <div className="wallet-form-grid">
               <label>
                 <span>აქტივი</span>
-                <select className="select select-bordered" defaultValue="bitcoin">
+                <select className="select" defaultValue="bitcoin">
                   <option value="bitcoin">BTC · Bitcoin</option>
                   <option value="ethereum">ETH · Ethereum</option>
                   <option value="solana">SOL · Solana</option>
@@ -738,20 +738,20 @@ function DemoForm({
               </label>
               <label>
                 <span>რაოდენობა</span>
-                <input className="input input-bordered" inputMode="decimal" placeholder="0.00" required />
+                <input className="input" inputMode="decimal" placeholder="0.00" required />
               </label>
               <label>
                 <span>ერთეულის ფასი (USD)</span>
-                <input className="input input-bordered" inputMode="decimal" placeholder="0.00" required />
+                <input className="input" inputMode="decimal" placeholder="0.00" required />
               </label>
               <label>
                 <span>საკომისიო (USD)</span>
-                <input className="input input-bordered" inputMode="decimal" defaultValue="0" />
+                <input className="input" inputMode="decimal" defaultValue="0" />
               </label>
               <label>
                 <span>თარიღი და დრო</span>
                 <input
-                  className="input input-bordered"
+                  className="input"
                   type="datetime-local"
                   defaultValue="2026-10-01T14:32"
                   required
@@ -759,7 +759,7 @@ function DemoForm({
               </label>
               <label className="wide">
                 <span>შენიშვნა</span>
-                <textarea className="textarea textarea-bordered" placeholder="სურვილისამებრ" />
+                <textarea className="textarea" placeholder="სურვილისამებრ" />
               </label>
             </div>
             <div className="wallet-form-actions">

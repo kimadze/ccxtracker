@@ -131,11 +131,13 @@ export function Field({
   const control = isValidElement(children)
     ? typeof children.type === "string"
       ? children.type === "select"
-        ? "select min-h-11 w-full text-sm"
+        ? "select min-h-11 w-full text-base md:text-sm"
         : children.type === "textarea"
-          ? "textarea min-h-24 w-full text-sm"
-          : children.type === "input" && childProps?.type !== "checkbox"
-            ? "input min-h-11 w-full text-sm"
+          ? "textarea min-h-24 w-full text-base md:text-sm"
+          : children.type === "input" && childProps?.type === "file"
+            ? "file-input min-h-11 w-full text-base md:text-sm"
+          : children.type === "input" && !["checkbox", "radio", "hidden"].includes(childProps?.type ?? "text")
+            ? "input min-h-11 w-full text-base md:text-sm"
             : ""
       : ""
     : "";

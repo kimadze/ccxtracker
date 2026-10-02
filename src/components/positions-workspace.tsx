@@ -213,7 +213,7 @@ export function PositionsWorkspace({
               <label className="fieldset mt-3">
                 <span>დალაგება</span>
                 <select
-                  className="select select-bordered"
+                  className="select"
                   value={sort}
                   onChange={(event) => setSort(event.target.value)}
                 >

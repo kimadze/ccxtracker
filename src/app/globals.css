@@ -42,9 +42,32 @@
 }
 @utility input {
   min-height: 44px;
+  min-width: 0;
+  background-color: var(--color-base-100);
+  border-color: color-mix(in oklab, var(--color-base-content) 22%, transparent);
+  font-size: 16px;
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
 }
 @utility select {
   min-height: 44px;
+  min-width: 0;
+  background-color: var(--color-base-100);
+  border-color: color-mix(in oklab, var(--color-base-content) 22%, transparent);
+  font-size: 16px;
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+}
+@utility textarea {
+  min-width: 0;
+  background-color: var(--color-base-100);
+  border-color: color-mix(in oklab, var(--color-base-content) 22%, transparent);
+  font-size: 16px;
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
 }
 
 @import "@fontsource/noto-sans-georgian/400.css";
