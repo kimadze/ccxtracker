@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
@@ -70,20 +70,17 @@ const groups: { title: string; links: NavItem[] }[] = [
 function Navigation({
   base,
   path,
-  compact,
   onNavigate,
 }: {
   base: string;
   path: string;
-  compact: boolean;
   onNavigate?: () => void;
 }) {
   return (
-    <ul aria-label="მთავარი ნავიგაცია" className="menu menu-md w-full flex-1 gap-1">
+    <ul aria-label="მთავარი ნავიგაცია" className="menu menu-md w-full flex-1 gap-1 p-0">
       {groups.map((group) => (
-        <li key={group.title}>
-          <h2 className={clsx("menu-title ccx-section-label nav-label", compact && "lg:hidden")}>{group.title}</h2>
-          <ul>
+        <Fragment key={group.title}>
+          <li className={"menu-title mt-2 px-3 py-1 text-xs lg:is-drawer-close:hidden"}>{group.title}</li>
             {group.links.map(([segment, label, Icon]) => {
               const href = base + (segment ? "/" + segment : "");
               const active =
@@ -99,8 +96,8 @@ function Navigation({
                     onClick={onNavigate}
                     className={clsx(
                       active && "menu-active",
-                      compact && "lg:justify-center",
-                      "min-h-11 gap-3 rounded-field text-sm ccx-nav-link",
+                      "lg:is-drawer-close:justify-center lg:is-drawer-close:px-0",
+                      "min-h-11 gap-3 rounded-field px-3 text-sm",
                     )}
                   >
                     <Icon
@@ -109,13 +106,12 @@ function Navigation({
                       strokeWidth={1.75}
                       className="shrink-0"
                     />
-                    <span className={clsx("nav-label truncate", compact && "lg:hidden")}>{label}</span>
+                    <span className={"nav-label truncate lg:is-drawer-close:hidden"}>{label}</span>
                   </Link>
                 </li>
               );
             })}
-          </ul>
-        </li>
+        </Fragment>
       ))}
     </ul>
   );
@@ -164,8 +160,7 @@ export function Shell({
 }) {
   const path = usePathname();
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreDialogRef = useRef<HTMLDialogElement>(null);
   const activeId = path.split("/")[2] ?? portfolios[0]?.id;
@@ -208,8 +203,8 @@ export function Shell({
         id="ccx-main-drawer"
         type="checkbox"
         className="drawer-toggle"
-        checked={mobileOpen}
-        onChange={(event) => setMobileOpen(event.target.checked)}
+        checked={drawerOpen}
+        onChange={(event) => setDrawerOpen(event.target.checked)}
       />
       <div className="drawer-content flex min-w-0 flex-1 flex-col bg-base-100">
         {isOverview ? <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-16 lg:px-5">
@@ -220,7 +215,7 @@ export function Shell({
           >
             <Menu size={19} />
           </label>
-          <button type="button" className="btn btn-ghost btn-square hidden min-h-11 lg:flex" aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"} aria-expanded={!collapsed} onClick={() => setCollapsed(v => !v)}><Menu size={18} /></button>
+          <button type="button" className="btn btn-ghost btn-square hidden min-h-11 lg:flex" aria-label={drawerOpen ? "მენიუს შეკუმშვა" : "მენიუს გაშლა"} aria-expanded={drawerOpen} onClick={() => setDrawerOpen(v => !v)}><Menu size={18} /></button>
           <select className="select min-h-11 w-full min-w-0 flex-1 border-0 bg-transparent px-1 text-sm lg:max-w-64 lg:flex-none" aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={event => router.push("/portfolios/" + event.target.value)}>
             {portfolios.map(portfolio => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}
           </select>
@@ -234,9 +229,9 @@ export function Shell({
             <button
               type="button"
               className="btn btn-ghost btn-square desktop-menu-trigger ccx-icon-button"
-              aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"}
-              aria-expanded={!collapsed}
-              onClick={() => setCollapsed((value) => !value)}
+              aria-label={drawerOpen ? "მენიუს შეკუმშვა" : "მენიუს გაშლა"}
+              aria-expanded={drawerOpen}
+              onClick={() => setDrawerOpen((value) => !value)}
             >
               <Menu size={18} />
             </button>
@@ -407,29 +402,29 @@ export function Shell({
         />
         <aside
           className={clsx(
-            "flex min-h-full w-64 max-w-[85vw] flex-col overflow-y-auto border-r border-base-300 bg-base-200 px-3 py-5 text-base-content transition-[width,padding] duration-200",
-            collapsed && "lg:w-[76px] lg:px-2",
+            "flex h-dvh w-64 max-w-[85vw] flex-col overflow-y-auto overflow-x-hidden border-r border-base-300 bg-base-200 px-3 py-4 text-base-content transition-[width,padding] duration-200 motion-reduce:transition-none",
+            "lg:is-drawer-close:w-[76px] lg:is-drawer-close:px-2 lg:is-drawer-open:w-64",
           )}
           aria-label="გვერდითი მენიუ"
         >
-          <div className="mb-5 flex items-center px-1">
-            <span className="lg:hidden"><Brand /></span>
-            <span className="hidden lg:block"><Brand compact={collapsed} /></span>
+          <div className={"mb-4 flex shrink-0 items-center px-1 lg:is-drawer-close:justify-center lg:is-drawer-close:px-0"}>
+            <Brand compact={!drawerOpen} />
           </div>
           <Navigation
             base={base}
             path={path}
-            compact={collapsed}
-            onNavigate={() => setMobileOpen(false)}
+            onNavigate={() => {
+              if (window.matchMedia("(max-width: 1023px)").matches) setDrawerOpen(false);
+            }}
           />
           <div className="mt-5 border-t border-base-300 pt-4">
-            <div className={clsx("nav-label", collapsed && "lg:hidden")}>
+            <div className={"nav-label lg:is-drawer-close:hidden"}>
               <PortfolioCreate compact />
             </div>
-            <div className={clsx("nav-label", collapsed && "lg:hidden")}>
+            <div className={"nav-label lg:is-drawer-close:hidden"}>
               <LogoutButton />
             </div>
-            <p className={clsx("nav-label mt-4 px-3 text-xs text-base-content/50", collapsed && "lg:hidden")}>
+            <p className={"nav-label mt-4 px-3 text-xs text-base-content/50 lg:is-drawer-close:hidden"}>
               Crypto Collective X
             </p>
           </div>

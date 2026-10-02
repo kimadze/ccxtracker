@@ -4,6 +4,7 @@ import { Client } from "pg";
 
 test("compact overview supports funded positions, privacy and responsive layouts", async ({ page }, info) => {
   test.setTimeout(180000);
+  page.setDefaultTimeout(10000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const cookies = JSON.parse(await readFile(".local/e2e-cookies.json", "utf8"));
   await page.context().addCookies([{ name: "better-auth.session_token", value: cookies["alice-" + info.project.name], domain: "localhost", path: "/" }]);
@@ -53,27 +54,36 @@ test("compact overview supports funded positions, privacy and responsive layouts
     await page.screenshot({ path: ".local/compact-" + info.project.name + "-" + width + ".png", fullPage: true });
   }
   const sidebar = page.getByRole("complementary", { name: "გვერდითი მენიუ" });
+  await expect(sidebar).toHaveCSS("width", "76px");
+  await page.getByRole("button", { name: "მენიუს გაშლა" }).click();
+  await expect(page.locator("#ccx-main-drawer")).toBeChecked();
+  await expect(sidebar).toHaveCSS("width", "256px");
   await expect(page.getByRole("button", { name: "მენიუს შეკუმშვა" })).toBeVisible();
   await page.getByRole("button", { name: "მენიუს შეკუმშვა" }).click();
   await expect(page.getByRole("button", { name: "მენიუს გაშლა" })).toHaveAttribute("aria-expanded", "false");
   await expect(sidebar).toHaveCSS("width", "76px");
   await expect(sidebar.locator(".menu-title").first()).toBeHidden();
+  expect(await sidebar.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await page.screenshot({ path: ".local/compact-menu-" + info.project.name + ".png", fullPage: true });
   await page.getByRole("button", { name: "მენიუს გაშლა" }).click();
   await expect(sidebar).toHaveCSS("width", "256px");
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-balance-privacy", "hidden");
   await expect(page.locator(".balance-value").first()).toHaveCSS("color", "rgba(0, 0, 0, 0)");
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
+  await expect(page.locator(".aura")).toHaveCSS("animation-duration", "24s");
+  expect(await page.locator(".aura > div").evaluate(el => getComputedStyle(el).color)).toBe(await page.locator("body").evaluate(el => getComputedStyle(el).color));
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".hover-3d > :first-child")).toHaveCSS("transform", "none");
+  await expect(page.locator(".aura")).toHaveCSS("animation-name", "none");
   await page.locator('a[href$="/positions/bitcoin"]:visible').click();
   await expect(page).toHaveURL(/positions\/bitcoin$/);
   await page.goto(base);
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
   await page.locator('label[for="ccx-main-drawer"][aria-label="მენიუს გახსნა"]').click();
   await expect(page.locator("#ccx-main-drawer")).toBeChecked();
   await expect(page.getByRole("complementary", { name: "გვერდითი მენიუ" })).toBeVisible();
-  await page.locator('label[for="ccx-main-drawer"][aria-label="მენიუს დახურვა"]').click();
+  await page.locator('label[for="ccx-main-drawer"][aria-label="მენიუს დახურვა"]').click({ position: { x: 350, y: 20 } });
   await expect(page.locator("#ccx-main-drawer")).not.toBeChecked();
   await page.getByText("ლიკვიდობა", { exact: true }).filter({ visible: true }).click();
   await expect(page.getByText("ნაღდი ფული", { exact: true }).filter({ visible: true })).toBeVisible();
