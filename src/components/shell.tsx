@@ -254,7 +254,7 @@ export function Shell({
         >
           {children}
         </main>
-        <nav className="dock mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
+        <nav className="dock dock-sm md:dock-md mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
           {mobileLinks.map(([segment, label, Icon]) => {
             const href =
               segment === "transactions"

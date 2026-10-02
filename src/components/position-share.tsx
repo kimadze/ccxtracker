@@ -300,7 +300,7 @@ export function PositionShare({
       context.fillStyle = "#8da2d5";
       context.font = '600 19px "Noto Sans Georgian", Inter, Arial';
       context.fillText(
-        positive ? "მოგებიანი პოზიცია" : "წაგებიანი პოზიცია",
+        positive ? "" : "",
         172,
         316,
       );
@@ -473,7 +473,7 @@ export function PositionShare({
       context.fillStyle = "#91a7de";
       context.font = '600 22px "Noto Sans Georgian", Inter, Arial';
       context.fillText(
-        positive ? "მოგებიანი პოზიცია" : "წაგებიანი პოზიცია",
+        positive ? "" : "",
         176,
         855,
       );
