@@ -62,6 +62,11 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await expect(page).toHaveURL(/positions\/bitcoin$/);
   await page.goto(base);
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('label[for="ccx-main-drawer"][aria-label="მენიუს გახსნა"]').click();
+  await expect(page.locator("#ccx-main-drawer")).toBeChecked();
+  await expect(page.getByRole("complementary", { name: "გვერდითი მენიუ" })).toBeVisible();
+  await page.locator('label[for="ccx-main-drawer"][aria-label="მენიუს დახურვა"]').click();
+  await expect(page.locator("#ccx-main-drawer")).not.toBeChecked();
   await page.getByText("ლიკვიდობა", { exact: true }).filter({ visible: true }).click();
   await expect(page.getByText("ნაღდი ფული", { exact: true }).filter({ visible: true })).toBeVisible();
   await page.getByRole("link", { name: "დამატება", exact: true }).click();

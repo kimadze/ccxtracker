@@ -491,9 +491,6 @@ tbody tr:hover {
   font: inherit;
   letter-spacing: 0.08em;
 }
-.ccx-icon-button.mobile-menu-trigger {
-  display: none;
-}
 .ccx-search:hover,
 .ccx-icon-button:hover {
   border-color: var(--accent);
@@ -2844,7 +2841,6 @@ textarea:focus {
     display: block;
   }
 
-  .mobile-menu-trigger,
   .desktop-menu-trigger,
   .breadcrumb,
   .ccx-topbar > div:last-child > label,
@@ -3516,9 +3512,6 @@ textarea:focus {
   .mobile-topbar-brand {
     display: block;
   }
-  .ccx-topbar .mobile-menu-trigger {
-    display: none !important;
-  }
   .ccx-topbar .ccx-search {
     display: none;
   }
@@ -3606,9 +3599,6 @@ textarea:focus {
   .overview-next-actions.mobile article a svg {
     width: 15px;
     height: 15px;
-  }
-  .ccx-icon-button.mobile-menu-trigger {
-    display: none !important;
   }
   .breadcrumb {
     display: none;

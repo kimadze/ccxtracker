@@ -213,8 +213,15 @@ export function Shell({
       />
       <div className="drawer-content flex min-w-0 flex-1 flex-col bg-base-100">
         {isOverview ? <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-16 lg:px-5">
+          <label
+            htmlFor="ccx-main-drawer"
+            className="btn btn-ghost btn-square drawer-button min-h-11 min-w-11 lg:hidden"
+            aria-label="მენიუს გახსნა"
+          >
+            <Menu size={19} />
+          </label>
           <button type="button" className="btn btn-ghost btn-square hidden min-h-11 lg:flex" aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"} onClick={() => setCollapsed(v => !v)}><Menu size={18} /></button>
-          <select className="select min-h-11 w-auto min-w-0 max-w-[65%] flex-1 border-0 bg-transparent text-sm lg:max-w-64 lg:flex-none" aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={event => router.push("/portfolios/" + event.target.value)}>
+          <select className="select min-h-11 w-full min-w-0 flex-1 border-0 bg-transparent px-1 text-sm lg:max-w-64 lg:flex-none" aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={event => router.push("/portfolios/" + event.target.value)}>
             {portfolios.map(portfolio => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}
           </select>
           <div className="ml-auto"><BalancePrivacyToggle /></div>
@@ -235,7 +242,7 @@ export function Shell({
             </button>
             <label
               htmlFor="ccx-main-drawer"
-              className="btn btn-ghost btn-square drawer-button mobile-menu-trigger ccx-icon-button"
+              className="btn btn-ghost btn-square drawer-button mobile-menu-trigger ccx-icon-button min-h-11 min-w-11 lg:hidden"
               aria-label="მენიუს გახსნა"
             >
               <Menu size={19} />
@@ -327,7 +334,9 @@ export function Shell({
             aria-label="მეტი გვერდი"
             onClick={() => setMoreOpen(true)}
           >
-            <Menu size={19} />
+            <span className="mobile-bottom-icon">
+              <Menu size={19} />
+            </span>
             <span className="dock-label">მეტი</span>
           </button>
           <dialog
@@ -363,6 +372,10 @@ export function Shell({
                           href={href}
                           aria-current={active ? "page" : undefined}
                           onClick={() => setMoreOpen(false)}
+                          className={clsx(
+                            "btn btn-ghost h-auto min-h-14 justify-start gap-3 rounded-box border border-base-300 px-3 py-2 text-left font-normal",
+                            active && "btn-active border-primary/30 bg-primary/10",
+                          )}
                         >
                           <span className="grid size-9 place-items-center rounded-selector bg-base-300 text-primary">
                             <Icon size={19} />
@@ -386,7 +399,7 @@ export function Shell({
           <span>ინფორმაცია და დაგეგმვა · გადაწყვეტილება თქვენია</span>
         </footer>
       </div>
-      <div className="drawer-side z-30">
+      <div className="drawer-side z-50 lg:z-30">
         <label
           htmlFor="ccx-main-drawer"
           aria-label="მენიუს დახურვა"
