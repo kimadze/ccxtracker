@@ -93,48 +93,48 @@ export function Watchlist({
       )}
       {!preview && (
         <section
-          className="grid grid-cols-2 gap-px overflow-hidden rounded-box border border-base-300 bg-base-200 lg:grid-cols-4"
+          className="grid grid-cols-2 gap-2 lg:grid-cols-4"
           aria-label="დაკვირვების სიის შეჯამება"
         >
           <button
-            className={`stat min-h-11 cursor-pointer p-3 text-left ${movement === "all" ? "bg-primary/10" : ""}`}
+            aria-pressed={movement === "all"}
+            className={`btn min-h-11 justify-between text-xs ${movement === "all" ? "btn-active" : "btn-ghost"}`}
             onClick={() => setMovement("all")}
           >
-            <span className="stat-title">სულ აქტივი</span>
-            <strong className="stat-value text-lg">{items.length}</strong>
+            <span>სულ აქტივი</span>
+            <strong className="tabular-nums">{items.length}</strong>
           </button>
           <button
-            className={`stat min-h-11 cursor-pointer p-3 text-left ${movement === "up" ? "bg-success/10" : ""}`}
+            aria-pressed={movement === "up"}
+            className={`btn min-h-11 justify-between text-xs ${movement === "up" ? "btn-active" : "btn-ghost"}`}
             onClick={() => setMovement("up")}
           >
-            <span className="stat-title">დღეს ზრდაში</span>
-            <strong className="stat-value text-lg text-success">
-              {risingItems.length}
-            </strong>
+            <span>დღეს ზრდაში</span>
+            <strong className="tabular-nums">{risingItems.length}</strong>
           </button>
           <button
-            className={`stat min-h-11 cursor-pointer p-3 text-left ${movement === "down" ? "bg-error/10" : ""}`}
+            aria-pressed={movement === "down"}
+            className={`btn min-h-11 justify-between text-xs ${movement === "down" ? "btn-active" : "btn-ghost"}`}
             onClick={() => setMovement("down")}
           >
-            <span className="stat-title">დღეს კლებაში</span>
-            <strong className="stat-value text-lg text-error">
-              {fallingItems.length}
-            </strong>
+            <span>დღეს კლებაში</span>
+            <strong className="tabular-nums">{fallingItems.length}</strong>
           </button>
           <button
-            className={`stat min-h-11 cursor-pointer p-3 text-left ${movement === "unpriced" ? "bg-warning/10" : ""}`}
+            aria-pressed={movement === "unpriced"}
+            className={`btn min-h-11 justify-between text-xs ${movement === "unpriced" ? "btn-active" : "btn-ghost"}`}
             onClick={() => setMovement("unpriced")}
           >
-            <span className="stat-title">ფასის გარეშე</span>
-            <strong className="stat-value text-lg">
+            <span>ფასის გარეშე</span>
+            <strong className="tabular-nums">
               {items.length - pricedItems.length}
             </strong>
           </button>
         </section>
       )}
       {!preview && (
-        <div className="card card-border bg-base-200 p-4 sm:flex sm:flex-row sm:items-center sm:justify-between">
-          <label className="input w-full sm:max-w-md">
+        <div className="flex min-w-0 items-center gap-3">
+          <label className="input min-h-11 min-w-0 flex-1">
             <Search size={17} />
             <input
               value={filterQuery}
@@ -143,7 +143,7 @@ export function Watchlist({
               placeholder="მოძებნეთ აქტივი ან სიმბოლო…"
             />
           </label>
-          <span className="badge mt-3 sm:mt-0">
+          <span className="shrink-0 text-xs text-base-content/60">
             {filteredItems.length} აქტივი
           </span>
         </div>

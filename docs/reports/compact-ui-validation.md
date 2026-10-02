@@ -31,3 +31,15 @@ The deployed `ccx` theme was verified in the signed-in production browser at 390
 The final mobile navigation correction keeps a direct Transactions-history link in More alongside the central add action. Its isolated mobile workflow passed independently of the responsive-matrix test.
 
 Unopened shared dialogs now defer their form contents until first use, avoiding repeated asset-option trees on long transaction histories. After first opening, contents remain mounted so closing/reopening preserves the draft. Regression coverage asserts both deferred fields and draft preservation.
+
+## Visual hierarchy refinement — October 2
+
+Shared form controls use consistent 44px input/select targets, compact headings and clear close-button spacing. Bottom sheets include safe-area padding. The More menu groups links by purpose and closes when crossing the desktop breakpoint.
+
+Positions use one mobile filter entry point, a search row without a redundant enclosing card, neutral filter counts and neutral unselected rows. Mobile list separators now sit between rows. At 1024px, quantity, average cost and allocation columns move out of the main table; they remain available in the position detail and return in the table at 1280px. Position detail gives value and P/L priority above a single grouped secondary-metrics surface.
+
+Watchlist filters and search are compact; analytics removes repeated introductory text and collapses history without two selected points. Portfolio statistics removes repeated headings; settings section navigation stays visible on desktop. Remaining legacy button classes were removed from shared action triggers and attachment controls.
+
+The isolated responsive route/tab matrix, six transaction types and all three share previews/PNG passed after these refinements. The mobile More regression passed at narrow, tablet and short viewports. Production build (including TypeScript) and lint passed. Live external market data and physical phone keyboards remain outside the isolated test coverage.
+
+The final screenshot review caught a narrow-desktop table overflow, now asserted in the browser matrix. A repeated click on the currently selected share template could clear PNG readiness without triggering a new render; identical selections now preserve the preview, with regression coverage for all three templates.

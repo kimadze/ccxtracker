@@ -75,9 +75,9 @@ export function PositionsWorkspace({
     filtered[0] ??
     positions[0];
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 lg:space-y-4">
       <section
-        className="tabs tabs-box flex w-full flex-nowrap overflow-x-auto bg-base-200"
+        className="tabs tabs-box hidden w-full flex-nowrap overflow-x-auto bg-base-200 lg:flex"
         role="group"
         aria-label="პოზიციების ფილტრები"
       >
@@ -101,8 +101,7 @@ export function PositionsWorkspace({
             setPage(0);
           }}
         >
-          მოგებაში{" "}
-          <span className="badge badge-success badge-sm">{profitable}</span>
+          მოგებაში <span className="badge badge-sm">{profitable}</span>
         </button>
         <button
           aria-pressed={filter === "loss"}
@@ -113,7 +112,7 @@ export function PositionsWorkspace({
             setPage(0);
           }}
         >
-          ზარალში <span className="badge badge-error badge-sm">{losing}</span>
+          ზარალში <span className="badge badge-sm">{losing}</span>
         </button>
         <button
           aria-pressed={filter === "unpriced"}
@@ -124,13 +123,12 @@ export function PositionsWorkspace({
             setPage(0);
           }}
         >
-          ფასის გარეშე{" "}
-          <span className="badge badge-warning badge-sm">{unpriced}</span>
+          ფასის გარეშე <span className="badge badge-sm">{unpriced}</span>
         </button>
       </section>
-      <div className="card border border-base-300 bg-base-200">
-        <div className="card-body flex-row flex-wrap gap-3 p-4">
-          <label className="input min-w-64 flex-1">
+      <div className="min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <label className="input min-h-11 min-w-0 flex-1">
             <Search size={16} aria-hidden="true" />
             <span className="sr-only">პოზიციების ძიება</span>
             <input
@@ -144,7 +142,7 @@ export function PositionsWorkspace({
             />
           </label>
           <select
-            className="select hidden max-w-48 md:block"
+            className="select hidden min-h-11 max-w-48 lg:block"
             aria-label="პოზიციების დალაგება"
             value={sort}
             onChange={(e) => setSort(e.target.value)}
@@ -154,7 +152,7 @@ export function PositionsWorkspace({
             <option value="name">სახელით</option>
           </select>
           <div
-            className="join hidden md:flex"
+            className="join hidden lg:flex"
             role="group"
             aria-label="პოზიციების ხედი"
           >
@@ -175,15 +173,15 @@ export function PositionsWorkspace({
               <Grid2X2 size={16} />
             </button>
           </div>
-          <div className="md:hidden">
+          <div className="shrink-0 lg:hidden">
             <MobileBottomSheet
               title="პოზიციების ფილტრი"
               trigger={
-                <button
-                  type="button"
-                  className="btn btn-ghost button-secondary"
-                >
+                <button type="button" className="btn min-h-11 gap-2">
                   <SlidersHorizontal size={16} /> ფილტრი
+                  {filter !== "all" && (
+                    <span className="badge badge-sm">1</span>
+                  )}
                 </button>
               }
             >
@@ -227,7 +225,7 @@ export function PositionsWorkspace({
               {(search || filter !== "all" || sort !== "value") && (
                 <button
                   type="button"
-                  className="btn btn-ghost button-secondary w-full"
+                  className="btn btn-ghost w-full"
                   onClick={reset}
                 >
                   <RotateCcw size={15} /> ფილტრების გასუფთავება
@@ -238,7 +236,7 @@ export function PositionsWorkspace({
           {(search || filter !== "all" || sort !== "value") && (
             <button
               type="button"
-              className="btn hidden md:inline-flex"
+              className="btn hidden lg:inline-flex"
               onClick={reset}
             >
               <RotateCcw size={14} /> გასუფთავება
@@ -246,12 +244,12 @@ export function PositionsWorkspace({
           )}
         </div>
       </div>
-      <div className="flex items-center gap-3 text-sm text-base-content/55">
+      <div className="flex min-w-0 items-center gap-3 text-xs text-base-content/60">
         <span>
           <strong className="text-base-content">{filtered.length}</strong>{" "}
           შედეგი
         </span>
-        {search && <span>ძიება: “{search}”</span>}
+        {search && <span className="truncate">ძიება: “{search}”</span>}
       </div>
       <div className="min-w-0">
         <section className="min-w-0">
@@ -268,7 +266,7 @@ export function PositionsWorkspace({
       {filtered.length > 20 && (
         <div className="flex items-center justify-end gap-3">
           <button
-            className="btn btn-ghost button-secondary"
+            className="btn btn-ghost"
             disabled={current === 0}
             onClick={() => setPage(current - 1)}
           >
@@ -278,7 +276,7 @@ export function PositionsWorkspace({
             {current + 1} / {pages}
           </span>
           <button
-            className="btn btn-ghost button-secondary"
+            className="btn btn-ghost"
             disabled={current + 1 >= pages}
             onClick={() => setPage(current + 1)}
           >

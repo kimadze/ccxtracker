@@ -66,11 +66,11 @@ export function MobileBottomSheet({
         onClose={() => setOpen(false)}
         onCancel={() => setOpen(false)}
       >
-        <div className="modal-box max-h-[85dvh] overflow-y-auto rounded-t-box border border-base-300 bg-base-200 p-4 lg:max-w-lg lg:rounded-box">
+        <div className="modal-box max-h-[85dvh] w-full overflow-y-auto rounded-t-box border border-base-300 bg-base-200 p-4 pb-[calc(16px+env(safe-area-inset-bottom))] lg:max-w-lg lg:rounded-box">
           <h2 className="pr-12 text-base font-semibold">{title}</h2>
           <button
             type="button"
-            className="btn btn-circle btn-ghost btn-sm absolute right-4 top-4"
+            className="btn btn-circle btn-ghost min-h-11 min-w-11 absolute right-3 top-3"
             aria-label="დახურვა"
             onClick={() => setOpen(false)}
           >

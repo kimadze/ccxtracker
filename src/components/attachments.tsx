@@ -77,7 +77,7 @@ export function Attachments({
               required
             />
           </Field>
-          <button className="btn btn-ghost button-secondary" disabled={pending}>
+          <button className="btn btn-ghost" disabled={pending}>
             {pending ? "იტვირთება…" : "დანართის ატვირთვა"}
           </button>
         </form>
@@ -100,7 +100,7 @@ export function Attachments({
         description="ფაილი საცავიდან სამუდამოდ წაიშლება."
       >
         <button
-          className="btn btn-error button-danger"
+          className="btn btn-error"
           disabled={pending}
           onClick={async () => {
             setPending(true);

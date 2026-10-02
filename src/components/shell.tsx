@@ -202,7 +202,10 @@ export function Shell({
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
-    const close = () => setDrawerOpen(false);
+    const close = () => {
+      setDrawerOpen(false);
+      setMoreOpen(false);
+    };
     media.addEventListener("change", close);
     return () => media.removeEventListener("change", close);
   }, []);
@@ -339,32 +342,37 @@ export function Shell({
               className="menu menu-md mt-2 w-full gap-1 p-0 sm:grid sm:grid-cols-2"
               aria-label="დამატებითი გვერდები"
             >
-              {moreGroups
-                .flatMap((group) => group.links)
-                .map(([segment, label, Icon]) => {
-                  const href = base + "/" + segment;
-                  const active = path === href;
-                  return (
-                    <li key={segment} className="min-w-0">
-                      <Link
-                        href={href}
-                        aria-current={active ? "page" : undefined}
-                        onClick={() => setMoreOpen(false)}
-                        className={clsx(
-                          "min-h-12 min-w-0 gap-3 rounded-field px-3 py-2 text-left",
-                          active && "menu-active",
-                        )}
-                      >
-                        <span className="grid size-8 shrink-0 place-items-center rounded-selector bg-base-300 text-base-content/70">
-                          <Icon size={19} />
-                        </span>
-                        <span className="min-w-0 whitespace-normal text-sm leading-5">
-                          {label}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
+              {moreGroups.map((group) => (
+                <Fragment key={group.title}>
+                  <li className="menu-title mt-2 px-3 py-1 text-xs sm:col-span-2">
+                    {group.title}
+                  </li>
+                  {group.links.map(([segment, label, Icon]) => {
+                    const href = base + "/" + segment;
+                    const active = path === href;
+                    return (
+                      <li key={segment} className="min-w-0">
+                        <Link
+                          href={href}
+                          aria-current={active ? "page" : undefined}
+                          onClick={() => setMoreOpen(false)}
+                          className={clsx(
+                            "min-h-12 min-w-0 gap-3 rounded-field px-3 py-2 text-left",
+                            active && "menu-active",
+                          )}
+                        >
+                          <span className="grid size-8 shrink-0 place-items-center rounded-selector bg-base-300 text-base-content/70">
+                            <Icon size={19} />
+                          </span>
+                          <span className="min-w-0 whitespace-normal text-sm leading-5">
+                            {label}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </Fragment>
+              ))}
             </ul>
             <div className="mt-3 border-t border-base-300 pt-3">
               <LogoutButton />
@@ -458,11 +466,7 @@ export function PageHeading({
 
 export function AddButton({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="btn btn-primary button-primary"
-    >
+    <button type="button" onClick={onClick} className="btn btn-primary">
       <Plus size={16} />
       ტრანზაქციის დამატება
     </button>

@@ -59,7 +59,6 @@ export function PositionsTable({
   base,
   preview = false,
   view = "auto",
-  selectedAssetId,
   onSelect,
 }: {
   positions: ValuedPosition[];
@@ -108,8 +107,17 @@ export function PositionsTable({
                 "ღირებულება",
                 "მოგება / ზარალი",
                 "წილი",
-              ].map((heading) => (
-                <th key={heading}>{heading}</th>
+              ].map((heading, index) => (
+                <th
+                  key={heading}
+                  className={
+                    [1, 2, 6].includes(index)
+                      ? "hidden xl:table-cell"
+                      : undefined
+                  }
+                >
+                  {heading}
+                </th>
               ))}
             </tr>
           </thead>
@@ -117,7 +125,7 @@ export function PositionsTable({
             {positions.map((position, index) => (
               <tr
                 key={position.assetId}
-                className={`cursor-pointer hover:bg-base-300/50 ${selectedAssetId === position.assetId ? "bg-primary/10" : ""}`}
+                className="hover:bg-base-300/40"
                 onClick={() => onSelect?.(position.assetId)}
               >
                 <td>
@@ -127,14 +135,15 @@ export function PositionsTable({
                       logoUrl={position.asset.logoUrl}
                       index={index}
                     />
-                    <div>
+                    <div className="min-w-0 max-w-48">
                       {preview ? (
                         <span className="font-semibold">
                           {position.asset.name}
                         </span>
                       ) : (
                         <Link
-                          className="font-semibold hover:text-primary"
+                          className="block truncate font-semibold hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                          title={position.asset.name}
                           href={`${base}/positions/${position.assetId}`}
                         >
                           {position.asset.name}
@@ -146,8 +155,10 @@ export function PositionsTable({
                     </div>
                   </div>
                 </td>
-                <td className="numeric">{quantity(position.quantity)}</td>
-                <td className="numeric text-base-content/60">
+                <td className="numeric hidden xl:table-cell">
+                  {quantity(position.quantity)}
+                </td>
+                <td className="numeric hidden text-base-content/60 xl:table-cell">
                   {money(position.averagePrice)}
                 </td>
                 <td>
@@ -177,7 +188,7 @@ export function PositionsTable({
                     {percentage(position.returnPercent, true)}
                   </div>
                 </td>
-                <td>
+                <td className="hidden xl:table-cell">
                   <div className="numeric">
                     {percentage(position.allocation)}
                   </div>
@@ -193,12 +204,12 @@ export function PositionsTable({
         </table>
       </div>
 
-      <ul className="list rounded-box border border-base-300 bg-base-200 lg:hidden">
+      <ul className="list divide-y divide-base-300 rounded-box border border-base-300 bg-base-200 lg:hidden">
         {positions.map((position, index) => (
           <li key={position.assetId}>
             <Link
               href={`${base}/positions/${position.assetId}`}
-              className="flex min-h-16 min-w-0 items-center gap-3 border-b border-base-300 px-3 py-2 last:border-0"
+              className="flex min-h-16 min-w-0 items-center gap-3 px-3 py-2 hover:bg-base-300/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
             >
               <AssetIcon
                 symbol={position.asset.symbol}
@@ -235,7 +246,7 @@ export function PositionsTable({
           <article
             key={position.assetId}
             onClick={() => onSelect?.(position.assetId)}
-            className={`card border bg-base-200 ${selectedAssetId === position.assetId ? "border-primary" : "border-base-300"}`}
+            className="card border border-base-300 bg-base-200"
           >
             <div className="card-body gap-4 p-4">
               <div className="flex items-center gap-3">

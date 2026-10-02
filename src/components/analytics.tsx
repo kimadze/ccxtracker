@@ -53,17 +53,11 @@ export function Analytics({
   const performers = [...summary.positions]
     .filter((p) => isInvestableCrypto(p.asset) && p.returnPercent !== null)
     .sort((a, b) => Number(b.returnPercent) - Number(a.returnPercent));
-  const hasHistory = snapshots.length > 0;
+  const hasHistory = selected.length > 1;
   return (
     <div className="space-y-3 lg:space-y-4">
-      <section className="card card-border bg-base-200">
-        <div className="card-body gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <div>
-            <p className="text-sm font-semibold">შედეგების ანალიზი</p>
-            <p className="mt-1 text-xs text-base-content/60">
-              პორტფელის შედეგი, რისკი და attribution
-            </p>
-          </div>
+      <section aria-label="ანალიზის პერიოდი">
+        <div className="flex min-w-0 items-center">
           <div className="tabs tabs-box flex min-w-0 max-w-full flex-nowrap overflow-x-auto">
             {[
               ["1", "24 საათი"],
@@ -105,14 +99,10 @@ export function Analytics({
         <div className="min-w-0 space-y-3">
           {hasHistory ? (
             <section className="card card-border overflow-hidden bg-base-200">
-              <div className="flex items-center justify-between border-b border-base-300 p-5">
+              <div className="flex items-center justify-between border-b border-base-300 p-4">
                 <div>
                   <h2 className="text-sm font-semibold">ღირებულების ისტორია</h2>
-                  <p className="mt-1 text-xs text-base-content/60">
-                    არჩეული პერიოდის პორტფელის დინამიკა
-                  </p>
                 </div>
-                <span className="badge badge-outline">შენახული ისტორია</span>
               </div>
               <div className="p-5">
                 <HistoryChart
@@ -140,19 +130,13 @@ export function Analytics({
               aria-label="პორტფელის ისტორიის სტატუსი"
             >
               <div>
-                <span className="badge badge-info mb-2">პორტფელის ისტორია</span>
-                <h2 className="font-semibold">
-                  პირველი შეფასება ინახება ავტომატურად
+                <h2 className="text-sm font-medium">
+                  ისტორიისთვის მინიმუმ ორი შეფასებაა საჭირო
                 </h2>
-                <p className="mt-1 text-sm leading-6">
-                  ამ დროისთვის შენახული შეფასება არ მოიძებნა. შემდეგი ფასის
-                  განახლება ამ პორტფელის ღირებულებას ავტომატურად დაამატებს
-                  ისტორიაში.
+                <p className="mt-1 text-xs text-base-content/60">
+                  შეფასებები ავტომატურად ინახება.
                 </p>
               </div>
-              <span className="badge badge-success whitespace-nowrap">
-                მონიტორინგი აქტიურია
-              </span>
             </section>
           )}
           <PerformanceAttribution attribution={attribution} />

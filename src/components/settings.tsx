@@ -50,7 +50,10 @@ export function Settings({
   }
   return (
     <div className="grid items-start gap-3 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-4">
-      <nav aria-label="პარამეტრების სექციები" className="hidden lg:block">
+      <nav
+        aria-label="პარამეტრების სექციები"
+        className="hidden lg:sticky lg:top-20 lg:block"
+      >
         <ul className="menu rounded-box border border-base-300 bg-base-200">
           {[
             ["profile", "პროფილი"],

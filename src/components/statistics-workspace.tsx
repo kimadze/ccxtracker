@@ -191,12 +191,11 @@ function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
   return (
     <div className="space-y-3 lg:space-y-4">
       <header className="card card-border bg-base-200">
-        <div className="card-body sm:flex-row sm:items-center sm:justify-between">
+        <div className="card-body gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-widest text-primary">
-              პორტფელი
-            </span>
-            <h2 className="card-title mt-1">ჩემი პორტფელი</h2>
+            <h2 className="text-sm font-medium text-base-content/60">
+              პორტფელის ღირებულება
+            </h2>
           </div>
           <strong className="numeric text-2xl">
             <BalanceValue>{money(summary.value)}</BalanceValue>

@@ -227,6 +227,26 @@ test("compact overview supports funded positions, privacy and responsive layouts
       await page.goto(base + "/" + route);
       await expect(page.locator("main#main")).toBeVisible();
       await expect(page.getByRole("heading", { level: 1 })).toBeAttached();
+      if (route === "positions" && width === 1024) {
+        await expect(
+          page.getByRole("columnheader", { name: "ღირებულება", exact: true }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("columnheader", {
+            name: "მოგება / ზარალი",
+            exact: true,
+          }),
+        ).toBeVisible();
+        expect(
+          await page
+            .locator("main table")
+            .evaluate(
+              (table) =>
+                table.getBoundingClientRect().width <=
+                table.parentElement!.clientWidth + 1,
+            ),
+        ).toBe(true);
+      }
       const fits = await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth + 1,
       );
@@ -285,6 +305,10 @@ test("compact overview supports funded positions, privacy and responsive layouts
     await expect(
       page.getByRole("button", { name: "PNG", exact: true }),
     ).toBeEnabled({ timeout: 25000 });
+    await page.getByRole("tab", { name, exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "PNG", exact: true }),
+    ).toBeEnabled();
     expect(
       await page
         .locator("canvas")

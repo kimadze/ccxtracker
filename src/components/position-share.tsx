@@ -626,6 +626,7 @@ export function PositionShare({
     publish(image);
   }, [hideAmounts, positive, position, template]);
   const chooseTemplate = (next: ShareTemplate) => {
+    if (next === template) return;
     sharedImage.current = null;
     setReady(false);
     setStatus("ბარათი ახლდება…");

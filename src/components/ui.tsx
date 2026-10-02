@@ -60,13 +60,18 @@ export function Modal({
           className,
         )}
       >
-        <h2 id={titleId} className="pr-10 text-lg font-semibold tracking-tight">
+        <h2
+          id={titleId}
+          className="pr-12 text-base font-semibold tracking-tight"
+        >
           {title}
         </h2>
-        <p className="mt-1 text-xs text-base-content/60">{description}</p>
+        <p className="mt-1 pr-12 text-xs leading-5 text-base-content/60">
+          {description}
+        </p>
         <button
           type="button"
-          className="btn btn-ghost btn-circle min-h-11 min-w-11 absolute right-5 top-5"
+          className="btn btn-ghost btn-circle min-h-11 min-w-11 absolute right-3 top-3"
           aria-label="დახურვა"
           onClick={() => onOpenChange(false)}
         >
@@ -113,11 +118,11 @@ export function Field({
   const control = isValidElement(children)
     ? typeof children.type === "string"
       ? children.type === "select"
-        ? "select w-full"
+        ? "select min-h-11 w-full text-sm"
         : children.type === "textarea"
-          ? "textarea w-full"
+          ? "textarea min-h-24 w-full text-sm"
           : children.type === "input" && childProps?.type !== "checkbox"
-            ? "input w-full"
+            ? "input min-h-11 w-full text-sm"
             : ""
       : ""
     : "";
