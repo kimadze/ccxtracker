@@ -29,3 +29,5 @@ The isolated test server disables external market credentials, so market statist
 The deployed `ccx` theme was verified in the signed-in production browser at 390px and 1440px. Positions, transactions, watchlist, airdrops, analytics, allocation, strategy, scenarios, journal, settings, all three statistics tabs and all four position tabs loaded without page-level horizontal overflow. Live market and macro values were present. The desktop portfolio list loaded correctly. No financial records were changed during these checks.
 
 The final mobile navigation correction keeps a direct Transactions-history link in More alongside the central add action. Its isolated mobile workflow passed independently of the responsive-matrix test.
+
+Unopened shared dialogs now defer their form contents until first use, avoiding repeated asset-option trees on long transaction histories. After first opening, contents remain mounted so closing/reopening preserves the draft. Regression coverage asserts both deferred fields and draft preservation.

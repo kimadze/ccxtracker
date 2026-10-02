@@ -7,6 +7,7 @@ import {
   useEffect,
   useId,
   useRef,
+  useState,
   type ReactNode,
   type ReactElement,
 } from "react";
@@ -34,6 +35,8 @@ export function Modal({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const [hasOpened, setHasOpened] = useState(open);
+  if (open && !hasOpened) setHasOpened(true);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -69,7 +72,7 @@ export function Modal({
         >
           <X size={18} />
         </button>
-        <div className="mt-3">{children}</div>
+        <div className="mt-3">{(open || hasOpened) && children}</div>
       </div>
       <form method="dialog" className="modal-backdrop">
         <button aria-label="დახურვა">დახურვა</button>

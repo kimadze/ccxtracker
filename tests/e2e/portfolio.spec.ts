@@ -52,6 +52,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await expect(page).toHaveURL(/\/portfolios\/[0-9a-f-]+$/);
   const portfolioUrl = page.url();
   await page.goto(`${portfolioUrl}/transactions`);
+  await expect(page.locator("dialog[aria-labelledby]:not([open]) select")).toHaveCount(0);
   await page
     .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
     .click();
@@ -82,6 +83,19 @@ test("real session, portfolio creation, funded acquisition and persisted journal
       }),
     ]),
   );
+  await page
+    .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
+    .click();
+  await dialog.getByLabel("რაოდენობა", { exact: true }).fill("0.2");
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await page
+    .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
+    .click();
+  await expect(dialog.getByLabel("რაოდენობა", { exact: true })).toHaveValue(
+    "0.2",
+  );
+  await dialog.getByRole("button", { name: "გაუქმება", exact: true }).click();
   await page.goto(portfolioUrl);
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(page.locator("html")).toHaveAttribute(
@@ -159,7 +173,8 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "მეტი გვერდი" }).click();
     await expect(
-      page.getByRole("dialog", { name: "ყველა ხელსაწყო" })
+      page
+        .getByRole("dialog", { name: "ყველა ხელსაწყო" })
         .getByRole("link", { name: "ტრანზაქციები", exact: true }),
     ).toBeVisible();
     await page
