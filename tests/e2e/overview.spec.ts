@@ -52,6 +52,14 @@ test("compact overview supports funded positions, privacy and responsive layouts
     await expect(page.locator('a[href$="/positions/bitcoin"]:visible')).toBeVisible();
     await page.screenshot({ path: ".local/compact-" + info.project.name + "-" + width + ".png", fullPage: true });
   }
+  const sidebar = page.getByRole("complementary", { name: "გვერდითი მენიუ" });
+  await expect(page.getByRole("button", { name: "მენიუს შეკუმშვა" })).toBeVisible();
+  await page.getByRole("button", { name: "მენიუს შეკუმშვა" }).click();
+  await expect(page.getByRole("button", { name: "მენიუს გაშლა" })).toHaveAttribute("aria-expanded", "false");
+  await expect(sidebar).toHaveCSS("width", "76px");
+  await expect(sidebar.locator(".menu-title").first()).toBeHidden();
+  await page.getByRole("button", { name: "მენიუს გაშლა" }).click();
+  await expect(sidebar).toHaveCSS("width", "256px");
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-balance-privacy", "hidden");
   await expect(page.locator(".balance-value").first()).toHaveCSS("color", "rgba(0, 0, 0, 0)");

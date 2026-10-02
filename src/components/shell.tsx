@@ -82,7 +82,7 @@ function Navigation({
     <ul aria-label="მთავარი ნავიგაცია" className="menu menu-md w-full flex-1 gap-1">
       {groups.map((group) => (
         <li key={group.title}>
-          <h2 className="menu-title ccx-section-label nav-label">{group.title}</h2>
+          <h2 className={clsx("menu-title ccx-section-label nav-label", compact && "lg:hidden")}>{group.title}</h2>
           <ul>
             {group.links.map(([segment, label, Icon]) => {
               const href = base + (segment ? "/" + segment : "");
@@ -99,7 +99,7 @@ function Navigation({
                     onClick={onNavigate}
                     className={clsx(
                       active && "menu-active",
-                      compact && "justify-center",
+                      compact && "lg:justify-center",
                       "min-h-11 gap-3 rounded-field text-sm ccx-nav-link",
                     )}
                   >
@@ -109,7 +109,7 @@ function Navigation({
                       strokeWidth={1.75}
                       className="shrink-0"
                     />
-                    <span className="nav-label truncate">{label}</span>
+                    <span className={clsx("nav-label truncate", compact && "lg:hidden")}>{label}</span>
                   </Link>
                 </li>
               );
@@ -220,7 +220,7 @@ export function Shell({
           >
             <Menu size={19} />
           </label>
-          <button type="button" className="btn btn-ghost btn-square hidden min-h-11 lg:flex" aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"} onClick={() => setCollapsed(v => !v)}><Menu size={18} /></button>
+          <button type="button" className="btn btn-ghost btn-square hidden min-h-11 lg:flex" aria-label={collapsed ? "მენიუს გაშლა" : "მენიუს შეკუმშვა"} aria-expanded={!collapsed} onClick={() => setCollapsed(v => !v)}><Menu size={18} /></button>
           <select className="select min-h-11 w-full min-w-0 flex-1 border-0 bg-transparent px-1 text-sm lg:max-w-64 lg:flex-none" aria-label="პორტფელის არჩევა" value={activeId ?? ""} onChange={event => router.push("/portfolios/" + event.target.value)}>
             {portfolios.map(portfolio => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}
           </select>
@@ -407,13 +407,14 @@ export function Shell({
         />
         <aside
           className={clsx(
-            "flex min-h-full w-64 max-w-[85vw] flex-col overflow-y-auto border-r border-base-300 bg-base-200 px-3 py-5 text-base-content",
-            collapsed && "compact",
+            "flex min-h-full w-64 max-w-[85vw] flex-col overflow-y-auto border-r border-base-300 bg-base-200 px-3 py-5 text-base-content transition-[width,padding] duration-200",
+            collapsed && "lg:w-[76px] lg:px-2",
           )}
           aria-label="გვერდითი მენიუ"
         >
           <div className="mb-5 flex items-center px-1">
-            <Brand compact={collapsed} />
+            <span className="lg:hidden"><Brand /></span>
+            <span className="hidden lg:block"><Brand compact={collapsed} /></span>
           </div>
           <Navigation
             base={base}
@@ -422,15 +423,13 @@ export function Shell({
             onNavigate={() => setMobileOpen(false)}
           />
           <div className="mt-5 border-t border-base-300 pt-4">
-            {!collapsed && (
-              <div className="nav-label">
-                <PortfolioCreate compact />
-              </div>
-            )}
-            <div className="nav-label">
+            <div className={clsx("nav-label", collapsed && "lg:hidden")}>
+              <PortfolioCreate compact />
+            </div>
+            <div className={clsx("nav-label", collapsed && "lg:hidden")}>
               <LogoutButton />
             </div>
-            <p className="nav-label mt-4 px-3 text-xs text-base-content/50">
+            <p className={clsx("nav-label mt-4 px-3 text-xs text-base-content/50", collapsed && "lg:hidden")}>
               Crypto Collective X
             </p>
           </div>
