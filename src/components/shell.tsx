@@ -312,65 +312,68 @@ export function Shell({
             </span>
             <span className="dock-label">მეტი</span>
           </button>
-          <dialog
-            ref={moreDialogRef}
-            aria-label="ყველა ხელსაწყო"
-            className="modal modal-bottom"
-            onClose={() => setMoreOpen(false)}
-            onCancel={() => setMoreOpen(false)}
-          >
-            <div className="modal-box max-h-[85dvh] rounded-t-box border border-base-300 bg-base-200">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-semibold">ყველა ხელსაწყო</h2>
-                  <p className="mt-1 text-sm text-base-content/60">
-                    კვლევა, დაგეგმვა და ანგარიშის მართვა
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-circle btn-ghost btn-sm"
-                  aria-label="დახურვა"
-                  onClick={() => setMoreOpen(false)}
-                >
-                  <X size={18} />
-                </button>
+        </nav>
+        <dialog
+          ref={moreDialogRef}
+          aria-label="ყველა ხელსაწყო"
+          className="modal modal-bottom"
+          onClose={() => setMoreOpen(false)}
+          onCancel={() => setMoreOpen(false)}
+        >
+          <div className="modal-box max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-t-box border border-base-300 bg-base-200 p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-base-200 pb-2">
+              <div>
+                <h2 className="text-lg font-semibold">ყველა ხელსაწყო</h2>
+                <p className="sr-only">კვლევა, დაგეგმვა და ანგარიშის მართვა</p>
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-2">
-                {moreGroups
-                  .flatMap((group) => group.links)
-                  .map(([segment, label, Icon]) => {
-                    const href = base + "/" + segment;
-                    const active = path === href;
-                    return (
+              <button
+                type="button"
+                className="btn btn-circle btn-ghost min-h-11 min-w-11 shrink-0"
+                aria-label="დახურვა"
+                onClick={() => setMoreOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <ul
+              className="menu menu-md mt-2 w-full gap-1 p-0 sm:grid sm:grid-cols-2"
+              aria-label="დამატებითი გვერდები"
+            >
+              {moreGroups
+                .flatMap((group) => group.links)
+                .map(([segment, label, Icon]) => {
+                  const href = base + "/" + segment;
+                  const active = path === href;
+                  return (
+                    <li key={segment} className="min-w-0">
                       <Link
-                        key={segment}
                         href={href}
                         aria-current={active ? "page" : undefined}
                         onClick={() => setMoreOpen(false)}
                         className={clsx(
-                          "btn btn-ghost h-auto min-h-14 justify-start gap-3 rounded-box border border-base-300 px-3 py-2 text-left font-normal",
-                          active &&
-                            "btn-active border-primary/30 bg-primary/10",
+                          "min-h-12 min-w-0 gap-3 rounded-field px-3 py-2 text-left",
+                          active && "menu-active",
                         )}
                       >
-                        <span className="grid size-9 place-items-center rounded-selector bg-base-300 text-primary">
+                        <span className="grid size-8 shrink-0 place-items-center rounded-selector bg-base-300 text-base-content/70">
                           <Icon size={19} />
                         </span>
-                        <strong>{label}</strong>
+                        <span className="min-w-0 whitespace-normal text-sm leading-5">
+                          {label}
+                        </span>
                       </Link>
-                    );
-                  })}
-              </div>
-              <div className="mt-5 border-t border-base-300 pt-4">
-                <LogoutButton />
-              </div>
+                    </li>
+                  );
+                })}
+            </ul>
+            <div className="mt-3 border-t border-base-300 pt-3">
+              <LogoutButton />
             </div>
-            <form method="dialog" className="modal-backdrop">
-              <button aria-label="დახურვა">დახურვა</button>
-            </form>
-          </dialog>
-        </nav>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button aria-label="დახურვა">დახურვა</button>
+          </form>
+        </dialog>
       </div>
       <div className="drawer-side z-50 lg:z-30">
         <label
