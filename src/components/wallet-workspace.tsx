@@ -128,31 +128,44 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
       )}
       <section className="card card-border bg-base-200">
         <div className="card-body gap-2 p-4">
-          <figure
-            className="diff h-28 rounded-box"
-            tabIndex={0}
-            aria-label={`${nativeSymbol} და დოლარის ღირებულების შედარება`}
-          >
-            <div className="diff-item-1" tabIndex={0}>
-              <div className="flex flex-col items-center justify-center gap-2 bg-primary/15 pr-[50cqi] text-base-content">
-                <span className="text-xs text-base-content/60">
-                  {nativeSymbol}
-                </span>
-                <span className="whitespace-nowrap text-sm font-semibold tabular-nums sm:text-xl">
-                  <BalanceValue>{nativeQuantity}</BalanceValue>
-                </span>
-              </div>
+          {wallet.network === "stellar" ? (
+            <div className="min-w-0 space-y-2 py-2">
+              <p className="text-xs font-medium text-base-content/60">XLM</p>
+              <p className="overflow-x-auto whitespace-nowrap text-2xl font-semibold tabular-nums sm:text-3xl">
+                <BalanceValue>{nativeQuantity}</BalanceValue>
+              </p>
+              <p className="overflow-x-auto whitespace-nowrap text-lg tabular-nums text-base-content/70">
+                <BalanceValue>{money(snapshot?.knownValue)}</BalanceValue>
+                <span className="ml-2 text-xs">USD</span>
+              </p>
             </div>
-            <div className="diff-item-2">
-              <div className="flex flex-col items-center justify-center gap-2 bg-base-300 pl-[50cqi] text-base-content">
-                <span className="text-xs text-base-content/60">USD</span>
-                <span className="whitespace-nowrap text-sm font-semibold tabular-nums sm:text-xl">
-                  <BalanceValue>{money(snapshot?.knownValue)}</BalanceValue>
-                </span>
+          ) : (
+            <figure
+              className="diff h-28 rounded-box"
+              tabIndex={0}
+              aria-label={`${nativeSymbol} და დოლარის ღირებულების შედარება`}
+            >
+              <div className="diff-item-1" tabIndex={0}>
+                <div className="flex flex-col items-center justify-center gap-2 bg-primary/15 pr-[50cqi] text-base-content">
+                  <span className="text-xs text-base-content/60">
+                    {nativeSymbol}
+                  </span>
+                  <span className="whitespace-nowrap text-sm font-semibold tabular-nums sm:text-xl">
+                    <BalanceValue>{nativeQuantity}</BalanceValue>
+                  </span>
+                </div>
               </div>
-            </div>
-            <div className="diff-resizer" />
-          </figure>
+              <div className="diff-item-2">
+                <div className="flex flex-col items-center justify-center gap-2 bg-base-300 pl-[50cqi] text-base-content">
+                  <span className="text-xs text-base-content/60">USD</span>
+                  <span className="whitespace-nowrap text-sm font-semibold tabular-nums sm:text-xl">
+                    <BalanceValue>{money(snapshot?.knownValue)}</BalanceValue>
+                  </span>
+                </div>
+              </div>
+              <div className="diff-resizer" />
+            </figure>
+          )}
           <details className="dropdown">
             <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-xs text-base-content/60">
               <span
