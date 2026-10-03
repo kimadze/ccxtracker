@@ -857,7 +857,7 @@ export function PositionShare({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="btn btn-circle btn-ghost min-h-11 min-w-11 shrink-0"
+              className="btn btn-square btn-ghost min-h-11 min-w-11 shrink-0"
               aria-label="დახურვა"
             >
               <X size={18} />

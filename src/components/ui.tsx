@@ -84,7 +84,7 @@ export function Modal({
         </p>
         <button
           type="button"
-          className="btn btn-ghost btn-circle min-h-11 min-w-11 absolute right-3 top-3"
+          className="btn btn-ghost btn-square min-h-11 min-w-11 absolute right-3 top-3"
           aria-label="დახურვა"
           onClick={() => onOpenChange(false)}
         >

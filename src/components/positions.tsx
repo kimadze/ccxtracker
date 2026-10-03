@@ -301,7 +301,7 @@ export function PositionsTable({
                   </Link>
                   <Link
                     href={`${base}/positions/${position.assetId}`}
-                    className="btn btn-sm btn-primary"
+                    className="btn btn-sm"
                   >
                     დეტალები <ArrowUpRight size={14} />
                   </Link>

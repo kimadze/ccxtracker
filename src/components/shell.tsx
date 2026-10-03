@@ -138,7 +138,7 @@ export function BalancePrivacyToggle() {
   return (
     <button
       type="button"
-      className="btn btn-ghost btn-square ccx-icon-button ccx-privacy-toggle"
+      className="btn btn-square ccx-privacy-toggle"
       aria-pressed={hidden}
       aria-label={hidden ? "თანხების ჩვენება" : "თანხების დამალვა"}
       title={hidden ? "თანხების ჩვენება" : "თანხების დამალვა"}

@@ -72,7 +72,7 @@ export function MobileBottomSheet({
           <h2 className="pr-12 text-base font-semibold">{title}</h2>
           <button
             type="button"
-            className="btn btn-circle btn-ghost min-h-11 min-w-11 absolute right-3 top-3"
+            className="btn btn-square btn-ghost min-h-11 min-w-11 absolute right-3 top-3"
             aria-label="დახურვა"
             onClick={() => setOpen(false)}
           >
