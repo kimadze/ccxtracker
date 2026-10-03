@@ -101,6 +101,7 @@
 @import "@fontsource/noto-sans-georgian/600.css";
 @import "@fontsource/noto-sans-georgian/700.css";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
 
 :root {
   color-scheme: dark;
@@ -143,6 +144,7 @@
   --color-negative: var(--negative);
   --color-warning: var(--warning);
   --font-sans: "Inter Variable", "Noto Sans Georgian", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "Inter Variable", monospace;
 }
 
 * {
@@ -199,6 +201,7 @@ button:disabled {
 }
 .numeric,
 td:not(:first-child) {
+  font-family: var(--font-mono), "Noto Sans Georgian", monospace;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.02em;
@@ -304,19 +307,6 @@ tbody tr:hover {
   color: var(--text-hi);
 }
 
-/* Overview */
-.overview-next-actions article.warning .overview-next-icon {
-  background: color-mix(in srgb, var(--warning) 12%, var(--surface));
-  color: var(--warning);
-}
-.overview-next-actions article.ready .overview-next-icon {
-  background: var(--positive-soft);
-  color: var(--positive);
-}
-.overview-freshness.ready {
-  background: var(--positive);
-  box-shadow: 0 0 0 3px var(--positive-soft);
-}
 .chart-periods button.active {
   border-color: rgba(167, 139, 250, 0.3);
   background: var(--accent-soft);
@@ -1028,7 +1018,6 @@ body {
 }
 
 .eyebrow,
-.overview-section-kicker,
 .allocation-kicker,
 .watchlist-kicker {
   color: #7384a6;
@@ -1038,9 +1027,6 @@ body {
   text-transform: uppercase;
 }
 
-.overview-performance .text-muted {
-  color: #b5c2df;
-}
 
 .table-cell {
   height: 68px;
@@ -1255,39 +1241,6 @@ body {
   .ccx-topbar .ccx-privacy-toggle {
     border-color: transparent;
     background: transparent;
-  }
-  .overview-next-actions.mobile {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 14px;
-    border-radius: 14px;
-  }
-  .overview-next-actions.mobile > header {
-    padding: 0;
-  }
-  .overview-next-actions.mobile > div {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-  .overview-next-actions.mobile article {
-    grid-template-columns: 30px minmax(0, 1fr) auto;
-    align-items: center;
-    padding: 10px 0;
-    border-top: 1px solid var(--border-soft);
-    border-left: 0;
-  }
-  .overview-next-actions.mobile article p {
-    display: none;
-  }
-  .overview-next-actions.mobile article a {
-    grid-column: 3;
-    margin: 0;
-    font-size: 0;
-  }
-  .overview-next-actions.mobile article a svg {
-    width: 15px;
-    height: 15px;
   }
   .mobile-bottom-nav {
     position: fixed;
@@ -2084,7 +2037,6 @@ body {
 .scenario-toolbar,
 .journal-section,
 .login-card,
-.overview-kpis .dashboard-metric,
 .analytics-metric,
 .market-metric,
 .airdrop-metric {
@@ -2106,9 +2058,6 @@ body {
 .brand-name b {
   background: none;
   color: #a98fff;
-}
-.overview-performance .text-muted {
-  color: var(--text-mid);
 }
 
 @media (max-width: 1023px) {
@@ -3449,4 +3398,155 @@ body {
   border-color: color-mix(in srgb, var(--color-base-content) 12%, transparent);
   background: var(--color-base-200);
   box-shadow: 0 12px 32px color-mix(in srgb, #000 20%, transparent);
+}
+
+/* Overview v2: a restrained neon-crypto layer for the production shell. */
+:root {
+  --ccx-bg: #070b18;
+  --ccx-surface: #0e1528;
+  --ccx-surface-raised: #141e35;
+  --ccx-surface-active: #192747;
+  --ccx-line: rgba(128, 153, 214, 0.2);
+  --ccx-line-strong: rgba(121, 150, 236, 0.38);
+  --ccx-neon: #8b7cff;
+  --ccx-cyan: #3ecbff;
+  --ccx-glow: rgba(98, 91, 255, 0.2);
+}
+
+html,
+body {
+  background: var(--ccx-bg);
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at 78% -18%,
+      rgba(83, 74, 223, 0.2),
+      transparent 34rem
+    ),
+    radial-gradient(
+      circle at 2% 72%,
+      rgba(31, 156, 235, 0.08),
+      transparent 30rem
+    ),
+    var(--ccx-bg);
+}
+
+.ccx-shell,
+.ccx-shell .drawer-content {
+  background: transparent;
+}
+
+.overview-page .card,
+.overview-page .collapse {
+  border-color: var(--ccx-line);
+  background: color-mix(in srgb, var(--ccx-surface) 94%, transparent);
+  box-shadow: 0 16px 34px rgba(1, 5, 18, 0.2);
+}
+
+.overview-page .card:hover,
+.overview-page .collapse:hover {
+  border-color: var(--ccx-line-strong);
+}
+
+.overview-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.overview-hero::before {
+  position: absolute;
+  inset: -8rem -7rem auto auto;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(93, 82, 255, 0.14), transparent 68%);
+  content: "";
+  pointer-events: none;
+}
+
+.overview-balance-surface {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ccx-neon) 48%, transparent);
+  background:
+    radial-gradient(
+      circle at 92% 8%,
+      rgba(62, 203, 255, 0.18),
+      transparent 30%
+    ),
+    linear-gradient(135deg, #1d2460 0%, #3b2d9a 56%, #192d67 100%);
+  box-shadow:
+    0 20px 44px var(--ccx-glow),
+    inset 0 1px rgba(255, 255, 255, 0.13);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.overview-balance-surface:hover,
+.overview-balance-surface:focus-within {
+  border-color: color-mix(in srgb, var(--ccx-cyan) 58%, white 8%);
+  box-shadow:
+    0 22px 48px rgba(62, 90, 255, 0.27),
+    inset 0 1px rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.overview-balance-mark {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.overview-asset-row {
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.overview-asset-row:hover,
+.overview-asset-row:focus-within {
+  background: color-mix(in srgb, var(--ccx-neon) 9%, transparent);
+  box-shadow: inset 2px 0 var(--ccx-neon);
+}
+
+.overview-page .btn-primary {
+  border-color: color-mix(in srgb, var(--ccx-neon) 62%, transparent);
+  background: linear-gradient(135deg, #785cff, #4d7eff);
+  box-shadow: 0 8px 22px rgba(86, 77, 244, 0.24);
+}
+
+.overview-page .btn-primary:hover,
+.overview-page .btn-primary:focus-visible {
+  background: linear-gradient(135deg, #896fff, #5b8bff);
+  box-shadow: 0 10px 26px rgba(86, 77, 244, 0.34);
+}
+
+.overview-page .table th {
+  color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
+  font-weight: 500;
+}
+
+@media (max-width: 1023px) {
+  .overview-page {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .overview-page .overview-grid {
+    padding-bottom: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview-balance-surface,
+  .overview-asset-row {
+    transition: none;
+  }
+
+  .overview-balance-surface:hover,
+  .overview-balance-surface:focus-within {
+    transform: none;
+  }
 }
