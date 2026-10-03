@@ -98,7 +98,7 @@ export function Watchlist({
         >
           <button
             aria-pressed={movement === "all"}
-            className={`btn min-h-11 justify-between text-xs ${movement === "all" ? "btn-active" : "btn-ghost"}`}
+            className={`btn min-h-11 justify-between text-xs ${movement === "all" ? "btn-soft btn-primary" : "btn-ghost"}`}
             onClick={() => setMovement("all")}
           >
             <span>სულ აქტივი</span>
@@ -106,7 +106,7 @@ export function Watchlist({
           </button>
           <button
             aria-pressed={movement === "up"}
-            className={`btn min-h-11 justify-between text-xs ${movement === "up" ? "btn-active" : "btn-ghost"}`}
+            className={`btn min-h-11 justify-between text-xs ${movement === "up" ? "btn-soft btn-primary" : "btn-ghost"}`}
             onClick={() => setMovement("up")}
           >
             <span>დღეს ზრდაში</span>
@@ -114,7 +114,7 @@ export function Watchlist({
           </button>
           <button
             aria-pressed={movement === "down"}
-            className={`btn min-h-11 justify-between text-xs ${movement === "down" ? "btn-active" : "btn-ghost"}`}
+            className={`btn min-h-11 justify-between text-xs ${movement === "down" ? "btn-soft btn-primary" : "btn-ghost"}`}
             onClick={() => setMovement("down")}
           >
             <span>დღეს კლებაში</span>
@@ -122,7 +122,7 @@ export function Watchlist({
           </button>
           <button
             aria-pressed={movement === "unpriced"}
-            className={`btn min-h-11 justify-between text-xs ${movement === "unpriced" ? "btn-active" : "btn-ghost"}`}
+            className={`btn min-h-11 justify-between text-xs ${movement === "unpriced" ? "btn-soft btn-primary" : "btn-ghost"}`}
             onClick={() => setMovement("unpriced")}
           >
             <span>ფასის გარეშე</span>
@@ -274,7 +274,10 @@ export function Watchlist({
                 : "დაამატეთ აქტივები, რომელთა ფასსაც აკვირდებით. ისინი პორტფელის ღირებულებაში არ ჩაითვლება."}
             </p>
             {!items.length && !preview && (
-              <button className="btn mt-4" onClick={() => setOpen(true)}>
+              <button
+                className="btn btn-outline mt-4"
+                onClick={() => setOpen(true)}
+              >
                 <Plus size={15} /> პირველი აქტივის დამატება
               </button>
             )}
@@ -385,9 +388,13 @@ export function Watchlist({
             />
           </Field>
           {error && <Message error>{error}</Message>}
-          <button className="btn btn-primary btn-block" disabled={pending}>
+          <button
+            className="btn btn-primary btn-block"
+            disabled={pending}
+            aria-busy={pending}
+          >
             {pending && <span className="loading loading-spinner loading-xs" />}
-            {pending ? "ინახება…" : "შენახვა"}
+            შენახვა
           </button>
         </form>
       </Modal>

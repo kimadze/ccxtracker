@@ -42,10 +42,26 @@
   --noise: 0;
   --size: 2.75rem;
   min-height: 44px;
+  &:not(.btn-circle, .join-item, .rounded-none) {
+    border-radius: 0.5rem;
+  }
+  font-size: 0.875rem;
   font-family: inherit;
   font-weight: 600;
   letter-spacing: 0;
   box-shadow: none;
+  transform: none;
+  @media (min-width: 1024px) and (pointer: fine) {
+    --size: 2.25rem;
+    min-height: 36px;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+  }
+  &:active {
+    transform: none;
+  }
   &:not(.btn-ghost, .btn-link, .btn-outline, .btn-soft, .btn-dash) {
     border-color: color-mix(
       in oklab,
@@ -61,9 +77,18 @@
 @utility btn-square {
   min-width: 44px;
   min-height: 44px;
+  @media (min-width: 1024px) and (pointer: fine) {
+    min-width: 36px;
+    min-height: 36px;
+  }
 }
 @utility btn-circle {
   min-width: 44px;
+  min-height: 44px;
+}
+/* Forms retain comfortable action sizes; compact buttons are for toolbars. */
+.modal-action .btn,
+dialog form button[type="submit"] {
   min-height: 44px;
 }
 @utility input {
@@ -187,7 +212,6 @@ a {
 }
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
 }
 :focus-visible {
   outline: 2px solid var(--accent);

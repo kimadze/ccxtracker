@@ -158,7 +158,8 @@ export function PositionsWorkspace({
           >
             <button
               type="button"
-              className={`btn btn-square join-item ${view === "table" ? "btn-active" : ""}`}
+              className={`btn btn-square join-item ${view === "table" ? "btn-soft btn-primary" : "btn-ghost"}`}
+              aria-pressed={view === "table"}
               onClick={() => setView("table")}
               aria-label="ცხრილის ხედი"
             >
@@ -166,7 +167,8 @@ export function PositionsWorkspace({
             </button>
             <button
               type="button"
-              className={`btn btn-square join-item ${view === "cards" ? "btn-active" : ""}`}
+              className={`btn btn-square join-item ${view === "cards" ? "btn-soft btn-primary" : "btn-ghost"}`}
+              aria-pressed={view === "cards"}
               onClick={() => setView("cards")}
               aria-label="ბარათების ხედი"
             >
@@ -177,7 +179,10 @@ export function PositionsWorkspace({
             <MobileBottomSheet
               title="პოზიციების ფილტრი"
               trigger={
-                <button type="button" className="btn min-h-11 gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline min-h-11 gap-2"
+                >
                   <SlidersHorizontal size={16} /> ფილტრი
                   {filter !== "all" && (
                     <span className="badge badge-sm">1</span>
@@ -199,7 +204,8 @@ export function PositionsWorkspace({
                   <button
                     key={String(value)}
                     type="button"
-                    className={`btn min-h-11 justify-between ${filter === value ? "btn-active" : ""}`}
+                    className={`btn min-h-11 justify-between ${filter === value ? "btn-soft btn-primary" : "btn-ghost"}`}
+                    aria-pressed={filter === value}
                     onClick={() => {
                       setFilter(String(value));
                       setPage(0);
@@ -236,7 +242,7 @@ export function PositionsWorkspace({
           {(search || filter !== "all" || sort !== "value") && (
             <button
               type="button"
-              className="btn hidden lg:inline-flex"
+              className="btn btn-outline hidden lg:inline-flex"
               onClick={reset}
             >
               <RotateCcw size={14} /> გასუფთავება

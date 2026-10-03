@@ -155,7 +155,7 @@ export function TransactionList({
               <MobileBottomSheet
                 title="ტრანზაქციების ფილტრი"
                 trigger={
-                  <button type="button" className="btn">
+                  <button type="button" className="btn btn-outline">
                     <SlidersHorizontal size={16} /> ფილტრი
                   </button>
                 }
@@ -218,7 +218,7 @@ export function TransactionList({
             {hasFilters && (
               <button
                 type="button"
-                className="btn hidden md:inline-flex"
+                className="btn btn-outline hidden md:inline-flex"
                 onClick={resetFilters}
               >
                 <RotateCcw size={14} /> გასუფთავება
@@ -346,7 +346,9 @@ export function TransactionList({
                     </div>
                   </div>
                   <div className="col-start-2 row-start-1 whitespace-nowrap text-right tabular-nums lg:hidden">
-                    <p className="text-sm"><BalanceValue>{quantity(e.quantity)}</BalanceValue></p>
+                    <p className="text-sm">
+                      <BalanceValue>{quantity(e.quantity)}</BalanceValue>
+                    </p>
                     <p className="text-xs text-base-content/60">
                       <BalanceValue>
                         {money(
@@ -371,8 +373,13 @@ export function TransactionList({
                       )}
                       <p className="text-xs text-base-content/60">
                         {e.price ? (
-                          <>ფასი: <BalanceValue>{unitPrice(e.price)}</BalanceValue></>
-                        ) : "ფასი არ არის მითითებული"}{" "}
+                          <>
+                            ფასი:{" "}
+                            <BalanceValue>{unitPrice(e.price)}</BalanceValue>
+                          </>
+                        ) : (
+                          "ფასი არ არის მითითებული"
+                        )}{" "}
                         · საკომისიო: <BalanceValue>{money(e.fee)}</BalanceValue>
                       </p>
                       <div className="mt-3 flex gap-2">
@@ -439,7 +446,7 @@ export function TransactionList({
           {error && <Message error>{error}</Message>}
           <div className="flex justify-end gap-3">
             <button
-              className="btn"
+              className="btn btn-ghost"
               onClick={() => setSelected(null)}
               disabled={pending}
             >

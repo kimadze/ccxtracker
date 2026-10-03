@@ -202,7 +202,8 @@ export function ExitPlanner({
             <div>
               <h2 className="text-sm font-medium">გაყიდვის ეტაპები</h2>
               <p className="mt-2 text-xs leading-6 text-base-content/60">
-                ყველა წილი ითვლება მიმდინარე <BalanceValue>{quantity(position.quantity)}</BalanceValue>{" "}
+                ყველა წილი ითვლება მიმდინარე{" "}
+                <BalanceValue>{quantity(position.quantity)}</BalanceValue>{" "}
                 {position.asset.symbol}-იდან. ფასები ეტაპობრივად უნდა
                 იზრდებოდეს.
               </p>
@@ -248,12 +249,22 @@ export function ExitPlanner({
                   />
                 </Field>
                 <span className="numeric pb-3 text-sm">
-                  {result?.levels[i]
-                    ? <BalanceValue>{quantity(result.levels[i].quantity)}</BalanceValue>
-                    : "—"}
+                  {result?.levels[i] ? (
+                    <BalanceValue>
+                      {quantity(result.levels[i].quantity)}
+                    </BalanceValue>
+                  ) : (
+                    "—"
+                  )}
                 </span>
                 <span className="numeric pb-3 text-sm">
-                  {result?.levels[i] ? <BalanceValue>{money(result.levels[i].revenue)}</BalanceValue> : "—"}
+                  {result?.levels[i] ? (
+                    <BalanceValue>
+                      {money(result.levels[i].revenue)}
+                    </BalanceValue>
+                  ) : (
+                    "—"
+                  )}
                 </span>
                 <button
                   className="btn btn-ghost btn-square min-h-11 min-w-11 mb-2 text-error"
@@ -271,7 +282,7 @@ export function ExitPlanner({
           </div>
           <div className="card-actions mt-4">
             <button
-              className="btn"
+              className="btn btn-outline"
               disabled={levels.length >= 12}
               onClick={() =>
                 setLevels((l) => [...l, { price: "", percentage: "10" }])
@@ -319,7 +330,11 @@ export function ExitPlanner({
               value={money(result.revenue)}
               sensitive
             />
-            <Metric label="მოსალოდნელი მოგება" value={money(result.profit)} sensitive />
+            <Metric
+              label="მოსალოდნელი მოგება"
+              value={money(result.profit)}
+              sensitive
+            />
             <Metric
               label="დარჩენილი პოზიცია"
               value={`${quantity(result.remainingQuantity)} ${position.asset.symbol}`}
@@ -334,12 +349,22 @@ export function ExitPlanner({
           <section className="card card-border bg-base-100 p-5">
             <h2 className="text-sm font-medium">კაპიტალის ამოღება</h2>
             <p className="mt-3 text-xs leading-7 text-base-content/60">
-              აღსადგენი თვითღირებულება: <BalanceValue>{money(position.costBasis)}</BalanceValue>.{" "}
-              {result.alreadyRecovered
-                ? "დარჩენილ პოზიციას ნულოვანი თვითღირებულება აქვს."
-                : result.recoveryLevel
-                    ? <>კაპიტალი სრულად ამოიღება TP{result.recoveryLevel} ეტაპზე, ამ ეტაპის <BalanceValue>{quantity(result.recoveryQuantity!)}</BalanceValue> {position.asset.symbol}-ის გაყიდვის შემდეგ.</>
-                  : "მოცემული ეტაპებით საწყისი თვითღირებულება სრულად ვერ ამოიღება."}{" "}
+              აღსადგენი თვითღირებულება:{" "}
+              <BalanceValue>{money(position.costBasis)}</BalanceValue>.{" "}
+              {result.alreadyRecovered ? (
+                "დარჩენილ პოზიციას ნულოვანი თვითღირებულება აქვს."
+              ) : result.recoveryLevel ? (
+                <>
+                  კაპიტალი სრულად ამოიღება TP{result.recoveryLevel} ეტაპზე, ამ
+                  ეტაპის{" "}
+                  <BalanceValue>
+                    {quantity(result.recoveryQuantity!)}
+                  </BalanceValue>{" "}
+                  {position.asset.symbol}-ის გაყიდვის შემდეგ.
+                </>
+              ) : (
+                "მოცემული ეტაპებით საწყისი თვითღირებულება სრულად ვერ ამოიღება."
+              )}{" "}
               დარჩება პოზიციის {percentage(result.remainingPercent)}.
             </p>
             <div className="mt-5 divide-y divide-base-300">
@@ -349,9 +374,13 @@ export function ExitPlanner({
                   className="flex flex-wrap justify-between gap-3 py-3 text-xs"
                 >
                   <span className="text-primary">
-                    TP{i + 1} · <BalanceValue>{quantity(l.quantity)}</BalanceValue> {position.asset.symbol}
+                    TP{i + 1} ·{" "}
+                    <BalanceValue>{quantity(l.quantity)}</BalanceValue>{" "}
+                    {position.asset.symbol}
                   </span>
-                  <span>შემოსავალი: <BalanceValue>{money(l.revenue)}</BalanceValue></span>
+                  <span>
+                    შემოსავალი: <BalanceValue>{money(l.revenue)}</BalanceValue>
+                  </span>
                   <span className="text-base-content/60">
                     მოგება: <BalanceValue>{money(l.profit)}</BalanceValue>
                   </span>

@@ -134,7 +134,11 @@ export function Settings({
               </span>
             </label>
             {!preview && (
-              <button className="btn" disabled={pending}>
+              <button
+                className="btn btn-primary"
+                disabled={pending}
+                aria-busy={pending}
+              >
                 პროფილის შენახვა
               </button>
             )}
@@ -180,7 +184,11 @@ export function Settings({
               დრო მითითებულია ფორმაში.
             </p>
             {!preview && (
-              <button className="btn" disabled={pending}>
+              <button
+                className="btn btn-primary"
+                disabled={pending}
+                aria-busy={pending}
+              >
                 სახელის შენახვა
               </button>
             )}
@@ -250,12 +258,15 @@ export function Settings({
               <div className="mt-1 flex flex-wrap gap-3">
                 <a
                   href={`/api/portfolios/${portfolioId}/export`}
-                  className="btn"
+                  className="btn btn-outline"
                 >
                   <Download size={15} />
                   მონაცემების ჩამოტვირთვა
                 </a>
-                <button className="btn" onClick={() => setConfirm("sessions")}>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setConfirm("sessions")}
+                >
                   ყველა მოწყობილობიდან გასვლა
                 </button>
               </div>

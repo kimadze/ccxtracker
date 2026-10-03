@@ -171,7 +171,7 @@ export function TransactionForm({
             >
               {Object.entries(kindLabels).map(([value, label]) => (
                 <button
-                  className={`btn btn-sm h-auto min-h-11 whitespace-normal px-2 py-2 ${kind === value ? "btn-active" : "btn-ghost"}`}
+                  className={`btn btn-sm h-auto min-h-11 whitespace-normal px-2 py-2 ${kind === value ? "btn-soft btn-primary" : "btn-ghost"}`}
                   key={value}
                   type="button"
                   aria-pressed={kind === value}
@@ -381,17 +381,21 @@ export function TransactionForm({
           <div className="modal-action sticky bottom-0 z-10 mt-0 justify-end gap-3 border-t border-base-300 bg-base-200 py-3">
             <button
               type="button"
-              className="btn"
+              className="btn btn-ghost"
               disabled={pending}
               onClick={() => setOpen(false)}
             >
               გაუქმება
             </button>
-            <button disabled={pending} className="btn btn-primary">
+            <button
+              disabled={pending}
+              aria-busy={pending}
+              className="btn btn-primary min-w-28"
+            >
               {pending && (
                 <span className="loading loading-spinner loading-xs" />
               )}
-              {pending ? "ინახება…" : "შენახვა"}
+              შენახვა
             </button>
           </div>
         </form>

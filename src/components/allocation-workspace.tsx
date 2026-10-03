@@ -172,12 +172,12 @@ export function AllocationWorkspace({
           >
             {rows
               .filter((row) => decimal(row.weight).gt(0))
-                .map((row, index) => (
-                  <span
-                    key={row.assetId}
-                    className={`flex min-w-0 flex-col items-center justify-center border-r border-base-300 px-2 text-xs last:border-0 ${allocationBarColors[index % allocationBarColors.length]}`}
-                    style={{ flexGrow: Number(row.weight) }}
-                  >
+              .map((row, index) => (
+                <span
+                  key={row.assetId}
+                  className={`flex min-w-0 flex-col items-center justify-center border-r border-base-300 px-2 text-xs last:border-0 ${allocationBarColors[index % allocationBarColors.length]}`}
+                  style={{ flexGrow: Number(row.weight) }}
+                >
                   <b className="sr-only">{symbol(row.assetId)}</b>
                   <small className="sr-only">{inputNumber(row.weight)}%</small>
                 </span>
@@ -189,13 +189,18 @@ export function AllocationWorkspace({
               .slice(0, 6)
               .map((row, index) => (
                 <li key={row.assetId} className="flex items-center gap-1.5">
-                  <span className={`status status-xs ${allocationStatusColors[index % allocationStatusColors.length]}`} />
+                  <span
+                    className={`status status-xs ${allocationStatusColors[index % allocationStatusColors.length]}`}
+                  />
                   <span>{symbol(row.assetId)}</span>
                   <span className="numeric">{percentage(row.weight)}</span>
                 </li>
               ))}
             {rows.filter((row) => decimal(row.weight).gt(0)).length > 6 && (
-              <li>+{rows.filter((row) => decimal(row.weight).gt(0)).length - 6} სხვა</li>
+              <li>
+                +{rows.filter((row) => decimal(row.weight).gt(0)).length - 6}{" "}
+                სხვა
+              </li>
             )}
           </ul>
         </div>
@@ -305,7 +310,7 @@ export function AllocationWorkspace({
                 ))}
             </select>
             <button
-              className="btn"
+              className="btn btn-outline"
               disabled={!addId}
               onClick={() => {
                 setWeights((w) => ({ ...w, [addId]: "0" }));
@@ -374,7 +379,9 @@ export function AllocationWorkspace({
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">დასამატებელი თანხა</legend>
                 <label className="input">
-                  <span className="sr-only">დასამატებელი თანხა აშშ დოლარში</span>
+                  <span className="sr-only">
+                    დასამატებელი თანხა აშშ დოლარში
+                  </span>
                   <b>$</b>
                   <input
                     aria-label="დასამატებელი თანხა აშშ დოლარში"

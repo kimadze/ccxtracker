@@ -5,7 +5,13 @@ import Link from "next/link";
 import { Copy, Percent, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { calculateScenario, goalProgress } from "@/domain/scenarios";
-import { money, percentage, quantity, pnlClass, unitPrice } from "@/lib/formatters";
+import {
+  money,
+  percentage,
+  quantity,
+  pnlClass,
+  unitPrice,
+} from "@/lib/formatters";
 import {
   saveScenario,
   deleteScenario,
@@ -96,7 +102,8 @@ export function ScenarioLab({
         <div>
           <p className="text-xs font-medium">{p.asset.symbol}</p>
           <p className="mt-1 text-[10px] text-base-content/60">
-            <BalanceValue>{quantity(p.quantity)}</BalanceValue> · ახლა {unitPrice(p.quote?.price ?? null)}
+            <BalanceValue>{quantity(p.quantity)}</BalanceValue> · ახლა{" "}
+            {unitPrice(p.quote?.price ?? null)}
           </p>
         </div>
       </div>
@@ -106,7 +113,11 @@ export function ScenarioLab({
           type={balancesHidden ? "password" : "text"}
           inputMode="decimal"
           value={prices[p.assetId] ?? ""}
-          placeholder={unitPrice(p.quote?.price ?? null) === "—" ? "შეიყვანეთ ფასი" : unitPrice(p.quote?.price ?? null)}
+          placeholder={
+            unitPrice(p.quote?.price ?? null) === "—"
+              ? "შეიყვანეთ ფასი"
+              : unitPrice(p.quote?.price ?? null)
+          }
           onChange={(e) => {
             setPrices((current) => ({
               ...current,
@@ -166,7 +177,7 @@ export function ScenarioLab({
             </option>
           ))}
         </select>
-        <button className="btn" onClick={() => choose("")}>
+        <button className="btn btn-outline" onClick={() => choose("")}>
           <Plus size={15} />
           ახალი სცენარი
         </button>
@@ -196,7 +207,7 @@ export function ScenarioLab({
                 </label>
                 <button
                   type="button"
-                  className="btn"
+                  className="btn btn-outline"
                   onClick={applyPercentageChange}
                   disabled={!bulkChange.trim()}
                 >
@@ -204,7 +215,7 @@ export function ScenarioLab({
                 </button>
                 <button
                   type="button"
-                  className="btn"
+                  className="btn btn-outline"
                   onClick={() => {
                     setPrices({});
                     setBulkChange("");
@@ -293,7 +304,8 @@ export function ScenarioLab({
                     )}
                   </Link>
                   <span className="text-base-content/60">
-                    <BalanceValue>{money(p.value)}</BalanceValue> · {percentage(p.allocation)}
+                    <BalanceValue>{money(p.value)}</BalanceValue> ·{" "}
+                    {percentage(p.allocation)}
                   </span>
                 </div>
               ))}
@@ -304,9 +316,15 @@ export function ScenarioLab({
                   </summary>
                   <div className="collapse-content space-y-2">
                     {result?.positions.slice(6).map((p) => (
-                      <div key={p.assetId} className="flex justify-between gap-3 border-b border-base-300 py-2 text-xs">
+                      <div
+                        key={p.assetId}
+                        className="flex justify-between gap-3 border-b border-base-300 py-2 text-xs"
+                      >
                         <span>{p.symbol}</span>
-                        <span className="text-base-content/60"><BalanceValue>{money(p.value)}</BalanceValue> · {percentage(p.allocation)}</span>
+                        <span className="text-base-content/60">
+                          <BalanceValue>{money(p.value)}</BalanceValue> ·{" "}
+                          {percentage(p.allocation)}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -346,7 +364,7 @@ export function ScenarioLab({
           {active && (
             <>
               <button
-                className="btn"
+                className="btn btn-outline"
                 disabled={pending}
                 onClick={() => void save(true)}
               >
@@ -478,7 +496,7 @@ function GoalPlanner({
             </Field>
             {!preview && (
               <button
-                className="btn"
+                className="btn btn-outline"
                 disabled={!progress || pending}
                 onClick={async () => {
                   setPending(true);
@@ -515,7 +533,11 @@ function GoalPlanner({
                     label="მიმდინარე პროგრესი"
                     value={percentage(progress.progress)}
                   />
-                  <Metric label="დარჩენილი თანხა" value={money(progress.gap)} sensitive />
+                  <Metric
+                    label="დარჩენილი თანხა"
+                    value={money(progress.gap)}
+                    sensitive
+                  />
                   <Metric
                     label="საჭირო ზრდა"
                     value={percentage(progress.requiredGrowth)}

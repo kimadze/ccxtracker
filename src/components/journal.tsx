@@ -153,9 +153,13 @@ export function JournalForm({
       </Field>
       {message && <Message error={error}>{message}</Message>}
       {!preview && (
-        <button className="btn btn-primary" disabled={pending}>
+        <button
+          className="btn btn-primary"
+          disabled={pending}
+          aria-busy={pending}
+        >
           {pending && <span className="loading loading-spinner loading-xs" />}
-          {pending ? "ინახება…" : "ჟურნალის შენახვა"}
+          ჟურნალის შენახვა
         </button>
       )}
       {preview && (

@@ -44,7 +44,7 @@ function PeriodControl({
             type="button"
             aria-pressed={value === period}
             onClick={() => onChange(value)}
-            className={`btn btn-sm join-item px-4 ${value === period ? "btn-primary" : "btn-ghost"}`}
+            className={`btn btn-sm join-item px-4 ${value === period ? "btn-soft btn-primary" : "btn-ghost"}`}
           >
             {label}
           </button>
@@ -227,14 +227,14 @@ function MarketTab({
                 className="flex h-2 overflow-hidden rounded-full bg-base-300"
                 aria-hidden="true"
               >
-              {segments
-                .filter((segment) => segment.count > 0)
-                .map((segment) => (
+                {segments
+                  .filter((segment) => segment.count > 0)
+                  .map((segment) => (
                     <span
                       key={segment.label}
                       className={segment.color}
                       style={{
-                    width: `${(segment.count / Math.max(1, breadth.covered)) * 100}%`,
+                        width: `${(segment.count / Math.max(1, breadth.covered)) * 100}%`,
                       }}
                     />
                   ))}

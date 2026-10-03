@@ -282,7 +282,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await expect(positionFilters).toBeVisible();
   const losingFilter = positionFilters.getByRole("button", { name: /^ზარალში/ });
   await losingFilter.click();
-  await expect(losingFilter).toHaveClass(/btn-active/);
+  await expect(losingFilter).toHaveAttribute("aria-pressed", "true");
   await expect(positionFilters.locator(".modal-box")).toHaveCSS(
     "overflow-y",
     "auto",

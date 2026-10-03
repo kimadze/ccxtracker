@@ -4,7 +4,13 @@ import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import type { Asset, LedgerEntry, PortfolioSummary } from "@/domain/types";
 import { amount, decimal } from "@/domain/decimal";
-import { dateTime, money, pnlClass, quantity, unitPrice } from "@/lib/formatters";
+import {
+  dateTime,
+  money,
+  pnlClass,
+  quantity,
+  unitPrice,
+} from "@/lib/formatters";
 import { TransactionForm } from "./transaction-form";
 import { deleteTransaction } from "@/server/actions";
 import { BalanceValue, Message, Modal } from "./ui";
@@ -153,8 +159,16 @@ export function AirdropWorkspace({
                   </p>
                 </div>
                 <div className="col-span-2 row-start-2 grid min-w-0 grid-cols-2 gap-3 text-right lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:grid-cols-4">
-                  <Data label="რაოდენობა" value={quantity(entry.quantity)} sensitive />
-                  <Data label="მიღების ფასი" value={unitPrice(entry.price)} sensitive />
+                  <Data
+                    label="რაოდენობა"
+                    value={quantity(entry.quantity)}
+                    sensitive
+                  />
+                  <Data
+                    label="მიღების ფასი"
+                    value={unitPrice(entry.price)}
+                    sensitive
+                  />
                   <Data
                     label="საწყისი ღირებულება"
                     value={money(receivedValue)}
@@ -216,7 +230,9 @@ function Metric({
   return (
     <div className="stat min-w-0 p-3">
       <p className="stat-title whitespace-normal text-xs">{label}</p>
-      <p className={`stat-value numeric mt-1 whitespace-nowrap text-xl ${tone}`}>
+      <p
+        className={`stat-value numeric mt-1 whitespace-nowrap text-xl ${tone}`}
+      >
         {sensitive ? <BalanceValue>{value}</BalanceValue> : value}
       </p>
       <p className="stat-desc hidden lg:block mt-2 whitespace-normal text-xs">
@@ -295,7 +311,7 @@ function AirdropActions({
           {error && <Message error>{error}</Message>}
           <div className="flex justify-end gap-3">
             <button
-              className="btn"
+              className="btn btn-ghost"
               disabled={pending}
               onClick={() => setConfirming(false)}
             >

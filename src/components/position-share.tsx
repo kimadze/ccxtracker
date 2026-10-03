@@ -287,11 +287,7 @@ export function PositionShare({
       context.fillText(position.asset.symbol, 170, 281, 300);
       context.fillStyle = "#8da2d5";
       context.font = '600 19px "Noto Sans Georgian", Inter, Arial';
-      context.fillText(
-        positive ? "" : "",
-        172,
-        316,
-      );
+      context.fillText(positive ? "" : "", 172, 316);
       context.fillStyle = resultColor;
       context.font = "800 94px Inter, Arial";
       context.fillText(percentage(position.returnPercent, true), 55, 414, 430);
@@ -460,11 +456,7 @@ export function PositionShare({
       context.fillText(position.asset.symbol, 176, 818);
       context.fillStyle = "#91a7de";
       context.font = '600 22px "Noto Sans Georgian", Inter, Arial';
-      context.fillText(
-        positive ? "" : "",
-        176,
-        855,
-      );
+      context.fillText(positive ? "" : "", 176, 855);
       context.fillStyle = resultColor;
       context.font = "800 78px Inter, Arial";
       context.textAlign = "right";
@@ -820,7 +812,7 @@ export function PositionShare({
     <>
       <button
         type="button"
-        className={compact ? "btn btn-ghost btn-square" : "btn"}
+        className={compact ? "btn btn-ghost btn-square" : "btn btn-outline"}
         aria-label={compact ? "პოზიციის გაზიარება" : undefined}
         title={compact ? "პოზიციის გაზიარება" : undefined}
         onClick={openShare}
@@ -976,7 +968,7 @@ export function PositionShare({
             <div className="modal-action sticky bottom-0 z-10 mt-0 flex-wrap bg-base-200 py-3">
               <button
                 type="button"
-                className="btn"
+                className="btn btn-outline"
                 onClick={() => {
                   sharedImage.current = null;
                   setReady(false);
@@ -989,7 +981,7 @@ export function PositionShare({
               </button>
               <button
                 type="button"
-                className="btn"
+                className="btn btn-outline"
                 disabled={!ready}
                 onClick={download}
               >

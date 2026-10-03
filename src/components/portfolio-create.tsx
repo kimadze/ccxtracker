@@ -69,8 +69,18 @@ export function PortfolioCreate({
           </Field>
           <p className="text-xs text-base-content/60">საანგარიშო ვალუტა: USD</p>
           {error && <Message error>{error}</Message>}
-          <button disabled={pending} className="btn btn-primary w-full">
-            {pending ? "იქმნება…" : "პორტფელის შექმნა"}
+          <button
+            disabled={pending}
+            aria-busy={pending}
+            className="btn btn-primary w-full"
+          >
+            {pending && (
+              <span
+                className="loading loading-spinner loading-xs"
+                aria-hidden="true"
+              />
+            )}
+            პორტფელის შექმნა
           </button>
         </form>
       </Modal>
