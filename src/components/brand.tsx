@@ -9,7 +9,7 @@ export function BrandMark({ size = 34 }: { size?: number }) {
       aria-hidden="true"
     >
       <Image
-        src="/ccx-mark.png"
+        src="/ccx-mark-transparent.png"
         alt=""
         fill
         sizes={`${size}px`}
