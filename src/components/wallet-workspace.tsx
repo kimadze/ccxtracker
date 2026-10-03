@@ -76,7 +76,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
   return (
     <main
       id="main"
-      className="mx-auto min-h-dvh max-w-[1120px] space-y-4 p-4 lg:p-5"
+      className="mx-auto min-h-dvh max-w-[960px] space-y-3 p-4 lg:p-5"
     >
       <header className="flex min-w-0 items-center gap-2 border-b border-base-300 pb-3">
         <Link
@@ -120,16 +120,19 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
           <Settings2 size={18} />
         </button>
       </header>
-      {error && <Message error>{error}</Message>}
-      {stale && (
-        <Message>
-          {wallet.lastError ?? "ბალანსები მოძველებულია. განაახლეთ მონაცემები."}
+      {error && (
+        <Message error>
+          <div>
+            <p>{error}</p>
+            {snapshot && <p>ბალანსი ვერ განახლდა. წინა მონაცემები შენარჩუნებულია.</p>}
+          </div>
         </Message>
       )}
+      {wallet.lastError && !error && <Message>{wallet.lastError}</Message>}
       <section className="card card-border bg-base-200">
         <div className="card-body gap-2 p-4">
           {wallet.network === "stellar" ? (
-            <div className="min-w-0 space-y-2 py-2">
+            <div className="min-w-0 space-y-1">
               <p className="text-xs font-medium text-base-content/60">XLM</p>
               <p className="overflow-x-auto whitespace-nowrap text-2xl font-semibold tabular-nums sm:text-3xl">
                 <BalanceValue>{nativeQuantity}</BalanceValue>
@@ -183,6 +186,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
             </summary>
             <div className="dropdown-content z-20 w-64 max-w-[75vw] rounded-box border border-base-300 bg-base-200 p-3 text-xs shadow-lg">
               {snapshot && <p>{dateTime(snapshot.fetchedAt)}</p>}
+              {stale && <p className="mt-2">განაახლეთ მონაცემები.</p>}
               {snapshot && !snapshot.complete && (
                 <p className="mt-2">
                   უცნობი ფასის მქონე აქტივები ჯამში არ შედის.
@@ -238,6 +242,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                         (a, b) =>
                           Number(b.id === "native") -
                             Number(a.id === "native") ||
+                          Number(b.value !== null) - Number(a.value !== null) ||
                           a.symbol.localeCompare(b.symbol),
                       )
                       .slice(0, expanded[address] ? undefined : 6)

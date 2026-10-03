@@ -812,7 +812,7 @@ export function PositionShare({
     <>
       <button
         type="button"
-        className={compact ? "btn btn-ghost btn-square" : "btn btn-dash"}
+        className={compact ? "btn btn-ghost btn-square" : "btn btn-outline"}
         aria-label={compact ? "პოზიციის გაზიარება" : undefined}
         title={compact ? "პოზიციის გაზიარება" : undefined}
         onClick={openShare}
@@ -968,7 +968,7 @@ export function PositionShare({
             <div className="modal-action sticky bottom-0 z-10 mt-0 flex-wrap bg-base-200 py-3">
               <button
                 type="button"
-                className="btn btn-dash"
+                className="btn btn-outline"
                 onClick={() => {
                   sharedImage.current = null;
                   setReady(false);
@@ -981,7 +981,7 @@ export function PositionShare({
               </button>
               <button
                 type="button"
-                className="btn btn-dash"
+                className="btn btn-outline"
                 disabled={!ready}
                 onClick={download}
               >

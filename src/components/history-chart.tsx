@@ -83,7 +83,7 @@ export function HistoryChart({
     <div>
       {showPeriodControls && snapshots.length >= 2 && (
         <div
-          className="tabs tabs-border mb-1 flex flex-wrap"
+          className="tabs tabs-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden mb-1 flex flex-wrap"
           role="group"
           aria-label="გრაფიკის პერიოდი"
         >

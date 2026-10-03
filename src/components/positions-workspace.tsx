@@ -77,7 +77,7 @@ export function PositionsWorkspace({
   return (
     <div className="space-y-3 lg:space-y-4">
       <section
-        className="tabs tabs-border hidden w-full flex-nowrap overflow-x-auto lg:flex"
+        className="tabs tabs-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden hidden w-full flex-nowrap overflow-x-auto lg:flex"
         role="group"
         aria-label="პოზიციების ფილტრები"
       >

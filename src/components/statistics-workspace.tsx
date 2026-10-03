@@ -38,14 +38,18 @@ function PeriodControl({
   return (
     <div className="flex items-center justify-between gap-2">
       <span className="text-xs text-base-content/60">ფასის ცვლილება</span>
-      <div className="join" role="group" aria-label="ცვლილების პერიოდი">
+      <div
+        className="join rounded-field bg-base-200 p-1"
+        role="group"
+        aria-label="ცვლილების პერიოდი"
+      >
         {periods.map(([value, label]) => (
           <button
             key={value}
             type="button"
             aria-pressed={value === period}
             onClick={() => onChange(value)}
-            className={`btn btn-sm join-item px-4 ${value === period ? "btn-soft btn-primary" : "btn-ghost"}`}
+            className={`btn btn-sm min-h-11 join-item px-3 ${value === period ? "btn-soft btn-primary" : "btn-ghost"}`}
           >
             {label}
           </button>

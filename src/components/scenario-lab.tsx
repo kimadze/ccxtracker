@@ -177,7 +177,7 @@ export function ScenarioLab({
             </option>
           ))}
         </select>
-        <button className="btn btn-dash" onClick={() => choose("")}>
+        <button className="btn btn-outline" onClick={() => choose("")}>
           <Plus size={15} />
           ახალი სცენარი
         </button>
@@ -207,7 +207,7 @@ export function ScenarioLab({
                 </label>
                 <button
                   type="button"
-                  className="btn btn-dash"
+                  className="btn btn-outline"
                   onClick={applyPercentageChange}
                   disabled={!bulkChange.trim()}
                 >
@@ -215,7 +215,7 @@ export function ScenarioLab({
                 </button>
                 <button
                   type="button"
-                  className="btn btn-dash"
+                  className="btn btn-outline"
                   onClick={() => {
                     setPrices({});
                     setBulkChange("");
@@ -364,7 +364,7 @@ export function ScenarioLab({
           {active && (
             <>
               <button
-                className="btn btn-dash"
+                className="btn btn-outline"
                 disabled={pending}
                 onClick={() => void save(true)}
               >
@@ -496,7 +496,7 @@ function GoalPlanner({
             </Field>
             {!preview && (
               <button
-                className="btn btn-dash"
+                className="btn btn-outline"
                 disabled={!progress || pending}
                 onClick={async () => {
                   setPending(true);

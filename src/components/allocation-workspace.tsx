@@ -310,7 +310,7 @@ export function AllocationWorkspace({
                 ))}
             </select>
             <button
-              className="btn btn-dash"
+              className="btn btn-outline"
               disabled={!addId}
               onClick={() => {
                 setWeights((w) => ({ ...w, [addId]: "0" }));

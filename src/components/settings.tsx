@@ -70,7 +70,7 @@ export function Settings({
           ))}
         </ul>
       </nav>
-      <div className="min-w-0 space-y-3">
+      <div className="min-w-0 max-w-4xl space-y-3">
         {message && <Message error={error}>{message}</Message>}
         <div className="grid gap-3 lg:gap-4">
           <form
@@ -135,7 +135,7 @@ export function Settings({
             </label>
             {!preview && (
               <button
-                className="btn btn-primary"
+                className="btn btn-primary mt-3 self-start min-h-11"
                 disabled={pending}
                 aria-busy={pending}
               >
@@ -185,7 +185,7 @@ export function Settings({
             </p>
             {!preview && (
               <button
-                className="btn btn-primary"
+                className="btn btn-primary mt-3 self-start min-h-11"
                 disabled={pending}
                 aria-busy={pending}
               >

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { saveJournal } from "@/server/strategy-actions";
 import { useRouter } from "next/navigation";
+import { ResponsiveDisclosure } from "./responsive-disclosure";
 import { Field, Message } from "./ui";
 export interface JournalData {
   thesis: string;
@@ -30,7 +31,7 @@ export function JournalForm({
   const router = useRouter();
   return (
     <form
-      className="space-y-3 lg:space-y-4"
+      className="w-full max-w-5xl grid gap-3 lg:grid-cols-2 lg:gap-4"
       onSubmit={async (e) => {
         e.preventDefault();
         if (preview) return;
@@ -53,108 +54,112 @@ export function JournalForm({
         }
       }}
     >
-      <Field label="საინვესტიციო თეზისი">
-        <textarea
-          className="textarea"
-          name="thesis"
-          rows={4}
-          maxLength={10000}
-          defaultValue={initial?.thesis ?? ""}
-          placeholder="რა არის მთავარი არგუმენტი ამ პოზიციისთვის?"
-        />
-      </Field>
-      <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open">
-        <summary className="collapse-title min-h-11 text-sm font-semibold">
-          შესვლა და მოლოდინი
-        </summary>
-        <div className="collapse-content">
-          <div className="grid gap-3 md:grid-cols-2">
-            <Field label="რატომ გავხსენი პოზიცია">
-              <textarea
-                className="textarea"
-                name="entryReason"
-                rows={3}
-                maxLength={5000}
-                defaultValue={initial?.entryReason ?? ""}
-                placeholder="შესვლის მიზეზი…"
-              />
-            </Field>
-            <Field label="კატალიზატორები">
-              <textarea
-                className="textarea"
-                name="catalysts"
-                rows={3}
-                maxLength={5000}
-                defaultValue={initial?.catalysts ?? ""}
-                placeholder="რა უნდა მოხდეს, რომ თეზისი გამყარდეს?"
-              />
-            </Field>
-            <Field label="თეზისის გაუქმების პირობები">
-              <textarea
-                className="textarea"
-                name="invalidation"
-                rows={3}
-                maxLength={5000}
-                defaultValue={initial?.invalidation ?? ""}
-                placeholder="რომელი ფაქტი შეცვლის თქვენს ხედვას?"
-              />
-            </Field>
-            <Field label="სამიზნე ფასები">
-              <textarea
-                className="textarea"
-                name="targets"
-                rows={3}
-                maxLength={2000}
-                defaultValue={initial?.targets ?? ""}
-                placeholder="სამიზნეები და გასვლის პირობები…"
-              />
-            </Field>
+      <div className="min-w-0 space-y-3">
+        <Field label="საინვესტიციო თეზისი">
+          <textarea
+            className="textarea"
+            name="thesis"
+            rows={6}
+            maxLength={10000}
+            defaultValue={initial?.thesis ?? ""}
+            placeholder="რა არის მთავარი არგუმენტი ამ პოზიციისთვის?"
+          />
+        </Field>
+        <Field label="დამატებითი შენიშვნები">
+          <textarea
+            className="textarea"
+            name="notes"
+            rows={6}
+            maxLength={10000}
+            defaultValue={initial?.notes ?? ""}
+            placeholder="გადახედვის შედეგი, პირადი შენიშვნა ან ბმული…"
+          />
+        </Field>
+      </div>
+      <div className="min-w-0 space-y-3">
+        <ResponsiveDisclosure className="collapse collapse-arrow border border-base-300 bg-base-200 ">
+          <summary className="collapse-title min-h-11 text-sm font-semibold">
+            შესვლა და მოლოდინი
+          </summary>
+          <div className="collapse-content">
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label="რატომ გავხსენი პოზიცია">
+                <textarea
+                  className="textarea"
+                  name="entryReason"
+                  rows={3}
+                  maxLength={5000}
+                  defaultValue={initial?.entryReason ?? ""}
+                  placeholder="შესვლის მიზეზი…"
+                />
+              </Field>
+              <Field label="კატალიზატორები">
+                <textarea
+                  className="textarea"
+                  name="catalysts"
+                  rows={3}
+                  maxLength={5000}
+                  defaultValue={initial?.catalysts ?? ""}
+                  placeholder="რა უნდა მოხდეს, რომ თეზისი გამყარდეს?"
+                />
+              </Field>
+              <Field label="თეზისის გაუქმების პირობები">
+                <textarea
+                  className="textarea"
+                  name="invalidation"
+                  rows={3}
+                  maxLength={5000}
+                  defaultValue={initial?.invalidation ?? ""}
+                  placeholder="რომელი ფაქტი შეცვლის თქვენს ხედვას?"
+                />
+              </Field>
+              <Field label="სამიზნე ფასები">
+                <textarea
+                  className="textarea"
+                  name="targets"
+                  rows={3}
+                  maxLength={2000}
+                  defaultValue={initial?.targets ?? ""}
+                  placeholder="სამიზნეები და გასვლის პირობები…"
+                />
+              </Field>
+            </div>
           </div>
-        </div>
-      </details>
-      <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open">
-        <summary className="collapse-title min-h-11 text-sm font-semibold">
-          რწმენა და დრო
-        </summary>
-        <div className="collapse-content">
-          <div className="grid gap-3 md:grid-cols-2">
-            <Field label="დარწმუნებულობის დონე">
-              <select
-                className="select"
-                name="conviction"
-                defaultValue={initial?.conviction ?? "medium"}
-              >
-                <option value="low">დაბალი</option>
-                <option value="medium">საშუალო</option>
-                <option value="high">მაღალი</option>
-              </select>
-            </Field>
-            <Field label="საინვესტიციო ჰორიზონტი">
-              <input
-                className="input"
-                name="horizon"
-                maxLength={200}
-                defaultValue={initial?.horizon ?? ""}
-                placeholder="მაგ. 2–3 წელი"
-              />
-            </Field>
+        </ResponsiveDisclosure>
+        <ResponsiveDisclosure className="collapse collapse-arrow border border-base-300 bg-base-200 ">
+          <summary className="collapse-title min-h-11 text-sm font-semibold">
+            რწმენა და დრო
+          </summary>
+          <div className="collapse-content">
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label="დარწმუნებულობის დონე">
+                <select
+                  className="select"
+                  name="conviction"
+                  defaultValue={initial?.conviction ?? "medium"}
+                >
+                  <option value="low">დაბალი</option>
+                  <option value="medium">საშუალო</option>
+                  <option value="high">მაღალი</option>
+                </select>
+              </Field>
+              <Field label="საინვესტიციო ჰორიზონტი">
+                <input
+                  className="input"
+                  name="horizon"
+                  maxLength={200}
+                  defaultValue={initial?.horizon ?? ""}
+                  placeholder="მაგ. 2–3 წელი"
+                />
+              </Field>
+            </div>
           </div>
-        </div>
-      </details>
-      <Field label="დამატებითი შენიშვნები">
-        <textarea
-          className="textarea"
-          name="notes"
-          rows={4}
-          maxLength={10000}
-          defaultValue={initial?.notes ?? ""}
-          placeholder="გადახედვის შედეგი, პირადი შენიშვნა ან ბმული…"
-        />
-      </Field>
+        </ResponsiveDisclosure>
+      </div>
       {message && <Message error={error}>{message}</Message>}
       {!preview && (
         <button
-          className="btn btn-primary"
+          className="btn btn-primary min-h-11 justify-self-start"
           disabled={pending}
           aria-busy={pending}
         >

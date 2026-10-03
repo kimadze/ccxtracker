@@ -89,7 +89,7 @@ export function AirdropWorkspace({
           hint="საწყისი თვითღირებულება"
         />
         <Metric
-          label="დღევანდელი სავარაუდო ღირებულება"
+          label="მიმდინარე შეფასება"
           value={money(estimated)}
           sensitive
           hint="მიღებული რაოდენობის მიხედვით"

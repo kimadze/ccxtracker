@@ -4,7 +4,7 @@ import { getDb } from "@/server/db";
 import { watchlistService } from "@/server/services/watchlist";
 import { getQuotes } from "@/server/market";
 import { Watchlist } from "@/components/watchlist";
-import { PageHeading } from "@/components/shell";
+
 export default async function Page({
   params,
 }: {
@@ -16,11 +16,6 @@ export default async function Page({
   const items = await watchlistService(getDb(), user.id).list(portfolioId);
   return (
     <>
-      <PageHeading
-        eyebrow={w.portfolio.name}
-        title="დაკვირვების სია"
-        description="აქტივები, რომლებსაც აკვირდებით — რეალური პოზიციებისგან დამოუკიდებლად."
-      />
       <Watchlist
         portfolioId={portfolioId}
         revision={w.portfolio.revision}

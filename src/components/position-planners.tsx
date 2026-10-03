@@ -45,7 +45,7 @@ export function DcaPlanner({
     <div className="grid gap-3 lg:gap-4 ">
       <section className="space-y-4 rounded-box bg-base-100 p-3">
         <h2 className="text-sm font-medium">დამატებითი შესყიდვა</h2>
-        <Field label="დამატებითი კაპიტალი, საკომისიოს ჩათვლით (USD)">
+        <Field label="კაპიტალი + საკომისიო (USD)">
           <input
             className="input"
             type={balancesHidden ? "password" : "text"}
@@ -54,7 +54,7 @@ export function DcaPlanner({
             onChange={(e) => setCapital(e.target.value)}
           />
         </Field>
-        <Field label="მოსალოდნელი შესყიდვის ფასი (USD)">
+        <Field label="შესყიდვის ფასი (USD)">
           <input
             className="input"
             inputMode="decimal"
@@ -282,7 +282,7 @@ export function ExitPlanner({
           </div>
           <div className="card-actions mt-4">
             <button
-              className="btn btn-dash"
+              className="btn btn-outline"
               disabled={levels.length >= 12}
               onClick={() =>
                 setLevels((l) => [...l, { price: "", percentage: "10" }])

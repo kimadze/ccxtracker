@@ -58,7 +58,7 @@ export function Analytics({
     <div className="space-y-3 lg:space-y-4">
       <section aria-label="ანალიზის პერიოდი">
         <div className="flex min-w-0 items-center">
-          <div className="tabs tabs-border flex min-w-0 max-w-full flex-nowrap overflow-x-auto">
+          <div className="tabs tabs-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex min-w-0 max-w-full flex-nowrap overflow-x-auto">
             {[
               ["1", "24 საათი"],
               ["7", "7 დღე"],
@@ -79,22 +79,28 @@ export function Analytics({
           </div>
         </div>
       </section>
-      <div className="grid grid-cols-2 gap-px rounded-box border border-base-300 bg-base-200">
-        <AnalyticsMetric
-          icon={<TrendingUp size={18} />}
-          label="პერიოდის შემოსავლიანობა"
-          value={percentage(performance.returnPercent, true)}
-          tone="brand"
-          result={performance.returnPercent}
-        />
-        <AnalyticsMetric
-          icon={<TrendingDown size={18} />}
-          label="მაქსიმალური ვარდნა"
-          value={percentage(performance.maxDrawdown)}
-          tone="brand"
-          result={performance.maxDrawdown}
-        />
-      </div>
+      {performance.valid ? (
+        <div className="grid grid-cols-2 gap-px rounded-box border border-base-300 bg-base-200">
+          <AnalyticsMetric
+            icon={<TrendingUp size={18} />}
+            label="პერიოდის შემოსავლიანობა"
+            value={percentage(performance.returnPercent, true)}
+            tone="brand"
+            result={performance.returnPercent}
+          />
+          <AnalyticsMetric
+            icon={<TrendingDown size={18} />}
+            label="მაქსიმალური ვარდნა"
+            value={percentage(performance.maxDrawdown)}
+            tone="brand"
+            result={performance.maxDrawdown}
+          />
+        </div>
+      ) : (
+        <p role="status" className="text-xs text-base-content/60">
+          შემოსავლიანობის შეფასება ამ ისტორიისთვის მიუწვდომელია.
+        </p>
+      )}
       <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)] lg:gap-4">
         <div className="min-w-0 space-y-3">
           {hasHistory ? (

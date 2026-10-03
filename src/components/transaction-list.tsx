@@ -70,7 +70,7 @@ export function TransactionList({
       <section className="card card-border bg-base-200">
         <div className="card-body gap-4 p-4">
           <div
-            className="tabs tabs-border flex min-w-0 flex-nowrap overflow-x-auto"
+            className="tabs tabs-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex min-w-0 flex-nowrap overflow-x-auto"
             role="group"
             aria-label="სწრაფი ფილტრი"
           >

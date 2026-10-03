@@ -1,16 +1,13 @@
 export default function Loading() {
   return (
     <div
+      role="status"
       aria-busy="true"
       aria-label="იტვირთება"
-      className="mx-auto max-w-[1600px] space-y-4 p-4"
+      className="mx-auto flex max-w-[1600px] items-center gap-3 p-4 lg:p-5"
     >
-      <div className="skeleton h-8 w-60" />
-      <div className="skeleton h-52 rounded-xl" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="skeleton h-64 rounded-xl" />
-        <div className="skeleton h-64 rounded-xl" />
-      </div>
+      <span className="loading loading-spinner loading-sm text-primary" />
+      <span className="text-sm text-base-content/60">იტვირთება…</span>
     </div>
   );
 }

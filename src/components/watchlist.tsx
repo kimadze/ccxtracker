@@ -6,6 +6,7 @@ import type { Asset, Quote } from "@/domain/types";
 import { saveWatchlist, removeWatchlist } from "@/server/settings-actions";
 import { searchAssets } from "@/server/actions";
 import { dateTime, percentage, pnlClass, unitPrice } from "@/lib/formatters";
+import { PageHeading } from "./shell";
 import { AssetIcon } from "./positions";
 import { BalanceValue, Field, Message, Modal } from "./ui";
 export interface WatchItem {
@@ -78,18 +79,23 @@ export function Watchlist({
   return (
     <div className="space-y-3 lg:space-y-4">
       {!preview && (
-        <div className="flex justify-end">
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              setSelected(null);
-              setError("");
-              setOpen(true);
-            }}
-          >
-            <Plus size={16} /> აქტივის დამატება
-          </button>
-        </div>
+        <PageHeading
+          eyebrow=""
+          title="დაკვირვების სია"
+          description=""
+          action={
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setSelected(null);
+                setError("");
+                setOpen(true);
+              }}
+            >
+              <Plus size={16} /> აქტივის დამატება
+            </button>
+          }
+        />
       )}
       {!preview && (
         <section
@@ -275,7 +281,7 @@ export function Watchlist({
             </p>
             {!items.length && !preview && (
               <button
-                className="btn btn-dash mt-4"
+                className="btn btn-outline mt-4"
                 onClick={() => setOpen(true)}
               >
                 <Plus size={15} /> პირველი აქტივის დამატება

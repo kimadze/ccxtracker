@@ -1,4 +1,5 @@
 "use client";
+import { ResponsiveDisclosure } from "./responsive-disclosure";
 import { useSearchParams } from "next/navigation";
 import { WorkspaceTabs, useWorkspaceTab } from "./workspace-tabs";
 import type { Asset, LedgerEntry, ValuedPosition } from "@/domain/types";
@@ -13,7 +14,13 @@ const ExitPlanner = dynamic(() =>
 );
 import { JournalForm, type JournalData } from "./journal";
 import { TransactionList } from "./transaction-list";
-import { money, percentage, quantity, pnlClass, unitPrice } from "@/lib/formatters";
+import {
+  money,
+  percentage,
+  quantity,
+  pnlClass,
+  unitPrice,
+} from "@/lib/formatters";
 import { BalanceValue } from "./ui";
 export function PositionWorkspace({
   position: p,
@@ -110,10 +117,10 @@ export function PositionWorkspace({
       )}
       {tab === "plan" && (
         <div className="grid items-start gap-3 lg:grid-cols-2">
-          <details
+          <ResponsiveDisclosure
             key={requested}
             open={requestedTab !== "exit"}
-            className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open"
+            className="collapse collapse-arrow border border-base-300 bg-base-200"
           >
             <summary className="collapse-title min-h-11 text-sm font-semibold">
               შესვლის გეგმა
@@ -125,10 +132,10 @@ export function PositionWorkspace({
                 execution={{ portfolioId, revision, assets }}
               />
             </div>
-          </details>
-          <details
+          </ResponsiveDisclosure>
+          <ResponsiveDisclosure
             open={requestedTab === "exit"}
-            className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open"
+            className="collapse collapse-arrow border border-base-300 bg-base-200"
           >
             <summary className="collapse-title min-h-11 text-sm font-semibold">
               გასვლის გეგმა
@@ -140,7 +147,7 @@ export function PositionWorkspace({
                 initial={plan}
               />
             </div>
-          </details>
+          </ResponsiveDisclosure>
         </div>
       )}
       {tab === "journal" && (

@@ -1,4 +1,5 @@
 "use client";
+import { ResponsiveDisclosure } from "./responsive-disclosure";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Asset, PortfolioSummary } from "@/domain/types";
@@ -57,9 +58,9 @@ export function StrategyWorkspace({
     );
   return (
     <div className="space-y-3 lg:space-y-4">
-      <div className="card card-border bg-base-200 p-4">
+      <div className="flex min-w-0 items-center gap-3">
         <select
-          className="select w-full sm:max-w-xs"
+          className="select min-h-11 w-full sm:max-w-xs"
           aria-label="პოზიციის არჩევა"
           value={assetId}
           onChange={(e) => setAssetId(e.target.value)}
@@ -83,7 +84,7 @@ export function StrategyWorkspace({
         </div>
       ) : (
         <div className="grid items-start gap-3 lg:grid-cols-2 lg:gap-4">
-          <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open">
+          <ResponsiveDisclosure className="collapse collapse-arrow border border-base-300 bg-base-200">
             <summary className="collapse-title min-h-11 text-sm font-semibold">
               შესვლის გეგმა
             </summary>
@@ -94,8 +95,8 @@ export function StrategyWorkspace({
                 portfolioValue={investableValue(summary)}
               />
             </div>
-          </details>
-          <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open">
+          </ResponsiveDisclosure>
+          <ResponsiveDisclosure className="collapse collapse-arrow border border-base-300 bg-base-200">
             <summary className="collapse-title min-h-11 text-sm font-semibold">
               გასვლის გეგმა
             </summary>
@@ -108,7 +109,7 @@ export function StrategyWorkspace({
                 preview={preview}
               />
             </div>
-          </details>
+          </ResponsiveDisclosure>
         </div>
       )}
     </div>

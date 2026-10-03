@@ -63,7 +63,9 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     }
   };
   await page.goto(transactionsUrl);
-  await expect(page.locator("dialog[aria-labelledby]:not([open]) select")).toHaveCount(0);
+  await expect(
+    page.locator("dialog[aria-labelledby]:not([open]) select"),
+  ).toHaveCount(0);
   await openTransactionForm();
   await dialog.getByRole("button", { name: "შეტანა", exact: true }).click();
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("USD");
@@ -75,14 +77,22 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     await dialog.getByLabel("თანხა (USD)", { exact: true }).focus();
     const save = dialog.getByRole("button", { name: "შენახვა", exact: true });
     await save.scrollIntoViewIfNeeded();
-    expect((await save.boundingBox())!.y + (await save.boundingBox())!.height).toBeLessThanOrEqual(421);
+    expect(
+      (await save.boundingBox())!.y + (await save.boundingBox())!.height,
+    ).toBeLessThanOrEqual(421);
     await save.focus();
     const amount = dialog.getByLabel("თანხა (USD)", { exact: true });
     await amount.focus();
     const amountBounds = (await amount.boundingBox())!;
     const actionBounds = (await dialog.locator(".modal-action").boundingBox())!;
-    expect(amountBounds.y + amountBounds.height).toBeLessThanOrEqual(actionBounds.y);
-    expect(await dialog.locator(".modal-box").evaluate((box) => box.scrollWidth <= box.clientWidth + 1)).toBe(true);
+    expect(amountBounds.y + amountBounds.height).toBeLessThanOrEqual(
+      actionBounds.y,
+    );
+    expect(
+      await dialog
+        .locator(".modal-box")
+        .evaluate((box) => box.scrollWidth <= box.clientWidth + 1),
+    ).toBe(true);
     await page.screenshot({ path: ".local/mobile-form-short-viewport.png" });
     await page.setViewportSize({ width: 390, height: 844 });
   }
@@ -121,7 +131,9 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(page.locator(".balance-value").first()).toContainText("••••••");
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
-  await expect(page.locator(".balance-value").first()).not.toContainText("••••••");
+  await expect(page.locator(".balance-value").first()).not.toContainText(
+    "••••••",
+  );
   await page.goto(`${portfolioUrl}/settings`);
   await page
     .getByRole("checkbox", { name: /მხოლოდ კრიპტოაქტივების ღირებულება/ })
@@ -139,11 +151,29 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     page.getByRole("heading", { name: "Bitcoin", exact: true }),
   ).toBeVisible();
   await page.goto(`${portfolioUrl}/positions/bitcoin?tab=dca`);
-  await page.getByLabel("მოსალოდნელი შესყიდვის ფასი (USD)").fill("40000");
+  await page.getByLabel("შესყიდვის ფასი (USD)", { exact: true }).fill("40000");
+  if (testInfo.project.name === "desktop") {
+    await expect(
+      page
+        .locator("details", {
+          has: page.locator("summary", { hasText: "გასვლის გეგმა" }),
+        })
+        .first(),
+    ).toHaveAttribute("open", "");
+  }
   await expect(
     page.getByText("ახალი საშუალო ფასი", { exact: true }),
   ).toBeVisible();
   await page.getByRole("tab", { name: "ჟურნალი", exact: true }).click();
+  if (testInfo.project.name === "desktop") {
+    await expect(
+      page.getByLabel("რატომ გავხსენი პოზიცია", { exact: true }),
+    ).toBeVisible();
+  }
+  await page.screenshot({
+    path: `.local/journal-populated-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
   await page
     .getByLabel("საინვესტიციო თეზისი", { exact: true })
     .fill("გრძელვადიანი საინვესტიციო თეზისი");

@@ -77,12 +77,12 @@ export function PortfolioStatistics({
         {[
           { label: "დღის საბაზრო გავლენა", value: data.impact, symbol: null },
           {
-            label: "მოგების მთავარი წყარო",
+            label: "მოგების წყარო",
             value: gain?.position.unrealizedPnl ?? null,
             symbol: gain?.position.asset.symbol,
           },
           {
-            label: "ზარალის მთავარი წყარო",
+            label: "ზარალის წყარო",
             value: loss?.position.unrealizedPnl ?? null,
             symbol: loss?.position.asset.symbol,
           },
