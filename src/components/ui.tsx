@@ -12,7 +12,11 @@ import {
   type ReactNode,
   type ReactElement,
 } from "react";
-import { readPrivacy, serverPrivacy, subscribePrivacy } from "./balance-privacy";
+import {
+  readPrivacy,
+  serverPrivacy,
+  subscribePrivacy,
+} from "./balance-privacy";
 import { useDialogViewport } from "./use-dialog-viewport";
 
 export function BalanceValue({ children }: { children: ReactNode }) {
@@ -22,7 +26,10 @@ export function BalanceValue({ children }: { children: ReactNode }) {
     serverPrivacy,
   );
   return (
-    <span className="balance-value" aria-label={hidden ? "თანხა დამალულია" : undefined}>
+    <span
+      className="balance-value"
+      aria-label={hidden ? "თანხა დამალულია" : undefined}
+    >
       {hidden ? "••••••" : children}
     </span>
   );
@@ -134,11 +141,22 @@ export function Field({
         ? "select min-h-11 w-full text-base md:text-sm"
         : children.type === "textarea"
           ? "textarea min-h-24 w-full text-base md:text-sm"
-          : children.type === "input" && childProps?.type === "file"
-            ? "file-input min-h-11 w-full text-base md:text-sm"
-          : children.type === "input" && !["checkbox", "radio", "hidden"].includes(childProps?.type ?? "text")
-            ? "input min-h-11 w-full text-base md:text-sm"
-            : ""
+          : children.type === "input" && childProps?.type === "checkbox"
+            ? /\btoggle\b/.test(childProps?.className ?? "")
+              ? "toggle"
+              : "checkbox"
+            : children.type === "input" && childProps?.type === "radio"
+              ? "radio"
+              : children.type === "input" && childProps?.type === "range"
+                ? "range w-full"
+                : children.type === "input" && childProps?.type === "file"
+                  ? "file-input min-h-11 w-full text-base md:text-sm"
+                  : children.type === "input" &&
+                      !["checkbox", "radio", "hidden"].includes(
+                        childProps?.type ?? "text",
+                      )
+                    ? "input min-h-11 w-full text-base md:text-sm"
+                    : ""
       : ""
     : "";
   return (

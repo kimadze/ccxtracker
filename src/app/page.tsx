@@ -70,10 +70,10 @@ export default function Home() {
                 >
                   <defs>
                     <linearGradient id="hero-fill" x1="0" y1="0" x2="0" y2="1">
-                      <stop stopColor="var(--accent)" stopOpacity=".2" />
+                      <stop stopColor="var(--color-primary)" stopOpacity=".2" />
                       <stop
                         offset="1"
-                        stopColor="var(--accent)"
+                        stopColor="var(--color-primary)"
                         stopOpacity="0"
                       />
                     </linearGradient>
@@ -82,7 +82,7 @@ export default function Home() {
                     <path
                       key={y}
                       d={`M0 ${y}H400`}
-                      stroke="var(--ccx-border)"
+                      stroke="var(--color-base-300)"
                       strokeDasharray="3 5"
                     />
                   ))}
@@ -93,7 +93,7 @@ export default function Home() {
                   <path
                     d="M0 112L30 102L54 110L81 85L112 92L147 65L176 76L200 49L232 59L264 31L298 45L326 21L353 31L400 7"
                     fill="none"
-                    stroke="var(--accent)"
+                    stroke="var(--color-primary)"
                     strokeWidth="2"
                   />
                 </svg>

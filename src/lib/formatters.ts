@@ -91,9 +91,12 @@ export function dateTime(value: string | Date | number, short = false) {
   return `${get("day")} ${months[Number(get("month")) - 1]}${short ? "" : ` ${get("year")}, ${get("hour")}:${get("minute")}`}`;
 }
 export function pnlClass(value: string | null | undefined) {
-  return value === null || value === undefined || value === "" || decimal(value).isZero()
-    ? "text-muted"
+  return value === null ||
+    value === undefined ||
+    value === "" ||
+    decimal(value).isZero()
+    ? "text-base-content/60"
     : decimal(value).gt(0)
-      ? "text-positive"
-      : "text-negative";
+      ? "text-success"
+      : "text-error";
 }

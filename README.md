@@ -79,6 +79,10 @@ Portfolio creation also supports Stellar and Bitcoin mainnet wallets with up to 
 
 Bitcoin shows confirmed balance and a separate pending change for the addresses supplied; other receiving/change addresses are not discovered. Stellar shows XLM and classic trustline balances, reserve and available XLM; Soroban/DeFi and claimable balances are outside coverage. Tokens without a verified price display an unknown value and are excluded from the known subtotal. Cost basis and profit/loss are not inferred from wallet balances. Public providers can impose availability and rate limits.
 
+### UI styling
+
+DaisyUI 5 supplies application controls, cards, navigation and feedback, using the single `ccx` theme in `globals.css`. Use semantic colors (`base-*`, `primary`, `success`, `error`) in components and charts. Form adapters apply DaisyUI input/select/textarea/checkbox/radio/range/file-input classes. Remaining workspace CSS handles layout and responsive sizing; do not add component skin overrides or a second color palette. Exported share artwork retains its independent canvas design.
+
 ## Architecture and operation
 
 - `src/domain`: pure ledger, valuation, analytics and planning functions; numeric strings cross boundaries.

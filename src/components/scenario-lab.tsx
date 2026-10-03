@@ -548,9 +548,9 @@ function GoalPlanner({
                     sensitive
                   />
                 </div>
-                <div className="mt-6 h-2 overflow-hidden rounded-full bg-raised">
+                <div className="mt-6 h-2 overflow-hidden rounded-full bg-base-300">
                   <div
-                    className="h-full rounded-full bg-brand"
+                    className="h-full rounded-full bg-primary"
                     style={{ width: `${Number(progress.progress ?? 0)}%` }}
                   />
                 </div>
@@ -563,7 +563,7 @@ function GoalPlanner({
                     .map((m, i) => (
                       <span
                         key={i}
-                        className={`rounded-md border px-2 py-1 text-xs ${current !== null && Number(current) >= Number(m) ? "border-brand/30 text-brand" : "border-line text-base-content/60"}`}
+                        className={`rounded-md border px-2 py-1 text-xs ${current !== null && Number(current) >= Number(m) ? "border-primary/30 text-primary" : "border-base-300 text-base-content/60"}`}
                       >
                         <BalanceValue>{money(m)}</BalanceValue>{" "}
                         {current !== null && Number(current) >= Number(m)

@@ -67,9 +67,11 @@ export function HistoryChart({
   if (!snapshots.length)
     return (
       <div className={compact ? "py-2 text-left" : "py-4 text-left"}>
-        <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
+        <p className="text-xs text-base-content/60">
+          ისტორია ჯერ არ არის საკმარისი
+        </p>
         {!compact && (
-          <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
+          <p className="mt-2 max-w-xs text-[11px] leading-6 text-base-content/60">
             მიმდინარე შეფასება ავტომატურად შეინახება და ყოველდღიური განახლებები
             მას გააგრძელებს.
           </p>
@@ -99,7 +101,7 @@ export function HistoryChart({
         </div>
       )}
       {points.length < 2 && (
-        <p role="status" className="mb-2 text-xs text-muted">
+        <p role="status" className="mb-2 text-xs text-base-content/60">
           {points.length
             ? "ხაზი გამოჩნდება მეორე შეფასების შენახვის შემდეგ."
             : "ამ პერიოდისთვის შეფასებები არ მოიძებნა."}
@@ -131,19 +133,19 @@ export function HistoryChart({
                 <linearGradient id="historyFill" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
-                    stopColor="var(--accent)"
+                    stopColor="var(--color-primary)"
                     stopOpacity={0.23}
                   />
                   <stop
                     offset="100%"
-                    stopColor="var(--accent)"
+                    stopColor="var(--color-primary)"
                     stopOpacity={0}
                   />
                 </linearGradient>
               </defs>
               <CartesianGrid
                 vertical={false}
-                stroke="var(--border-soft)"
+                stroke="var(--color-base-300)"
                 strokeDasharray="3 5"
               />
               <XAxis
@@ -152,24 +154,29 @@ export function HistoryChart({
                 axisLine={false}
                 tickLine={false}
                 minTickGap={32}
-                tick={{ fill: "var(--text-low)", fontSize: 11 }}
+                tick={{ fill: "var(--color-base-content)", fontSize: 11 }}
                 dy={8}
               />
               <YAxis
                 orientation="right"
-                tickFormatter={(v) => balancesHidden ? "••••" : money(String(v), true)}
+                tickFormatter={(v) =>
+                  balancesHidden ? "••••" : money(String(v), true)
+                }
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "var(--text-low)", fontSize: 11 }}
+                tick={{ fill: "var(--color-base-content)", fontSize: 11 }}
                 width={80}
                 domain={["auto", "auto"]}
               />
               <Tooltip
                 labelFormatter={(v) => dateTime(Number(v))}
-                formatter={(v) => [balancesHidden ? "••••••" : money(String(v)), "ღირებულება"]}
+                formatter={(v) => [
+                  balancesHidden ? "••••••" : money(String(v)),
+                  "ღირებულება",
+                ]}
                 contentStyle={{
-                  background: "var(--surface-2)",
-                  border: "1px solid var(--ccx-border)",
+                  background: "var(--color-base-300)",
+                  border: "1px solid var(--color-base-300)",
                   borderRadius: 10,
                   fontSize: 11,
                 }}
@@ -177,48 +184,56 @@ export function HistoryChart({
               <Area
                 dataKey="value"
                 type="linear"
-                stroke="var(--accent)"
+                stroke="var(--color-primary)"
                 strokeWidth={2}
                 fill="url(#historyFill)"
                 isAnimationActive={false}
                 dot={{
                   r: points.length === 1 ? 4 : 0,
-                  fill: "var(--accent)",
+                  fill: "var(--color-primary)",
                   strokeWidth: 0,
                 }}
-                activeDot={{ r: 4, fill: "var(--accent)", strokeWidth: 0 }}
+                activeDot={{
+                  r: 4,
+                  fill: "var(--color-primary)",
+                  strokeWidth: 0,
+                }}
               />
             </AreaChart>
           </ResponsiveContainer>
         )}
       </div>
-      {snapshots.length >= 2 && <details className="mt-3 text-[10px] text-muted">
-        <summary>მონაცემების ცხრილი</summary>
-        <div className="mt-2 max-h-40 overflow-auto">
-          <table className="table w-full">
-            <thead>
-              <tr>
-                <th className="text-left">თარიღი</th>
-                <th className="text-right">ღირებულება</th>
-              </tr>
-            </thead>
-            <tbody>
-              {snapshots
-                .filter((s) =>
-                  points.some(
-                    (point) => point.time === Date.parse(s.capturedAt),
-                  ),
-                )
-                .map((s) => (
-                  <tr key={s.capturedAt}>
-                    <td className="py-1">{dateTime(s.capturedAt, true)}</td>
-                    <td className="text-right"><BalanceValue>{money(s.value)}</BalanceValue></td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-      </details>}
+      {snapshots.length >= 2 && (
+        <details className="mt-3 text-[10px] text-base-content/60">
+          <summary>მონაცემების ცხრილი</summary>
+          <div className="mt-2 max-h-40 overflow-auto">
+            <table className="table w-full">
+              <thead>
+                <tr>
+                  <th className="text-left">თარიღი</th>
+                  <th className="text-right">ღირებულება</th>
+                </tr>
+              </thead>
+              <tbody>
+                {snapshots
+                  .filter((s) =>
+                    points.some(
+                      (point) => point.time === Date.parse(s.capturedAt),
+                    ),
+                  )
+                  .map((s) => (
+                    <tr key={s.capturedAt}>
+                      <td className="py-1">{dateTime(s.capturedAt, true)}</td>
+                      <td className="text-right">
+                        <BalanceValue>{money(s.value)}</BalanceValue>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
     </div>
   );
 }

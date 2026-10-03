@@ -44,7 +44,7 @@ export function WorkspaceTabs({
             type="button"
             role="tab"
             aria-selected={value === key}
-            aria-controls={`${id}-panel`}
+            aria-controls={`${id}-card card-border bg-base-200`}
             tabIndex={value === key ? 0 : -1}
             className={`tab min-h-11 shrink-0 text-sm ${value === key ? "tab-active" : ""}`}
             onClick={() => onChange(key)}
@@ -66,7 +66,7 @@ export function WorkspaceTabs({
         ))}
       </div>
       <div
-        id={`${id}-panel`}
+        id={`${id}-card card-border bg-base-200`}
         role="tabpanel"
         aria-labelledby={`${id}-${value}`}
         className="min-w-0"
