@@ -9,7 +9,7 @@ export function BrandMark({ size = 34 }: { size?: number }) {
       aria-hidden="true"
     >
       <Image
-        src="/ccx-symbol.svg"
+        src="/ccx-mark.png"
         alt=""
         fill
         sizes={`${size}px`}
