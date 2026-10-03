@@ -30,6 +30,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
     [error, setError] = useState(""),
     [editing, setEditing] = useState(false),
     [deleting, setDeleting] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const started = useRef(false);
   async function refresh() {
     setPending(true);
@@ -54,6 +55,21 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
     stale =
       !!snapshot &&
       (!!wallet.lastError || walletSnapshotStale(snapshot.fetchedAt));
+  const nativeSymbol = wallet.network === "stellar" ? "XLM" : "BTC";
+  const nativeQuantity = snapshot
+    ? quantity(
+        snapshot.accounts
+          .reduce(
+            (sum, account) =>
+              sum.plus(
+                account.assets.find((asset) => asset.id === "native")
+                  ?.quantity ?? 0,
+              ),
+            decimal(0),
+          )
+          .toString(),
+      )
+    : "—";
   const explorer = (address: string) =>
     wallet.network === "stellar"
       ? `https://stellar.expert/explorer/public/account/${address}`
@@ -117,6 +133,11 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
           <p className="overflow-x-auto whitespace-nowrap text-3xl font-semibold tabular-nums">
             <BalanceValue>{money(snapshot?.knownValue)}</BalanceValue>
           </p>
+          <p className="text-lg font-medium tabular-nums text-base-content/80">
+            <BalanceValue>
+              {nativeQuantity} {nativeSymbol}
+            </BalanceValue>
+          </p>
           <p className="text-xs text-base-content/60">
             {pending
               ? "ბალანსები იტვირთება…"
@@ -162,8 +183,11 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
           >
             <div className="card-body gap-3 p-4">
               <div className="flex min-w-0 items-center justify-between gap-2">
-                <h2 className="min-w-0 break-all font-mono text-xs">
-                  {address}
+                <h2
+                  className="min-w-0 font-mono text-xs text-base-content/60"
+                  title={address}
+                >
+                  {address.slice(0, 8)}…{address.slice(-6)}
                 </h2>
                 <a
                   href={explorer(address)}
@@ -190,6 +214,13 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                       .filter(
                         (a) => decimal(a.quantity).gt(0) || a.id === "native",
                       )
+                      .sort(
+                        (a, b) =>
+                          Number(b.id === "native") -
+                            Number(a.id === "native") ||
+                          a.symbol.localeCompare(b.symbol),
+                      )
+                      .slice(0, expanded[address] ? undefined : 6)
                       .map((a) => (
                         <li
                           key={a.id}
@@ -197,21 +228,11 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                         >
                           <div className="min-w-0">
                             <p className="text-sm font-semibold">{a.symbol}</p>
-                            <p
-                              className="mt-1 overflow-x-auto whitespace-nowrap text-xs tabular-nums text-base-content/60"
-                            >
+                            <p className="mt-1 overflow-x-auto whitespace-nowrap text-xs tabular-nums text-base-content/60">
                               <BalanceValue>
                                 {quantity(a.quantity)}
                               </BalanceValue>
                             </p>
-                            {a.issuer && (
-                              <p
-                                className="mt-1 truncate font-mono text-[10px] text-base-content/50"
-                                title={a.issuer}
-                              >
-                                {a.issuer}
-                              </p>
-                            )}
                             {!a.authorized && (
                               <p className="text-xs text-warning">
                                 არ არის ავტორიზებული
@@ -222,14 +243,51 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                             <p className="overflow-x-auto whitespace-nowrap text-sm tabular-nums">
                               <BalanceValue>{money(a.value)}</BalanceValue>
                             </p>
-                            <p className="mt-1 whitespace-nowrap text-xs text-base-content/60">
-                              <BalanceValue>{money(a.price)}</BalanceValue>
-                              <span> / {a.symbol}</span>
-                            </p>
+                            {a.price !== null && (
+                              <p className="mt-1 whitespace-nowrap text-xs text-base-content/60">
+                                <BalanceValue>{money(a.price)}</BalanceValue>
+                                <span> / {a.symbol}</span>
+                              </p>
+                            )}
                           </div>
                         </li>
                       ))}
                   </ul>
+                  {account.assets.filter(
+                    (a) => decimal(a.quantity).gt(0) || a.id === "native",
+                  ).length > 6 && (
+                    <button
+                      className="btn btn-ghost w-full"
+                      onClick={() =>
+                        setExpanded((previous) => ({
+                          ...previous,
+                          [address]: !previous[address],
+                        }))
+                      }
+                    >
+                      {expanded[address]
+                        ? "შეკუმშვა"
+                        : `ყველა აქტივი (${account.assets.filter((a) => decimal(a.quantity).gt(0) || a.id === "native").length})`}
+                    </button>
+                  )}
+                  <details className="collapse collapse-arrow border border-base-300">
+                    <summary className="collapse-title min-h-11 py-3 text-xs">
+                      მისამართი და აქტივების დეტალები
+                    </summary>
+                    <div className="collapse-content space-y-2 text-xs text-base-content/60">
+                      <p className="break-all font-mono">{address}</p>
+                      {account.assets
+                        .filter((a) => a.issuer)
+                        .map((a) => (
+                          <div key={a.id}>
+                            <p className="font-semibold">{a.symbol}</p>
+                            <p className="break-all font-mono text-[10px]">
+                              {a.issuer}
+                            </p>
+                          </div>
+                        ))}
+                    </div>
+                  </details>
                   {wallet.network === "bitcoin" && account.pending !== null && (
                     <p className="text-xs text-base-content/60">
                       მოლოდინში ცვლილება:{" "}

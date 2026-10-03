@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowUpRight, Wallet } from "lucide-react";
 import type { WalletSnapshot, WalletNetwork } from "@/domain/wallet";
 import { walletSnapshotStale } from "@/domain/wallet";
-import { money } from "@/lib/formatters";
+import { money, quantity } from "@/lib/formatters";
+import { decimal } from "@/domain/decimal";
 import { BalanceValue } from "./ui";
 
 export function WalletPortfolioCard({
@@ -19,6 +20,19 @@ export function WalletPortfolioCard({
   lastError: string | null;
 }) {
   const stale = snapshot && walletSnapshotStale(snapshot.fetchedAt);
+  const native = snapshot
+    ? quantity(
+        snapshot.accounts
+          .reduce(
+            (sum, account) =>
+              sum.plus(
+                account.assets.find((a) => a.id === "native")?.quantity ?? 0,
+              ),
+            decimal(0),
+          )
+          .toString(),
+      )
+    : "—";
   return (
     <Link
       href={`/wallet-portfolios/${id}`}
@@ -46,17 +60,36 @@ export function WalletPortfolioCard({
             <BalanceValue>{money(snapshot?.knownValue)}</BalanceValue>
           </p>
           <p className="mt-2 text-xs text-base-content/60">
-            {network === "stellar" ? "Stellar" : "Bitcoin"} · Read-only
+            <BalanceValue>
+              {native} {network === "stellar" ? "XLM" : "BTC"}
+            </BalanceValue>
           </p>
         </div>
         <div className="border-t border-base-300 pt-3 text-xs text-base-content/60">
-          {!snapshot
-            ? "ბალანსი ჯერ არ შემოწმებულა"
-            : lastError || stale
-              ? "მონაცემები განახლებას საჭიროებს"
-              : !snapshot.complete
-                ? "ზოგი აქტივის ფასი უცნობია"
-                : `${snapshot.accounts.length} მისამართი`}
+          <div className="flex items-center justify-between">
+            <span>{network === "stellar" ? "Stellar" : "Bitcoin"}</span>
+            <span
+              title={
+                !snapshot
+                  ? "ბალანსი ჯერ არ შემოწმებულა"
+                  : lastError || stale
+                    ? "მონაცემები განახლებას საჭიროებს"
+                    : !snapshot.complete
+                      ? "ზოგი აქტივის ფასი უცნობია; თანხა არასრულია"
+                      : "ბალანსი განახლებულია"
+              }
+              aria-label={
+                !snapshot
+                  ? "ბალანსი ჯერ არ შემოწმებულა"
+                  : lastError || stale
+                    ? "მონაცემები განახლებას საჭიროებს"
+                    : !snapshot.complete
+                      ? "ზოგი აქტივის ფასი უცნობია; თანხა არასრულია"
+                      : "ბალანსი განახლებულია"
+              }
+              className={`status ${!snapshot || lastError || stale || !snapshot.complete ? "status-warning" : "status-success"}`}
+            />
+          </div>
         </div>
       </div>
     </Link>

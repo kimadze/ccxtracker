@@ -86,7 +86,9 @@ test("create read-only BTC and Stellar, privacy, refresh failure, edit and remov
   await expect(
     page.getByText("უცნობი ფასის მქონე აქტივები ჯამში არ შედის."),
   ).toBeVisible();
-  await expect(page.getByText("LONGTOKEN123", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("list").getByText("LONGTOKEN123", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText(/რეზერვი:/)).toContainText("1,5 XLM");
   const stellarUrl = page.url();
   for (const width of [360, 390, 430, 768, 1024, 1440]) {
