@@ -69,8 +69,9 @@ export function HistoryChart({
       <div className={compact ? "py-2 text-left" : "py-4 text-left"}>
         <p className="text-xs text-muted">ისტორია ჯერ არ არის საკმარისი</p>
         {!compact && (
-          <p className="mt-1 max-w-xs text-[11px] leading-5 text-muted">
-            ახალი შეფასება ავტომატურად გააგრძელებს ისტორიას.
+          <p className="mt-2 max-w-xs text-[11px] leading-6 text-muted">
+            მიმდინარე შეფასება ავტომატურად შეინახება და ყოველდღიური განახლებები
+            მას გააგრძელებს.
           </p>
         )}
         {emptyAction && <div className="mt-4">{emptyAction}</div>}
@@ -110,7 +111,7 @@ export function HistoryChart({
           points.length < 2
             ? "hidden"
             : compact
-              ? "h-[128px] w-full min-w-0 lg:h-[180px]"
+              ? "h-[140px] w-full min-w-0 lg:h-[220px]"
               : "h-56 w-full min-w-0"
         }
         role="img"
@@ -156,9 +157,7 @@ export function HistoryChart({
               />
               <YAxis
                 orientation="right"
-                tickFormatter={(v) =>
-                  balancesHidden ? "••••" : money(String(v), true)
-                }
+                tickFormatter={(v) => balancesHidden ? "••••" : money(String(v), true)}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "var(--text-low)", fontSize: 11 }}
@@ -167,10 +166,7 @@ export function HistoryChart({
               />
               <Tooltip
                 labelFormatter={(v) => dateTime(Number(v))}
-                formatter={(v) => [
-                  balancesHidden ? "••••••" : money(String(v)),
-                  "ღირებულება",
-                ]}
+                formatter={(v) => [balancesHidden ? "••••••" : money(String(v)), "ღირებულება"]}
                 contentStyle={{
                   background: "var(--surface-2)",
                   border: "1px solid var(--ccx-border)",
@@ -196,37 +192,33 @@ export function HistoryChart({
           </ResponsiveContainer>
         )}
       </div>
-      {snapshots.length >= 2 && (
-        <details className="mt-3 text-[10px] text-muted">
-          <summary>მონაცემების ცხრილი</summary>
-          <div className="mt-2 max-h-40 overflow-auto">
-            <table className="table w-full">
-              <thead>
-                <tr>
-                  <th className="text-left">თარიღი</th>
-                  <th className="text-right">ღირებულება</th>
-                </tr>
-              </thead>
-              <tbody>
-                {snapshots
-                  .filter((s) =>
-                    points.some(
-                      (point) => point.time === Date.parse(s.capturedAt),
-                    ),
-                  )
-                  .map((s) => (
-                    <tr key={s.capturedAt}>
-                      <td className="py-1">{dateTime(s.capturedAt, true)}</td>
-                      <td className="text-right">
-                        <BalanceValue>{money(s.value)}</BalanceValue>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      )}
+      {snapshots.length >= 2 && <details className="mt-3 text-[10px] text-muted">
+        <summary>მონაცემების ცხრილი</summary>
+        <div className="mt-2 max-h-40 overflow-auto">
+          <table className="table w-full">
+            <thead>
+              <tr>
+                <th className="text-left">თარიღი</th>
+                <th className="text-right">ღირებულება</th>
+              </tr>
+            </thead>
+            <tbody>
+              {snapshots
+                .filter((s) =>
+                  points.some(
+                    (point) => point.time === Date.parse(s.capturedAt),
+                  ),
+                )
+                .map((s) => (
+                  <tr key={s.capturedAt}>
+                    <td className="py-1">{dateTime(s.capturedAt, true)}</td>
+                    <td className="text-right"><BalanceValue>{money(s.value)}</BalanceValue></td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </details>}
     </div>
   );
 }
