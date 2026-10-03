@@ -2,7 +2,7 @@ import { beforeAll, afterAll, it, expect } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { readdir, readFile } from "node:fs/promises";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as schema from "@/server/db/schema";
 import type { Database } from "@/server/db";
 import { walletService } from "@/server/services/wallet";
@@ -33,6 +33,19 @@ beforeAll(async () => {
   ]);
 }, 60000);
 afterAll(() => client.close());
+it("refreshes a newly created wallet with PostgreSQL microsecond timestamps", async () => {
+  const service = walletService(db, "alice", async () => snapshot);
+  const p = await service.create(input);
+  await database
+    .update(schema.walletPortfolios)
+    .set({
+      updatedAt: sql`'2026-10-03T12:00:00.123456Z'::timestamptz`,
+    })
+    .where(eq(schema.walletPortfolios.id, p.id));
+  await service.refresh(p.id);
+  expect((await service.owned(p.id)).snapshot?.knownValue).toBe("42");
+  await expect(service.refresh(p.id)).rejects.toThrow("WALLET_REFRESH_LIMIT");
+});
 it("isolates wallets by owner and rejects wrong-chain keys", async () => {
   const service = walletService(db, "alice", async () => snapshot);
   const p = await service.create(input);

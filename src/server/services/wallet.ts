@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, isNull, lt, or } from "drizzle-orm";
+import { and, asc, eq, isNull, lt, or, sql } from "drizzle-orm";
 import type { Database } from "@/server/db";
 import { walletPortfolios } from "@/server/db/schema";
 import { idSchema } from "@/domain/validation";
@@ -93,7 +93,7 @@ export function walletService(
           and(
             eq(walletPortfolios.id, id),
             eq(walletPortfolios.userId, userId),
-            eq(walletPortfolios.updatedAt, p.updatedAt),
+            sql`date_trunc('milliseconds', ${walletPortfolios.updatedAt}) = ${p.updatedAt.toISOString()}::timestamptz`,
             or(
               isNull(walletPortfolios.lastAttemptAt),
               lt(
@@ -114,7 +114,7 @@ export function walletService(
             and(
               eq(walletPortfolios.id, id),
               eq(walletPortfolios.userId, userId),
-              eq(walletPortfolios.updatedAt, p.updatedAt),
+              sql`date_trunc('milliseconds', ${walletPortfolios.updatedAt}) = ${p.updatedAt.toISOString()}::timestamptz`,
               eq(walletPortfolios.lastAttemptAt, now),
             ),
           );
@@ -129,7 +129,7 @@ export function walletService(
             and(
               eq(walletPortfolios.id, id),
               eq(walletPortfolios.userId, userId),
-              eq(walletPortfolios.updatedAt, p.updatedAt),
+              sql`date_trunc('milliseconds', ${walletPortfolios.updatedAt}) = ${p.updatedAt.toISOString()}::timestamptz`,
               eq(walletPortfolios.lastAttemptAt, now),
             ),
           );
