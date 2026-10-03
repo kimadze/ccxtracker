@@ -1,330 +1,371 @@
 "use client";
+import { useState } from "react";
+import Link from "next/link";
 import { WorkspaceTabs, useWorkspaceTab } from "./workspace-tabs";
 import { MacroIndicators } from "./macro-indicators";
-import { BarChart3 } from "lucide-react";
+import { StatisticsTrend } from "./statistics-trend";
+import { AssetIcon } from "./positions";
 import type { PortfolioSummary } from "@/domain/types";
-import type {
-  MacroStatistics,
-  MarketStatisticAsset,
-  MarketStatistics,
+import {
+  marketBreadth,
+  marketChange,
+  topMovers,
+  type MarketPeriod,
+  type MacroStatistics,
+  type MarketStatisticAsset,
+  type MarketStatistics,
 } from "@/domain/statistics";
-import { topMovers } from "@/domain/statistics";
-import { percent } from "@/domain/decimal";
 import {
   compactMoney,
   dateTime,
-  money,
+  unitPrice,
   percentage,
   pnlClass,
 } from "@/lib/formatters";
-import { BalanceValue } from "./ui";
-import { AssetIcon } from "./positions";
-
-function compact(value: string | null) {
-  return compactMoney(value);
-}
-
-function MetricCard({
-  label,
-  value,
-  hint,
+const periods: [MarketPeriod, string][] = [
+  ["1h", "1სთ"],
+  ["24h", "24სთ"],
+  ["7d", "7დღ"],
+];
+function PeriodControl({
+  period,
+  onChange,
 }: {
-  label: string;
-  value: string;
-  hint?: string;
+  period: MarketPeriod;
+  onChange: (period: MarketPeriod) => void;
 }) {
   return (
-    <div className="stat min-w-0">
-      <span className="stat-figure text-primary">
-        <BarChart3 size={17} />
-      </span>
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-xs text-base-content/60">ფასის ცვლილება</span>
+      <div className="join" role="group" aria-label="ცვლილების პერიოდი">
+        {periods.map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={value === period}
+            onClick={() => onChange(value)}
+            className={`btn btn-sm join-item px-4 ${value === period ? "btn-primary" : "btn-ghost"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="stat min-w-0 p-3 sm:p-4">
       <p className="stat-title whitespace-normal text-xs">{label}</p>
-      <p className="stat-value numeric mt-1.5 whitespace-nowrap text-xl tracking-[-.04em]">
+      <p className="stat-value numeric mt-1 whitespace-nowrap text-lg sm:text-xl">
         {value}
       </p>
-      {hint && <p className="stat-desc mt-2 truncate text-xs">{hint}</p>}
     </div>
   );
 }
-
-function MarketTab({ data }: { data: MarketStatistics }) {
-  const movers = topMovers(data.assets);
-  const overview = data.overview;
+function AssetRow({
+  asset,
+  period,
+  href,
+}: {
+  asset: MarketStatisticAsset;
+  period: MarketPeriod;
+  href?: string;
+}) {
+  const change = marketChange(asset, period);
+  const content = (
+    <>
+      <span className="flex min-w-0 items-center gap-2">
+        <AssetIcon symbol={asset.symbol} logoUrl={asset.image} size={32} />
+        <span className="min-w-0">
+          <strong className="block truncate text-sm">{asset.symbol}</strong>
+          <span
+            className="block truncate text-xs text-base-content/55"
+            title={asset.name}
+          >
+            {asset.name}
+          </span>
+        </span>
+      </span>
+      <span className="numeric whitespace-nowrap text-right text-xs sm:text-sm">
+        {unitPrice(asset.price)}
+      </span>
+      <span className="w-24 lg:w-full">
+        <StatisticsTrend
+          values={asset.sparkline7d}
+          label={`${asset.symbol} · ფასის 7-დღიანი ისტორია`}
+          className="text-base-content/60"
+        />
+      </span>
+      <span
+        className={`numeric whitespace-nowrap text-right text-sm ${pnlClass(change)}`}
+      >
+        {percentage(change, true)}
+      </span>
+    </>
+  );
+  const classes =
+    "grid min-h-16 min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-base-300 px-3 py-2 last:border-0 lg:grid-cols-[minmax(0,1fr)_minmax(100px,auto)_100px_85px] lg:gap-4";
   return (
-    <div className="space-y-3 lg:space-y-4">
-      {overview ? (
-        <>
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-box border border-base-300 bg-base-200 lg:grid-cols-3">
-            <MetricCard
-              label="კრიპტო ბაზრის კაპიტალიზაცია"
-              value={compact(overview.totalMarketCap)}
-            />
-            <MetricCard
-              label="24სთ მოცულობა"
-              value={compact(overview.volume24h)}
-            />
-            <MetricCard
-              label="BTC დომინაცია"
-              value={percentage(overview.btcDominance)}
-            />
-            <MetricCard
-              label="ETH დომინაცია"
-              value={percentage(overview.ethDominance)}
-            />
-            <MetricCard
-              label="Stablecoin კაპიტალიზაცია"
-              value={compact(overview.stablecoinMarketCap)}
-            />
-          </div>
-          <p className="text-xs text-base-content/60">
-            წყარო: {overview.source} · განახლდა {dateTime(overview.updatedAt)}
-          </p>
-        </>
-      ) : (
-        <div
-          role="alert"
-          className="alert alert-warning alert-soft text-xs leading-6"
+    <li>
+      {href ? (
+        <Link
+          href={href}
+          className={`${classes} rounded-field hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary`}
         >
-          ბაზრის მონაცემები ამჟამად მიუწვდომელია. შეამოწმეთ CoinGecko API-ის
-          კონფიგურაცია.
-        </div>
+          {content}
+        </Link>
+      ) : (
+        <div className={classes}>{content}</div>
       )}
-      {!!data.assets.length && (
-        <div className="grid gap-4 lg:grid-cols-2">
-          <MoverBlock
-            title="ტოპ ზრდა · ტოპ 100"
-            rows={movers.gainers}
-            positive
-          />
-          <MoverBlock title="ტოპ კლება · ტოპ 100" rows={movers.losers} />
-        </div>
-      )}
-    </div>
+    </li>
   );
 }
-function MacroTab({ data }: { data: MacroStatistics }) {
-  return <MacroIndicators data={data} />;
-}
-
 function MoverBlock({
   title,
   rows,
-  positive = false,
+  period,
 }: {
   title: string;
   rows: MarketStatisticAsset[];
-  positive?: boolean;
+  period: MarketPeriod;
 }) {
   return (
-    <section
-      className={`card card-border bg-base-200 ${positive ? "border-success/30" : "border-error/30"}`}
-    >
-      <div className="card-body p-4">
-        <h3 className="card-title text-base">{title}</h3>
-        <ul className="list">
+    <section className="card card-border min-w-0 bg-base-200">
+      <header className="flex items-center justify-between gap-2 px-3 pt-3">
+        <h3 className="text-sm font-semibold">{title}</h3>
+        <span className="text-xs text-base-content/55">გრაფიკი · 7დღ</span>
+      </header>
+      {rows.length ? (
+        <ul className="list mt-1">
           {rows.map((asset) => (
-            <li
-              className="list-row items-center border-b border-base-300 px-0 last:border-0"
-              key={asset.id}
-            >
-              <span className="flex items-center gap-2">
-                <AssetIcon
-                  symbol={asset.symbol}
-                  logoUrl={asset.image}
-                  size={23}
-                />
-                <b>{asset.symbol}</b>
-                <small>#{asset.rank}</small>
-              </span>
-              <progress
-                className={`progress w-full ${positive ? "progress-success" : "progress-error"}`}
-                value={Math.min(
-                  100,
-                  Math.max(8, Math.abs(Number(asset.change24h ?? 0))),
-                )}
-                max="100"
-              />
-              <strong className={positive ? "text-success" : "text-error"}>
-                {percentage(asset.change24h, true)}
-              </strong>
-            </li>
+            <AssetRow key={asset.id} asset={asset} period={period} />
           ))}
         </ul>
-      </div>
+      ) : (
+        <p className="px-3 py-4 text-xs text-base-content/60">
+          ამ პერიოდში შესაბამისი აქტივი არ არის.
+        </p>
+      )}
     </section>
   );
 }
-
-function PortfolioTab({ summary }: { summary: PortfolioSummary }) {
-  const active = summary.positions.filter(
-    (position) => position.quantity !== "0",
+function MarketTab({
+  data,
+  period,
+}: {
+  data: MarketStatistics;
+  period: MarketPeriod;
+}) {
+  const overview = data.overview;
+  const movers = topMovers(
+    data.assets.filter((asset) => !data.stablecoinIds?.includes(asset.id)),
+    3,
+    period,
   );
-  const btc =
-    active.find((position) => position.asset.symbol === "BTC")?.allocation ??
-    "0";
-  const eth =
-    active.find((position) => position.asset.symbol === "ETH")?.allocation ??
-    "0";
-  const stable =
-    summary.value && summary.stablecoinValue !== null
-      ? Number(percent(summary.stablecoinValue, summary.value) ?? 0)
-      : 0;
-  const cash = summary.value
-    ? Number(percent(summary.cash, summary.value) ?? 0)
-    : 0;
-  const liquidity =
-    summary.value && summary.liquidity !== null
-      ? percent(summary.liquidity, summary.value)
-      : null;
-  const alt = Math.max(0, 100 - Number(btc) - Number(eth) - stable - cash);
-  const holdings = active
-    .filter((position) => !position.asset.isStablecoin)
-    .sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0))
-    .slice(0, 5);
+  const breadth = marketBreadth(data.assets, period, data.stablecoinIds);
   const segments = [
-    { label: "BTC", value: Number(btc), color: "#8a63ee" },
-    { label: "ETH", value: Number(eth), color: "#3e8cff" },
-    { label: "სხვა კრიპტო", value: alt, color: "#29cbb6" },
-    { label: "სტეიბლკოინები", value: stable, color: "#f5ba57" },
-    { label: "ნაღდი ფული", value: cash, color: "#8c96aa" },
+    { label: "ზრდა", count: breadth.rising, color: "bg-success" },
+    { label: "კლება", count: breadth.falling, color: "bg-error" },
+    { label: "უცვლელი", count: breadth.unchanged, color: "bg-base-content/40" },
   ];
   return (
     <div className="space-y-3 lg:space-y-4">
-      <header className="card card-border bg-base-200">
-        <div className="card-body gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-medium text-base-content/60">
-              პორტფელის ღირებულება
-            </h2>
-          </div>
-          <strong className="numeric text-2xl">
-            <BalanceValue>{money(summary.value)}</BalanceValue>
-          </strong>
-        </div>
-      </header>
-      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-box border border-base-300 bg-base-200 lg:grid-cols-4">
-        <div className="stat">
-          <span className="stat-title">სრული P/L</span>
-          <strong
-            className={`stat-value text-xl ${pnlClass(summary.totalPnl)}`}
-          >
-            <BalanceValue>{money(summary.totalPnl)}</BalanceValue>
-          </strong>
-          <small className="stat-desc">რეალიზებული და მიმდინარე</small>
-        </div>
-        <div className="stat">
-          <span className="stat-title">საერთო ლიკვიდობა</span>
-          <strong className="stat-value text-xl">
-            <BalanceValue>{money(summary.liquidity)}</BalanceValue>
-          </strong>
-          <small className="stat-desc">პორტფელის {percentage(liquidity)}</small>
-        </div>
-        <div className="stat">
-          <span className="stat-title">აქტიური პოზიციები</span>
-          <strong className="stat-value text-xl">{active.length}</strong>
-          <small className="stat-desc">ფასიანი აქტივები</small>
-        </div>
-        <div className="stat">
-          <span className="stat-title">ფასის სტატუსი</span>
-          <strong className="stat-value text-xl">
-            {summary.complete ? "სრული" : "ნაწილობრივი"}
-          </strong>
-          <small className="stat-desc">
-            {summary.stale ? "განახლება საჭიროა" : "ფასები აქტუალურია"}
-          </small>
-        </div>
-      </section>
-      <section className="grid gap-4 lg:grid-cols-2">
-        <article className="card card-border bg-base-200">
-          <div className="card-body min-w-0 gap-3 p-4">
-            <header>
-              <h3 className="card-title text-base">პორტფელის სტრუქტურა</h3>
-              <span className="text-xs text-base-content/60">
-                ქეში და სტეიბლები — ლიკვიდობა
+      {overview ? (
+        <section className="card card-border bg-base-200">
+          <div className="grid grid-cols-2 lg:grid-cols-3">
+            <Metric
+              label="ბაზრის კაპიტალიზაცია"
+              value={compactMoney(overview.totalMarketCap)}
+            />
+            <Metric
+              label="24სთ მოცულობა"
+              value={compactMoney(overview.volume24h)}
+            />
+            <Metric
+              label="BTC დომინაცია"
+              value={percentage(overview.btcDominance)}
+            />
+            <div className="flex flex-col justify-center gap-1 p-3 text-xs text-base-content/60 lg:col-span-3 lg:flex-row lg:justify-between lg:border-t lg:border-base-300">
+              <span>
+                ETH ·{" "}
+                <b className="numeric text-base-content">
+                  {percentage(overview.ethDominance)}
+                </b>
               </span>
-            </header>
-            <div
-              className="flex h-3 overflow-hidden rounded-full bg-base-300"
-              aria-hidden={!summary.complete}
-            >
+              <span>
+                სტეიბლკოინები ·{" "}
+                <b className="numeric text-base-content">
+                  {compactMoney(overview.stablecoinMarketCap)}
+                </b>
+              </span>
+              <span title={dateTime(overview.updatedAt)}>
+                CoinGecko · {dateTime(overview.updatedAt, true)}
+              </span>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <div
+          role="alert"
+          className="alert alert-warning alert-soft py-3 text-xs"
+        >
+          ბაზრის მონაცემები დროებით მიუწვდომელია.
+        </div>
+      )}
+      {data.assets.length > 0 && (
+        <>
+          <section className="card card-border bg-base-200">
+            <div className="card-body gap-3 p-3 sm:p-4">
+              <header className="flex flex-wrap items-center justify-between gap-1">
+                <h2 className="text-sm font-semibold">ბაზრის მიმართულება</h2>
+                <span className="text-xs text-base-content/55">
+                  ტოპ 100 · სტეიბლკოინების გარეშე
+                </span>
+              </header>
+              <div
+                className="flex h-2 overflow-hidden rounded-full bg-base-300"
+                aria-hidden="true"
+              >
               {segments
-                .filter(
-                  (segment) =>
-                    summary.complete &&
-                    summary.value !== null &&
-                    segment.value > 0,
-                )
+                .filter((segment) => segment.count > 0)
                 .map((segment) => (
-                  <span
-                    key={segment.label}
-                    style={{ flex: segment.value, background: segment.color }}
-                    title={`${segment.label} ${percentage(String(segment.value))}`}
-                  />
-                ))}
-            </div>
-            <div className="space-y-2 text-sm [&>div]:flex [&>div]:justify-between [&_i]:mr-2 [&_i]:inline-block [&_i]:size-2 [&_i]:rounded-full">
-              {segments.map((segment) => (
-                <div key={segment.label}>
-                  <span>
-                    <i style={{ background: segment.color }} />
-                    {segment.label}
-                  </span>
-                  <strong>
-                    {summary.complete && summary.value !== null
-                      ? percentage(String(segment.value))
-                      : "—"}
-                  </strong>
-                </div>
-              ))}
-            </div>
-          </div>
-        </article>
-        <article className="card card-border bg-base-200">
-          <div className="card-body min-w-0 gap-3 p-4">
-            <header>
-              <h3 className="card-title text-base">უმსხვილესი პოზიციები</h3>
-              <span className="text-xs text-base-content/60">ღირებულებით</span>
-            </header>
-            {holdings.length ? (
-              holdings.map((position) => (
-                <div
-                  className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-base-300 py-3 last:border-0"
-                  key={position.assetId}
-                >
-                  <span>
-                    {position.asset.symbol} · {position.asset.name}
-                  </span>
-                  <span>{percentage(position.allocation)}</span>
-                  <strong>
-                    <BalanceValue>{money(position.value)}</BalanceValue>
-                  </strong>
-                </div>
-              ))
-            ) : (
-              <div className="alert alert-info alert-soft">
-                <span>აქტიური კრიპტო პოზიცია არ არის</span>
+                    <span
+                      key={segment.label}
+                      className={segment.color}
+                      style={{
+                    width: `${(segment.count / Math.max(1, breadth.covered)) * 100}%`,
+                      }}
+                    />
+                  ))}
               </div>
-            )}
+              <div className="grid grid-cols-3 gap-2">
+                {segments.map((segment) => (
+                  <div
+                    key={segment.label}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <span
+                      className={`size-2 shrink-0 rounded-full ${segment.color}`}
+                    />
+                    <span>
+                      {segment.label}
+                      <strong className="numeric ml-2">{segment.count}</strong>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-base-content/55">
+                დაფარვა: {breadth.covered}/{breadth.total} აქტივი
+                {breadth.missing
+                  ? ` · ${breadth.missing} ცვლილება მიუწვდომელია`
+                  : ""}
+              </p>
+            </div>
+          </section>
+          <div className="grid gap-3 2xl:grid-cols-2">
+            <MoverBlock
+              title="ყველაზე დიდი ზრდა"
+              rows={movers.gainers}
+              period={period}
+            />
+            <MoverBlock
+              title="ყველაზე დიდი კლება"
+              rows={movers.losers}
+              period={period}
+            />
           </div>
-        </article>
-      </section>
+        </>
+      )}
     </div>
   );
 }
-
+function OwnedAssets({
+  summary,
+  assets,
+  period,
+  portfolioId,
+}: {
+  summary: PortfolioSummary;
+  assets: MarketStatisticAsset[];
+  period: MarketPeriod;
+  portfolioId: string;
+}) {
+  const positions = summary.positions.filter(
+    (position) => position.quantity !== "0",
+  );
+  const byId = new Map(assets.map((asset) => [asset.id, asset]));
+  const covered = positions.filter((position) =>
+    byId.has(position.asset.providerId),
+  ).length;
+  return (
+    <section className="card card-border min-w-0 bg-base-200">
+      <header className="flex flex-wrap items-center justify-between gap-2 p-3">
+        <h2 className="text-sm font-semibold">ჩემი აქტივები ბაზარზე</h2>
+        <span className="text-xs text-base-content/55">გრაფიკი · 7დღ</span>
+      </header>
+      {positions.length ? (
+        <>
+          <p className="px-3 pb-2 text-xs text-base-content/55">
+            საბაზრო დაფარვა: {covered}/{positions.length}
+            {summary.stale ? " · პორტფელის ფასები მოძველებულია" : ""}
+          </p>
+          <ul className="list">
+            {positions.map((position) => {
+              const asset = byId.get(position.asset.providerId) ?? {
+                id: position.asset.providerId,
+                symbol: position.asset.symbol,
+                name: position.asset.name,
+                image: position.asset.logoUrl ?? null,
+                rank: null,
+                price: position.quote?.price ?? null,
+                change24h: position.quote?.stale
+                  ? null
+                  : (position.quote?.change24h ?? null),
+                change1h: null,
+                change7d: null,
+                marketCap: null,
+                volume24h: null,
+                circulatingSupply: null,
+                sparkline7d: [],
+              };
+              return (
+                <AssetRow
+                  key={position.assetId}
+                  asset={asset}
+                  period={period}
+                  href={`/portfolios/${portfolioId}/positions/${position.assetId}`}
+                />
+              );
+            })}
+          </ul>
+        </>
+      ) : (
+        <p className="px-3 pb-4 text-sm text-base-content/60">
+          აქტიური პოზიცია არ არის.
+        </p>
+      )}
+    </section>
+  );
+}
 export function StatisticsWorkspace({
   market,
   macro,
   summary,
+  portfolioId,
+  ownedAssets = [],
 }: {
   market: MarketStatistics | null;
   macro: MacroStatistics | null;
   summary: PortfolioSummary;
+  portfolioId: string;
+  ownedAssets?: MarketStatisticAsset[];
 }) {
   const [tab, setTab] = useWorkspaceTab(
     ["market", "macro", "portfolio"],
     "market",
   );
+  const [period, setPeriod] = useState<MarketPeriod>("24h");
   return (
     <WorkspaceTabs
       label="სტატისტიკის კატეგორია"
@@ -333,12 +374,38 @@ export function StatisticsWorkspace({
       items={[
         ["market", "კრიპტო ბაზარი"],
         ["macro", "მაკრო"],
-        ["portfolio", "ჩემი პორტფელი"],
+        ["portfolio", "ჩემი აქტივები"],
       ]}
     >
-      {tab === "market" && (market ? <MarketTab data={market} /> : <div role="status" className="alert alert-info alert-soft">მონაცემები იტვირთება…</div>)}
-      {tab === "macro" && (macro ? <MacroTab data={macro} /> : <div role="status" className="alert alert-info alert-soft">მონაცემები იტვირთება…</div>)}
-      {tab === "portfolio" && <PortfolioTab summary={summary} />}
+      <div className="space-y-3 lg:space-y-4">
+        {tab !== "macro" && (
+          <PeriodControl period={period} onChange={setPeriod} />
+        )}
+        {tab === "market" &&
+          (market ? (
+            <MarketTab data={market} period={period} />
+          ) : (
+            <p role="status" className="text-sm text-base-content/60">
+              მონაცემები იტვირთება…
+            </p>
+          ))}
+        {tab === "macro" &&
+          (macro ? (
+            <MacroIndicators data={macro} />
+          ) : (
+            <p role="status" className="text-sm text-base-content/60">
+              მონაცემები იტვირთება…
+            </p>
+          ))}
+        {tab === "portfolio" && (
+          <OwnedAssets
+            summary={summary}
+            assets={ownedAssets}
+            period={period}
+            portfolioId={portfolioId}
+          />
+        )}
+      </div>
     </WorkspaceTabs>
   );
 }

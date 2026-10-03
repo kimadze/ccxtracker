@@ -5,6 +5,9 @@ import { randomBytes } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { serializeSignedCookie } from "better-call";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+const statisticsFixtures = process.env.CCX_E2E_STATISTICS_FIXTURES === "1";
 
 const db = new PGlite();
 for (const file of (await readdir("drizzle"))
@@ -47,6 +50,13 @@ await socket.start();
 const child = spawn(
   process.execPath,
   [
+    ...(statisticsFixtures
+      ? [
+          "--import",
+          pathToFileURL(resolve("tests/e2e/fixtures/statistics-provider.mjs"))
+            .href,
+        ]
+      : []),
     "node_modules/next/dist/bin/next",
     "start",
     "--port",
@@ -66,7 +76,7 @@ const child = spawn(
       BETTER_AUTH_URL: "http://localhost:3100",
       GOOGLE_CLIENT_ID: "e2e-not-a-live-provider",
       GOOGLE_CLIENT_SECRET: randomBytes(32).toString("hex"),
-      COINGECKO_DEMO_API_KEY: "",
+      COINGECKO_DEMO_API_KEY: statisticsFixtures ? "isolated-e2e-fixture" : "",
       BLOB_READ_WRITE_TOKEN: "",
       BLOB_STORE_ID: "",
       ALLOWED_EMAILS: "",

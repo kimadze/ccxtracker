@@ -22,6 +22,7 @@ const marketAssetSchema = z.object({
   total_volume: nullableNumber,
   circulating_supply: nullableNumber,
   sparkline_in_7d: z.object({ price: z.array(z.number().finite()) }).optional(),
+  last_updated: z.string().nullable().optional(),
 });
 const globalSchema = z.object({
   data: z.object({
@@ -47,6 +48,45 @@ async function request(path: string) {
   });
   if (!response.ok) throw new Error(`MARKET_REQUEST_FAILED_${response.status}`);
   return response.json() as Promise<unknown>;
+}
+
+function mapAsset(
+  asset: z.infer<typeof marketAssetSchema>,
+): MarketStatisticAsset {
+  return {
+    id: asset.id,
+    symbol: asset.symbol.toUpperCase(),
+    name: asset.name,
+    image: highResLogoUrl(asset.image),
+    rank: asset.market_cap_rank,
+    price: value(asset.current_price),
+    change1h: value(asset.price_change_percentage_1h_in_currency),
+    change24h: value(asset.price_change_percentage_24h_in_currency),
+    change7d: value(asset.price_change_percentage_7d_in_currency),
+    marketCap: value(asset.market_cap),
+    volume24h: value(asset.total_volume),
+    circulatingSupply: value(asset.circulating_supply),
+    sparkline7d: asset.sparkline_in_7d?.price ?? [],
+    updatedAt: asset.last_updated ?? null,
+  };
+}
+
+export async function getAssetMarketStatistics(
+  ids: string[],
+): Promise<MarketStatisticAsset[]> {
+  const unique = [...new Set(ids)].filter(Boolean).sort();
+  const assets: MarketStatisticAsset[] = [];
+  for (let offset = 0; offset < unique.length; offset += 250) {
+    try {
+      const raw = await request(
+        `/coins/markets?vs_currency=usd&ids=${encodeURIComponent(unique.slice(offset, offset + 250).join(","))}&per_page=250&sparkline=true&price_change_percentage=1h,24h,7d`,
+      );
+      assets.push(...z.array(marketAssetSchema).parse(raw).map(mapAsset));
+    } catch {
+      console.warn("Owned asset market statistics unavailable");
+    }
+  }
+  return assets;
 }
 
 export async function getMarketStatistics(): Promise<MarketStatistics> {
@@ -89,7 +129,12 @@ export async function getMarketStatistics(): Promise<MarketStatistics> {
       updatedAt: new Date(global.updated_at * 1000).toISOString(),
       source: "CoinGecko",
     };
-    return { overview, assets, error: false };
+    return {
+      overview,
+      assets,
+      stablecoinIds: stablecoins.map((asset) => asset.id),
+      error: false,
+    };
   } catch (error) {
     console.warn("Market statistics unavailable", error);
     return { overview: null, assets: [], error: true };

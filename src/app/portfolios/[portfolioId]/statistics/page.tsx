@@ -1,7 +1,10 @@
 import { PageHeading } from "@/components/shell";
 import { StatisticsWorkspace } from "@/components/statistics-workspace";
 import { loadWorkspace } from "@/server/workspace";
-import { getMarketStatistics } from "@/server/market/statistics";
+import {
+  getMarketStatistics,
+  getAssetMarketStatistics,
+} from "@/server/market/statistics";
 import { getMacroStatistics } from "@/server/macro/provider";
 
 export default async function Page({
@@ -21,17 +24,27 @@ export default async function Page({
     tab === "market" ? getMarketStatistics() : Promise.resolve(null),
     tab === "macro" ? getMacroStatistics() : Promise.resolve(null),
   ]);
+  const ownedAssets =
+    tab === "portfolio"
+      ? await getAssetMarketStatistics(
+          workspace.summary.positions
+            .filter((position) => position.quantity !== "0")
+            .map((position) => position.asset.providerId),
+        )
+      : [];
   return (
     <>
       <PageHeading
         eyebrow={workspace.portfolio.name}
         title="სტატისტიკა"
-        description="კრიპტო ბაზარი, დინამიური მაკრო მონაცემები და თქვენი პორტფელის კონტექსტი."
+        description={null}
       />
       <StatisticsWorkspace
         market={market}
         macro={macro}
         summary={workspace.summary}
+        portfolioId={portfolioId}
+        ownedAssets={ownedAssets}
       />
     </>
   );

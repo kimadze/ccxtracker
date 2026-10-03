@@ -1,6 +1,6 @@
 import "server-only";
 import type { MacroMetric, MacroStatistics } from "@/domain/statistics";
-import { latestObservation, percentageChange } from "@/domain/statistics";
+import { latestObservation, observationHistory } from "@/domain/statistics";
 import { decimal } from "@/domain/decimal";
 
 interface SeriesDefinition {
@@ -13,13 +13,35 @@ interface SeriesDefinition {
 
 const series: SeriesDefinition[] = [
   { id: "FED_FUNDS", label: "FED განაკვეთი", fredId: "FEDFUNDS", unit: "%" },
-  { id: "CPI_YOY", label: "CPI YoY", fredId: "CPIAUCSL", unit: "%", transform: "yoy" },
-  { id: "CORE_CPI_YOY", label: "Core CPI YoY", fredId: "CPILFESL", unit: "%", transform: "yoy" },
+  {
+    id: "CPI_YOY",
+    label: "CPI YoY",
+    fredId: "CPIAUCSL",
+    unit: "%",
+    transform: "yoy",
+  },
+  {
+    id: "CORE_CPI_YOY",
+    label: "Core CPI YoY",
+    fredId: "CPILFESL",
+    unit: "%",
+    transform: "yoy",
+  },
   { id: "UNEMPLOYMENT", label: "უმუშევრობა", fredId: "UNRATE", unit: "%" },
   { id: "GDP_GROWTH", label: "GDP ზრდა", fredId: "A191RL1Q225SBEA", unit: "%" },
   { id: "US_2Y", label: "აშშ 2-წლიანი ობლიგაცია", fredId: "DGS2", unit: "%" },
-  { id: "US_10Y", label: "აშშ 10-წლიანი ობლიგაცია", fredId: "DGS10", unit: "%" },
-  { id: "DOLLAR_INDEX", label: "აშშ დოლარის ფართო ინდექსი", fredId: "DTWEXBGS", unit: "index" },
+  {
+    id: "US_10Y",
+    label: "აშშ 10-წლიანი ობლიგაცია",
+    fredId: "DGS10",
+    unit: "%",
+  },
+  {
+    id: "DOLLAR_INDEX",
+    label: "აშშ დოლარის ფართო ინდექსი",
+    fredId: "DTWEXBGS",
+    unit: "index",
+  },
 ];
 
 function parseCsv(csv: string, id: string) {
@@ -48,21 +70,19 @@ async function fetchSeries(definition: SeriesDefinition): Promise<MacroMetric> {
       changeUnit: definition.unit === "index" ? "პუნქტი" : "პპ",
       available: false,
     };
-  const valid = observations.filter((item) => item.value !== ".");
-  const offset = definition.transform === "yoy" ? 12 : 1;
-  const calculate = (index: number) => {
-    const current = valid[index];
-    if (!current) return null;
-    if (!definition.transform) return current.value;
-    const base = valid[index - offset];
-    return base ? percentageChange(current.value, base.value) : null;
-  };
-  const result = calculate(valid.length - 1);
-  const priorResult = calculate(valid.length - 2);
+  const transformed = observationHistory(observations, definition.transform);
+  const current = transformed.find((item) => item.date === latest.date);
+  const prior = transformed.filter((item) => item.date < latest.date).at(-1);
+  const result = current?.value ?? null;
   const change =
-    result !== null && priorResult !== null
-      ? decimal(result).minus(priorResult).toFixed()
+    result !== null && prior
+      ? decimal(result).minus(prior.value).toFixed()
       : null;
+  const cutoff = new Date(`${latest.date}T00:00:00Z`);
+  cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 1);
+  const history = transformed.filter(
+    (item) => item.date >= cutoff.toISOString().slice(0, 10),
+  );
   return {
     id: definition.id,
     label: definition.label,
@@ -78,6 +98,9 @@ async function fetchSeries(definition: SeriesDefinition): Promise<MacroMetric> {
           ? "პპ"
           : "%",
     available: result !== null,
+    history,
+    previousDate: prior?.date ?? null,
+    sourceUrl: `https://fred.stlouisfed.org/series/${definition.fredId}`,
   };
 }
 
@@ -94,7 +117,10 @@ export async function getMacroStatistics(): Promise<MacroStatistics> {
           observationDate: null,
           source: "FRED",
           change: null,
-          changeUnit: series[index].unit === "index" ? "პუნქტი" as const : "პპ" as const,
+          changeUnit:
+            series[index].unit === "index"
+              ? ("პუნქტი" as const)
+              : ("პპ" as const),
           available: false,
         },
   );
