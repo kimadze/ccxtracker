@@ -4,16 +4,16 @@ import Image from "next/image";
 export function BrandMark({ size = 34 }: { size?: number }) {
   return (
     <span
-      className="brand-mark relative grid shrink-0 place-items-center overflow-hidden"
+      className="relative grid shrink-0 place-items-center"
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
       <Image
-        src="/ccx-mark.png"
+        src="/ccx-symbol.svg"
         alt=""
         fill
         sizes={`${size}px`}
-        className="object-contain p-[7%]"
+        className="object-contain"
         priority
       />
     </span>
