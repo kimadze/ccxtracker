@@ -282,7 +282,7 @@ export function ExitPlanner({
           </div>
           <div className="card-actions mt-4">
             <button
-              className="btn btn-outline"
+              className="btn btn-dash"
               disabled={levels.length >= 12}
               onClick={() =>
                 setLevels((l) => [...l, { price: "", percentage: "10" }])

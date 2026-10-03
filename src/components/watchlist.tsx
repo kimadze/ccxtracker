@@ -275,7 +275,7 @@ export function Watchlist({
             </p>
             {!items.length && !preview && (
               <button
-                className="btn btn-outline mt-4"
+                className="btn btn-dash mt-4"
                 onClick={() => setOpen(true)}
               >
                 <Plus size={15} /> პირველი აქტივის დამატება

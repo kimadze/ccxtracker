@@ -70,7 +70,7 @@ export function TransactionList({
       <section className="card card-border bg-base-200">
         <div className="card-body gap-4 p-4">
           <div
-            className="tabs tabs-box flex min-w-0 flex-nowrap overflow-x-auto"
+            className="tabs tabs-border flex min-w-0 flex-nowrap overflow-x-auto"
             role="group"
             aria-label="სწრაფი ფილტრი"
           >
@@ -155,7 +155,7 @@ export function TransactionList({
               <MobileBottomSheet
                 title="ტრანზაქციების ფილტრი"
                 trigger={
-                  <button type="button" className="btn btn-outline">
+                  <button type="button" className="btn btn-dash">
                     <SlidersHorizontal size={16} /> ფილტრი
                   </button>
                 }
@@ -218,7 +218,7 @@ export function TransactionList({
             {hasFilters && (
               <button
                 type="button"
-                className="btn btn-outline hidden md:inline-flex"
+                className="btn btn-dash hidden md:inline-flex"
                 onClick={resetFilters}
               >
                 <RotateCcw size={14} /> გასუფთავება

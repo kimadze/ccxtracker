@@ -77,7 +77,7 @@ export function PositionsWorkspace({
   return (
     <div className="space-y-3 lg:space-y-4">
       <section
-        className="tabs tabs-box hidden w-full flex-nowrap overflow-x-auto bg-base-200 lg:flex"
+        className="tabs tabs-border hidden w-full flex-nowrap overflow-x-auto lg:flex"
         role="group"
         aria-label="პოზიციების ფილტრები"
       >
@@ -181,7 +181,7 @@ export function PositionsWorkspace({
               trigger={
                 <button
                   type="button"
-                  className="btn btn-outline min-h-11 gap-2"
+                  className="btn btn-dash min-h-11 gap-2"
                 >
                   <SlidersHorizontal size={16} /> ფილტრი
                   {filter !== "all" && (
@@ -242,7 +242,7 @@ export function PositionsWorkspace({
           {(search || filter !== "all" || sort !== "value") && (
             <button
               type="button"
-              className="btn btn-outline hidden lg:inline-flex"
+              className="btn btn-dash hidden lg:inline-flex"
               onClick={reset}
             >
               <RotateCcw size={14} /> გასუფთავება

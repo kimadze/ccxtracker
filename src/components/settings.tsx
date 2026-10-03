@@ -258,13 +258,13 @@ export function Settings({
               <div className="mt-1 flex flex-wrap gap-3">
                 <a
                   href={`/api/portfolios/${portfolioId}/export`}
-                  className="btn btn-outline"
+                  className="btn btn-dash"
                 >
                   <Download size={15} />
                   მონაცემების ჩამოტვირთვა
                 </a>
                 <button
-                  className="btn btn-outline"
+                  className="btn btn-dash"
                   onClick={() => setConfirm("sessions")}
                 >
                   ყველა მოწყობილობიდან გასვლა

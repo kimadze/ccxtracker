@@ -33,7 +33,7 @@ export function WorkspaceTabs({
   return (
     <div className="min-w-0 space-y-3 lg:space-y-4">
       <div
-        className="tabs tabs-box flex w-full flex-nowrap overflow-x-auto bg-base-200 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="tabs tabs-border flex w-full flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         role="tablist"
         aria-label={label}
       >
@@ -44,7 +44,7 @@ export function WorkspaceTabs({
             type="button"
             role="tab"
             aria-selected={value === key}
-            aria-controls={`${id}-card card-border bg-base-200`}
+            aria-controls={`${id}-panel`}
             tabIndex={value === key ? 0 : -1}
             className={`tab min-h-11 shrink-0 text-sm ${value === key ? "tab-active" : ""}`}
             onClick={() => onChange(key)}
@@ -66,7 +66,7 @@ export function WorkspaceTabs({
         ))}
       </div>
       <div
-        id={`${id}-card card-border bg-base-200`}
+        id={`${id}-panel`}
         role="tabpanel"
         aria-labelledby={`${id}-${value}`}
         className="min-w-0"

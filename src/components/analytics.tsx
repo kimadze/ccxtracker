@@ -58,7 +58,7 @@ export function Analytics({
     <div className="space-y-3 lg:space-y-4">
       <section aria-label="ანალიზის პერიოდი">
         <div className="flex min-w-0 items-center">
-          <div className="tabs tabs-box flex min-w-0 max-w-full flex-nowrap overflow-x-auto">
+          <div className="tabs tabs-border flex min-w-0 max-w-full flex-nowrap overflow-x-auto">
             {[
               ["1", "24 საათი"],
               ["7", "7 დღე"],

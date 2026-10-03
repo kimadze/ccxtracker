@@ -299,19 +299,19 @@ export function PositionsTable({
                 <div className="card-actions grid grid-cols-3">
                   <Link
                     href={`${base}/positions/${position.assetId}?tab=exit`}
-                    className="btn btn-outline btn-sm"
+                    className="btn btn-dash btn-sm"
                   >
                     <TrendingUp size={14} /> გეგმა
                   </Link>
                   <Link
                     href={`${base}/positions/${position.assetId}?tab=journal`}
-                    className="btn btn-outline btn-sm"
+                    className="btn btn-dash btn-sm"
                   >
                     <NotebookPen size={14} /> ჟურნალი
                   </Link>
                   <Link
                     href={`${base}/positions/${position.assetId}`}
-                    className="btn btn-outline btn-sm"
+                    className="btn btn-dash btn-sm"
                   >
                     დეტალები <ArrowUpRight size={14} />
                   </Link>
