@@ -110,6 +110,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
     await expect(
       page.getByRole("heading", { name: "პორტფელის მიმოხილვა" }),
     ).toBeAttached();
+    await expect(page.locator(".stats > .stat")).toHaveCount(2);
     if (width === 390) {
       const assets = await page
         .getByRole("heading", { name: "აქტივები", exact: true })
@@ -158,7 +159,9 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(page.locator(".balance-value").first()).toContainText("••••••");
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
-  await expect(page.locator(".balance-value").first()).not.toContainText("••••••");
+  await expect(page.locator(".balance-value").first()).not.toContainText(
+    "••••••",
+  );
   await page.locator('a[href$="/positions/bitcoin"]:visible').click();
   await expect(page).toHaveURL(/positions\/bitcoin$/);
   await page.goto(base);
@@ -167,13 +170,13 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await expect(
     page.getByRole("navigation", { name: "მობილური ნავიგაცია" }),
   ).toBeVisible();
-  await page
-    .getByText("ლიკვიდობა", { exact: true })
-    .filter({ visible: true })
-    .click();
+  await page.locator(".stats summary").filter({ hasText: "დეტალები" }).click();
   await expect(
     page.getByText("ნაღდი ფული", { exact: true }).filter({ visible: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "თანხების დამალვა" }).click();
+  await expect(page.locator(".stats .balance-value").first()).toContainText("••••••");
+  await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
   await page.getByRole("link", { name: "დამატება", exact: true }).click();
   await expect(page.locator("dialog[open]")).toBeVisible();
   await page.keyboard.press("Escape");
@@ -280,7 +283,9 @@ test("compact overview supports funded positions, privacy and responsive layouts
     name: "პოზიციების ფილტრი",
   });
   await expect(positionFilters).toBeVisible();
-  const losingFilter = positionFilters.getByRole("button", { name: /^ზარალში/ });
+  const losingFilter = positionFilters.getByRole("button", {
+    name: /^ზარალში/,
+  });
   await losingFilter.click();
   await expect(losingFilter).toHaveAttribute("aria-pressed", "true");
   await expect(positionFilters.locator(".modal-box")).toHaveCSS(

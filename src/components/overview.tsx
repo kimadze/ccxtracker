@@ -1,9 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
-import { dateTime, money, percentage, pnlClass, unitPrice } from "@/lib/formatters";
+import {
+  dateTime,
+  money,
+  percentage,
+  pnlClass,
+  unitPrice,
+} from "@/lib/formatters";
 import { AssetIcon } from "./positions";
 import { BalanceValue } from "./ui";
 import { OverviewToolbar } from "./overview-toolbar";
@@ -177,22 +183,25 @@ export function Overview({
           aria-label="ღირებულება და ისტორია"
         >
           <div className="card-body gap-3 p-3! sm:p-4!">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-xs text-base-content/65">
-                {cryptoOnlyValue
-                  ? "კრიპტოაქტივების ღირებულება"
-                  : "პორტფელის ღირებულება"}
-              </h2>
-              <div className="lg:hidden">{status}</div>
-            </div>
-            <div className="block w-full min-w-0">
-              <div className="min-w-0 rounded-box border border-base-300 bg-base-100 p-3 text-base-content">
-                <p className="overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums">
+            <div className="stats stats-vertical min-w-0 overflow-visible border border-base-300 bg-base-100 lg:stats-horizontal">
+              <div className="stat min-w-0 gap-2 p-3 sm:p-4">
+                <div className="stat-title flex items-center justify-between gap-2 whitespace-normal text-xs">
+                  <h2>
+                    {cryptoOnlyValue
+                      ? "კრიპტოაქტივების ღირებულება"
+                      : "პორტფელის ღირებულება"}
+                  </h2>
+                  <div className="lg:hidden">{status}</div>
+                </div>
+                <p className="stat-value min-w-0 overflow-x-auto whitespace-nowrap text-[32px] leading-tight tracking-tight tabular-nums">
                   <BalanceValue>{money(displayedValue)}</BalanceValue>
                 </p>
-                <p className="mt-2 flex flex-wrap items-baseline gap-2 text-sm">
+                <p className="stat-desc flex flex-wrap items-baseline gap-2 whitespace-normal text-sm">
                   <span
-                    className={`whitespace-nowrap font-semibold tabular-nums ${pnlClass(s.totalPnl)}`}
+                    className={
+                      "whitespace-nowrap font-semibold tabular-nums " +
+                      pnlClass(s.totalPnl)
+                    }
                   >
                     <BalanceValue>{money(s.totalPnl)}</BalanceValue>
                   </span>
@@ -200,6 +209,28 @@ export function Overview({
                     მთლიანი P/L
                   </span>
                 </p>
+              </div>
+              <div className="stat min-w-0 gap-1 p-3 sm:p-4">
+                <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1 lg:block">
+                  <h2 className="stat-title text-xs">ლიკვიდობა</h2>
+                  <p className="stat-value min-w-0 overflow-x-auto whitespace-nowrap text-xl tabular-nums lg:mt-2 lg:text-2xl">
+                    <BalanceValue>{money(s.liquidity)}</BalanceValue>
+                  </p>
+                  <p className="stat-desc text-xs tabular-nums lg:mt-1">
+                    {percentage(liquidityShare)}
+                  </p>
+                </div>
+                <div className="stat-actions mt-1">
+                  <details className="min-w-0">
+                    <summary
+                      className="btn btn-outline btn-sm min-h-11 text-xs"
+                      aria-label="ლიკვიდობის დეტალები"
+                    >
+                      დეტალები <ChevronDown size={14} />
+                    </summary>
+                    <div className="mt-3">{liquidityDetails}</div>
+                  </details>
+                </div>
               </div>
             </div>
             {(!s.complete || s.stale) && (
@@ -222,39 +253,7 @@ export function Overview({
           </div>
         </section>
 
-        <div className="grid min-w-0 items-start gap-3 md:grid-cols-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:items-stretch lg:gap-4">
-          <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:hidden">
-            <summary className="collapse-title flex min-h-14 flex-wrap items-center justify-between gap-2 py-3 pl-3 pr-10 text-sm">
-              <span>ლიკვიდობა</span>
-              <span className="whitespace-nowrap font-semibold tabular-nums">
-                <BalanceValue>{money(s.liquidity)}</BalanceValue>
-                <span className="ml-2 text-xs font-normal text-base-content/60">
-                  {percentage(liquidityShare)}
-                </span>
-              </span>
-            </summary>
-            <div className="collapse-content">{liquidityDetails}</div>
-          </details>
-          <section className="card card-border hidden bg-base-200 lg:block">
-            <div className="card-body gap-3 p-4!">
-              <h2 className="text-sm font-semibold">ლიკვიდობა</h2>
-              <p className="overflow-x-auto whitespace-nowrap text-2xl font-semibold tabular-nums">
-                <BalanceValue>{money(s.liquidity)}</BalanceValue>
-              </p>
-              <div className="flex items-center gap-3">
-                <progress
-                  className="progress h-1.5 flex-1"
-                  value={Number(liquidityShare ?? 0)}
-                  max="100"
-                  aria-label="ლიკვიდობის წილი"
-                />
-                <span className="text-xs text-base-content/60">
-                  {percentage(liquidityShare)}
-                </span>
-              </div>
-              {liquidityDetails}
-            </div>
-          </section>
+        <div className="hidden min-w-0 items-start gap-3 md:grid lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:items-stretch lg:gap-4">
           <section className="card card-border hidden bg-base-200 md:block">
             <div className="card-body gap-3 p-4!">
               <h2 className="text-sm font-semibold">კრიპტო განაწილება</h2>
