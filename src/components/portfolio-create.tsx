@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createPortfolio } from "@/server/actions";
+import { createWalletPortfolio } from "@/server/wallet-actions";
 import { Field, Message, Modal } from "./ui";
 export function PortfolioCreate({
   compact = false,
@@ -15,6 +16,7 @@ export function PortfolioCreate({
     [pending, setPending] = useState(false),
     [error, setError] = useState("");
   const router = useRouter();
+  const [kind, setKind] = useState("manual");
   return (
     <>
       <button
@@ -41,13 +43,24 @@ export function PortfolioCreate({
             setPending(true);
             setError("");
             try {
-              const result = await createPortfolio({
-                name: new FormData(e.currentTarget).get("name"),
-              });
+              const data = new FormData(e.currentTarget);
+              const result =
+                kind === "manual"
+                  ? await createPortfolio({ name: data.get("name") })
+                  : await createWalletPortfolio({
+                      name: data.get("name"),
+                      network: kind,
+                      addresses: String(data.get("addresses") ?? "")
+                        .split(/\r?\n/)
+                        .map((a) => a.trim())
+                        .filter(Boolean),
+                    });
               if (result.ok) {
                 setOpen(false);
                 onCreated?.();
-                router.push(`/portfolios/${result.id}`);
+                router.push(
+                  `${kind === "manual" ? "/portfolios" : "/wallet-portfolios"}/${result.id}`,
+                );
                 router.refresh();
               } else setError(result.error);
             } catch {
@@ -57,6 +70,18 @@ export function PortfolioCreate({
             }
           }}
         >
+          <Field label="პორტფელის ტიპი">
+            <select
+              className="select w-full"
+              value={kind}
+              onChange={(e) => setKind(e.target.value)}
+              disabled={pending}
+            >
+              <option value="manual">ხელით მართული</option>
+              <option value="stellar">Stellar · Read-only</option>
+              <option value="bitcoin">Bitcoin · Read-only</option>
+            </select>
+          </Field>
           <Field label="პორტფელის სახელი">
             <input
               className="input"
@@ -67,7 +92,27 @@ export function PortfolioCreate({
               autoFocus
             />
           </Field>
-          <p className="text-xs text-base-content/60">საანგარიშო ვალუტა: USD</p>
+          {kind !== "manual" && (
+            <Field label="საჯარო მისამართები">
+              <textarea
+                className="textarea w-full font-mono text-xs"
+                name="addresses"
+                required
+                rows={3}
+                maxLength={1000}
+                placeholder={
+                  kind === "stellar"
+                    ? "G…\nთითო მისამართი ახალ ხაზზე"
+                    : "bc1… / 1… / 3…\nთითო მისამართი ახალ ხაზზე"
+                }
+              />
+            </Field>
+          )}
+          <p className="text-xs text-base-content/60">
+            {kind === "manual"
+              ? "საანგარიშო ვალუტა: USD"
+              : `მხოლოდ Mainnet · მაქსიმუმ 10 მისამართი. გასაღები და ხელმოწერა არ გვჭირდება. მისამართები გადაეცემა ${kind === "stellar" ? "Stellar Horizon-ს" : "mempool.space-ს"}.`}
+          </p>
           {error && <Message error>{error}</Message>}
           <button
             disabled={pending}

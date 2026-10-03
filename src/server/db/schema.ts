@@ -447,3 +447,27 @@ export const userSettings = pgTable("user_settings", {
     .notNull(),
   ...times(),
 });
+
+export const walletPortfolios = pgTable(
+  "wallet_portfolios",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    network: text("network", { enum: ["stellar", "bitcoin"] }).notNull(),
+    config: jsonb("config")
+      .$type<import("@/domain/wallet").WalletConfig>()
+      .notNull(),
+    snapshot:
+      jsonb("snapshot").$type<import("@/domain/wallet").WalletSnapshot>(),
+    lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    ...times(),
+  },
+  (t) => [
+    index("wallet_portfolios_user_idx").on(t.userId),
+    check("wallet_network", sql`${t.network} IN ('stellar','bitcoin')`),
+  ],
+);

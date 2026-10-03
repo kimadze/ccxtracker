@@ -6,9 +6,12 @@ import { PortfolioCreate } from "@/components/portfolio-create";
 import { BalancePrivacyToggle } from "@/components/shell";
 import { Brand } from "@/components/brand";
 import { PortfolioCard } from "@/components/portfolio-card";
+import { walletService } from "@/server/services/wallet";
+import { WalletPortfolioCard } from "@/components/wallet-portfolio-card";
 export default async function Portfolios() {
   const user = await requireUser();
   const portfolios = await portfolioService(getDb(), user.id).list();
+  const wallets = await walletService(getDb(), user.id).list();
   const workspaces = await Promise.all(
     portfolios.map((p) => loadWorkspace(p.id)),
   );
@@ -25,12 +28,12 @@ export default async function Portfolios() {
         <div>
           <h1 className="text-xl font-semibold">პორტფელები</h1>
           <p className="mt-1 text-xs text-base-content/60">
-            {portfolios.length} პორტფელი
+            {portfolios.length + wallets.length} პორტფელი
           </p>
         </div>
         <PortfolioCreate />
       </header>
-      {workspaces.length ? (
+      {workspaces.length + wallets.length ? (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {workspaces.map((w) => (
             <PortfolioCard
@@ -38,6 +41,16 @@ export default async function Portfolios() {
               id={w.portfolio.id}
               name={w.portfolio.name}
               summary={w.summary}
+            />
+          ))}
+          {wallets.map((w) => (
+            <WalletPortfolioCard
+              key={w.id}
+              id={w.id}
+              name={w.name}
+              network={w.network}
+              snapshot={w.snapshot}
+              lastError={w.lastError}
             />
           ))}
         </div>

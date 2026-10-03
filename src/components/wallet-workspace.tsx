@@ -1,0 +1,378 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { RefreshCw, Settings2, ArrowLeft, ExternalLink } from "lucide-react";
+import type { WalletNetwork, WalletSnapshot } from "@/domain/wallet";
+import { walletSnapshotStale } from "@/domain/wallet";
+import { decimal } from "@/domain/decimal";
+import { money, quantity, dateTime } from "@/lib/formatters";
+import { Brand } from "./brand";
+import { BalancePrivacyToggle } from "./shell";
+import { BalanceValue, Field, Message, Modal } from "./ui";
+import {
+  refreshWalletPortfolio,
+  updateWalletPortfolio,
+  removeWalletPortfolio,
+} from "@/server/wallet-actions";
+
+type WalletProps = {
+  id: string;
+  name: string;
+  network: WalletNetwork;
+  addresses: string[];
+  snapshot: WalletSnapshot | null;
+  lastError: string | null;
+};
+export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false),
+    [error, setError] = useState(""),
+    [editing, setEditing] = useState(false),
+    [deleting, setDeleting] = useState(false);
+  const started = useRef(false);
+  async function refresh() {
+    setPending(true);
+    setError("");
+    try {
+      const r = await refreshWalletPortfolio(wallet.id);
+      if (!r.ok) setError(r.error);
+      router.refresh();
+    } catch {
+      setError("განახლება ვერ მოხერხდა. სცადეთ ხელახლა.");
+    } finally {
+      setPending(false);
+    }
+  }
+  useEffect(() => {
+    if (!started.current && !wallet.snapshot) {
+      started.current = true;
+      void refresh();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const snapshot = wallet.snapshot,
+    stale =
+      !!snapshot &&
+      (!!wallet.lastError || walletSnapshotStale(snapshot.fetchedAt));
+  const explorer = (address: string) =>
+    wallet.network === "stellar"
+      ? `https://stellar.expert/explorer/public/account/${address}`
+      : `https://mempool.space/address/${address}`;
+  return (
+    <main
+      id="main"
+      className="mx-auto min-h-dvh max-w-[1120px] space-y-4 p-4 lg:p-5"
+    >
+      <div className="flex items-center justify-between border-b border-base-300 pb-4">
+        <Brand />
+        <BalancePrivacyToggle />
+      </div>
+      <Link href="/portfolios" className="btn btn-ghost gap-2">
+        <ArrowLeft size={16} />
+        პორტფელები
+      </Link>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="break-words text-xl font-semibold">{wallet.name}</h1>
+          <p className="mt-1 text-xs text-base-content/60">
+            {wallet.network === "stellar" ? "Stellar" : "Bitcoin"} · Mainnet ·
+            Read-only
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            className="btn btn-outline"
+            onClick={() => setEditing(true)}
+            disabled={pending}
+            aria-label="საფულის მართვა"
+          >
+            <Settings2 size={18} />
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={refresh}
+            disabled={pending}
+            aria-busy={pending}
+          >
+            {pending ? (
+              <span className="loading loading-spinner loading-xs" />
+            ) : (
+              <RefreshCw size={16} />
+            )}
+            განახლება
+          </button>
+        </div>
+      </header>
+      {error && <Message error>{error}</Message>}
+      {stale && (
+        <Message>
+          {wallet.lastError ?? "ბალანსები მოძველებულია. განაახლეთ მონაცემები."}
+        </Message>
+      )}
+      <section className="card card-border bg-base-200">
+        <div className="card-body gap-2 p-4">
+          <h2 className="text-xs text-base-content/60">
+            {snapshot?.complete ? "საფულის ღირებულება" : "ცნობილი ღირებულება"}
+          </h2>
+          <p className="overflow-x-auto whitespace-nowrap text-3xl font-semibold tabular-nums">
+            <BalanceValue>{money(snapshot?.knownValue)}</BalanceValue>
+          </p>
+          <p className="text-xs text-base-content/60">
+            {pending
+              ? "ბალანსები იტვირთება…"
+              : snapshot
+                ? `განახლება: ${dateTime(snapshot.fetchedAt)}`
+                : "მონაცემები ჯერ არ მიღებულა"}
+          </p>
+          {snapshot && !snapshot.complete && (
+            <p className="text-xs text-warning">
+              უცნობი ფასის მქონე აქტივები ჯამში არ შედის.
+            </p>
+          )}
+        </div>
+      </section>
+      <details className="collapse collapse-arrow border border-base-300 bg-base-200">
+        <summary className="collapse-title min-h-11 py-3 text-sm">
+          დაფარვა და კონფიდენციალურობა
+        </summary>
+        <div className="collapse-content space-y-2 text-xs text-base-content/60">
+          <p>
+            მისამართები და ბალანსები ინახება შენს პორტფელში. განახლებისას საჯარო
+            მისამართებს იღებს{" "}
+            {wallet.network === "stellar" ? "Stellar Horizon" : "mempool.space"}
+            . გასაღებს, seed phrase-ს ან ხელმოწერას არ ვითხოვთ.
+          </p>
+          <p>
+            {wallet.network === "bitcoin"
+              ? "ნაჩვენებია მხოლოდ ჩამოთვლილი მისამართები. სხვა receiving/change მისამართები ავტომატურად არ იძებნება. ჯამში დადასტურებული ბალანსია; მოლოდინში ცვლილება ცალკეა."
+              : "ნაჩვენებია XLM, კლასიკური trustline აქტივები და liquidity pool shares-ის რაოდენობა. Soroban/DeFi და claimable balances არ შედის. ტოკენი განისაზღვრება კოდითა და issuer-ით; უცნობი ფასი არ ითვლება ნულად."}
+          </p>
+          <p>
+            შესყიდვის ისტორიის გარეშე მოგება/ზარალს არ ვითვლით. ღირებულება
+            ინფორმაციულია.
+          </p>
+        </div>
+      </details>
+      {wallet.addresses.map((address) => {
+        const account = snapshot?.accounts.find((a) => a.address === address);
+        return (
+          <section
+            key={address}
+            className="card card-border min-w-0 bg-base-200"
+          >
+            <div className="card-body gap-3 p-4">
+              <div className="flex min-w-0 items-center justify-between gap-2">
+                <h2 className="min-w-0 break-all font-mono text-xs">
+                  {address}
+                </h2>
+                <a
+                  href={explorer(address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost btn-square shrink-0"
+                  aria-label={`${address} — explorer`}
+                >
+                  <ExternalLink size={16} />
+                </a>
+              </div>
+              {!account ? (
+                <p className="text-xs text-base-content/60">
+                  {pending ? "ბალანსი იტვირთება…" : "ბალანსი მიუწვდომელია"}
+                </p>
+              ) : account.state === "unfunded" ? (
+                <p className="text-sm text-base-content/60">
+                  ანგარიში ჯერ გააქტიურებული არ არის.
+                </p>
+              ) : (
+                <>
+                  <ul className="list">
+                    {account.assets
+                      .filter(
+                        (a) => decimal(a.quantity).gt(0) || a.id === "native",
+                      )
+                      .map((a) => (
+                        <li
+                          key={a.id}
+                          className="list-row min-w-0 grid-cols-[1fr_auto] gap-2 border-b border-base-300 px-0 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold">{a.symbol}</p>
+                            <p
+                              className="mt-1 overflow-x-auto whitespace-nowrap text-xs tabular-nums text-base-content/60"
+                            >
+                              <BalanceValue>
+                                {quantity(a.quantity)}
+                              </BalanceValue>
+                            </p>
+                            {a.issuer && (
+                              <p
+                                className="mt-1 truncate font-mono text-[10px] text-base-content/50"
+                                title={a.issuer}
+                              >
+                                {a.issuer}
+                              </p>
+                            )}
+                            {!a.authorized && (
+                              <p className="text-xs text-warning">
+                                არ არის ავტორიზებული
+                              </p>
+                            )}
+                          </div>
+                          <div className="min-w-0 max-w-[45vw] text-right">
+                            <p className="overflow-x-auto whitespace-nowrap text-sm tabular-nums">
+                              <BalanceValue>{money(a.value)}</BalanceValue>
+                            </p>
+                            <p className="mt-1 whitespace-nowrap text-xs text-base-content/60">
+                              <BalanceValue>{money(a.price)}</BalanceValue>
+                              <span> / {a.symbol}</span>
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                  {wallet.network === "bitcoin" && account.pending !== null && (
+                    <p className="text-xs text-base-content/60">
+                      მოლოდინში ცვლილება:{" "}
+                      <BalanceValue>
+                        {quantity(account.pending)} BTC
+                      </BalanceValue>
+                    </p>
+                  )}
+                  {wallet.network === "stellar" && (
+                    <div className="flex flex-wrap gap-3 text-xs text-base-content/60">
+                      <span>
+                        რეზერვი:{" "}
+                        <BalanceValue>
+                          {account.reserve === null
+                            ? "—"
+                            : `${quantity(account.reserve)} XLM`}
+                        </BalanceValue>
+                      </span>
+                      <span>
+                        ხელმისაწვდომი:{" "}
+                        <BalanceValue>
+                          {account.available === null
+                            ? "—"
+                            : `${quantity(account.available)} XLM`}
+                        </BalanceValue>
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </section>
+        );
+      })}
+      <Modal
+        open={editing}
+        onOpenChange={setEditing}
+        title="საფულის მართვა"
+        description="საჯარო მისამართები · თითო მისამართი ახალ ხაზზე"
+      >
+        <form
+          className="space-y-3"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const f = new FormData(e.currentTarget);
+            setPending(true);
+            setError("");
+            try {
+              const r = await updateWalletPortfolio(wallet.id, {
+                name: f.get("name"),
+                network: wallet.network,
+                addresses: String(f.get("addresses"))
+                  .split(/\r?\n/)
+                  .map((a) => a.trim())
+                  .filter(Boolean),
+              });
+              if (!r.ok) {
+                setError(r.error);
+                return;
+              }
+              setEditing(false);
+              await refresh();
+              router.refresh();
+            } catch {
+              setError("შენახვა ვერ მოხერხდა.");
+            } finally {
+              setPending(false);
+            }
+          }}
+        >
+          <Field label="პორტფელის სახელი">
+            <input
+              name="name"
+              className="input"
+              required
+              maxLength={60}
+              defaultValue={wallet.name}
+            />
+          </Field>
+          <Field label="საჯარო მისამართები">
+            <textarea
+              name="addresses"
+              className="textarea font-mono"
+              rows={4}
+              required
+              maxLength={1000}
+              defaultValue={wallet.addresses.join("\n")}
+            />
+          </Field>
+          {error && <Message error>{error}</Message>}
+          <button className="btn btn-primary w-full" disabled={pending}>
+            {pending ? "ინახება…" : "შენახვა"}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost text-error w-full"
+            disabled={pending}
+            onClick={() => {
+              setEditing(false);
+              setDeleting(true);
+            }}
+          >
+            პორტფელის წაშლა
+          </button>
+        </form>
+      </Modal>
+      <Modal
+        open={deleting}
+        onOpenChange={setDeleting}
+        title="პორტფელის წაშლა"
+        description="წაიშლება მხოლოდ აპში შენახული მისამართები და ბალანსები. საფულის აქტივები უცვლელი დარჩება."
+      >
+        <div className="flex gap-2">
+          {error && <Message error>{error}</Message>}
+          <button
+            className="btn btn-ghost"
+            disabled={pending}
+            onClick={() => setDeleting(false)}
+          >
+            გაუქმება
+          </button>
+          <button
+            className="btn btn-error"
+            disabled={pending}
+            onClick={async () => {
+              setPending(true);
+              try {
+                const r = await removeWalletPortfolio(wallet.id);
+                if (r.ok) {
+                  router.push("/portfolios");
+                  router.refresh();
+                } else setError(r.error);
+              } catch {
+                setError("წაშლა ვერ მოხერხდა.");
+              } finally {
+                setPending(false);
+              }
+            }}
+          >
+            წაშლა
+          </button>
+        </div>
+      </Modal>
+    </main>
+  );
+}

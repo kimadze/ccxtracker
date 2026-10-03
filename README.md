@@ -71,7 +71,13 @@ Performance attribution uses the canonical ledger and current market valuation. 
 
 Simulations read the same current holdings. DCA assumes additional external capital; a saved real purchase requires sufficient recorded USD cash. Exit percentages use original current quantity and cannot exceed 100%. Target allocation weights must total 100%; deployment uses buy-only proportional deficits with deterministic cent rounding. It cannot promise exact rebalancing of overweight positions through purchases alone.
 
-The current release records transfers manually as withdrawals/deposits. Automatically linked transfers and consolidated cross-portfolio external-flow accounting are not implemented. Exchange/wallet synchronization, securities, automatic trading, import, multi-currency valuation and tax reporting are outside this release.
+The current release records transfers manually as withdrawals/deposits. Automatically linked transfers and consolidated cross-portfolio external-flow accounting are not implemented. Exchange synchronization, securities, automatic trading, import, multi-currency valuation and tax reporting are outside this release.
+
+### Read-only wallet portfolios
+
+Portfolio creation also supports Stellar and Bitcoin mainnet wallets with up to ten public addresses. These are separate from the manual transaction ledger; no signature, private key or wallet connection is requested. Free public Horizon and mempool.space endpoints provide balances; native asset prices use public market endpoints. Refresh is limited to once per minute per wallet, and failures preserve the previous snapshot.
+
+Bitcoin shows confirmed balance and a separate pending change for the addresses supplied; other receiving/change addresses are not discovered. Stellar shows XLM and classic trustline balances, reserve and available XLM; Soroban/DeFi and claimable balances are outside coverage. Tokens without a verified price display an unknown value and are excluded from the known subtotal. Cost basis and profit/loss are not inferred from wallet balances. Public providers can impose availability and rate limits.
 
 ## Architecture and operation
 

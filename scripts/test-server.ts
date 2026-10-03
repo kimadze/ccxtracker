@@ -8,6 +8,7 @@ import { serializeSignedCookie } from "better-call";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 const statisticsFixtures = process.env.CCX_E2E_STATISTICS_FIXTURES === "1";
+const walletFixtures = process.env.CCX_E2E_WALLET_FIXTURES === "1";
 
 const db = new PGlite();
 for (const file of (await readdir("drizzle"))
@@ -50,6 +51,12 @@ await socket.start();
 const child = spawn(
   process.execPath,
   [
+    ...(walletFixtures
+      ? [
+          "--import",
+          pathToFileURL(resolve("tests/e2e/fixtures/wallet-provider.mjs")).href,
+        ]
+      : []),
     ...(statisticsFixtures
       ? [
           "--import",
