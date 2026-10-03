@@ -7,7 +7,6 @@ import type { WalletNetwork, WalletSnapshot } from "@/domain/wallet";
 import { walletSnapshotStale } from "@/domain/wallet";
 import { decimal } from "@/domain/decimal";
 import { money, quantity, dateTime } from "@/lib/formatters";
-import { Brand } from "./brand";
 import { BalancePrivacyToggle } from "./shell";
 import { BalanceValue, Field, Message, Modal } from "./ui";
 import {
@@ -79,45 +78,47 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
       id="main"
       className="mx-auto min-h-dvh max-w-[1120px] space-y-4 p-4 lg:p-5"
     >
-      <div className="flex items-center justify-between border-b border-base-300 pb-4">
-        <Brand />
+      <header className="flex min-w-0 items-center gap-2 border-b border-base-300 pb-3">
+        <Link
+          href="/portfolios"
+          className="btn btn-ghost btn-square shrink-0"
+          aria-label="პორტფელები"
+          title="პორტფელები"
+        >
+          <ArrowLeft size={18} />
+        </Link>
+        <details className="dropdown min-w-0 flex-1">
+          <summary className="flex min-h-11 cursor-pointer items-center min-w-0">
+            <h1 className="truncate text-base font-semibold">{wallet.name}</h1>
+          </summary>
+          <div className="dropdown-content z-20 w-56 max-w-[70vw] rounded-box border border-base-300 bg-base-200 p-3 text-sm break-words shadow-lg">
+            {wallet.name}
+          </div>
+        </details>
         <BalancePrivacyToggle />
-      </div>
-      <Link href="/portfolios" className="btn btn-ghost gap-2">
-        <ArrowLeft size={16} />
-        პორტფელები
-      </Link>
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="break-words text-xl font-semibold">{wallet.name}</h1>
-          <p className="mt-1 text-xs text-base-content/60">
-            {wallet.network === "stellar" ? "Stellar" : "Bitcoin"} · Mainnet ·
-            Read-only
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            className="btn btn-outline"
-            onClick={() => setEditing(true)}
-            disabled={pending}
-            aria-label="საფულის მართვა"
-          >
-            <Settings2 size={18} />
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={refresh}
-            disabled={pending}
-            aria-busy={pending}
-          >
-            {pending ? (
-              <span className="loading loading-spinner loading-xs" />
-            ) : (
-              <RefreshCw size={16} />
-            )}
-            განახლება
-          </button>
-        </div>
+        <button
+          className="btn btn-ghost btn-square shrink-0"
+          onClick={refresh}
+          disabled={pending}
+          aria-busy={pending}
+          aria-label="განახლება"
+          title="განახლება"
+        >
+          {pending ? (
+            <span className="loading loading-spinner loading-xs" />
+          ) : (
+            <RefreshCw size={18} />
+          )}
+        </button>
+        <button
+          className="btn btn-ghost btn-square shrink-0"
+          onClick={() => setEditing(true)}
+          disabled={pending}
+          aria-label="საფულის მართვა"
+          title="საფულის მართვა"
+        >
+          <Settings2 size={18} />
+        </button>
       </header>
       {error && <Message error>{error}</Message>}
       {stale && (
@@ -127,13 +128,10 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
       )}
       <section className="card card-border bg-base-200">
         <div className="card-body gap-2 p-4">
-          <h2 className="text-xs text-base-content/60">
-            {snapshot?.complete ? "საფულის ღირებულება" : "ცნობილი ღირებულება"}
-          </h2>
           <figure
             className="diff h-28 rounded-box"
             tabIndex={0}
-            aria-label="XLM და დოლარის ღირებულების შედარება"
+            aria-label={`${nativeSymbol} და დოლარის ღირებულების შედარება`}
           >
             <div className="diff-item-1" tabIndex={0}>
               <div className="flex flex-col items-center justify-center gap-2 bg-primary/15 pr-[50cqi] text-base-content">
@@ -155,42 +153,32 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
             </div>
             <div className="diff-resizer" />
           </figure>
-          <p className="text-xs text-base-content/60">
-            {pending
-              ? "ბალანსები იტვირთება…"
-              : snapshot
-                ? `განახლება: ${dateTime(snapshot.fetchedAt)}`
-                : "მონაცემები ჯერ არ მიღებულა"}
-          </p>
-          {snapshot && !snapshot.complete && (
-            <p className="text-xs text-warning">
-              უცნობი ფასის მქონე აქტივები ჯამში არ შედის.
-            </p>
-          )}
+          <details className="dropdown">
+            <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-xs text-base-content/60">
+              <span
+                className={`status status-xs ${stale || !snapshot?.complete ? "status-warning" : "status-success"}`}
+              />
+              {pending
+                ? "იტვირთება…"
+                : !snapshot
+                  ? "მიუწვდომელია"
+                  : stale
+                    ? "მოძველებულია"
+                    : !snapshot.complete
+                      ? "არასრული ჯამი"
+                      : "განახლებულია"}
+            </summary>
+            <div className="dropdown-content z-20 w-64 max-w-[75vw] rounded-box border border-base-300 bg-base-200 p-3 text-xs shadow-lg">
+              {snapshot && <p>{dateTime(snapshot.fetchedAt)}</p>}
+              {snapshot && !snapshot.complete && (
+                <p className="mt-2">
+                  უცნობი ფასის მქონე აქტივები ჯამში არ შედის.
+                </p>
+              )}
+            </div>
+          </details>
         </div>
       </section>
-      <details className="collapse collapse-arrow border border-base-300 bg-base-200">
-        <summary className="collapse-title min-h-11 py-3 text-sm">
-          დაფარვა და კონფიდენციალურობა
-        </summary>
-        <div className="collapse-content space-y-2 text-xs text-base-content/60">
-          <p>
-            მისამართები და ბალანსები ინახება შენს პორტფელში. განახლებისას საჯარო
-            მისამართებს იღებს{" "}
-            {wallet.network === "stellar" ? "Stellar Horizon" : "mempool.space"}
-            . გასაღებს, seed phrase-ს ან ხელმოწერას არ ვითხოვთ.
-          </p>
-          <p>
-            {wallet.network === "bitcoin"
-              ? "ნაჩვენებია მხოლოდ ჩამოთვლილი მისამართები. სხვა receiving/change მისამართები ავტომატურად არ იძებნება. ჯამში დადასტურებული ბალანსია; მოლოდინში ცვლილება ცალკეა."
-              : "ნაჩვენებია XLM, კლასიკური trustline აქტივები და liquidity pool shares-ის რაოდენობა. Soroban/DeFi და claimable balances არ შედის. ტოკენი განისაზღვრება კოდითა და issuer-ით; უცნობი ფასი არ ითვლება ნულად."}
-          </p>
-          <p>
-            შესყიდვის ისტორიის გარეშე მოგება/ზარალს არ ვითვლით. ღირებულება
-            ინფორმაციულია.
-          </p>
-        </div>
-      </details>
       {wallet.addresses.map((address) => {
         const account = snapshot?.accounts.find((a) => a.address === address);
         return (
@@ -262,12 +250,6 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                             <p className="overflow-x-auto whitespace-nowrap text-sm tabular-nums">
                               <BalanceValue>{money(a.value)}</BalanceValue>
                             </p>
-                            {a.price !== null && (
-                              <p className="mt-1 whitespace-nowrap text-xs text-base-content/60">
-                                <BalanceValue>{money(a.price)}</BalanceValue>
-                                <span> / {a.symbol}</span>
-                              </p>
-                            )}
                           </div>
                         </li>
                       ))}
@@ -293,55 +275,78 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                   )}
                   <details className="collapse collapse-arrow border border-base-300">
                     <summary className="collapse-title min-h-11 py-3 text-xs">
-                      მისამართი და აქტივების დეტალები
+                      დეტალები
                     </summary>
                     <div className="collapse-content space-y-2 text-xs text-base-content/60">
                       <p className="break-all font-mono">{address}</p>
                       {account.assets
                         .filter(
                           (a) =>
-                            a.issuer &&
-                            a.authorized &&
-                            decimal(a.quantity).gt(0),
+                            a.id === "native" ||
+                            (a.authorized && decimal(a.quantity).gt(0)),
                         )
                         .map((a) => (
                           <div key={a.id}>
                             <p className="font-semibold">{a.symbol}</p>
-                            <p className="break-all font-mono text-[10px]">
-                              {a.issuer}
+                            <p>
+                              <BalanceValue>{money(a.price)}</BalanceValue> /{" "}
+                              {a.symbol}
                             </p>
+                            {a.issuer && (
+                              <p className="break-all font-mono text-[10px]">
+                                {a.issuer}
+                              </p>
+                            )}
                           </div>
                         ))}
+                      {wallet.network === "bitcoin" &&
+                        account.pending !== null && (
+                          <p className="text-xs text-base-content/60">
+                            მოლოდინში ცვლილება:{" "}
+                            <BalanceValue>
+                              {quantity(account.pending)} BTC
+                            </BalanceValue>
+                          </p>
+                        )}
+                      {wallet.network === "stellar" && (
+                        <div className="flex flex-wrap gap-3 text-xs text-base-content/60">
+                          <span>
+                            რეზერვი:{" "}
+                            <BalanceValue>
+                              {account.reserve === null
+                                ? "—"
+                                : `${quantity(account.reserve)} XLM`}
+                            </BalanceValue>
+                          </span>
+                          <span>
+                            ხელმისაწვდომი:{" "}
+                            <BalanceValue>
+                              {account.available === null
+                                ? "—"
+                                : `${quantity(account.available)} XLM`}
+                            </BalanceValue>
+                          </span>
+                        </div>
+                      )}
+                      <p>
+                        მისამართები და ბალანსები ინახება შენს პორტფელში.
+                        განახლებისას საჯარო მისამართებს იღებს{" "}
+                        {wallet.network === "stellar"
+                          ? "Stellar Horizon"
+                          : "mempool.space"}
+                        . გასაღებს, seed phrase-ს ან ხელმოწერას არ ვითხოვთ.
+                      </p>
+                      <p>
+                        {wallet.network === "bitcoin"
+                          ? "ნაჩვენებია მხოლოდ ჩამოთვლილი მისამართები. სხვა receiving/change მისამართები ავტომატურად არ იძებნება. ჯამში დადასტურებული ბალანსია; მოლოდინში ცვლილება ცალკეა."
+                          : "ნაჩვენებია XLM, კლასიკური trustline აქტივები და liquidity pool shares-ის რაოდენობა. Soroban/DeFi და claimable balances არ შედის. ტოკენი განისაზღვრება კოდითა და issuer-ით; უცნობი ფასი არ ითვლება ნულად."}
+                      </p>
+                      <p>
+                        შესყიდვის ისტორიის გარეშე მოგება/ზარალს არ ვითვლით.
+                        ღირებულება ინფორმაციულია.
+                      </p>
                     </div>
                   </details>
-                  {wallet.network === "bitcoin" && account.pending !== null && (
-                    <p className="text-xs text-base-content/60">
-                      მოლოდინში ცვლილება:{" "}
-                      <BalanceValue>
-                        {quantity(account.pending)} BTC
-                      </BalanceValue>
-                    </p>
-                  )}
-                  {wallet.network === "stellar" && (
-                    <div className="flex flex-wrap gap-3 text-xs text-base-content/60">
-                      <span>
-                        რეზერვი:{" "}
-                        <BalanceValue>
-                          {account.reserve === null
-                            ? "—"
-                            : `${quantity(account.reserve)} XLM`}
-                        </BalanceValue>
-                      </span>
-                      <span>
-                        ხელმისაწვდომი:{" "}
-                        <BalanceValue>
-                          {account.available === null
-                            ? "—"
-                            : `${quantity(account.available)} XLM`}
-                        </BalanceValue>
-                      </span>
-                    </div>
-                  )}
                 </>
               )}
             </div>
@@ -460,4 +465,3 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
     </main>
   );
 }
-

@@ -42,9 +42,11 @@ test("create read-only BTC and Stellar, privacy, refresh failure, edit and remov
   await expect(
     page.getByText("$60 000,00", { exact: true }).first(),
   ).toBeVisible();
+  await page.getByText("დეტალები", { exact: true }).click();
   await expect(page.getByText(/მოლოდინში ცვლილება:/)).toContainText(
     "-0,01 BTC",
   );
+  await page.getByText("დეტალები", { exact: true }).click();
   const btcId = new URL(page.url()).pathname.split("/").at(-1);
   const db = new Client({
     connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
@@ -83,14 +85,14 @@ test("create read-only BTC and Stellar, privacy, refresh failure, edit and remov
   await dialog
     .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
     .click();
-  await expect(
-    page.getByText("უცნობი ფასის მქონე აქტივები ჯამში არ შედის."),
-  ).toBeVisible();
+  await expect(page.getByText("არასრული ჯამი", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("list").getByText("LONGTOKEN123", { exact: true }),
   ).toBeVisible();
+  await page.getByText("დეტალები", { exact: true }).click();
   await expect(page.getByText(/რეზერვი:/)).toContainText("1,5 XLM");
   await expect(page.getByText("SPAM", { exact: true })).toHaveCount(0);
+  await page.getByText("დეტალები", { exact: true }).click();
   const stellarUrl = page.url();
   for (const width of [360, 390, 430, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
