@@ -90,6 +90,7 @@ test("create read-only BTC and Stellar, privacy, refresh failure, edit and remov
     page.getByRole("list").getByText("LONGTOKEN123", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/რეზერვი:/)).toContainText("1,5 XLM");
+  await expect(page.getByText("SPAM", { exact: true })).toHaveCount(0);
   const stellarUrl = page.url();
   for (const width of [360, 390, 430, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });

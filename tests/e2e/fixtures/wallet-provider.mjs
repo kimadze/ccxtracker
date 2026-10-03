@@ -49,6 +49,13 @@ globalThis.fetch = async (input, init) => {
             asset_issuer: account,
             balance: "9999999999.1234567",
           },
+          {
+            asset_type: "credit_alphanum4",
+            asset_code: "SPAM",
+            asset_issuer: account,
+            balance: "100",
+            is_authorized: false,
+          },
         ],
       });
     }

@@ -130,14 +130,31 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
           <h2 className="text-xs text-base-content/60">
             {snapshot?.complete ? "საფულის ღირებულება" : "ცნობილი ღირებულება"}
           </h2>
-          <p className="overflow-x-auto whitespace-nowrap text-3xl font-semibold tabular-nums">
-            <BalanceValue>{money(snapshot?.knownValue)}</BalanceValue>
-          </p>
-          <p className="text-lg font-medium tabular-nums text-base-content/80">
-            <BalanceValue>
-              {nativeQuantity} {nativeSymbol}
-            </BalanceValue>
-          </p>
+          <figure
+            className="diff h-28 rounded-box"
+            tabIndex={0}
+            aria-label="XLM და დოლარის ღირებულების შედარება"
+          >
+            <div className="diff-item-1" tabIndex={0}>
+              <div className="flex flex-col items-center justify-center gap-2 bg-primary/15 pr-[50cqi] text-base-content">
+                <span className="text-xs text-base-content/60">
+                  {nativeSymbol}
+                </span>
+                <span className="whitespace-nowrap text-sm font-semibold tabular-nums sm:text-xl">
+                  <BalanceValue>{nativeQuantity}</BalanceValue>
+                </span>
+              </div>
+            </div>
+            <div className="diff-item-2">
+              <div className="flex flex-col items-center justify-center gap-2 bg-base-300 pl-[50cqi] text-base-content">
+                <span className="text-xs text-base-content/60">USD</span>
+                <span className="whitespace-nowrap text-sm font-semibold tabular-nums sm:text-xl">
+                  <BalanceValue>{money(snapshot?.knownValue)}</BalanceValue>
+                </span>
+              </div>
+            </div>
+            <div className="diff-resizer" />
+          </figure>
           <p className="text-xs text-base-content/60">
             {pending
               ? "ბალანსები იტვირთება…"
@@ -212,7 +229,9 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                   <ul className="list">
                     {account.assets
                       .filter(
-                        (a) => decimal(a.quantity).gt(0) || a.id === "native",
+                        (a) =>
+                          a.id === "native" ||
+                          (a.authorized && decimal(a.quantity).gt(0)),
                       )
                       .sort(
                         (a, b) =>
@@ -254,7 +273,9 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                       ))}
                   </ul>
                   {account.assets.filter(
-                    (a) => decimal(a.quantity).gt(0) || a.id === "native",
+                    (a) =>
+                      a.id === "native" ||
+                      (a.authorized && decimal(a.quantity).gt(0)),
                   ).length > 6 && (
                     <button
                       className="btn btn-ghost w-full"
@@ -267,7 +288,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                     >
                       {expanded[address]
                         ? "შეკუმშვა"
-                        : `ყველა აქტივი (${account.assets.filter((a) => decimal(a.quantity).gt(0) || a.id === "native").length})`}
+                        : `ყველა აქტივი (${account.assets.filter((a) => a.id === "native" || (a.authorized && decimal(a.quantity).gt(0))).length})`}
                     </button>
                   )}
                   <details className="collapse collapse-arrow border border-base-300">
@@ -277,7 +298,12 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                     <div className="collapse-content space-y-2 text-xs text-base-content/60">
                       <p className="break-all font-mono">{address}</p>
                       {account.assets
-                        .filter((a) => a.issuer)
+                        .filter(
+                          (a) =>
+                            a.issuer &&
+                            a.authorized &&
+                            decimal(a.quantity).gt(0),
+                        )
                         .map((a) => (
                           <div key={a.id}>
                             <p className="font-semibold">{a.symbol}</p>
@@ -434,3 +460,4 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
     </main>
   );
 }
+
