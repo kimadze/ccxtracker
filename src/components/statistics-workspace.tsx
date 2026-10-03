@@ -5,6 +5,7 @@ import { WorkspaceTabs, useWorkspaceTab } from "./workspace-tabs";
 import { MacroIndicators } from "./macro-indicators";
 import { StatisticsTrend } from "./statistics-trend";
 import { AssetIcon } from "./positions";
+import { PortfolioStatistics } from "./portfolio-statistics";
 import type { PortfolioSummary } from "@/domain/types";
 import {
   marketBreadth,
@@ -363,7 +364,7 @@ export function StatisticsWorkspace({
 }) {
   const [tab, setTab] = useWorkspaceTab(
     ["market", "macro", "portfolio"],
-    "market",
+    "portfolio",
   );
   const [period, setPeriod] = useState<MarketPeriod>("24h");
   return (
@@ -372,13 +373,13 @@ export function StatisticsWorkspace({
       value={tab}
       onChange={setTab}
       items={[
+        ["portfolio", "ჩემი პორტფელი"],
         ["market", "კრიპტო ბაზარი"],
         ["macro", "მაკრო"],
-        ["portfolio", "ჩემი აქტივები"],
       ]}
     >
       <div className="space-y-3 lg:space-y-4">
-        {tab !== "macro" && (
+        {tab === "market" && (
           <PeriodControl period={period} onChange={setPeriod} />
         )}
         {tab === "market" &&
@@ -398,12 +399,23 @@ export function StatisticsWorkspace({
             </p>
           ))}
         {tab === "portfolio" && (
-          <OwnedAssets
-            summary={summary}
-            assets={ownedAssets}
-            period={period}
-            portfolioId={portfolioId}
-          />
+          <>
+            <PortfolioStatistics summary={summary} portfolioId={portfolioId} />
+            <details className="collapse collapse-arrow border border-base-300 bg-base-200">
+              <summary className="collapse-title min-h-11 py-3 text-sm">
+                აქტივების საბაზრო კონტექსტი
+              </summary>
+              <div className="collapse-content space-y-3">
+                <PeriodControl period={period} onChange={setPeriod} />
+                <OwnedAssets
+                  summary={summary}
+                  assets={ownedAssets}
+                  period={period}
+                  portfolioId={portfolioId}
+                />
+              </div>
+            </details>
+          </>
         )}
       </div>
     </WorkspaceTabs>

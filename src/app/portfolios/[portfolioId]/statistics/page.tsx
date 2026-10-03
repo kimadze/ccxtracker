@@ -18,7 +18,7 @@ export default async function Page({
   const requestedTab = (await searchParams).tab;
   const tab = ["market", "macro", "portfolio"].includes(requestedTab ?? "")
     ? requestedTab
-    : "market";
+    : "portfolio";
   const [workspace, market, macro] = await Promise.all([
     loadWorkspace(portfolioId),
     tab === "market" ? getMarketStatistics() : Promise.resolve(null),
