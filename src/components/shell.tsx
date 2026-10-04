@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
   BookOpen,
+  Calculator,
   ChartNoAxesCombined,
   Eye,
   EyeOff,
@@ -62,6 +63,7 @@ const groups: { title: string; links: NavItem[] }[] = [
       ["journal", "ჟურნალი", BookOpen],
     ],
   },
+  { title: "ხელსაწყოები", links: [["tools/risk-calculator", "რისკის კალკულატორი", Calculator]] },
   { title: "ანგარიში", links: [["settings", "პარამეტრები", Settings2]] },
 ];
 
