@@ -14,17 +14,16 @@ const initial: RiskInputs = {
   direction: "LONG",
   entryPrice: "100000",
   stopLoss: "99000",
-  takeProfit: "102500",
-  riskPercent: "0.50",
+  takeProfit: "",
+  riskPercent: "1",
   leverage: "5",
 };
 const fields = [
-  ["accountBalance", "ანგარიშის ბალანსი (USD)"],
-  ["entryPrice", "Entry ფასი (USD)"],
+  ["accountBalance", "კაპიტალი (USD)"],
+  ["entryPrice", "შესვლის ფასი (USD)"],
   ["stopLoss", "Stop Loss (USD)"],
-  ["takeProfit", "Take Profit (USD)"],
-  ["riskPercent", "რისკი თითო გარიგებაზე (%)"],
   ["leverage", "ლევერიჯი (x)"],
+  ["riskPercent", "რისკი თითო გარიგებაზე (%)"],
 ] as const;
 export function RiskCalculator() {
   const [input, setInput] = useState<RiskInputs>(initial);
@@ -40,11 +39,15 @@ export function RiskCalculator() {
         ["Stop მანძილი", percentage(result.stopDistancePercent)],
         ["საჭირო მარჟა", money(result.requiredMargin)],
         ["პოტენციური ზარალი", money(result.potentialLoss)],
-        ["პოტენციური მოგება", money(result.potentialProfit)],
-        [
-          "Risk / Reward",
-          "1:" + decimal(result.riskReward).toDecimalPlaces(4).toFixed(),
-        ],
+        ...(result.riskReward !== null
+          ? [
+              ["პოტენციური მოგება", money(result.potentialProfit)],
+              [
+                "Risk / Reward",
+                "1:" + decimal(result.riskReward).toDecimalPlaces(4).toFixed(),
+              ],
+            ]
+          : []),
       ]
     : [];
   return (
@@ -108,7 +111,7 @@ export function RiskCalculator() {
                       role="group"
                       aria-label="სწრაფი რისკი"
                     >
-                      {["0.25", "0.50", "0.75", "1.00"].map((risk) => (
+                      {["1", "2", "3", "4"].map((risk) => (
                         <button
                           key={risk}
                           type="button"
@@ -130,6 +133,29 @@ export function RiskCalculator() {
               );
             })}
           </div>
+          <details className="collapse collapse-arrow border border-base-300">
+            <summary className="collapse-title min-h-11 py-3 text-sm">
+              Take Profit · დამატებით
+            </summary>
+            <div className="collapse-content">
+              <Field label="Take Profit (USD)">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={input.takeProfit}
+                  aria-invalid={
+                    !calculation.ok && !!calculation.errors.takeProfit
+                  }
+                  onChange={(event) => update("takeProfit", event.target.value)}
+                />
+              </Field>
+              {!calculation.ok && calculation.errors.takeProfit && (
+                <p className="text-xs text-error">
+                  {calculation.errors.takeProfit}
+                </p>
+              )}
+            </div>
+          </details>
         </div>
       </section>
       <section

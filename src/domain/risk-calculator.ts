@@ -24,7 +24,9 @@ export function calculateRisk(input: RiskInputs) {
     (typeof keys)[number],
     ReturnType<typeof decimal>
   >;
+  const hasTarget = input.takeProfit.trim() !== "";
   for (const key of keys) {
+    if (key === "takeProfit" && !hasTarget) continue;
     try {
       values[key] = decimal(input[key]);
       if (!values[key].gt(0)) throw new Error();
@@ -52,16 +54,21 @@ export function calculateRisk(input: RiskInputs) {
     errors.stopLoss = long
       ? "Stop Loss უნდა იყოს Entry-ზე დაბლა."
       : "Stop Loss უნდა იყოს Entry-ზე მაღლა.";
-  if (long ? takeProfit.lte(entryPrice) : takeProfit.gte(entryPrice))
+  if (
+    hasTarget &&
+    (long ? takeProfit.lte(entryPrice) : takeProfit.gte(entryPrice))
+  )
     errors.takeProfit = long
       ? "Take Profit უნდა იყოს Entry-ზე მაღლა."
       : "Take Profit უნდა იყოს Entry-ზე დაბლა.";
   if (Object.keys(errors).length) return { ok: false as const, errors };
   const riskAmount = accountBalance.mul(riskPercent).div(100);
   const stopDistance = entryPrice.minus(stopLoss).abs();
-  const profitDistance = long
-    ? takeProfit.minus(entryPrice)
-    : entryPrice.minus(takeProfit);
+  const profitDistance = hasTarget
+    ? long
+      ? takeProfit.minus(entryPrice)
+      : entryPrice.minus(takeProfit)
+    : null;
   const positionSize = riskAmount.mul(entryPrice).div(stopDistance);
   const result = {
     riskAmount,
@@ -70,13 +77,16 @@ export function calculateRisk(input: RiskInputs) {
     stopDistancePercent: stopDistance.div(entryPrice).mul(100),
     requiredMargin: positionSize.div(leverage),
     potentialLoss: riskAmount,
-    potentialProfit: positionSize.mul(profitDistance).div(entryPrice),
-    riskReward: profitDistance.div(stopDistance),
+    potentialProfit: profitDistance
+      ? positionSize.mul(profitDistance).div(entryPrice)
+      : null,
+    riskReward: profitDistance ? profitDistance.div(stopDistance) : null,
   };
   // Match the existing application's supported amount range before formatting.
   if (
     Object.values(result).some(
-      (value) => !value.isFinite() || value.abs().gt("1e24"),
+      (value) =>
+        value !== null && (!value.isFinite() || value.abs().gt("1e24")),
     )
   )
     return {
@@ -87,8 +97,15 @@ export function calculateRisk(input: RiskInputs) {
     };
   return {
     ok: true as const,
-    result: Object.fromEntries(
-      Object.entries(result).map(([key, value]) => [key, value.toFixed()]),
-    ) as Record<keyof typeof result, string>,
+    result: {
+      riskAmount: result.riskAmount.toFixed(),
+      positionSize: result.positionSize.toFixed(),
+      quantity: result.quantity.toFixed(),
+      stopDistancePercent: result.stopDistancePercent.toFixed(),
+      requiredMargin: result.requiredMargin.toFixed(),
+      potentialLoss: result.potentialLoss.toFixed(),
+      potentialProfit: result.potentialProfit?.toFixed() ?? null,
+      riskReward: result.riskReward?.toFixed() ?? null,
+    },
   };
 }

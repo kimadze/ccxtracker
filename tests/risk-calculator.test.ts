@@ -12,6 +12,14 @@ const example: RiskInputs = {
   leverage: "5",
 };
 describe("risk calculator", () => {
+  it("calculates risk and margin without Take Profit", () => {
+    const c = calculateRisk({ ...example, takeProfit: "", riskPercent: "2" });
+    if (!c.ok) throw new Error();
+    expect(c.result.riskAmount).toBe("200");
+    expect(c.result.requiredMargin).toBe("4000");
+    expect(c.result.potentialProfit).toBeNull();
+    expect(c.result.riskReward).toBeNull();
+  });
   it("matches the supplied LONG example", () => {
     const calculation = calculateRisk(example);
     expect(calculation.ok).toBe(true);
@@ -68,6 +76,6 @@ describe("risk calculator", () => {
     if (!calculation.ok) throw new Error();
     expect(calculation.result.positionSize).toBe("250");
     expect(calculation.result.quantity).toBe("2500000000");
-    expect(decimal(calculation.result.potentialProfit).eq(50)).toBe(true);
+    expect(decimal(calculation.result.potentialProfit!).eq(50)).toBe(true);
   });
 });

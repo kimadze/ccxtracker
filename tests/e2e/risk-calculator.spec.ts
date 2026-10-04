@@ -6,16 +6,14 @@ test("risk calculator uses the existing shell and validates both directions", as
 }, info) => {
   test.setTimeout(180000);
   const cookies = JSON.parse(await readFile(".local/e2e-cookies.json", "utf8"));
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "better-auth.session_token",
-        value: cookies["alice-" + info.project.name],
-        domain: "localhost",
-        path: "/",
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "better-auth.session_token",
+      value: cookies["alice-" + info.project.name],
+      domain: "localhost",
+      path: "/",
+    },
+  ]);
   await page.goto("/portfolios");
   await page
     .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
@@ -29,6 +27,9 @@ test("risk calculator uses the existing shell and validates both directions", as
   await expect(page).toHaveURL(/\/portfolios\/[0-9a-f-]+$/, { timeout: 30000 });
   const base = page.url();
   await page.goto(base + "/tools/risk-calculator");
+  await page.getByLabel("რისკი თითო გარიგებაზე (%)").fill("0.5");
+  await page.getByText("Take Profit · დამატებით", { exact: true }).click();
+  await page.getByLabel("Take Profit (USD)").fill("102500");
   const output = page.getByRole("region", { name: "გამოთვლის შედეგი" });
   await expect(output.getByText("$50,00", { exact: true })).toHaveCount(2);
   await expect(output.getByText("$5 000,00", { exact: true })).toBeVisible();
@@ -61,8 +62,8 @@ test("risk calculator uses the existing shell and validates both directions", as
   await page.getByLabel("Stop Loss (USD)").fill("101000");
   await page.getByLabel("Take Profit (USD)").fill("97500");
   await expect(output.getByText("1:2.5", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "0.25%", exact: true }).click();
-  await expect(output.getByText("$25,00", { exact: true })).toHaveCount(2);
+  await page.getByRole("button", { name: "1%", exact: true }).click();
+  await expect(output.getByText("$100,00", { exact: true })).toHaveCount(2);
   await page.getByLabel("ლევერიჯი (x)").fill("0");
   await expect(page.getByLabel("ლევერიჯი (x)")).toHaveAttribute(
     "aria-invalid",
