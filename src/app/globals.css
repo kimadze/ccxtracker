@@ -37,6 +37,31 @@
   --depth: 1;
   --noise: 0;
 }
+@utility btn {
+  min-height: 44px;
+  font-weight: 500;
+  box-shadow: none;
+  &:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 3px;
+  }
+}
+@utility tabs-border {
+  --tab-radius: 0;
+  & > .tab {
+    color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  & > .tab-active {
+    color: var(--color-secondary);
+    --tab-border-color: var(--color-primary);
+  }
+  & > .tab:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: -2px;
+  }
+}
 .modal-action .btn,
 dialog form button[type="submit"] {
   min-height: 44px;

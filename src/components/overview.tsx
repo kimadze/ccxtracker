@@ -3,7 +3,13 @@ import type { ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
-import { dateTime, money, percentage, pnlClass, unitPrice } from "@/lib/formatters";
+import {
+  dateTime,
+  money,
+  percentage,
+  pnlClass,
+  unitPrice,
+} from "@/lib/formatters";
 import { AssetIcon } from "./positions";
 import { BalanceValue } from "./ui";
 import { OverviewToolbar } from "./overview-toolbar";
@@ -186,7 +192,7 @@ export function Overview({
               <div className="lg:hidden">{status}</div>
             </div>
             <div className="block w-full min-w-0">
-              <div className="min-w-0 rounded-box border border-base-300 bg-base-100 p-3 text-base-content">
+              <div className="min-w-0 py-1 text-base-content">
                 <p className="overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums">
                   <BalanceValue>{money(displayedValue)}</BalanceValue>
                 </p>

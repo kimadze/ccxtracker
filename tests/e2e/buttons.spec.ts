@@ -27,6 +27,13 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
     .click();
   await expect(page).toHaveURL(/\/portfolios\/[0-9a-f-]+$/);
   const base = page.url();
+  await page.getByRole("button", { name: "მენიუს გაშლა", exact: true }).click();
+  const sidebar = page.getByRole("complementary", { name: "გვერდითი მენიუ" });
+  await expect(sidebar).toBeVisible();
+  expect((await sidebar.boundingBox())!.width).toBe(240);
+  await expect(
+    sidebar.getByRole("button", { name: "გასვლა", exact: true }),
+  ).toBeInViewport();
   for (const width of [360, 390, 430, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto(base + "/transactions?new=1");
@@ -65,6 +72,18 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
     await cancel.click();
     await expect(form).not.toBeVisible();
     await page.goto(base + "/positions");
+    await expect(
+      page.getByRole("heading", { name: "პოზიციები", exact: true }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth + 1,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: `.local/buttons-positions-${width}.png`,
+      fullPage: true,
+    });
     if (width >= 1024) {
       const cards = page.getByRole("button", { name: "ბარათების ხედი" });
       await cards.click();

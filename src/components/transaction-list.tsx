@@ -155,7 +155,7 @@ export function TransactionList({
               <MobileBottomSheet
                 title="ტრანზაქციების ფილტრი"
                 trigger={
-                  <button type="button" className="btn btn-dash">
+                  <button type="button" className="btn btn-neutral">
                     <SlidersHorizontal size={16} /> ფილტრი
                   </button>
                 }
@@ -218,7 +218,7 @@ export function TransactionList({
             {hasFilters && (
               <button
                 type="button"
-                className="btn btn-dash hidden md:inline-flex"
+                className="btn btn-ghost hidden md:inline-flex"
                 onClick={resetFilters}
               >
                 <RotateCcw size={14} /> გასუფთავება

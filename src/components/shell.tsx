@@ -32,7 +32,12 @@ import {
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
-import { privacyEvent, readPrivacy, serverPrivacy, subscribePrivacy } from "./balance-privacy";
+import {
+  privacyEvent,
+  readPrivacy,
+  serverPrivacy,
+  subscribePrivacy,
+} from "./balance-privacy";
 
 type NavItem = [string, string, LucideIcon];
 const groups: { title: string; links: NavItem[] }[] = [
@@ -77,13 +82,13 @@ function Navigation({
   return (
     <ul
       aria-label="მთავარი ნავიგაცია"
-      className="menu menu-md w-full flex-1 gap-1 p-0"
+      className="menu menu-md min-h-0 w-full flex-1 gap-0.5 overflow-y-auto overscroll-contain p-0"
     >
       {groups.map((group) => (
         <Fragment key={group.title}>
           <li
             className={
-              "menu-title mt-2 px-3 py-1 text-xs lg:is-drawer-close:hidden"
+              "menu-title mt-1 px-3 py-1 text-xs lg:is-drawer-close:hidden"
             }
           >
             {group.title}
@@ -104,7 +109,7 @@ function Navigation({
                   className={clsx(
                     active && "menu-active",
                     "lg:is-drawer-close:justify-center lg:is-drawer-close:px-0",
-                    "min-h-11 gap-3 rounded-field px-3 text-sm",
+                    "min-h-11 gap-2.5 rounded-field px-3 py-2 text-sm",
                   )}
                 >
                   <Icon
@@ -254,7 +259,10 @@ export function Shell({
         >
           {children}
         </main>
-        <nav className="dock dock-sm md:dock-md mobile-bottom-nav" aria-label="მობილური ნავიგაცია">
+        <nav
+          className="dock dock-sm md:dock-md mobile-bottom-nav"
+          aria-label="მობილური ნავიგაცია"
+        >
           {mobileLinks.map(([segment, label, Icon]) => {
             const href =
               segment === "transactions"
@@ -369,14 +377,14 @@ export function Shell({
         />
         <aside
           className={clsx(
-            "flex h-dvh w-64 max-w-[85vw] flex-col overflow-y-auto overflow-x-hidden border-r border-base-300 bg-base-200 px-3 py-4 text-base-content transition-[width,padding] duration-200 motion-reduce:transition-none",
-            "lg:is-drawer-close:w-[76px] lg:is-drawer-close:px-2 lg:is-drawer-open:w-64",
+            "flex h-dvh w-60 max-w-[85vw] flex-col overflow-hidden border-r border-base-300 bg-base-200 px-3 py-3 text-base-content transition-[width,padding] duration-200 motion-reduce:transition-none",
+            "lg:is-drawer-close:w-16 lg:is-drawer-close:px-2 lg:is-drawer-open:w-60",
           )}
           aria-label="გვერდითი მენიუ"
         >
           <div
             className={
-              "mb-4 flex shrink-0 items-center px-1 lg:is-drawer-close:justify-center lg:is-drawer-close:px-0"
+              "mb-2 flex min-h-10 shrink-0 items-center px-1 lg:is-drawer-close:justify-center lg:is-drawer-close:px-0"
             }
           >
             <Brand
@@ -393,20 +401,13 @@ export function Shell({
                 setDrawerOpen(false);
             }}
           />
-          <div className="mt-5 border-t border-base-300 pt-4">
+          <div className="mt-2 shrink-0 space-y-1 border-t border-base-300 pt-2 lg:is-drawer-close:hidden">
             <div className={"nav-label lg:is-drawer-close:hidden"}>
               <PortfolioCreate compact />
             </div>
             <div className={"nav-label lg:is-drawer-close:hidden"}>
               <LogoutButton />
             </div>
-            <p
-              className={
-                "nav-label mt-4 px-3 text-xs text-base-content/50 lg:is-drawer-close:hidden"
-              }
-            >
-              Crypto Collective X
-            </p>
           </div>
         </aside>
       </div>

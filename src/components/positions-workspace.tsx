@@ -181,7 +181,7 @@ export function PositionsWorkspace({
               trigger={
                 <button
                   type="button"
-                  className="btn btn-dash min-h-11 gap-2"
+                  className="btn btn-neutral min-h-11 gap-2"
                 >
                   <SlidersHorizontal size={16} /> ფილტრი
                   {filter !== "all" && (
@@ -242,7 +242,7 @@ export function PositionsWorkspace({
           {(search || filter !== "all" || sort !== "value") && (
             <button
               type="button"
-              className="btn btn-dash hidden lg:inline-flex"
+              className="btn btn-ghost hidden lg:inline-flex"
               onClick={reset}
             >
               <RotateCcw size={14} /> გასუფთავება
