@@ -184,7 +184,18 @@ test("statistics periods, owned assets, macro trends and responsive layouts", as
   await expect(
     panel.getByRole("heading", { name: "FED განაკვეთი", exact: true }),
   ).toBeVisible();
-  await expect(panel.getByRole("img")).toHaveCount(8);
+  await expect(panel.getByRole("img")).toHaveCount(7);
+  const unavailable = panel
+    .locator("article")
+    .filter({
+      has: page.getByRole("heading", {
+        name: "აშშ 2-წლიანი ობლიგაცია",
+        exact: true,
+      }),
+    });
+  await expect(
+    unavailable.getByText("ისტორია მიუწვდომელია", { exact: true }),
+  ).toBeVisible();
   const fed = panel.locator("article").filter({
     has: page.getByRole("heading", { name: "FED განაკვეთი", exact: true }),
   });

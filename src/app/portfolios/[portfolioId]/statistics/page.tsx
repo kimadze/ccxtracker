@@ -6,6 +6,12 @@ import {
   getAssetMarketStatistics,
 } from "@/server/market/statistics";
 import { getMacroStatistics } from "@/server/macro/provider";
+import { getDb } from "@/server/db";
+import { snapshots } from "@/server/db/schema";
+import { asc, eq } from "drizzle-orm";
+import { analyzePerformance } from "@/domain/analytics";
+import { calculatePortfolioAttribution } from "@/domain/attribution";
+import { replayLedger } from "@/domain/ledger";
 
 export default async function Page({
   params,
@@ -32,6 +38,36 @@ export default async function Page({
             .map((position) => position.asset.providerId),
         )
       : [];
+  const history =
+    tab === "portfolio"
+      ? await getDb()
+          .select()
+          .from(snapshots)
+          .where(eq(snapshots.portfolioId, portfolioId))
+          .orderBy(asc(snapshots.capturedAt))
+      : [];
+  const analysis =
+    tab === "portfolio"
+      ? {
+          attribution: calculatePortfolioAttribution(
+            replayLedger(workspace.entries),
+            workspace.summary,
+            workspace.assets,
+          ),
+          performance: (() => {
+            const { valid, returnPercent, maxDrawdown } = analyzePerformance(
+              history.map((s) => ({
+                ...s,
+                capturedAt: s.capturedAt.toISOString(),
+              })),
+              workspace.entries,
+            );
+            return { valid, returnPercent, maxDrawdown };
+          })(),
+          from: history[0]?.capturedAt.toISOString() ?? null,
+          to: history.at(-1)?.capturedAt.toISOString() ?? null,
+        }
+      : null;
   return (
     <>
       <PageHeading
@@ -45,6 +81,7 @@ export default async function Page({
         summary={workspace.summary}
         portfolioId={portfolioId}
         ownedAssets={ownedAssets}
+        analysis={analysis}
       />
     </>
   );

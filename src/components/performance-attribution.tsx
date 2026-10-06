@@ -26,9 +26,7 @@ export function PerformanceAttribution({
       <section className="card card-border bg-base-200 p-4">
         <h2 className="text-sm font-medium">შედეგის წყარო</h2>
         <p className="mt-2 text-xs leading-6 text-base-content/60">
-          სრული ანალიზისთვის საჭიროა ყველა აქტივის მიმდინარე ფასი და ცნობილი
-          თვითღირებულება. არასრული მონაცემებით შედეგის განაწილება არ გამოჩნდება,
-          რადგან მისი პორტფელის P&amp;L-თან შეჯერება შეუძლებელია.
+          განაწილება მიუწვდომელია: ფასები ან თვითღირებულება არასრულია.
         </p>
       </section>
     );
@@ -153,7 +151,11 @@ export function PerformanceAttribution({
                           <BalanceValue>{money(row.totalPnl)}</BalanceValue>
                         </strong>
                         <span
-                          title={portfolioLoss && decimal(row.totalPnl!).gt(0) ? "ზარალის შემცირება" : "მთლიან შედეგში წილი"}
+                          title={
+                            portfolioLoss && decimal(row.totalPnl!).gt(0)
+                              ? "ზარალის შემცირება"
+                              : "მთლიან შედეგში წილი"
+                          }
                           className="mt-1 block text-xs text-base-content/60"
                         >
                           {portfolioLoss && decimal(row.totalPnl!).gt(0)
@@ -182,7 +184,9 @@ export function PerformanceAttribution({
                       <BalanceValue>{money(row.unrealizedPnl)}</BalanceValue>
                     </span>
                     {portfolioLoss && decimal(row.totalPnl!).gt(0) && (
-                      <span className="col-span-2">დადებითი წვლილი ამცირებს მთლიან ზარალს.</span>
+                      <span className="col-span-2">
+                        დადებითი წვლილი ამცირებს მთლიან ზარალს.
+                      </span>
                     )}
                     {!row.isFee && (
                       <>
@@ -220,49 +224,52 @@ export function PerformanceAttribution({
         </div>
 
         <div className="space-y-4">
-          {attribution.categories.length > 1 && attribution.categories.map((category) => (
-            <article
-              key={category.category}
-              className="card card-border bg-base-200 p-3"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-xs font-medium">
-                    {categoryLabels[category.category] ?? category.category}
-                  </h3>
-                  <p className="mt-2 text-xs text-base-content/60">
-                    {category.assets.join(" · ") || "USD ხარჯი"}
+          {attribution.categories.length > 1 &&
+            attribution.categories.map((category) => (
+              <article
+                key={category.category}
+                className="card card-border bg-base-200 p-3"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-xs font-medium">
+                      {categoryLabels[category.category] ?? category.category}
+                    </h3>
+                    <p className="mt-2 text-xs text-base-content/60">
+                      {category.assets.join(" · ") || "USD ხარჯი"}
+                    </p>
+                  </div>
+                  <p
+                    className={`numeric text-sm ${pnlClass(category.totalPnl)}`}
+                  >
+                    <BalanceValue>{money(category.totalPnl)}</BalanceValue>
                   </p>
                 </div>
-                <p className={`numeric text-sm ${pnlClass(category.totalPnl)}`}>
-                  <BalanceValue>{money(category.totalPnl)}</BalanceValue>
-                </p>
-              </div>
-              <details className="collapse collapse-arrow mt-2 bg-base-100">
-                <summary className="collapse-title min-h-11 py-3 text-xs">
-                  დეტალები
-                </summary>
-                <div className="collapse-content grid grid-cols-2 gap-2 text-xs text-base-content/60">
-                  <span>
-                    პორტფელის მიმდინარე წილი: {percentage(category.allocation)}
-                  </span>
-                  <span>
-                    შედეგში წილი: {percentage(category.contributionPercent)}
-                  </span>
-                  <span>
-                    დადებითი ლიდერი: {category.largestPositive?.symbol ?? "—"}
-                  </span>
-                  <span>
-                    უარყოფითი ლიდერი: {category.largestNegative?.symbol ?? "—"}
-                  </span>
-                </div>
-              </details>
-            </article>
-          ))}
+                <details className="collapse collapse-arrow mt-2 bg-base-100">
+                  <summary className="collapse-title min-h-11 py-3 text-xs">
+                    დეტალები
+                  </summary>
+                  <div className="collapse-content grid grid-cols-2 gap-2 text-xs text-base-content/60">
+                    <span>
+                      პორტფელის მიმდინარე წილი:{" "}
+                      {percentage(category.allocation)}
+                    </span>
+                    <span>
+                      შედეგში წილი: {percentage(category.contributionPercent)}
+                    </span>
+                    <span>
+                      დადებითი ლიდერი: {category.largestPositive?.symbol ?? "—"}
+                    </span>
+                    <span>
+                      უარყოფითი ლიდერი:{" "}
+                      {category.largestNegative?.symbol ?? "—"}
+                    </span>
+                  </div>
+                </details>
+              </article>
+            ))}
           <p className="px-1 text-xs leading-5 text-base-content/60">
-            ისტორიული შემადგენლობა და აქტივის დღიური ფასები ჯერ არ ინახება,
-            ამიტომ პერიოდების ღილაკები ზემოთ მხოლოდ შესრულების შეფასებას ცვლის;
-            შედეგის წყარო უსაფრთხოდ ნაჩვენებია სრული პერიოდისთვის.
+            აქტივებისა და სექტორების წვლილი სრული პერიოდის შედეგს ასახავს.
           </p>
         </div>
       </div>

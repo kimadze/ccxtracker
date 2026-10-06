@@ -57,59 +57,8 @@ export function PortfolioStatistics({
       if (bv === null) return -1;
       return decimal(av).cmp(bv) * (sort === "loss" ? 1 : -1);
     });
-  const sources = [...data.rows]
-    .filter((row) => row.position.unrealizedPnl !== null)
-    .sort((a, b) =>
-      decimal(b.position.unrealizedPnl!).cmp(a.position.unrealizedPnl!),
-    );
-  const gain = sources.find((row) =>
-    decimal(row.position.unrealizedPnl!).gt(0),
-  );
-  const loss = [...sources]
-    .reverse()
-    .find((row) => decimal(row.position.unrealizedPnl!).lt(0));
   return (
     <div className="space-y-3">
-      <section
-        className="grid grid-cols-2 gap-3 lg:grid-cols-3"
-        aria-label="პორტფელის შედეგის წყაროები"
-      >
-        {[
-          { label: "დღის საბაზრო გავლენა", value: data.impact, symbol: null },
-          {
-            label: "მოგების წყარო",
-            value: gain?.position.unrealizedPnl ?? null,
-            symbol: gain?.position.asset.symbol,
-          },
-          {
-            label: "ზარალის წყარო",
-            value: loss?.position.unrealizedPnl ?? null,
-            symbol: loss?.position.asset.symbol,
-          },
-        ].map((metric) => (
-          <div
-            className={`card card-border bg-base-200 ${metric.label === "დღის საბაზრო გავლენა" ? "col-span-2 lg:col-span-1" : ""}`}
-            key={metric.label}
-          >
-            <div className="stat min-w-0 p-3">
-              <div className="stat-title whitespace-normal text-xs">
-                {metric.label}
-              </div>
-              <div
-                className={`stat-value mt-1 overflow-x-auto whitespace-nowrap text-xl ${pnlClass(metric.value)}`}
-              >
-                <BalanceValue>{money(metric.value)}</BalanceValue>
-              </div>
-              <div className="stat-desc mt-1">
-                {metric.symbol ??
-                  (metric.label === "დღის საბაზრო გავლენა"
-                    ? `ფასების დაფარვა ${data.covered}/${data.total}`
-                    : "—")}
-              </div>
-            </div>
-          </div>
-        ))}
-      </section>
       <details className="collapse collapse-arrow border border-base-300 bg-base-200">
         <summary className="collapse-title min-h-11 py-3 text-xs">
           როგორ იკითხება ეს მონაცემები
@@ -121,9 +70,8 @@ export function PortfolioStatistics({
             P/L არ არის. არასრული ან მოძველებული ფასებისას ჯამი არ გამოითვლება.
           </p>
           <p>
-            შედეგის წყაროები და ცხრილის P/L არის მიმდინარე კრიპტოპოზიციების
-            არარეალიზებული შედეგი; ქეში, სტეიბლკოინები და დახურული პოზიციები არ
-            შედის.
+            ცხრილის P/L არის მიმდინარე კრიპტოპოზიციების არარეალიზებული შედეგი;
+            ქეში, სტეიბლკოინები და დახურული პოზიციები არ შედის.
           </p>
           <p>
             აღდგენა: საშუალო შესყიდვის ფასამდე საჭირო ზრდა. „ყურადღება“
@@ -136,12 +84,6 @@ export function PortfolioStatistics({
         <div className="card-body gap-3 p-3 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-semibold">პოზიციების შედეგები</h2>
-            <Link
-              href={`/portfolios/${portfolioId}/analytics`}
-              className="btn btn-ghost text-xs"
-            >
-              ანალიტიკა ↗
-            </Link>
           </div>
           <div className="flex flex-wrap gap-2">
             <input

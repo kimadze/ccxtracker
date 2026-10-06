@@ -53,7 +53,6 @@ const groups: { title: string; links: NavItem[] }[] = [
   {
     title: "კვლევა",
     links: [
-      ["analytics", "ანალიტიკა", ChartNoAxesCombined],
       ["statistics", "სტატისტიკა", LineChart],
       ["watchlist", "დაკვირვების სია", Eye],
     ],
@@ -177,7 +176,7 @@ export function Shell({
     ["", "მიმოხილვა", LayoutDashboard],
     ["positions", "პოზიციები", Wallet],
     ["transactions", "დამატება", Plus],
-    ["analytics", "ანალიტიკა", ChartNoAxesCombined],
+    ["statistics", "სტატისტიკა", ChartNoAxesCombined],
   ];
   const moreGroups = groups
     .map((group) => ({

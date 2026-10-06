@@ -6,6 +6,10 @@ import { MacroIndicators } from "./macro-indicators";
 import { StatisticsTrend } from "./statistics-trend";
 import { AssetIcon } from "./positions";
 import { PortfolioStatistics } from "./portfolio-statistics";
+import {
+  PortfolioAnalysis,
+  type PortfolioAnalysisData,
+} from "./portfolio-analysis";
 import type { PortfolioSummary } from "@/domain/types";
 import {
   marketBreadth,
@@ -359,12 +363,14 @@ export function StatisticsWorkspace({
   summary,
   portfolioId,
   ownedAssets = [],
+  analysis = null,
 }: {
   market: MarketStatistics | null;
   macro: MacroStatistics | null;
   summary: PortfolioSummary;
   portfolioId: string;
   ownedAssets?: MarketStatisticAsset[];
+  analysis?: PortfolioAnalysisData | null;
 }) {
   const [tab, setTab] = useWorkspaceTab(
     ["market", "macro", "portfolio"],
@@ -404,6 +410,13 @@ export function StatisticsWorkspace({
           ))}
         {tab === "portfolio" && (
           <>
+            {analysis && (
+              <PortfolioAnalysis
+                summary={summary}
+                portfolioId={portfolioId}
+                data={analysis}
+              />
+            )}
             <PortfolioStatistics summary={summary} portfolioId={portfolioId} />
             <details className="collapse collapse-arrow border border-base-300 bg-base-200">
               <summary className="collapse-title min-h-11 py-3 text-sm">
