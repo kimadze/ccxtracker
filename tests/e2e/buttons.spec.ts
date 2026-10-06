@@ -31,9 +31,29 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
   const sidebar = page.getByRole("complementary", { name: "გვერდითი მენიუ" });
   await expect(sidebar).toBeVisible();
   expect((await sidebar.boundingBox())!.width).toBe(240);
+  expect(
+    await sidebar
+      .getByRole("list", { name: "მთავარი ნავიგაცია" })
+      .evaluate((el) => getComputedStyle(el).flexWrap),
+  ).toBe("nowrap");
   await expect(
     sidebar.getByRole("button", { name: "გასვლა", exact: true }),
   ).toBeInViewport();
+  await page.setViewportSize({ width: 1440, height: 650 });
+  const navigation = sidebar.getByRole("list", { name: "მთავარი ნავიგაცია" });
+  expect(
+    await navigation.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+  ).toBe(true);
+  await sidebar
+    .getByRole("link", { name: "პარამეტრები", exact: true })
+    .scrollIntoViewIfNeeded();
+  await expect(
+    sidebar.getByRole("button", { name: "გასვლა", exact: true }),
+  ).toBeInViewport();
+  await page.screenshot({
+    path: ".local/buttons-sidebar-650.png",
+    fullPage: true,
+  });
   for (const width of [360, 390, 430, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto(base + "/transactions?new=1");

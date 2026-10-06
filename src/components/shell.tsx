@@ -82,7 +82,7 @@ function Navigation({
   return (
     <ul
       aria-label="მთავარი ნავიგაცია"
-      className="menu menu-md min-h-0 w-full flex-1 gap-0.5 overflow-y-auto overscroll-contain p-0"
+      className="menu menu-md min-h-0 w-full flex-1 flex-nowrap gap-0.5 overflow-x-hidden overflow-y-auto overscroll-contain p-0"
     >
       {groups.map((group) => (
         <Fragment key={group.title}>
