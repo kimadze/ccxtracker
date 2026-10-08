@@ -17,6 +17,7 @@ import {
   transactionSchema,
 } from "@/domain/validation";
 import { replayLedger } from "@/domain/ledger";
+import { TRANSACTION_UNDO_WINDOW_MS } from "@/domain/transaction-policy";
 import type { LedgerEntry } from "@/domain/types";
 
 export class AccessError extends Error {
@@ -365,7 +366,7 @@ export function portfolioService(db: Database, userId: string) {
           revision: nextRevision,
           undoId: deletion.id,
           expiresAt: new Date(
-            deletion.createdAt.getTime() + 30000,
+            deletion.createdAt.getTime() + TRANSACTION_UNDO_WINDOW_MS,
           ).toISOString(),
         };
       });

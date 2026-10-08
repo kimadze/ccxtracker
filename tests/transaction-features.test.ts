@@ -277,6 +277,26 @@ describe("authorized transaction previews, atomic opening assets and quick undo"
       originalRow.updatedAt,
     );
   });
+  it("offers two minutes to undo and still restores after the former deadline", async () => {
+    const p = await portfolio("Longer undo"),
+      service = portfolioService(db, "alice"),
+      original = entry(p.id);
+    await service.mutateTransaction(original, "create", 0);
+    const undo = await service.deleteTransaction(p.id, original.id, 1);
+    const [audit] = await testDb
+      .select()
+      .from(schema.audits)
+      .where(eq(schema.audits.id, undo.undoId));
+    expect(Date.parse(undo.expiresAt) - audit.createdAt.getTime()).toBe(120000);
+    await testDb
+      .update(schema.audits)
+      .set({ createdAt: new Date(Date.now() - 90000) })
+      .where(eq(schema.audits.id, undo.undoId));
+    expect(await restoreTransaction(p.id, undo.undoId)).toMatchObject({
+      ok: true,
+    });
+    expect(await ledger(p.id)).toHaveLength(1);
+  });
   it("rejects expired undo and another user's previews, batch or restore", async () => {
     const p = await portfolio("Access"),
       service = portfolioService(db, "alice"),
@@ -296,7 +316,7 @@ describe("authorized transaction previews, atomic opening assets and quick undo"
     userId = "alice";
     await testDb
       .update(schema.audits)
-      .set({ createdAt: new Date(Date.now() - 31000) })
+      .set({ createdAt: new Date(Date.now() - 121000) })
       .where(eq(schema.audits.id, undo.undoId));
     expect(await restoreTransaction(p.id, undo.undoId)).toMatchObject({
       ok: false,
@@ -306,14 +326,12 @@ describe("authorized transaction previews, atomic opening assets and quick undo"
   it("does not reuse a deleted high sequence from pre-existing history", async () => {
     const p = await portfolio("Sequence high water"),
       original = entry(p.id);
-    await testDb
-      .insert(schema.transactions)
-      .values({
-        ...original,
-        kind: "deposit",
-        occurredAt: new Date(original.occurredAt),
-        sequence: 100,
-      });
+    await testDb.insert(schema.transactions).values({
+      ...original,
+      kind: "deposit",
+      occurredAt: new Date(original.occurredAt),
+      sequence: 100,
+    });
     const service = portfolioService(db, "alice"),
       undo = await service.deleteTransaction(p.id, original.id, 0);
     await service.mutateTransaction(

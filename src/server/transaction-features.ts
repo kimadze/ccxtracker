@@ -15,6 +15,7 @@ import {
 import { portfolioService, AccessError, toLedger } from "./services/portfolio";
 import { idSchema, transactionSchema } from "@/domain/validation";
 import { replayLedger } from "@/domain/ledger";
+import { TRANSACTION_UNDO_WINDOW_MS } from "@/domain/transaction-policy";
 import { transactionImpact } from "@/domain/transaction-impact";
 import type { LedgerEntry, Quote } from "@/domain/types";
 import { userError } from "./errors";
@@ -253,7 +254,7 @@ export async function restoreTransaction(portfolioId: string, undoId: string) {
       )
         throw new AccessError();
       if (audit.operation === "transaction.restored") return;
-      if (Date.now() - audit.createdAt.getTime() > 30000)
+      if (Date.now() - audit.createdAt.getTime() > TRANSACTION_UNDO_WINDOW_MS)
         throw new Error("UNDO_EXPIRED");
       const original = audit.before as typeof transactions.$inferSelect;
       if (original.portfolioId !== portfolioId) throw new AccessError();
