@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 const errors: Record<string, string> = {
+  UNDO_EXPIRED: "აღდგენის დრო ამოიწურა.",
   INVALID_ALLOCATION:
     "მიზნობრივი წილების ჯამი უნდა იყოს 100%. აქტივი არ უნდა განმეორდეს.",
   INVALID_CAPITAL:

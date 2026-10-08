@@ -20,6 +20,8 @@ import { deleteTransaction } from "@/server/actions";
 import { TransactionForm, kindLabels } from "./transaction-form";
 import { BalanceValue, Message, Modal } from "./ui";
 import { MobileBottomSheet } from "./mobile-components";
+import { ImpactPreview } from "./transaction-impact";
+import { offerTransactionUndo } from "./transaction-undo";
 
 export function TransactionList({
   entries,
@@ -41,6 +43,7 @@ export function TransactionList({
     [pending, setPending] = useState(false),
     [page, setPage] = useState(0);
   const router = useRouter();
+  const [deleteReady, setDeleteReady] = useState(false);
   const filtered = [...entries]
     .reverse()
     .filter(
@@ -418,6 +421,7 @@ export function TransactionList({
       </div>
       <Modal
         open={selected !== null}
+        closeDisabled={pending}
         onOpenChange={(v) => {
           if (!v && !pending) setSelected(null);
         }}
@@ -425,6 +429,13 @@ export function TransactionList({
         description="ტრანზაქციის წაშლის შემდეგ მთელი ისტორია თავიდან გამოითვლება. მოქმედებამ შეიძლება შეცვალოს პოზიციები და მოგება / ზარალი."
       >
         <div className="space-y-3 lg:space-y-4">
+          <ImpactPreview
+            portfolioId={portfolioId}
+            revision={revision}
+            operation="delete"
+            input={selected}
+            onReady={setDeleteReady}
+          />
           {error && <Message error>{error}</Message>}
           <div className="flex justify-end gap-3">
             <button
@@ -436,7 +447,7 @@ export function TransactionList({
             </button>
             <button
               className="btn btn-error"
-              disabled={pending}
+              disabled={pending || !deleteReady}
               onClick={async () => {
                 if (!selected) return;
                 setPending(true);
@@ -447,6 +458,11 @@ export function TransactionList({
                     revision,
                   );
                   if (result.ok) {
+                    offerTransactionUndo({
+                      portfolioId,
+                      undoId: result.undoId,
+                      expiresAt: result.expiresAt,
+                    });
                     setSelected(null);
                     router.refresh();
                   } else setError(result.error);

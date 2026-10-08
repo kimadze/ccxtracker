@@ -20,9 +20,10 @@ export const amountSchema = z
         }
       }, "თანხა დასაშვებ ზღვარს აღემატება."),
   );
-export const positiveAmount = amountSchema.refine(
-  (v) => decimal(v).gt(0),
-  "მნიშვნელობა უნდა იყოს 0-ზე მეტი.",
+export const positiveAmount = amountSchema.pipe(
+  z
+    .string()
+    .refine((v) => decimal(v).gt(0), "მნიშვნელობა უნდა იყოს 0-ზე მეტი."),
 );
 export const portfolioSchema = z.object({
   name: z
@@ -51,14 +52,31 @@ export const transactionSchema = z
         "სამომავლო ტრანზაქცია ჯერ ვერ ჩაიწერება.",
       ),
     notes: z.string().trim().max(2000, "შენიშვნა ზედმეტად გრძელია."),
-    airdropSource: z.string().trim().max(120, "პროექტის სახელი ზედმეტად გრძელია.").optional().default(""),
-    airdropNetwork: z.string().trim().max(80, "ქსელის სახელი ზედმეტად გრძელია.").optional().default(""),
-    airdropStatus: z.enum(["received", "locked"]).nullable().optional().default(null),
+    airdropSource: z
+      .string()
+      .trim()
+      .max(120, "პროექტის სახელი ზედმეტად გრძელია.")
+      .optional()
+      .default(""),
+    airdropNetwork: z
+      .string()
+      .trim()
+      .max(80, "ქსელის სახელი ზედმეტად გრძელია.")
+      .optional()
+      .default(""),
+    airdropStatus: z
+      .enum(["received", "locked"])
+      .nullable()
+      .optional()
+      .default(null),
   })
   .superRefine((value, ctx) => {
     if (
-      (value.kind === "buy" || value.kind === "sell" || value.kind === "airdrop") &&
-      (value.assetId === "USD" || !value.price || decimal(value.price).lte(0))
+      (value.kind === "buy" ||
+        value.kind === "sell" ||
+        value.kind === "airdrop") &&
+      (value.assetId === "USD" ||
+        !positiveAmount.safeParse(value.price).success)
     )
       ctx.addIssue({
         code: "custom",
@@ -66,6 +84,10 @@ export const transactionSchema = z
         message: "შესყიდვისა და გაყიდვის ფასი უნდა იყოს 0-ზე მეტი.",
       });
     if (value.kind === "airdrop" && value.assetId === "USD")
-      ctx.addIssue({ code: "custom", path: ["assetId"], message: "Airdrop აქტივი USD ვერ იქნება." });
+      ctx.addIssue({
+        code: "custom",
+        path: ["assetId"],
+        message: "Airdrop აქტივი USD ვერ იქნება.",
+      });
   });
 export type TransactionInput = z.infer<typeof transactionSchema>;

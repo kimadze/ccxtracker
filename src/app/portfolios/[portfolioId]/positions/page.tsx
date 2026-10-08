@@ -1,7 +1,7 @@
 import { loadWorkspace } from "@/server/workspace";
 import { PageHeading } from "@/components/shell";
 import { PositionsWorkspace } from "@/components/positions-workspace";
-import { TransactionForm } from "@/components/transaction-form";
+import { OpeningAssets } from "@/components/opening-assets";
 export default async function Page({
   params,
 }: {
@@ -16,11 +16,10 @@ export default async function Page({
         title="პოზიციები"
         description="მოძებნეთ, შეადარეთ და მართეთ ყველა ღია პოზიცია ერთ სამუშაო სივრცეში."
         action={
-          <TransactionForm
+          <OpeningAssets
             portfolioId={portfolioId}
             revision={w.portfolio.revision}
             assets={w.assets}
-            opening
           />
         }
       />

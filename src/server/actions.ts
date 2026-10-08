@@ -22,7 +22,8 @@ export async function captureInitialSnapshot(
     if (result.reason === "INCOMPLETE_VALUATION")
       return {
         ok: false,
-        error: "ყველა აქტივის მიმდინარე ფასი ჯერ მიუწვდომელია. განაახლეთ ფასები და სცადეთ ხელახლა.",
+        error:
+          "ყველა აქტივის მიმდინარე ფასი ჯერ მიუწვდომელია. განაახლეთ ფასები და სცადეთ ხელახლა.",
       };
     revalidatePath(`/portfolios/${portfolioId}`);
     return { ok: true };
@@ -66,18 +67,18 @@ export async function deleteTransaction(
   portfolioId: string,
   id: string,
   revision: number,
-): Promise<ActionResult> {
+) {
   const user = await requireUser();
   try {
-    await portfolioService(getDb(), user.id).deleteTransaction(
+    const result = await portfolioService(getDb(), user.id).deleteTransaction(
       portfolioId,
       id,
       revision,
     );
     revalidatePath("/portfolios", "layout");
-    return { ok: true };
+    return { ok: true as const, ...result };
   } catch (e) {
-    return { ok: false, error: userError(e) };
+    return { ok: false as const, error: userError(e) };
   }
 }
 
@@ -148,7 +149,10 @@ export async function searchAssets(query: string) {
       if (!existing)
         await getDb().insert(assets).values(asset).onConflictDoNothing();
       else if (asset.logoUrl && existing.logoUrl !== asset.logoUrl)
-        await getDb().update(assets).set({ logoUrl: asset.logoUrl, updatedAt: new Date() }).where(eq(assets.id, asset.id));
+        await getDb()
+          .update(assets)
+          .set({ logoUrl: asset.logoUrl, updatedAt: new Date() })
+          .where(eq(assets.id, asset.id));
     }
     return { ok: true as const, assets: matches };
   } catch (e) {

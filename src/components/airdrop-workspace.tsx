@@ -1,4 +1,6 @@
 "use client";
+import { ImpactPreview } from "./transaction-impact";
+import { offerTransactionUndo } from "./transaction-undo";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
@@ -282,6 +284,7 @@ function AirdropActions({
   entry: LedgerEntry;
 }) {
   const [confirming, setConfirming] = useState(false);
+  const [deleteReady, setDeleteReady] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -309,6 +312,7 @@ function AirdropActions({
       </div>
       <Modal
         open={confirming}
+        closeDisabled={pending}
         onOpenChange={(open) => {
           if (!open && !pending) setConfirming(false);
         }}
@@ -316,6 +320,13 @@ function AirdropActions({
         description="ჩანაწერი წაიშლება და პორტფელის ისტორია თავიდან გამოითვლება."
       >
         <div className="space-y-3 lg:space-y-4">
+          <ImpactPreview
+            portfolioId={portfolioId}
+            revision={revision}
+            operation="delete"
+            input={confirming ? entry.id : null}
+            onReady={setDeleteReady}
+          />
           {error && <Message error>{error}</Message>}
           <div className="flex justify-end gap-3">
             <button
@@ -327,7 +338,7 @@ function AirdropActions({
             </button>
             <button
               className="btn btn-error"
-              disabled={pending}
+              disabled={pending || !deleteReady}
               onClick={async () => {
                 setPending(true);
                 try {
@@ -337,6 +348,11 @@ function AirdropActions({
                     revision,
                   );
                   if (result.ok) {
+                    offerTransactionUndo({
+                      portfolioId,
+                      undoId: result.undoId,
+                      expiresAt: result.expiresAt,
+                    });
                     setConfirming(false);
                     router.refresh();
                   } else setError(result.error);

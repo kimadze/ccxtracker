@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { transactionSchema } from "@/domain/validation";
+import { ImpactPreview } from "./transaction-impact";
 import { useRouter } from "next/navigation";
 import { Search, Plus } from "lucide-react";
 import type { Asset, LedgerEntry, TransactionKind } from "@/domain/types";
@@ -57,6 +59,36 @@ export function TransactionForm({
     () => entry?.id ?? (defaultOpen ? crypto.randomUUID() : ""),
   );
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [formVersion, setFormVersion] = useState(0);
+  const [preview, setPreview] = useState<unknown>(null);
+  const [previewReady, setPreviewReady] = useState(false);
+  useEffect(() => {
+    if (!open || !formRef.current) return;
+    const form = new FormData(formRef.current);
+    const date = new Date(String(form.get("occurredAt")));
+    const parsed = transactionSchema.safeParse({
+      id: submissionId,
+      portfolioId,
+      assetId,
+      kind,
+      quantity: String(form.get("quantity") ?? ""),
+      price: String(form.get("price") ?? "").trim() || null,
+      fee: String(form.get("fee") || "0"),
+      occurredAt: Number.isNaN(date.getTime()) ? "" : date.toISOString(),
+      notes: String(form.get("notes") ?? ""),
+      airdropSource:
+        kind === "airdrop" ? String(form.get("airdropSource") ?? "") : "",
+      airdropNetwork:
+        kind === "airdrop" ? String(form.get("airdropNetwork") ?? "") : "",
+      airdropStatus:
+        kind === "airdrop"
+          ? String(form.get("airdropStatus") || "received")
+          : null,
+    });
+    setPreview(parsed.success ? parsed.data : null);
+    setPreviewReady(false);
+  }, [open, formVersion, assetId, kind, submissionId, portfolioId]);
   const balancesHidden = useBalancesHidden();
   const isCash = assetId === "USD";
   const defaultDate = () => {
@@ -92,6 +124,7 @@ export function TransactionForm({
       </button>
       <Modal
         open={open}
+        closeDisabled={pending}
         onOpenChange={(value) => {
           if (!pending) setOpen(value);
         }}
@@ -107,9 +140,16 @@ export function TransactionForm({
         contentClassName="flex min-h-0 flex-1 flex-col"
       >
         <form
+          key={submissionId}
+          ref={formRef}
+          onChange={() => {
+            setPreviewReady(false);
+            setFormVersion((v) => v + 1);
+          }}
           className="flex min-h-0 flex-col"
           onSubmit={async (e) => {
             e.preventDefault();
+            if (pending || !previewReady) return;
             const form = new FormData(e.currentTarget);
             setPending(true);
             setError("");
@@ -410,6 +450,14 @@ export function TransactionForm({
                 </Field>
               </div>
             </details>
+            <ImpactPreview
+              portfolioId={portfolioId}
+              revision={Math.max(revision, currentRevision)}
+              operation={entry ? "update" : "create"}
+              input={open ? preview : null}
+              onReady={setPreviewReady}
+              version={formVersion}
+            />
             {entry && (
               <label className="label cursor-pointer items-start justify-start gap-3 text-xs leading-5">
                 <input
@@ -437,7 +485,7 @@ export function TransactionForm({
               გაუქმება
             </button>
             <button
-              disabled={pending}
+              disabled={pending || !previewReady}
               aria-busy={pending}
               className="btn btn-primary min-w-28"
             >

@@ -44,6 +44,7 @@ export function Modal({
   wide = false,
   className,
   contentClassName,
+  closeDisabled = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -53,6 +54,7 @@ export function Modal({
   wide?: boolean;
   className?: string;
   contentClassName?: string;
+  closeDisabled?: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useDialogViewport(dialogRef, open);
@@ -73,7 +75,10 @@ export function Modal({
       aria-labelledby={titleId}
       className="modal modal-bottom lg:modal-middle"
       onClose={() => onOpenChange(false)}
-      onCancel={() => onOpenChange(false)}
+      onCancel={(event) => {
+        if (closeDisabled) event.preventDefault();
+        else onOpenChange(false);
+      }}
     >
       <div
         className={clsx(
@@ -97,6 +102,7 @@ export function Modal({
           type="button"
           className="btn btn-ghost btn-square min-h-11 min-w-11 absolute right-3 top-3"
           aria-label="დახურვა"
+          disabled={closeDisabled}
           onClick={() => onOpenChange(false)}
         >
           <X size={18} />
@@ -106,7 +112,9 @@ export function Modal({
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button aria-label="დახურვა">დახურვა</button>
+        <button aria-label="დახურვა" disabled={closeDisabled}>
+          დახურვა
+        </button>
       </form>
     </dialog>
   );

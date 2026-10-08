@@ -134,7 +134,10 @@ export function portfolioService(db: Database, userId: string) {
           .from(assets)
           .where(eq(assets.id, data.assetId));
         if (!asset) throw new Error("UNKNOWN_ASSET");
-        const sequence = old?.sequence ?? portfolio.revision + 1;
+        const sequence =
+          old?.sequence ??
+          Math.max(portfolio.revision, ...existing.map((row) => row.sequence)) +
+            1;
         const entry: LedgerEntry = { ...data, sequence };
         const projection = replayLedger([
           ...existing.filter((t) => t.id !== data.id).map(toLedger),
@@ -179,7 +182,7 @@ export function portfolioService(db: Database, userId: string) {
         await tx
           .update(portfolios)
           .set({
-            revision: sql`${portfolios.revision} + 1`,
+            revision: sql`GREATEST(${portfolios.revision} + 1, ${sequence})`,
             updatedAt: new Date(),
           })
           .where(eq(portfolios.id, data.portfolioId));
@@ -197,7 +200,7 @@ export function portfolioService(db: Database, userId: string) {
               gte(snapshots.capturedAt, invalidFrom),
             ),
           );
-        return { revision: portfolio.revision + 1 };
+        return { revision: Math.max(portfolio.revision + 1, sequence) };
       });
     },
     async deletePosition(
@@ -306,15 +309,22 @@ export function portfolioService(db: Database, userId: string) {
           .where(eq(transactions.portfolioId, portfolioId));
         const old = rows.find((t) => t.id === id);
         if (!old) throw new AccessError();
+        const nextRevision = Math.max(
+          portfolio.revision + 1,
+          ...rows.map((row) => row.sequence),
+        );
         const projection = replayLedger(
           rows.filter((t) => t.id !== id).map(toLedger),
         );
-        await tx.insert(audits).values({
-          portfolioId,
-          userId,
-          operation: "transaction.delete",
-          before: old,
-        });
+        const [deletion] = await tx
+          .insert(audits)
+          .values({
+            portfolioId,
+            userId,
+            operation: "transaction.delete",
+            before: old,
+          })
+          .returning();
         await tx
           .delete(transactions)
           .where(
@@ -339,7 +349,7 @@ export function portfolioService(db: Database, userId: string) {
         await tx
           .update(portfolios)
           .set({
-            revision: sql`${portfolios.revision} + 1`,
+            revision: nextRevision,
             updatedAt: new Date(),
           })
           .where(eq(portfolios.id, portfolioId));
@@ -351,6 +361,13 @@ export function portfolioService(db: Database, userId: string) {
               gte(snapshots.capturedAt, old.occurredAt),
             ),
           );
+        return {
+          revision: nextRevision,
+          undoId: deletion.id,
+          expiresAt: new Date(
+            deletion.createdAt.getTime() + 30000,
+          ).toISOString(),
+        };
       });
     },
   };

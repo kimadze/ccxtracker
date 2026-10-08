@@ -123,9 +123,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
   await openTransactionForm();
-  await expect(dialog.getByLabel("რაოდენობა", { exact: true })).toHaveValue(
-    testInfo.project.name === "mobile" ? "" : "0.2",
-  );
+  await expect(dialog.getByLabel("რაოდენობა", { exact: true })).toHaveValue("");
   await dialog.getByRole("button", { name: "გაუქმება", exact: true }).click();
   await page.goto(portfolioUrl);
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
