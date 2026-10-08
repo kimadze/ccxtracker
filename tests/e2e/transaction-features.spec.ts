@@ -35,7 +35,7 @@ test("opening batch, previews, undo, planning and target notices work at all bre
       "INSERT INTO market_quotes (asset_id,price,quoted_at) VALUES ('bitcoin',175,now()),('ethereum',25,now()) ON CONFLICT (asset_id) DO UPDATE SET price=excluded.price,quoted_at=now(),fetched_at=now()",
     );
     await db.query(
-      "INSERT INTO watchlist_items (portfolio_id,asset_id,entry_price) VALUES ($1,'bitcoin',175)",
+      "INSERT INTO watchlist_items (portfolio_id,asset_id,entry_price,exit_price,target_quote_at) VALUES ($1,'bitcoin',175,200,now()-interval '1 second')",
       [id],
     );
     const base = `/portfolios/${id}`;
@@ -124,6 +124,30 @@ test("opening batch, previews, undo, planning and target notices work at all bre
     await expect(deletion).toContainText("ცვლილების შედეგი");
     await deletion.getByRole("button", { name: "წაშლა", exact: true }).click();
     await expect(deletion).not.toBeVisible();
+    const deadline = await page.evaluate(
+      () =>
+        JSON.parse(sessionStorage.getItem("ccx-transaction-undo")!)[0]
+          .expiresAt,
+    );
+    await expect(
+      page.getByRole("button", { name: "აღდგენა", exact: true }),
+    ).toBeVisible();
+    // Regression: notifications must survive more than two seconds and a full reload.
+    await expect(
+      page.getByRole("button", { name: "აღდგენა", exact: true }),
+    ).toBeInViewport();
+    await page.waitForTimeout(3000);
+    await page.reload();
+    expect(
+      await page.evaluate(
+        () =>
+          JSON.parse(sessionStorage.getItem("ccx-transaction-undo")!)[0]
+            .expiresAt,
+      ),
+    ).toBe(deadline);
+    await expect(
+      page.getByRole("button", { name: "აღდგენა", exact: true }),
+    ).toBeVisible();
     await page.getByRole("button", { name: "აღდგენა", exact: true }).click();
     await expect(page.locator(".toast .alert")).toHaveCount(0);
     expect(
@@ -140,8 +164,10 @@ test("opening batch, previews, undo, planning and target notices work at all bre
       name: "შეტყობინებები",
       exact: true,
     });
-    await expect(panel).toContainText("BTC · მიზანი მიღწეულია");
-    await panel.getByRole("button", { name: /BTC · მიზანი მიღწეულია/ }).click();
+    await expect(panel).toContainText("BTC · შესყიდვის ფასი მიღწეულია");
+    await panel
+      .getByRole("button", { name: /BTC · შესყიდვის ფასი მიღწეულია/ })
+      .click();
     await expect(page).toHaveURL(new RegExp(`/watchlist\\?asset=bitcoin$`));
     await expect(
       page.getByRole("button", { name: "შეტყობინებები", exact: true }),
@@ -154,6 +180,72 @@ test("opening batch, previews, undo, planning and target notices work at all bre
         )
       ).rows[0].target_read_at,
     ).not.toBeNull();
+    await page.getByRole("button", { name: "BTC რედაქტირება" }).click();
+    const watchForm = page.getByRole("dialog", {
+      name: "ჩანაწერის რედაქტირება",
+      exact: true,
+    });
+    await expect(
+      watchForm.getByLabel("შესყიდვის შეტყობინების ფასი (USD)"),
+    ).toHaveValue("175");
+    await expect(
+      watchForm.getByLabel("გაყიდვის შეტყობინების ფასი (USD)"),
+    ).toBeVisible();
+    for (const width of [360, 390, 430, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 844 });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 1,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `.local/features-watchlist-${width}-${info.project.name}.png`,
+      });
+    }
+    await watchForm
+      .getByRole("button", { name: "დახურვა", exact: true })
+      .first()
+      .click();
+    await page.getByRole("button", { name: "BTC რედაქტირება" }).click();
+    await watchForm.getByLabel("შესყიდვის შეტყობინების ფასი (USD)").fill("0.5");
+    await watchForm.getByLabel("გაყიდვის შეტყობინების ფასი (USD)").fill("5");
+    await watchForm
+      .getByRole("button", { name: "შენახვა", exact: true })
+      .click();
+    await expect(watchForm).not.toBeVisible();
+    await page.reload();
+    await expect(
+      page.getByRole("button", { name: "შეტყობინებები", exact: true }),
+    ).toBeVisible();
+    await db.query(
+      "UPDATE market_quotes SET price=1,quoted_at=now(),fetched_at=now() WHERE asset_id='bitcoin'",
+    );
+    await page.reload();
+    await expect
+      .poll(
+        async () =>
+          (
+            await db.query(
+              "SELECT sell_target_active FROM watchlist_items WHERE portfolio_id=$1",
+              [id],
+            )
+          ).rows[0].sell_target_active,
+      )
+      .toBe(false);
+    await expect(
+      page.getByRole("button", { name: "შეტყობინებები", exact: true }),
+    ).toBeVisible();
+    await db.query(
+      "UPDATE market_quotes SET price=5,quoted_at=now(),fetched_at=now() WHERE asset_id='bitcoin'",
+    );
+    await page.reload();
+    await page
+      .getByRole("button", { name: /შეტყობინებები · 1 წაუკითხავი/ })
+      .click();
+    await expect(panel).toContainText("BTC · გაყიდვის ფასი მიღწეულია");
+    await panel
+      .getByRole("button", { name: /BTC · გაყიდვის ფასი მიღწეულია/ })
+      .click();
     for (const tab of ["strategy", "scenarios", "allocation"]) {
       await page.goto(`${base}/${tab}?asset=bitcoin`);
       await expect(page).toHaveURL(

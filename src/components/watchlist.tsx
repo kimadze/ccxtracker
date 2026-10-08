@@ -16,6 +16,7 @@ export interface WatchItem {
   id: string;
   asset: Asset;
   entryPrice: string | null;
+  exitPrice?: string | null;
   notes: string;
   createdAt: string;
 }
@@ -142,22 +143,6 @@ export function Watchlist({
       <ul className="list rounded-box border border-base-300 bg-base-200">
         {filteredItems.map((item, i) => {
           const quote = quotes.find((q) => q.assetId === item.asset.id);
-          const currentPrice = Number(quote?.price ?? NaN);
-          const targetPrice = Number(item.entryPrice ?? NaN);
-          const targetGap =
-            Number.isFinite(currentPrice) &&
-            Number.isFinite(targetPrice) &&
-            targetPrice !== 0
-              ? String(((currentPrice - targetPrice) / targetPrice) * 100)
-              : null;
-          const closeToTarget =
-            targetGap !== null && Math.abs(Number(targetGap)) <= 5;
-          const reached = Boolean(
-            item.entryPrice &&
-            quote?.price &&
-            !quote.stale &&
-            decimal(quote.price).lte(item.entryPrice),
-          );
           return (
             <li
               key={item.id}
@@ -209,30 +194,53 @@ export function Watchlist({
                   {quote?.stale ? " · მოძველებულია" : ""}
                 </small>
               </div>
-              <div className="col-start-2 row-start-2 min-w-0 text-right lg:col-start-3 lg:row-start-1">
-                <span className="flex items-center justify-end gap-1 text-xs text-base-content/50">
-                  <Target size={13} /> სასურველი შესვლა
-                </span>
-                <strong className="numeric block whitespace-nowrap">
-                  <BalanceValue>{unitPrice(item.entryPrice)}</BalanceValue>
-                </strong>
-                <small
-                  className={
-                    reached
-                      ? "text-success"
-                      : closeToTarget
-                        ? "text-warning"
-                        : pnlClass(targetGap)
-                  }
-                >
-                  {targetGap === null
-                    ? "ფასი არ არის მითითებული"
-                    : reached
-                      ? "მიზანი მიღწეულია"
-                      : closeToTarget
-                        ? "შესვლის ფასთან ახლოსაა"
-                        : `${percentage(targetGap, true)} შესვლის ფასიდან`}
-                </small>
+              <div className="col-span-2 row-start-3 grid min-w-0 grid-cols-2 gap-3 border-t border-base-300 pt-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:border-0 lg:pt-0">
+                {(["buy", "sell"] as const).map((side) => {
+                  const target =
+                    side === "buy" ? item.entryPrice : item.exitPrice;
+                  const gap =
+                    target && quote?.price
+                      ? decimal(quote.price)
+                          .minus(target)
+                          .div(target)
+                          .times(100)
+                      : null;
+                  const within =
+                    gap &&
+                    !quote?.stale &&
+                    (side === "buy" ? gap.lte(0) : gap.gte(0));
+                  const nearby = gap && !quote?.stale && gap.abs().lte(5);
+                  return (
+                    <div key={side} className="min-w-0 lg:text-right">
+                      <span className="flex items-center gap-1 text-xs text-base-content/60 lg:justify-end">
+                        <Target size={13} />
+                        {side === "buy" ? "შესყიდვა ≤" : "გაყიდვა ≥"}
+                      </span>
+                      <strong className="numeric block whitespace-nowrap">
+                        <BalanceValue>{unitPrice(target ?? null)}</BalanceValue>
+                      </strong>
+                      <small
+                        className={
+                          nearby ? "text-warning" : "text-base-content/60"
+                        }
+                      >
+                        {!target ? (
+                          "გამორთულია"
+                        ) : !gap || quote?.stale ? (
+                          "ფასი დაუდასტურებელია"
+                        ) : within ? (
+                          "სამიზნე ზონაშია"
+                        ) : nearby ? (
+                          "ფასთან ახლოსაა"
+                        ) : (
+                          <BalanceValue>
+                            {percentage(gap.toString(), true)}
+                          </BalanceValue>
+                        )}
+                      </small>
+                    </div>
+                  );
+                })}
               </div>
               {!preview && (
                 <div className="col-start-2 row-start-1 flex justify-end gap-1 lg:col-start-4">
@@ -281,13 +289,17 @@ export function Watchlist({
       </ul>
       <Modal
         open={open}
-        onOpenChange={setOpen}
+        closeDisabled={pending}
+        onOpenChange={(value) => {
+          if (!pending) setOpen(value);
+        }}
         title={
           selected ? "ჩანაწერის რედაქტირება" : "დაკვირვების სიაში დამატება"
         }
         description="აქტივის დამატება რეალურ პოზიციას ან ტრანზაქციას არ ქმნის."
       >
         <form
+          key={`${open}:${selected?.id ?? "new"}`}
           className="space-y-3 lg:space-y-4"
           onSubmit={async (e) => {
             e.preventDefault();
@@ -298,6 +310,7 @@ export function Watchlist({
                 portfolioId,
                 assetId,
                 entryPrice: String(form.get("entryPrice") ?? "").trim() || null,
+                exitPrice: String(form.get("exitPrice") ?? "").trim() || null,
                 notes: String(form.get("notes") ?? ""),
               });
               if (response.ok) {
@@ -365,15 +378,34 @@ export function Watchlist({
               </button>
             </div>
           )}
-          <Field label="სასურველი შესვლის ფასი (USD)">
+          <Field label="შესყიდვის შეტყობინების ფასი (USD)">
             <input
               className="input"
               name="entryPrice"
               inputMode="decimal"
-              defaultValue={selected?.entryPrice ?? ""}
+              defaultValue={
+                selected?.entryPrice
+                  ? decimal(selected.entryPrice).toFixed()
+                  : ""
+              }
               placeholder="არასავალდებულო"
             />
           </Field>
+          <Field label="გაყიდვის შეტყობინების ფასი (USD)">
+            <input
+              className="input"
+              name="exitPrice"
+              inputMode="decimal"
+              defaultValue={
+                selected?.exitPrice ? decimal(selected.exitPrice).toFixed() : ""
+              }
+              placeholder="არასავალდებულო"
+            />
+          </Field>
+          <p className="text-xs text-base-content/60">
+            შესყიდვა: ფასი ≤ სამიზნეს. გაყიდვა: ფასი ≥ სამიზნეს. შეტყობინება —
+            შემდეგი გადაკვეთისას.
+          </p>
           <Field label="შენიშვნები">
             <textarea
               className="textarea"

@@ -77,9 +77,9 @@ The current release records transfers manually as withdrawals/deposits. Automati
 
 Manual portfolios show a server-calculated before/after preview for transaction creation, editing, deletion and batch opening balances. Both valuations share one cached quote set; incomplete or stale quotes are marked. Unknown acquisition basis remains distinct from explicitly entered zero. Up to 20 distinct opening assets can be saved atomically without consuming USD cash.
 
-Each deleted transaction offers a two-minute undo using its existing audit copy. Restoring checks the complete intervening history, preserves the original record and cannot create duplicates. Backdated changes invalidate affected snapshots. Planning combines strategy, scenarios and allocation with URL-backed tabs; the previous routes redirect while retaining asset selection.
+Each deleted transaction offers a 30-second undo using its existing audit copy. Restoring checks the complete intervening history, preserves the original record and cannot create duplicates. Backdated changes invalidate affected snapshots. Planning combines strategy, scenarios and allocation with URL-backed tabs; the previous routes redirect while retaining asset selection.
 
-Watchlist entry targets notify inside the app when a fresh price reaches or falls below the target. A new episode requires a fresh price above the target first. Read state persists; changing a target resets its episode. This is an in-app check on portfolio opening and quote refresh, not a background push notification service.
+Watchlist supports separate buy-at-or-below and sell-at-or-above targets. The first fresh quote establishes a baseline without alerting; subsequent crossings generate independent notices. Rearming requires returning outside the target zone first. Read state persists per target; changing one target resets only its episode. Stale quotes never trigger alerts. Checks run on portfolio opening and quote refresh, not as background push notifications. Undo notices retain their original deadline across refreshes.
 
 ### Read-only wallet portfolios
 

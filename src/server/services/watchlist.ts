@@ -9,6 +9,7 @@ const inputSchema = z.object({
   portfolioId: idSchema,
   assetId: z.string().min(1).max(120),
   entryPrice: positiveAmount.nullable(),
+  exitPrice: positiveAmount.nullable().default(null),
   notes: z
     .string()
     .trim()
@@ -24,6 +25,7 @@ export function watchlistService(db: Database, userId: string) {
           id: watchlistItems.id,
           asset: assets,
           entryPrice: watchlistItems.entryPrice,
+          exitPrice: watchlistItems.exitPrice,
           notes: watchlistItems.notes,
           createdAt: watchlistItems.createdAt,
         })
@@ -42,6 +44,12 @@ export function watchlistService(db: Database, userId: string) {
           target: [watchlistItems.portfolioId, watchlistItems.assetId],
           set: {
             entryPrice: data.entryPrice,
+            exitPrice: data.exitPrice,
+            sellTargetActive: sql`CASE WHEN ${watchlistItems.exitPrice} IS DISTINCT FROM ${data.exitPrice}::numeric THEN false ELSE ${watchlistItems.sellTargetActive} END`,
+            sellTargetQuoteAt: sql`CASE WHEN ${watchlistItems.exitPrice} IS DISTINCT FROM ${data.exitPrice}::numeric THEN NULL ELSE ${watchlistItems.sellTargetQuoteAt} END`,
+            sellTargetReachedAt: sql`CASE WHEN ${watchlistItems.exitPrice} IS DISTINCT FROM ${data.exitPrice}::numeric THEN NULL ELSE ${watchlistItems.sellTargetReachedAt} END`,
+            sellTargetReachedPrice: sql`CASE WHEN ${watchlistItems.exitPrice} IS DISTINCT FROM ${data.exitPrice}::numeric THEN NULL ELSE ${watchlistItems.sellTargetReachedPrice} END`,
+            sellTargetReadAt: sql`CASE WHEN ${watchlistItems.exitPrice} IS DISTINCT FROM ${data.exitPrice}::numeric THEN NULL ELSE ${watchlistItems.sellTargetReadAt} END`,
             targetActive: sql`CASE WHEN ${watchlistItems.entryPrice} IS DISTINCT FROM ${data.entryPrice}::numeric THEN false ELSE ${watchlistItems.targetActive} END`,
             targetQuoteAt: sql`CASE WHEN ${watchlistItems.entryPrice} IS DISTINCT FROM ${data.entryPrice}::numeric THEN NULL ELSE ${watchlistItems.targetQuoteAt} END`,
             targetReachedAt: sql`CASE WHEN ${watchlistItems.entryPrice} IS DISTINCT FROM ${data.entryPrice}::numeric THEN NULL ELSE ${watchlistItems.targetReachedAt} END`,

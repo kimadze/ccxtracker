@@ -6,6 +6,7 @@ export function targetTransition(
   lastQuoteAt: Date | null,
   quote: Quote | undefined,
   now = Date.now(),
+  direction: "buy" | "sell" = "buy",
 ) {
   if (!target || !quote || quote.stale || !quote.price) return null;
   const time = Date.parse(quote.updatedAt);
@@ -17,10 +18,14 @@ export function targetTransition(
     decimal(quote.price).lte(0)
   )
     return null;
-  const reached = decimal(quote.price).lte(target);
+  const reached =
+    direction === "buy"
+      ? decimal(quote.price).lte(target)
+      : decimal(quote.price).gte(target);
   return {
     active: reached,
-    notify: reached && !active,
+    // The first valid quote establishes a baseline, never an arrival alert.
+    notify: lastQuoteAt !== null && reached && !active,
     quoteAt: new Date(time),
     price: quote.price,
   };

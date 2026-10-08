@@ -317,15 +317,6 @@ export function portfolioService(db: Database, userId: string) {
         const projection = replayLedger(
           rows.filter((t) => t.id !== id).map(toLedger),
         );
-        const [deletion] = await tx
-          .insert(audits)
-          .values({
-            portfolioId,
-            userId,
-            operation: "transaction.delete",
-            before: old,
-          })
-          .returning();
         await tx
           .delete(transactions)
           .where(
@@ -362,6 +353,17 @@ export function portfolioService(db: Database, userId: string) {
               gte(snapshots.capturedAt, old.occurredAt),
             ),
           );
+        // PostgreSQL now() is the transaction start; start undo after rebuilding.
+        const [deletion] = await tx
+          .insert(audits)
+          .values({
+            portfolioId,
+            userId,
+            operation: "transaction.delete",
+            before: old,
+            createdAt: new Date(),
+          })
+          .returning();
         return {
           revision: nextRevision,
           undoId: deletion.id,

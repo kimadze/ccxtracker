@@ -99,6 +99,13 @@
       "when": 1791471807611,
       "tag": "0013_purple_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791478494208,
+      "tag": "0014_greedy_wolfsbane",
+      "breakpoints": true
     }
   ]
 }

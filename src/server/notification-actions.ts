@@ -1,5 +1,5 @@
 "use server";
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, or } from "drizzle-orm";
 import { requireUser } from "./auth";
 import { getDb } from "./db";
 import { assets, watchlistItems } from "./db/schema";
@@ -32,23 +32,55 @@ export async function loadTargetNotifications(portfolioId: string) {
         price: watchlistItems.targetReachedPrice,
         reachedAt: watchlistItems.targetReachedAt,
         readAt: watchlistItems.targetReadAt,
+        sellTarget: watchlistItems.exitPrice,
+        sellPrice: watchlistItems.sellTargetReachedPrice,
+        sellReachedAt: watchlistItems.sellTargetReachedAt,
+        sellReadAt: watchlistItems.sellTargetReadAt,
       })
       .from(watchlistItems)
       .innerJoin(assets, eq(assets.id, watchlistItems.assetId))
       .where(
         and(
           eq(watchlistItems.portfolioId, portfolioId),
-          isNotNull(watchlistItems.targetReachedAt),
+          or(
+            isNotNull(watchlistItems.targetReachedAt),
+            isNotNull(watchlistItems.sellTargetReachedAt),
+          ),
         ),
-      )
-      .orderBy(desc(watchlistItems.targetReachedAt));
+      );
     return {
       ok: true as const,
-      rows: rows.map((r) => ({
-        ...r,
-        reachedAt: r.reachedAt!.toISOString(),
-        readAt: r.readAt?.toISOString() ?? null,
-      })),
+      rows: rows
+        .flatMap((r) => {
+          const base = { id: r.id, symbol: r.symbol, assetId: r.assetId };
+          return [
+            ...(r.reachedAt
+              ? [
+                  {
+                    ...base,
+                    side: "buy" as const,
+                    target: r.target,
+                    price: r.price,
+                    reachedAt: r.reachedAt.toISOString(),
+                    readAt: r.readAt?.toISOString() ?? null,
+                  },
+                ]
+              : []),
+            ...(r.sellReachedAt
+              ? [
+                  {
+                    ...base,
+                    side: "sell" as const,
+                    target: r.sellTarget,
+                    price: r.sellPrice,
+                    reachedAt: r.sellReachedAt.toISOString(),
+                    readAt: r.sellReadAt?.toISOString() ?? null,
+                  },
+                ]
+              : []),
+          ];
+        })
+        .sort((a, b) => Date.parse(b.reachedAt) - Date.parse(a.reachedAt)),
     };
   } catch (error) {
     return { ok: false as const, error: userError(error) };
@@ -58,22 +90,33 @@ export async function readTargetNotification(
   portfolioId: string,
   id: string,
   reachedAt: string,
+  side: "buy" | "sell" = "buy",
 ) {
   const user = await requireUser();
   try {
     idSchema.parse(id);
+    if (side !== "buy" && side !== "sell") throw new Error("INVALID_INPUT");
     const date = new Date(reachedAt);
     if (!Number.isFinite(date.getTime())) throw new Error("INVALID_DATE");
     const db = getDb();
     await portfolioService(db, user.id).owned(portfolioId);
     await db
       .update(watchlistItems)
-      .set({ targetReadAt: new Date() })
+      .set(
+        side === "buy"
+          ? { targetReadAt: new Date() }
+          : { sellTargetReadAt: new Date() },
+      )
       .where(
         and(
           eq(watchlistItems.id, id),
           eq(watchlistItems.portfolioId, portfolioId),
-          eq(watchlistItems.targetReachedAt, date),
+          eq(
+            side === "buy"
+              ? watchlistItems.targetReachedAt
+              : watchlistItems.sellTargetReachedAt,
+            date,
+          ),
         ),
       );
     return { ok: true as const };

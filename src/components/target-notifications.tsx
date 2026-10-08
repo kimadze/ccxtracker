@@ -71,7 +71,7 @@ export function TargetNotifications({ portfolioId }: { portfolioId: string }) {
         {error && <Message error>{error}</Message>}
         <ul className="list max-h-[65dvh] overflow-y-auto">
           {rows.map((row) => (
-            <li key={row.id} className="list-row block p-0">
+            <li key={`${row.id}:${row.side}`} className="list-row block p-0">
               <button
                 className="flex min-h-11 w-full items-start gap-3 p-3 text-left hover:bg-base-100 focus-visible:outline-primary"
                 disabled={pending !== null}
@@ -82,12 +82,15 @@ export function TargetNotifications({ portfolioId }: { portfolioId: string }) {
                       portfolioId,
                       row.id,
                       row.reachedAt,
+                      row.side,
                     );
                     if (reply.ok) {
                       setOpen(false);
                       setRows((old) =>
                         old.map((r) =>
-                          r.id === row.id
+                          r.id === row.id &&
+                          r.side === row.side &&
+                          r.reachedAt === row.reachedAt
                             ? { ...r, readAt: new Date().toISOString() }
                             : r,
                         ),
@@ -108,11 +111,15 @@ export function TargetNotifications({ portfolioId }: { portfolioId: string }) {
                 />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">
-                    {row.symbol} · მიზანი მიღწეულია
+                    {row.symbol} ·{" "}
+                    {row.side === "buy" ? "შესყიდვის" : "გაყიდვის"} ფასი
+                    მიღწეულია
                   </p>
                   <p className="mt-1 text-xs">
                     <BalanceValue>
-                      {unitPrice(row.target)} → {unitPrice(row.price)}
+                      მიზანი {row.side === "buy" ? "≤" : "≥"}{" "}
+                      {unitPrice(row.target)} · დაფიქსირდა{" "}
+                      {unitPrice(row.price)}
                     </BalanceValue>
                   </p>
                   <p className="mt-1 text-xs text-base-content/60">

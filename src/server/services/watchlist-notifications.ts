@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, or } from "drizzle-orm";
 import type { Database } from "@/server/db";
 import { watchlistItems } from "@/server/db/schema";
 import type { Quote } from "@/domain/types";
@@ -20,7 +20,10 @@ export async function evaluateWatchlistTargets(
             watchlistItems.assetId,
             quotes.map((q) => q.assetId),
           ),
-          isNotNull(watchlistItems.entryPrice),
+          or(
+            isNotNull(watchlistItems.entryPrice),
+            isNotNull(watchlistItems.exitPrice),
+          ),
           portfolioId ? eq(watchlistItems.portfolioId, portfolioId) : undefined,
         ),
       )
@@ -32,17 +35,36 @@ export async function evaluateWatchlistTargets(
         item.targetQuoteAt,
         quotes.find((q) => q.assetId === item.assetId),
       );
-      if (!next) continue;
+      const sell = targetTransition(
+        item.exitPrice,
+        item.sellTargetActive,
+        item.sellTargetQuoteAt,
+        quotes.find((q) => q.assetId === item.assetId),
+        Date.now(),
+        "sell",
+      );
+      if (!next && !sell) continue;
       await tx
         .update(watchlistItems)
         .set({
-          targetActive: next.active,
-          targetQuoteAt: next.quoteAt,
-          ...(next.notify
+          ...(next
+            ? { targetActive: next.active, targetQuoteAt: next.quoteAt }
+            : {}),
+          ...(next?.notify
             ? {
                 targetReachedAt: next.quoteAt,
                 targetReachedPrice: next.price,
                 targetReadAt: null,
+              }
+            : {}),
+          ...(sell
+            ? { sellTargetActive: sell.active, sellTargetQuoteAt: sell.quoteAt }
+            : {}),
+          ...(sell?.notify
+            ? {
+                sellTargetReachedAt: sell.quoteAt,
+                sellTargetReachedPrice: sell.price,
+                sellTargetReadAt: null,
               }
             : {}),
         })

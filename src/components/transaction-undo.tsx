@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { restoreTransaction } from "@/server/transaction-features";
 type Undo = {
@@ -9,23 +9,71 @@ type Undo = {
   pending?: boolean;
   error?: string;
 };
+const storageKey = "ccx-transaction-undo";
+const empty: Undo[] = [];
+let snapshot: Undo[] = empty;
+const listeners = new Set<() => void>();
+function setItems(update: (old: Undo[]) => Undo[]) {
+  const next = update(snapshot);
+  if (
+    next.length === snapshot.length &&
+    next.every((item, index) => item === snapshot[index])
+  )
+    return;
+  snapshot = next;
+  try {
+    sessionStorage.setItem(
+      storageKey,
+      JSON.stringify(
+        snapshot.map(({ portfolioId, undoId, expiresAt }) => ({
+          portfolioId,
+          undoId,
+          expiresAt,
+        })),
+      ),
+    );
+  } catch {
+    /* A blocked browser store must not prevent undo. */
+  }
+  listeners.forEach((listener) => listener());
+}
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
 export function offerTransactionUndo(value: Undo) {
-  window.dispatchEvent(
-    new CustomEvent("ccx-transaction-undo", { detail: value }),
-  );
+  setItems((old) => [...old.filter((i) => i.undoId !== value.undoId), value]);
 }
 export function TransactionUndo() {
-  const [items, setItems] = useState<Undo[]>([]);
+  const items = useSyncExternalStore(
+    subscribe,
+    () => snapshot,
+    () => empty,
+  );
   const router = useRouter();
   useEffect(() => {
-    const listener = (event: Event) =>
-      setItems((old) => [
-        ...old.filter(
-          (i) => i.undoId !== (event as CustomEvent<Undo>).detail.undoId,
-        ),
-        (event as CustomEvent<Undo>).detail,
-      ]);
-    window.addEventListener("ccx-transaction-undo", listener);
+    // Keep the original deadline across layout refreshes and page reloads.
+    try {
+      const stored: unknown = JSON.parse(
+        sessionStorage.getItem(storageKey) ?? "[]",
+      );
+      if (Array.isArray(stored))
+        setItems((old) => [
+          ...old,
+          ...stored.filter(
+            (i) =>
+              typeof i?.portfolioId === "string" &&
+              typeof i?.undoId === "string" &&
+              typeof i?.expiresAt === "string" &&
+              Date.parse(i.expiresAt) > Date.now() &&
+              !old.some((existing) => existing.undoId === i.undoId),
+          ),
+        ]);
+    } catch {
+      /* Ignore obsolete or unavailable browser storage. */
+    }
     const timer = setInterval(
       () =>
         setItems((old) =>
@@ -36,7 +84,6 @@ export function TransactionUndo() {
       1000,
     );
     return () => {
-      window.removeEventListener("ccx-transaction-undo", listener);
       clearInterval(timer);
     };
   }, []);

@@ -277,8 +277,8 @@ describe("authorized transaction previews, atomic opening assets and quick undo"
       originalRow.updatedAt,
     );
   });
-  it("offers two minutes to undo and still restores after the former deadline", async () => {
-    const p = await portfolio("Longer undo"),
+  it("offers exactly thirty seconds and restores within the deadline", async () => {
+    const p = await portfolio("Thirty-second undo"),
       service = portfolioService(db, "alice"),
       original = entry(p.id);
     await service.mutateTransaction(original, "create", 0);
@@ -287,10 +287,10 @@ describe("authorized transaction previews, atomic opening assets and quick undo"
       .select()
       .from(schema.audits)
       .where(eq(schema.audits.id, undo.undoId));
-    expect(Date.parse(undo.expiresAt) - audit.createdAt.getTime()).toBe(120000);
+    expect(Date.parse(undo.expiresAt) - audit.createdAt.getTime()).toBe(30000);
     await testDb
       .update(schema.audits)
-      .set({ createdAt: new Date(Date.now() - 90000) })
+      .set({ createdAt: new Date(Date.now() - 25000) })
       .where(eq(schema.audits.id, undo.undoId));
     expect(await restoreTransaction(p.id, undo.undoId)).toMatchObject({
       ok: true,
@@ -316,7 +316,7 @@ describe("authorized transaction previews, atomic opening assets and quick undo"
     userId = "alice";
     await testDb
       .update(schema.audits)
-      .set({ createdAt: new Date(Date.now() - 121000) })
+      .set({ createdAt: new Date(Date.now() - 31000) })
       .where(eq(schema.audits.id, undo.undoId));
     expect(await restoreTransaction(p.id, undo.undoId)).toMatchObject({
       ok: false,
@@ -377,6 +377,83 @@ describe("authorized transaction previews, atomic opening assets and quick undo"
   });
 });
 describe("persisted Watchlist target episodes", () => {
+  it("tracks buy and sell independently, ignores initial conditions and preserves each read state", async () => {
+    const p = await portfolio("Two-sided targets"),
+      service = watchlistService(db, "alice");
+    await service.save({
+      portfolioId: p.id,
+      assetId: "eth",
+      entryPrice: "0.5",
+      exitPrice: "5",
+      notes: "",
+    });
+    let timestamp = Date.now() - 10000;
+    const check = async (price: string, stale = false) => {
+      quotes = [
+        {
+          assetId: "eth",
+          price,
+          change24h: null,
+          stale,
+          updatedAt: new Date((timestamp += 1000)).toISOString(),
+        },
+      ];
+      await evaluateWatchlistTargets(db, quotes, p.id);
+      const reply = await loadTargetNotifications(p.id);
+      if (!reply.ok) throw new Error(reply.error);
+      return reply.rows;
+    };
+    expect(await check("1")).toHaveLength(0);
+    expect(await check("4")).toHaveLength(0);
+    const sell = await check("5");
+    expect(sell).toHaveLength(1);
+    expect(sell[0].side).toBe("sell");
+    await readTargetNotification(p.id, sell[0].id, sell[0].reachedAt, "sell");
+    const both = await check("0.5");
+    expect(both).toHaveLength(2);
+    expect(both.find((n) => n.side === "buy")?.readAt).toBeNull();
+    expect(both.find((n) => n.side === "sell")?.readAt).not.toBeNull();
+    const oldSell = both.find((n) => n.side === "sell")!.reachedAt;
+    expect(
+      (await check("5", true)).find((n) => n.side === "sell")?.reachedAt,
+    ).toBe(oldSell);
+    expect(
+      (await check("5")).find((n) => n.side === "sell")?.readAt,
+    ).toBeNull();
+    await service.save({
+      portfolioId: p.id,
+      assetId: "eth",
+      entryPrice: "0.5",
+      exitPrice: "4",
+      notes: "changed sell",
+    });
+    const reset = await check("5");
+    expect(reset).toHaveLength(1);
+    expect(reset[0].side).toBe("buy");
+    // A target already satisfied at creation is baselined, including buy=5 at price=1.
+    await service.save({
+      portfolioId: p.id,
+      assetId: "btc",
+      entryPrice: "5",
+      exitPrice: "5",
+      notes: "",
+    });
+    quotes = [
+      {
+        assetId: "btc",
+        price: "1",
+        change24h: null,
+        stale: false,
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+    await evaluateWatchlistTargets(db, quotes, p.id);
+    const noImmediate = await loadTargetNotifications(p.id);
+    if (noImmediate.ok)
+      expect(noImmediate.rows.filter((n) => n.assetId === "btc")).toHaveLength(
+        0,
+      );
+  });
   it("notifies at the exact boundary, avoids duplicates, rearms above target and preserves reads", async () => {
     const p = await portfolio("Notifications"),
       service = watchlistService(db, "alice");
@@ -393,6 +470,10 @@ describe("persisted Watchlist target episodes", () => {
       updatedAt: new Date(Date.now() - 10000 + offset).toISOString(),
       stale,
     });
+    quotes = [quote("110", -1000)];
+    await evaluateWatchlistTargets(db, quotes, p.id);
+    const baseline = await loadTargetNotifications(p.id);
+    if (baseline.ok) expect(baseline.rows).toHaveLength(0);
     quotes = [quote("100")];
     await evaluateWatchlistTargets(db, quotes, p.id);
     const initial = await loadTargetNotifications(p.id);

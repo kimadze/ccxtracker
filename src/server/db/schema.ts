@@ -427,6 +427,16 @@ export const watchlistItems = pgTable(
     targetReachedAt: timestamp("target_reached_at", { withTimezone: true }),
     targetReachedPrice: financial("target_reached_price"),
     targetReadAt: timestamp("target_read_at", { withTimezone: true }),
+    exitPrice: financial("exit_price"),
+    sellTargetActive: boolean("sell_target_active").default(false).notNull(),
+    sellTargetQuoteAt: timestamp("sell_target_quote_at", {
+      withTimezone: true,
+    }),
+    sellTargetReachedAt: timestamp("sell_target_reached_at", {
+      withTimezone: true,
+    }),
+    sellTargetReachedPrice: financial("sell_target_reached_price"),
+    sellTargetReadAt: timestamp("sell_target_read_at", { withTimezone: true }),
     notes: text("notes").default("").notNull(),
     ...times(),
   },
@@ -438,6 +448,10 @@ export const watchlistItems = pgTable(
     check(
       "watchlist_price_positive",
       sql`${t.entryPrice} IS NULL OR ${t.entryPrice} > 0`,
+    ),
+    check(
+      "watchlist_exit_price_positive",
+      sql`${t.exitPrice} IS NULL OR ${t.exitPrice} > 0`,
     ),
   ],
 );
