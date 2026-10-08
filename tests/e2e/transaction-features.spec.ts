@@ -125,9 +125,7 @@ test("opening batch, previews, undo, planning and target notices work at all bre
     await deletion.getByRole("button", { name: "წაშლა", exact: true }).click();
     await expect(deletion).not.toBeVisible();
     await page.getByRole("button", { name: "აღდგენა", exact: true }).click();
-    await expect(
-      page.locator(".toast .alert"),
-    ).toHaveCount(0);
+    await expect(page.locator(".toast .alert")).toHaveCount(0);
     expect(
       (
         await db.query("SELECT id FROM transactions WHERE portfolio_id=$1", [
@@ -174,6 +172,10 @@ test("opening batch, previews, undo, planning and target notices work at all bre
       ).toHaveAttribute("aria-selected", "true");
       for (const width of [360, 390, 430, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: 844 });
+        if (tab === "strategy")
+          await expect(
+            page.getByLabel("კაპიტალი + საკომისიო (USD)", { exact: true }),
+          ).toBeVisible();
         expect(
           await page.evaluate(
             () => document.documentElement.scrollWidth <= innerWidth + 1,

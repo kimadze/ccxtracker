@@ -84,7 +84,10 @@ export function StrategyWorkspace({
         </div>
       ) : (
         <div className="grid items-start gap-3 lg:grid-cols-2 lg:gap-4">
-          <ResponsiveDisclosure className="collapse collapse-arrow border border-base-300 bg-base-200">
+          <ResponsiveDisclosure
+            open
+            className="collapse collapse-arrow border border-base-300 bg-base-200"
+          >
             <summary className="collapse-title min-h-11 text-sm font-semibold">
               შესვლის გეგმა
             </summary>
