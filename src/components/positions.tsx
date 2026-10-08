@@ -99,7 +99,7 @@ export function PositionsTable({
         className={
           view === "cards"
             ? "hidden"
-            : "hidden overflow-x-auto rounded-box border border-base-300 bg-base-200 lg:block"
+            : "hidden overflow-x-auto rounded-box bg-base-200 lg:block"
         }
       >
         <table className="table table-sm [&_th]:text-right [&_th:first-child]:text-left [&_td]:text-right [&_td:first-child]:text-left">
@@ -212,7 +212,7 @@ export function PositionsTable({
         </table>
       </div>
 
-      <ul className="list divide-y divide-base-300 rounded-box border border-base-300 bg-base-200 lg:hidden">
+      <ul className="list divide-y divide-base-300 rounded-box bg-base-200 lg:hidden">
         {positions.map((position, index) => (
           <li key={position.assetId}>
             <Link
@@ -254,66 +254,86 @@ export function PositionsTable({
           <article
             key={position.assetId}
             onClick={() => onSelect?.(position.assetId)}
-            className="card border border-base-300 bg-base-200"
+            className="card min-w-0 bg-base-200"
           >
-            <div className="card-body gap-4 p-4">
-              <div className="flex items-center gap-3">
+            <div className="card-body min-w-0 gap-3 p-4">
+              <Link
+                href={`${base}/positions/${position.assetId}`}
+                aria-label={`${position.asset.symbol} — დეტალები`}
+                className="flex min-w-0 items-center gap-3 rounded-field focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+              >
                 <AssetIcon
                   symbol={position.asset.symbol}
                   logoUrl={position.asset.logoUrl}
                   index={index}
-                  size={42}
+                  size={36}
                 />
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold">{position.asset.symbol}</h3>
-                  <p className="truncate text-sm text-base-content/50">
+                  <p
+                    title={position.asset.name}
+                    className="truncate text-xs text-base-content/50"
+                  >
                     {position.asset.name}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold">
+                <div className="shrink-0 text-right tabular-nums">
+                  <p className="whitespace-nowrap text-xl font-semibold tracking-tight">
                     <BalanceValue>{money(position.value)}</BalanceValue>
                   </p>
-                  <p className={`text-sm ${pnlClass(position.returnPercent)}`}>
+                  <p className={`text-xs ${pnlClass(position.returnPercent)}`}>
                     {percentage(position.returnPercent, true)}
                   </p>
                 </div>
-              </div>
-              <div className="stats stats-vertical border border-base-300 bg-base-100 sm:stats-horizontal">
-                <div className="stat p-3">
-                  <div className="stat-title text-xs">მიმდინარე ფასი</div>
-                  <div className="stat-value text-base">
+              </Link>
+              <dl className="grid grid-cols-2 gap-3 border-t border-base-300 pt-3 text-sm tabular-nums">
+                <div className="min-w-0">
+                  <dt className="text-xs text-base-content/50">
+                    მიმდინარე ფასი
+                  </dt>
+                  <dd className="mt-1 whitespace-nowrap">
                     {unitPrice(position.quote?.price ?? null)}
-                  </div>
+                  </dd>
                 </div>
-                <div className="stat p-3">
-                  <div className="stat-title text-xs">საშ. შესყიდვა</div>
-                  <div className="stat-value text-base">
+                <div className="min-w-0 text-right">
+                  <dt className="text-xs text-base-content/50">
+                    თვითღირებულება / ერთ.
+                  </dt>
+                  <dd className="mt-1 whitespace-nowrap text-base-content/75">
                     <BalanceValue>
                       {unitPrice(position.averagePrice)}
                     </BalanceValue>
-                  </div>
+                  </dd>
                 </div>
-              </div>
+              </dl>
               {!preview && (
-                <div className="card-actions grid grid-cols-3">
-                  <Link
-                    href={`${base}/positions/${position.assetId}?tab=exit`}
-                    className="btn btn-outline btn-sm"
-                  >
-                    <TrendingUp size={14} /> გეგმა
-                  </Link>
-                  <Link
-                    href={`${base}/positions/${position.assetId}?tab=journal`}
-                    className="btn btn-outline btn-sm"
-                  >
-                    <NotebookPen size={14} /> ჟურნალი
-                  </Link>
+                <div className="card-actions items-center gap-1 border-t border-base-300 pt-2">
+                  <div className="tooltip" data-tip="გეგმა">
+                    <Link
+                      href={`${base}/positions/${position.assetId}?tab=exit`}
+                      className="btn btn-ghost btn-square min-h-11 text-base-content/60"
+                      aria-label={`${position.asset.symbol} — გეგმა`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <TrendingUp size={18} aria-hidden="true" />
+                    </Link>
+                  </div>
+                  <div className="tooltip" data-tip="ჟურნალი">
+                    <Link
+                      href={`${base}/positions/${position.assetId}?tab=journal`}
+                      className="btn btn-ghost btn-square min-h-11 text-base-content/60"
+                      aria-label={`${position.asset.symbol} — ჟურნალი`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <NotebookPen size={18} aria-hidden="true" />
+                    </Link>
+                  </div>
                   <Link
                     href={`${base}/positions/${position.assetId}`}
-                    className="btn btn-outline btn-sm"
+                    className="btn btn-ghost ml-auto min-h-11 gap-2 text-sm"
+                    onClick={(event) => event.stopPropagation()}
                   >
-                    დეტალები <ArrowUpRight size={14} />
+                    დეტალები <ArrowUpRight size={16} aria-hidden="true" />
                   </Link>
                 </div>
               )}

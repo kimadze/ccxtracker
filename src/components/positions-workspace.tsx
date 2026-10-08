@@ -77,14 +77,14 @@ export function PositionsWorkspace({
   return (
     <div className="space-y-3 lg:space-y-4">
       <section
-        className="tabs tabs-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden hidden w-full flex-nowrap overflow-x-auto lg:flex"
+        className="join hidden max-w-full overflow-x-auto lg:inline-flex"
         role="group"
         aria-label="პოზიციების ფილტრები"
       >
         <button
           aria-pressed={filter === "all"}
           type="button"
-          className={`tab min-h-11 shrink-0 gap-2 ${filter === "all" ? "tab-active" : ""}`}
+          className={`btn btn-ghost join-item min-h-11 shrink-0 gap-2 px-3 text-sm ${filter === "all" ? "btn-active" : ""}`}
           onClick={() => {
             setFilter("all");
             setPage(0);
@@ -95,7 +95,7 @@ export function PositionsWorkspace({
         <button
           aria-pressed={filter === "profit"}
           type="button"
-          className={`tab min-h-11 shrink-0 gap-2 ${filter === "profit" ? "tab-active" : ""}`}
+          className={`btn btn-ghost join-item min-h-11 shrink-0 gap-2 px-3 text-sm ${filter === "profit" ? "btn-active" : ""}`}
           onClick={() => {
             setFilter("profit");
             setPage(0);
@@ -106,7 +106,7 @@ export function PositionsWorkspace({
         <button
           aria-pressed={filter === "loss"}
           type="button"
-          className={`tab min-h-11 shrink-0 gap-2 ${filter === "loss" ? "tab-active" : ""}`}
+          className={`btn btn-ghost join-item min-h-11 shrink-0 gap-2 px-3 text-sm ${filter === "loss" ? "btn-active" : ""}`}
           onClick={() => {
             setFilter("loss");
             setPage(0);
@@ -117,7 +117,7 @@ export function PositionsWorkspace({
         <button
           aria-pressed={filter === "unpriced"}
           type="button"
-          className={`tab min-h-11 shrink-0 gap-2 ${filter === "unpriced" ? "tab-active" : ""}`}
+          className={`btn btn-ghost join-item min-h-11 shrink-0 gap-2 px-3 text-sm ${filter === "unpriced" ? "btn-active" : ""}`}
           onClick={() => {
             setFilter("unpriced");
             setPage(0);
@@ -128,7 +128,7 @@ export function PositionsWorkspace({
       </section>
       <div className="min-w-0">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <label className="input min-h-11 min-w-0 flex-1">
+          <label className="input min-h-11 min-w-0 flex-1 lg:max-w-md">
             <Search size={16} aria-hidden="true" />
             <span className="sr-only">პოზიციების ძიება</span>
             <input
@@ -152,13 +152,13 @@ export function PositionsWorkspace({
             <option value="name">სახელით</option>
           </select>
           <div
-            className="join hidden lg:flex"
+            className="join hidden lg:ml-auto lg:flex"
             role="group"
             aria-label="პოზიციების ხედი"
           >
             <button
               type="button"
-              className={`btn btn-square join-item ${view === "table" ? "btn-soft btn-primary" : "btn-ghost"}`}
+              className={`btn btn-ghost btn-square join-item ${view === "table" ? "btn-active" : ""}`}
               aria-pressed={view === "table"}
               onClick={() => setView("table")}
               aria-label="ცხრილის ხედი"
@@ -167,7 +167,7 @@ export function PositionsWorkspace({
             </button>
             <button
               type="button"
-              className={`btn btn-square join-item ${view === "cards" ? "btn-soft btn-primary" : "btn-ghost"}`}
+              className={`btn btn-ghost btn-square join-item ${view === "cards" ? "btn-active" : ""}`}
               aria-pressed={view === "cards"}
               onClick={() => setView("cards")}
               aria-label="ბარათების ხედი"
