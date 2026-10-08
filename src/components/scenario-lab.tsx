@@ -108,26 +108,25 @@ export function ScenarioLab({
           </p>
         </div>
       </div>
-      <Field label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}>
-        <input
-          className="input"
-          type={balancesHidden ? "password" : "text"}
-          inputMode="decimal"
-          value={prices[p.assetId] ?? ""}
-          placeholder={
-            unitPrice(p.quote?.price ?? null) === "—"
-              ? "შეიყვანეთ ფასი"
-              : unitPrice(p.quote?.price ?? null)
-          }
-          onChange={(e) => {
-            setPrices((current) => ({
-              ...current,
-              [p.assetId]: e.target.value,
-            }));
-            setMessage("");
-          }}
-        />
-      </Field>
+      <input
+        aria-label={`${p.asset.symbol} — სამიზნე ფასი (USD)`}
+        className="input min-h-11 w-full text-base md:text-sm"
+        type={balancesHidden ? "password" : "text"}
+        inputMode="decimal"
+        value={prices[p.assetId] ?? ""}
+        placeholder={
+          unitPrice(p.quote?.price ?? null) === "—"
+            ? "შეიყვანეთ ფასი"
+            : unitPrice(p.quote?.price ?? null)
+        }
+        onChange={(e) => {
+          setPrices((current) => ({
+            ...current,
+            [p.assetId]: e.target.value,
+          }));
+          setMessage("");
+        }}
+      />
     </div>
   );
   async function save(copy = false) {
@@ -164,8 +163,8 @@ export function ScenarioLab({
     }
   }
   return (
-    <div className="space-y-3 lg:space-y-4">
-      <div className="card flex-row flex-wrap gap-3 bg-base-200 p-4">
+    <div className="space-y-3 lg:space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
         <select
           aria-label="შენახული სცენარი"
           value={active}
@@ -186,16 +185,16 @@ export function ScenarioLab({
       </div>
       <div className="grid items-start gap-3 lg:gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
         <section className="card bg-base-200">
-          <div className="card-body min-w-0 gap-3 p-4">
+          <div className="card-body min-w-0 gap-2 p-3 lg:p-4">
             <div>
               <div>
                 <h2 className="text-base font-medium">რა მოხდება, თუ…</h2>
-                <p className="mt-2 text-xs leading-6 text-base-content/60">
+                <p className="mt-1 text-xs leading-5 text-base-content/60">
                   შეცვალეთ ფასები. რაოდენობები ავტომატურად აიღება მიმდინარე
                   პორტფელიდან.
                 </p>
               </div>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 <label className="input">
                   <Percent size={13} />
                   <input
@@ -230,6 +229,10 @@ export function ScenarioLab({
               </div>
             </div>
             <div className="divide-y divide-base-300">
+              <div className="flex justify-between py-2 text-xs text-base-content/60">
+                <span>აქტივი</span>
+                <span>სამიზნე ფასი · USD</span>
+              </div>
               {cryptoPositions.slice(0, 6).map(priceRow)}
               {cryptoPositions.length > 6 && (
                 <details className="collapse collapse-arrow">
@@ -247,39 +250,43 @@ export function ScenarioLab({
                 </p>
               )}
             </div>
-            <p className="mt-5 text-[11px] leading-6 text-base-content/60">
+            <p className="text-xs leading-5 text-base-content/60">
               ცარიელ ველში გამოიყენება მიმდინარე ხელმისაწვდომი ფასი. Cash და
               სტეიბლკოინები ამ სცენარისგან გამოთიშულია. ნულოვანი ფასი აქტივის
               ღირებულების სრულ დაკარგვას ნიშნავს.
             </p>
           </div>
         </section>
-        <div className="space-y-3 lg:space-y-4">
+        <div className="space-y-3 lg:space-y-2">
           <section className="card bg-base-200">
-            <div className="card-body min-w-0 gap-3 p-4">
+            <div className="card-body min-w-0 gap-2 p-3 lg:p-4">
               <p className="text-xs text-base-content/60">
                 სცენარის კრიპტო ღირებულება
               </p>
-              <p className="numeric mt-2 whitespace-nowrap text-2xl text-base-content">
+              <p className="numeric whitespace-nowrap text-2xl text-base-content">
                 <BalanceValue>{money(result?.value ?? null)}</BalanceValue>
               </p>
-              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-base-300 pt-2">
                 <Metric
+                  compact
                   label="მიმდინარე ღირებულება"
                   value={money(cryptoValue)}
                   sensitive
                 />
                 <Metric
+                  compact
                   label="ცვლილება მიმდინარე ღირებულებიდან"
                   value={money(result?.growth ?? null)}
                   tone={pnlClass(result?.growth ?? null)}
                   sensitive
                 />
                 <Metric
+                  compact
                   label="პოტენციური ზრდა"
                   value={percentage(result?.returnPercent ?? null, true)}
                 />
                 <Metric
+                  compact
                   label="სცენარის არარეალიზებული მოგება / ზარალი"
                   value={money(result?.unrealizedPnl ?? null)}
                   sensitive
@@ -288,14 +295,12 @@ export function ScenarioLab({
             </div>
           </section>
           <section className="card bg-base-200">
-            <div className="card-body min-w-0 gap-3 p-4">
-              <h2 className="mb-4 text-base font-medium">
-                სცენარის განაწილება
-              </h2>
+            <div className="card-body min-w-0 gap-2 p-3 lg:p-4">
+              <h2 className="text-base font-medium">სცენარის განაწილება</h2>
               {result?.positions.slice(0, 6).map((p) => (
                 <div
                   key={p.assetId}
-                  className="flex justify-between gap-3 border-b border-base-300 py-3 text-xs"
+                  className="flex justify-between gap-3 border-b border-base-300 py-2 text-xs"
                 >
                   <Link
                     href={`/portfolios/${portfolioId}/strategy?asset=${encodeURIComponent(p.assetId)}`}
@@ -460,7 +465,7 @@ function GoalPlanner({
     /* A goal is optional until entered. */
   }
   return (
-    <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:collapse-open">
+    <details className="collapse collapse-arrow border border-base-300 bg-base-200">
       <summary className="collapse-title min-h-11 text-sm font-semibold">
         პორტფელის მიზანი
       </summary>
@@ -472,7 +477,7 @@ function GoalPlanner({
           </p>
         </div>
         <div className="grid gap-3 lg:gap-4 lg:grid-cols-2">
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Field label="მიზნობრივი ღირებულება (USD)">
               <input
                 className="input"
@@ -535,27 +540,31 @@ function GoalPlanner({
           <div>
             {progress ? (
               <>
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-3">
                   <Metric
+                    compact
                     label="მიმდინარე პროგრესი"
                     value={percentage(progress.progress)}
                   />
                   <Metric
+                    compact
                     label="დარჩენილი თანხა"
                     value={money(progress.gap)}
                     sensitive
                   />
                   <Metric
+                    compact
                     label="საჭირო ზრდა"
                     value={percentage(progress.requiredGrowth)}
                   />
                   <Metric
+                    compact
                     label="სცენარსა და მიზანს შორის სხვაობა"
                     value={money(scenario?.gap ?? null)}
                     sensitive
                   />
                 </div>
-                <div className="mt-6 h-2 overflow-hidden rounded-full bg-base-300">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-base-300">
                   <div
                     className="h-full rounded-full bg-primary"
                     style={{ width: `${Number(progress.progress ?? 0)}%` }}
@@ -581,7 +590,7 @@ function GoalPlanner({
                 </div>
               </>
             ) : (
-              <p className="pt-8 text-xs text-base-content/60">
+              <p className="py-2 text-xs text-base-content/60">
                 მიზნის დასაყენებლად შეიყვანეთ დადებითი თანხა.
               </p>
             )}

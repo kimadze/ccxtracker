@@ -399,15 +399,17 @@ export function Metric({
   hint,
   tone = "",
   sensitive = false,
+  compact = false,
 }: {
   label: string;
   value: string;
   hint?: string;
   tone?: string;
   sensitive?: boolean;
+  compact?: boolean;
 }) {
   return (
-    <div className="stat min-w-0 p-3">
+    <div className={`stat min-w-0 ${compact ? "px-0 py-1" : "p-3"}`}>
       <div className="stat-title whitespace-normal text-xs" title={hint}>
         {label}
       </div>

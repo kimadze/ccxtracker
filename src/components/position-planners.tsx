@@ -42,36 +42,40 @@ export function DcaPlanner({
     /* Incomplete drafts have no result. */
   }
   return (
-    <div className="grid gap-3 lg:gap-4 ">
+    <div className="grid gap-3">
       <section className="space-y-3">
         <h2 className="text-base font-medium">დამატებითი შესყიდვა</h2>
-        <Field label="კაპიტალი + საკომისიო (USD)">
-          <input
-            className="input"
-            type={balancesHidden ? "password" : "text"}
-            inputMode="decimal"
-            value={capital}
-            onChange={(e) => setCapital(e.target.value)}
-          />
-        </Field>
-        <Field label="შესყიდვის ფასი (USD)">
-          <input
-            className="input"
-            inputMode="decimal"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-        </Field>
-        <Field label="საკომისიო (USD)">
-          <input
-            className="input"
-            type={balancesHidden ? "password" : "text"}
-            inputMode="decimal"
-            value={fee}
-            onChange={(e) => setFee(e.target.value)}
-          />
-        </Field>
-        <p className="text-xs leading-6 text-base-content/60">
+        <div className="grid grid-cols-2 items-end gap-x-3 gap-y-1">
+          <div className="col-span-2">
+            <Field label="კაპიტალი + საკომისიო (USD)">
+              <input
+                className="input"
+                type={balancesHidden ? "password" : "text"}
+                inputMode="decimal"
+                value={capital}
+                onChange={(e) => setCapital(e.target.value)}
+              />
+            </Field>
+          </div>
+          <Field label="შესყიდვის ფასი (USD)">
+            <input
+              className="input"
+              inputMode="decimal"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </Field>
+          <Field label="საკომისიო (USD)">
+            <input
+              className="input"
+              type={balancesHidden ? "password" : "text"}
+              inputMode="decimal"
+              value={fee}
+              onChange={(e) => setFee(e.target.value)}
+            />
+          </Field>
+        </div>
+        <p className="text-xs leading-5 text-base-content/60">
           სიმულაცია ვარაუდობს ახალი კაპიტალის დამატებას. წილი ფასდება აქტივის
           მიმდინარე ფასით. ტრანზაქცია ავტომატურად არ იქმნება.
         </p>
@@ -84,41 +88,49 @@ export function DcaPlanner({
           <>
             <div className="grid grid-cols-2 gap-2">
               <Metric
+                compact
                 label="მიმდინარე საშუალო ფასი"
                 value={money(result.currentAverage)}
                 sensitive
               />
               <Metric
+                compact
                 label="ახალი საშუალო ფასი"
                 value={money(result.newAverage)}
                 tone="text-primary"
                 sensitive
               />
               <Metric
+                compact
                 label="მიმდინარე რაოდენობა"
                 value={quantity(position.quantity)}
                 sensitive
               />
               <Metric
+                compact
                 label="დამატებული რაოდენობა"
                 value={quantity(result.addedQuantity)}
                 sensitive
               />
               <Metric
+                compact
                 label="ახალი რაოდენობა"
                 value={quantity(result.newQuantity)}
                 sensitive
               />
               <Metric
+                compact
                 label="ახალი თვითღირებულება"
                 value={money(result.newBasis)}
                 sensitive
               />
               <Metric
+                compact
                 label="მიმდინარე წილი"
                 value={percentage(position.allocation)}
               />
               <Metric
+                compact
                 label="მოსალოდნელი წილი"
                 value={percentage(result.projectedAllocation)}
               />
@@ -198,17 +210,17 @@ export function ExitPlanner({
     <div className="space-y-3 lg:space-y-4">
       <section className="min-w-0">
         <div className="flex min-w-0 flex-col gap-3">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="grid grid-cols-[minmax(0,1fr)_110px] items-start gap-3">
             <div>
               <h2 className="text-base font-medium">გაყიდვის ეტაპები</h2>
-              <p className="mt-2 text-xs leading-6 text-base-content/60">
+              <p className="mt-1 text-xs leading-5 text-base-content/60">
                 ყველა წილი ითვლება მიმდინარე{" "}
                 <BalanceValue>{quantity(position.quantity)}</BalanceValue>{" "}
                 {position.asset.symbol}-იდან. ფასები ეტაპობრივად უნდა
                 იზრდებოდეს.
               </p>
             </div>
-            <div className="w-40">
+            <div className="min-w-0">
               <Field label="საკომისიო (%)">
                 <input
                   className="input"
@@ -223,18 +235,29 @@ export function ExitPlanner({
             </div>
           </div>
           <div
-            className="mt-4 divide-y divide-base-300"
+            className="divide-y divide-base-300"
             role="table"
             aria-label="გაყიდვის ეტაპები"
           >
             {levels.map((level, i) => (
               <div
                 key={i}
-                className="grid grid-cols-2 items-end gap-3 border-t border-base-300 py-3"
+                className="grid grid-cols-2 items-end gap-x-3 gap-y-1 border-t border-base-300 py-2"
               >
-                <span className="badge badge-neutral col-span-2 justify-self-start">
-                  TP{i + 1}
-                </span>
+                <div className="col-span-2 flex items-center justify-between">
+                  <span className="badge badge-neutral">TP{i + 1}</span>
+                  <button
+                    className="btn btn-ghost btn-square min-h-11 min-w-11 text-error"
+                    aria-label={`TP${i + 1}-ის წაშლა`}
+                    disabled={levels.length <= 1}
+                    onClick={() => {
+                      setLevels((l) => l.filter((_, n) => n !== i));
+                      setMessage("");
+                    }}
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
                 <Field label="სამიზნე ფასი (USD)">
                   <input
                     className="input"
@@ -253,7 +276,7 @@ export function ExitPlanner({
                     onChange={(e) => update(i, "percentage", e.target.value)}
                   />
                 </Field>
-                <span className="numeric pb-3 text-sm">
+                <span className="numeric text-sm">
                   {result?.levels[i] ? (
                     <BalanceValue>
                       {quantity(result.levels[i].quantity)}
@@ -262,7 +285,7 @@ export function ExitPlanner({
                     "—"
                   )}
                 </span>
-                <span className="numeric pb-3 text-sm">
+                <span className="numeric text-sm">
                   {result?.levels[i] ? (
                     <BalanceValue>
                       {money(result.levels[i].revenue)}
@@ -271,21 +294,10 @@ export function ExitPlanner({
                     "—"
                   )}
                 </span>
-                <button
-                  className="btn btn-ghost btn-square min-h-11 min-w-11 mb-2 text-error"
-                  aria-label={`TP${i + 1}-ის წაშლა`}
-                  disabled={levels.length <= 1}
-                  onClick={() => {
-                    setLevels((l) => l.filter((_, n) => n !== i));
-                    setMessage("");
-                  }}
-                >
-                  <Trash2 size={15} />
-                </button>
               </div>
             ))}
           </div>
-          <div className="card-actions mt-4">
+          <div className="card-actions">
             <button
               className="btn btn-outline"
               disabled={levels.length >= 12}
@@ -333,21 +345,25 @@ export function ExitPlanner({
         <aside className="grid gap-3 lg:gap-4 xl:grid-cols-2">
           <div className="grid grid-cols-2 gap-2 bg-base-100">
             <Metric
+              compact
               label="მოსალოდნელი წმინდა შემოსავალი"
               value={money(result.revenue)}
               sensitive
             />
             <Metric
+              compact
               label="მოსალოდნელი მოგება"
               value={money(result.profit)}
               sensitive
             />
             <Metric
+              compact
               label="დარჩენილი პოზიცია"
               value={`${quantity(result.remainingQuantity)} ${position.asset.symbol}`}
               sensitive
             />
             <Metric
+              compact
               label="საშუალო წმინდა გასვლის ფასი"
               value={money(result.weightedExitPrice)}
               sensitive
@@ -355,7 +371,7 @@ export function ExitPlanner({
           </div>
           <section className="border-t border-base-300 pt-3">
             <h2 className="text-base font-medium">კაპიტალის ამოღება</h2>
-            <p className="mt-3 text-xs leading-7 text-base-content/60">
+            <p className="mt-3 text-xs leading-5 text-base-content/60">
               აღსადგენი თვითღირებულება:{" "}
               <BalanceValue>{money(position.costBasis)}</BalanceValue>.{" "}
               {result.alreadyRecovered ? (
@@ -374,7 +390,7 @@ export function ExitPlanner({
               )}{" "}
               დარჩება პოზიციის {percentage(result.remainingPercent)}.
             </p>
-            <div className="mt-5 divide-y divide-base-300">
+            <div className="mt-3 divide-y divide-base-300">
               {result.levels.map((l, i) => (
                 <div
                   key={i}
