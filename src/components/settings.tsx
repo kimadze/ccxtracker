@@ -74,7 +74,7 @@ export function Settings({
         {message && <Message error={error}>{message}</Message>}
         <div className="grid gap-3 lg:gap-4">
           <form
-            className="card card-border bg-base-200 p-4"
+            className="card bg-base-200 p-4"
             onSubmit={async (e) => {
               e.preventDefault();
               if (preview) return;
@@ -144,7 +144,7 @@ export function Settings({
             )}
           </form>
           <form
-            className="card card-border bg-base-200 p-4"
+            className="card bg-base-200 p-4"
             onSubmit={async (e) => {
               e.preventDefault();
               if (preview) return;
@@ -194,7 +194,7 @@ export function Settings({
             )}
           </form>
         </div>
-        <section className="card card-border bg-base-200">
+        <section className="card bg-base-200">
           <div className="card-body min-w-0 gap-3 p-4">
             <h2
               id="settings-source"
@@ -241,11 +241,11 @@ export function Settings({
             </details>
           </div>
         </section>
-        <section className="card card-border bg-base-200">
+        <section className="card bg-base-200">
           <div className="card-body min-w-0 gap-3 p-4">
             <h2
               id="settings-security"
-              className="scroll-mt-20 flex items-center gap-2 text-sm font-medium"
+              className="scroll-mt-20 flex items-center gap-2 text-base font-medium"
             >
               <ShieldCheck size={17} className="text-primary" />
               მონაცემები და უსაფრთხოება
@@ -258,7 +258,7 @@ export function Settings({
               <div className="mt-1 flex flex-wrap gap-3">
                 <a
                   href={`/api/portfolios/${portfolioId}/export`}
-                  className="btn btn-dash btn-primary"
+                  className="btn btn-primary"
                 >
                   <Download size={15} />
                   მონაცემების ჩამოტვირთვა
@@ -274,11 +274,11 @@ export function Settings({
           </div>
         </section>
         {!preview && (
-          <section className="card card-border border-error/30 bg-error/5">
+          <section className="card border-error/30 bg-error/5">
             <div className="card-body min-w-0 gap-3 p-4">
               <h2
                 id="settings-danger"
-                className="scroll-mt-20 text-sm font-medium"
+                className="scroll-mt-20 text-base font-medium"
               >
                 პორტფელის წაშლა
               </h2>

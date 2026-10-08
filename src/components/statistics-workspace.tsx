@@ -140,7 +140,7 @@ function MoverBlock({
   period: MarketPeriod;
 }) {
   return (
-    <section className="card card-border min-w-0 bg-base-200">
+    <section className="card min-w-0 bg-base-200">
       <header className="flex items-center justify-between gap-2 px-3 pt-3">
         <h3 className="text-sm font-semibold">{title}</h3>
         <span className="text-xs text-base-content/55">გრაფიკი · 7დღ</span>
@@ -181,7 +181,7 @@ function MarketTab({
   return (
     <div className="space-y-3 lg:space-y-4">
       {overview ? (
-        <section className="card card-border bg-base-200">
+        <section className="card bg-base-200">
           <div className="grid grid-cols-2 lg:grid-cols-3">
             <Metric
               label="ბაზრის კაპიტალიზაცია"
@@ -224,10 +224,10 @@ function MarketTab({
       )}
       {data.assets.length > 0 && (
         <>
-          <section className="card card-border bg-base-200">
+          <section className="card bg-base-200">
             <div className="card-body gap-3 p-3 sm:p-4">
               <header className="flex flex-wrap items-center justify-between gap-1">
-                <h2 className="text-sm font-semibold">ბაზრის მიმართულება</h2>
+                <h2 className="text-base font-semibold">ბაზრის მიმართულება</h2>
                 <span className="text-xs text-base-content/55">
                   ტოპ 100 · სტეიბლკოინების გარეშე
                 </span>
@@ -308,9 +308,9 @@ function OwnedAssets({
     byId.has(position.asset.providerId),
   ).length;
   return (
-    <section className="card card-border min-w-0 bg-base-200">
+    <section className="card min-w-0 bg-base-200">
       <header className="flex flex-wrap items-center justify-between gap-2 p-3">
-        <h2 className="text-sm font-semibold">ჩემი აქტივები ბაზარზე</h2>
+        <h2 className="text-base font-semibold">ჩემი აქტივები ბაზარზე</h2>
         <span className="text-xs text-base-content/55">გრაფიკი · 7დღ</span>
       </header>
       {positions.length ? (

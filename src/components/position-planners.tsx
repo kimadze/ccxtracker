@@ -43,8 +43,8 @@ export function DcaPlanner({
   }
   return (
     <div className="grid gap-3 lg:gap-4 ">
-      <section className="space-y-4 rounded-box bg-base-100 p-3">
-        <h2 className="text-sm font-medium">დამატებითი შესყიდვა</h2>
+      <section className="space-y-3">
+        <h2 className="text-base font-medium">დამატებითი შესყიდვა</h2>
         <Field label="კაპიტალი + საკომისიო (USD)">
           <input
             className="input"
@@ -76,8 +76,8 @@ export function DcaPlanner({
           მიმდინარე ფასით. ტრანზაქცია ავტომატურად არ იქმნება.
         </p>
       </section>
-      <section className="rounded-box bg-base-100 p-3">
-        <h2 className="mb-3 text-sm font-medium">
+      <section className="border-t border-base-300 pt-3">
+        <h2 className="mb-3 text-base font-medium">
           შესყიდვის მოსალოდნელი შედეგი
         </h2>
         {result ? (
@@ -123,7 +123,7 @@ export function DcaPlanner({
                 value={percentage(result.projectedAllocation)}
               />
             </div>
-            <p className="mt-7 border-t border-base-300 pt-5 text-xs leading-6 text-base-content/60">
+            <p className="mt-3 border-t border-base-300 pt-3 text-xs leading-6 text-base-content/60">
               თუ შესყიდვა რეალურად განახორციელეთ, დაამატეთ ტრანზაქცია ფაქტობრივი
               რაოდენობით, ფასითა და საკომისიოთი.
             </p>
@@ -196,11 +196,11 @@ export function ExitPlanner({
   }
   return (
     <div className="space-y-3 lg:space-y-4">
-      <section className="card card-border bg-base-100">
-        <div className="card-body min-w-0 gap-3 p-4">
+      <section className="min-w-0">
+        <div className="flex min-w-0 flex-col gap-3">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-sm font-medium">გაყიდვის ეტაპები</h2>
+              <h2 className="text-base font-medium">გაყიდვის ეტაპები</h2>
               <p className="mt-2 text-xs leading-6 text-base-content/60">
                 ყველა წილი ითვლება მიმდინარე{" "}
                 <BalanceValue>{quantity(position.quantity)}</BalanceValue>{" "}
@@ -228,8 +228,13 @@ export function ExitPlanner({
             aria-label="გაყიდვის ეტაპები"
           >
             {levels.map((level, i) => (
-              <div key={i} className="grid gap-3 py-4 grid-cols-2 items-end">
-                <span className="badge badge-primary mb-2">TP{i + 1}</span>
+              <div
+                key={i}
+                className="grid grid-cols-2 items-end gap-3 border-t border-base-300 py-3"
+              >
+                <span className="badge badge-neutral col-span-2 justify-self-start">
+                  TP{i + 1}
+                </span>
                 <Field label="სამიზნე ფასი (USD)">
                   <input
                     className="input"
@@ -346,8 +351,8 @@ export function ExitPlanner({
               sensitive
             />
           </div>
-          <section className="card card-border bg-base-100 p-5">
-            <h2 className="text-sm font-medium">კაპიტალის ამოღება</h2>
+          <section className="border-t border-base-300 pt-3">
+            <h2 className="text-base font-medium">კაპიტალის ამოღება</h2>
             <p className="mt-3 text-xs leading-7 text-base-content/60">
               აღსადგენი თვითღირებულება:{" "}
               <BalanceValue>{money(position.costBasis)}</BalanceValue>.{" "}

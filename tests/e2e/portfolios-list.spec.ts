@@ -7,7 +7,7 @@ test("portfolio cards, responsive layout, privacy and creation dialog", async ({
   page,
 }, info) => {
   test.setTimeout(180000);
-  const user = `alice-${info.project.name}`;
+  const user = `alice-portfolios-${info.project.name}`;
   const cookies = JSON.parse(await readFile(".local/e2e-cookies.json", "utf8"));
   await page.context().addCookies([
     {

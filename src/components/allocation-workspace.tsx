@@ -135,7 +135,7 @@ export function AllocationWorkspace({
   return (
     <div className="space-y-3 lg:space-y-4">
       <section
-        className="card card-border bg-base-200"
+        className="card bg-base-200"
         aria-label="მიზნობრივი განაწილება"
       >
         <div className="card-body gap-3 p-4">
@@ -207,7 +207,7 @@ export function AllocationWorkspace({
       </section>
 
       <div className="grid gap-3 lg:gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
-        <section className="card card-border overflow-hidden bg-base-200">
+        <section className="card overflow-hidden bg-base-200">
           <header className="flex items-center justify-between border-b border-base-300 p-5">
             <div>
               <p className="flex items-center gap-2 text-xs uppercase tracking-wider text-primary">
@@ -295,7 +295,7 @@ export function AllocationWorkspace({
           )}
           <div className="flex flex-wrap gap-2 border-t border-base-300 p-3">
             <select
-              className="select min-w-0 flex-1"
+              className="select w-full min-w-0 sm:w-auto sm:flex-1"
               aria-label="აქტივის დამატება"
               value={addId}
               onChange={(event) => setAddId(event.target.value)}
@@ -333,7 +333,7 @@ export function AllocationWorkspace({
         </section>
 
         <aside className="space-y-3 lg:space-y-4">
-          <section className="card card-border bg-base-200">
+          <section className="card bg-base-200">
             <div className="card-body min-w-0 gap-3 p-4">
               <header>
                 <h2 className="card-title text-base">კონცენტრაცია</h2>
@@ -369,7 +369,7 @@ export function AllocationWorkspace({
               })}
             </div>
           </section>
-          <section className="card card-border bg-base-200">
+          <section className="card bg-base-200">
             <div className="card-body min-w-0 gap-3 p-4">
               <header>
                 <div>

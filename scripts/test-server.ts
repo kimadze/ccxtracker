@@ -16,7 +16,13 @@ for (const file of (await readdir("drizzle"))
   .sort())
   await db.exec(await readFile(`drizzle/${file}`, "utf8"));
 const secret = randomBytes(48).toString("base64url");
-const users = ["alice-desktop", "alice-mobile", "bob"];
+const users = [
+  "alice-desktop",
+  "alice-mobile",
+  "alice-portfolios-desktop",
+  "alice-portfolios-mobile",
+  "bob",
+];
 const cookies: Record<string, string> = {};
 for (const name of users) {
   const token = randomBytes(32).toString("base64url");

@@ -75,7 +75,7 @@ export function Modal({
     >
       <div
         className={clsx(
-          "modal-box max-h-[90dvh] w-full overflow-y-auto rounded-t-box border border-base-300 bg-base-200 p-4 pb-[calc(16px+env(safe-area-inset-bottom))] lg:w-[calc(100%-2rem)] lg:rounded-box lg:p-5",
+          "modal-box max-h-[90dvh] w-full overflow-y-auto rounded-t-box border border-base-300 bg-base-300 p-4 pb-[calc(16px+env(safe-area-inset-bottom))] lg:w-[calc(100%-2rem)] lg:rounded-box lg:p-5",
           wide ? "max-w-2xl" : "max-w-lg",
           className,
         )}

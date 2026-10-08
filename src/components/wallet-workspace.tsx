@@ -129,7 +129,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
         </Message>
       )}
       {wallet.lastError && !error && <Message>{wallet.lastError}</Message>}
-      <section className="card card-border bg-base-200">
+      <section className="card bg-base-200">
         <div className="card-body gap-2 p-4">
           {wallet.network === "stellar" ? (
             <div className="min-w-0 space-y-1">
@@ -201,7 +201,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
         return (
           <section
             key={address}
-            className="card card-border min-w-0 bg-base-200"
+            className="card min-w-0 bg-base-200"
           >
             <div className="card-body gap-3 p-4">
               <div className="flex min-w-0 items-center justify-between gap-2">

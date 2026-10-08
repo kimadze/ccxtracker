@@ -36,7 +36,7 @@ export function WalletPortfolioCard({
   return (
     <Link
       href={`/wallet-portfolios/${id}`}
-      className="card card-border group min-w-0 bg-base-200 transition-colors hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+      className="card group min-w-0 bg-base-200 transition-colors hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
       aria-label={`${name} — გახსნა`}
     >
       <div className="card-body gap-4 p-5">

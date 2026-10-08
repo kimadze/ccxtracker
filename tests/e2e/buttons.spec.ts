@@ -27,10 +27,21 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
     .click();
   await expect(page).toHaveURL(/\/portfolios\/[0-9a-f-]+$/);
   const base = page.url();
-  await page.getByRole("button", { name: "მენიუს გაშლა", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "მენიუს შეკუმშვა", exact: true }),
+  ).toBeVisible();
   const sidebar = page.getByRole("complementary", { name: "გვერდითი მენიუ" });
   await expect(sidebar).toBeVisible();
-  expect((await sidebar.boundingBox())!.width).toBe(240);
+  expect((await sidebar.boundingBox())!.width).toBe(224);
+  await page
+    .getByRole("button", { name: "მენიუს შეკუმშვა", exact: true })
+    .click();
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "მენიუს გაშლა", exact: true }),
+  ).toBeVisible();
+  expect((await sidebar.boundingBox())!.width).toBe(64);
+  await page.getByRole("button", { name: "მენიუს გაშლა", exact: true }).click();
   expect(
     await sidebar
       .getByRole("list", { name: "მთავარი ნავიგაცია" })

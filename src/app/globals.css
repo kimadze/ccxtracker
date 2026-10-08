@@ -29,12 +29,12 @@
   --color-error: #ff6b86;
   --color-error-content: #1d050b;
   --radius-selector: 0.5rem;
-  --radius-field: 0.55rem;
-  --radius-box: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
-  --depth: 1;
+  --depth: 0;
   --noise: 0;
 }
 @utility btn {

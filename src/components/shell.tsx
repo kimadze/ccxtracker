@@ -106,7 +106,7 @@ function Navigation({
                   title={label}
                   onClick={onNavigate}
                   className={clsx(
-                    active && "menu-active",
+                    active && "bg-primary/12 text-secondary font-medium",
                     "lg:is-drawer-close:justify-center lg:is-drawer-close:px-0",
                     "min-h-11 gap-2.5 rounded-field px-3 py-2 text-sm",
                   )}
@@ -192,9 +192,14 @@ export function Shell({
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
     const close = () => {
-      setDrawerOpen(false);
+      let expanded = true;
+      try {
+        expanded = localStorage.getItem("ccx-sidebar-expanded") !== "false";
+      } catch {}
+      setDrawerOpen(media.matches && expanded);
       setMoreOpen(false);
     };
+    close();
     media.addEventListener("change", close);
     return () => media.removeEventListener("change", close);
   }, []);
@@ -222,7 +227,13 @@ export function Shell({
             className="btn btn-ghost btn-square hidden min-h-11 lg:flex"
             aria-label={drawerOpen ? "მენიუს შეკუმშვა" : "მენიუს გაშლა"}
             aria-expanded={drawerOpen}
-            onClick={() => setDrawerOpen((v) => !v)}
+            onClick={() => {
+              const next = !drawerOpen;
+              setDrawerOpen(next);
+              try {
+                localStorage.setItem("ccx-sidebar-expanded", String(next));
+              } catch {}
+            }}
           >
             <Menu size={18} />
           </button>
@@ -308,7 +319,7 @@ export function Shell({
           onClose={() => setMoreOpen(false)}
           onCancel={() => setMoreOpen(false)}
         >
-          <div className="modal-box max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-t-box border border-base-300 bg-base-200 p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+          <div className="modal-box max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-t-box border border-base-300 bg-base-300 p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
             <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-base-200 pb-2">
               <div>
                 <h2 className="text-lg font-semibold">ყველა ხელსაწყო</h2>
@@ -377,7 +388,7 @@ export function Shell({
         <aside
           className={clsx(
             "flex h-dvh w-60 max-w-[85vw] flex-col overflow-hidden border-r border-base-300 bg-base-200 px-3 py-3 text-base-content transition-[width,padding] duration-200 motion-reduce:transition-none",
-            "lg:is-drawer-close:w-16 lg:is-drawer-close:px-2 lg:is-drawer-open:w-60",
+            "lg:is-drawer-close:w-16 lg:is-drawer-close:px-2 lg:is-drawer-open:w-56",
           )}
           aria-label="გვერდითი მენიუ"
         >

@@ -179,7 +179,7 @@ export function Overview({
       </OverviewToolbar>
       <div className="grid min-w-0 grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)] lg:gap-4">
         <section
-          className="card card-border min-w-0 bg-base-200 lg:col-start-1 lg:row-start-1"
+          className="card min-w-0 bg-base-200 lg:col-start-1 lg:row-start-1"
           aria-label="ღირებულება და ისტორია"
         >
           <div className="card-body gap-3 p-3! sm:p-4!">
@@ -241,9 +241,9 @@ export function Overview({
             </summary>
             <div className="collapse-content">{liquidityDetails}</div>
           </details>
-          <section className="card card-border hidden bg-base-200 lg:block">
+          <section className="card hidden bg-base-200 lg:block">
             <div className="card-body gap-3 p-4!">
-              <h2 className="text-sm font-semibold">ლიკვიდობა</h2>
+              <h2 className="text-base font-semibold">ლიკვიდობა</h2>
               <p className="overflow-x-auto whitespace-nowrap text-2xl font-semibold tabular-nums">
                 <BalanceValue>{money(s.liquidity)}</BalanceValue>
               </p>
@@ -261,24 +261,24 @@ export function Overview({
               {liquidityDetails}
             </div>
           </section>
-          <section className="card card-border hidden bg-base-200 md:block">
+          <section className="card hidden bg-base-200 md:block">
             <div className="card-body gap-3 p-4!">
-              <h2 className="text-sm font-semibold">კრიპტო განაწილება</h2>
+              <h2 className="text-base font-semibold">კრიპტო განაწილება</h2>
               {allocation}
             </div>
           </section>
           <section
-            className="card card-border hidden bg-base-200 lg:block"
+            className="card hidden bg-base-200 lg:block"
             aria-label="დამატებითი მაჩვენებლები"
           >
             <div className="card-body p-4!">{secondary}</div>
           </section>
         </div>
 
-        <section className="card card-border min-w-0 bg-base-200 lg:col-start-1 lg:row-start-2">
+        <section className="card min-w-0 bg-base-200 lg:col-start-1 lg:row-start-2">
           <div className="card-body gap-0 p-3! sm:p-4!">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold">აქტივები</h2>
+              <h2 className="text-base font-semibold">აქტივები</h2>
               <Link
                 href={base + "/positions"}
                 className="btn btn-ghost min-h-11 px-2 text-xs"

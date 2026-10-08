@@ -106,10 +106,10 @@ export function AirdropWorkspace({
           hint="გაყიდვების გარეშე შეფასება"
         />
       </div>
-      <section className="card card-border overflow-hidden bg-base-200">
+      <section className="card overflow-hidden bg-base-200">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-base-300 px-5 py-4">
           <div>
-            <h2 className="text-sm font-semibold">Airdrop ისტორია</h2>
+            <h2 className="text-base font-semibold">Airdrop ისტორია</h2>
             <p className="mt-1 text-xs leading-5 text-base-content/60">
               მიღების ფასი ინახება თვითღირებულებად; გაყიდვები ჩვეულებრივ
               ტრანზაქციებში აისახება.

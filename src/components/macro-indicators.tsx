@@ -11,7 +11,7 @@ export function MacroIndicators({ data }: { data: MacroStatistics }) {
   return (
     <div className="space-y-3 lg:space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">ეკონომიკური მაჩვენებლები</h2>
+        <h2 className="text-base font-semibold">ეკონომიკური მაჩვენებლები</h2>
         <span className="text-xs text-base-content/55">
           FRED · ბოლო წლის დაკვირვებები
         </span>
@@ -38,7 +38,7 @@ export function MacroIndicators({ data }: { data: MacroStatistics }) {
           return (
             <article
               key={metric.id}
-              className="card card-border min-w-0 bg-base-200"
+              className="card min-w-0 bg-base-200"
             >
               <div className="card-body gap-2 p-3 sm:p-4">
                 <h3 className="text-sm font-medium">{metric.label}</h3>

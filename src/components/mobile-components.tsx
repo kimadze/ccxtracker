@@ -68,7 +68,7 @@ export function MobileBottomSheet({
         onClose={() => setOpen(false)}
         onCancel={() => setOpen(false)}
       >
-        <div className="modal-box max-h-[85dvh] w-full overflow-y-auto rounded-t-box border border-base-300 bg-base-200 p-4 pb-[calc(16px+env(safe-area-inset-bottom))] lg:max-w-lg lg:rounded-box">
+        <div className="modal-box max-h-[85dvh] w-full overflow-y-auto rounded-t-box border border-base-300 bg-base-300 p-4 pb-[calc(16px+env(safe-area-inset-bottom))] lg:max-w-lg lg:rounded-box">
           <h2 className="pr-12 text-base font-semibold">{title}</h2>
           <button
             type="button"

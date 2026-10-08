@@ -163,7 +163,7 @@ export function ScenarioLab({
   }
   return (
     <div className="space-y-3 lg:space-y-4">
-      <div className="card card-border flex-row flex-wrap gap-3 bg-base-200 p-4">
+      <div className="card flex-row flex-wrap gap-3 bg-base-200 p-4">
         <select
           aria-label="შენახული სცენარი"
           value={active}
@@ -182,12 +182,12 @@ export function ScenarioLab({
           ახალი სცენარი
         </button>
       </div>
-      <div className="grid gap-3 lg:gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
-        <section className="card card-border bg-base-200">
+      <div className="grid items-start gap-3 lg:gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
+        <section className="card bg-base-200">
           <div className="card-body min-w-0 gap-3 p-4">
             <div>
               <div>
-                <h2 className="text-sm font-medium">რა მოხდება, თუ…</h2>
+                <h2 className="text-base font-medium">რა მოხდება, თუ…</h2>
                 <p className="mt-2 text-xs leading-6 text-base-content/60">
                   შეცვალეთ ფასები. რაოდენობები ავტომატურად აიღება მიმდინარე
                   პორტფელიდან.
@@ -252,7 +252,7 @@ export function ScenarioLab({
           </div>
         </section>
         <div className="space-y-3 lg:space-y-4">
-          <section className="card card-border bg-base-200">
+          <section className="card bg-base-200">
             <div className="card-body min-w-0 gap-3 p-4">
               <p className="text-xs text-base-content/60">
                 სცენარის კრიპტო ღირებულება
@@ -284,9 +284,11 @@ export function ScenarioLab({
               </div>
             </div>
           </section>
-          <section className="card card-border bg-base-200">
+          <section className="card bg-base-200">
             <div className="card-body min-w-0 gap-3 p-4">
-              <h2 className="mb-4 text-sm font-medium">სცენარის განაწილება</h2>
+              <h2 className="mb-4 text-base font-medium">
+                სცენარის განაწილება
+              </h2>
               {result?.positions.slice(0, 6).map((p) => (
                 <div
                   key={p.assetId}
@@ -341,7 +343,7 @@ export function ScenarioLab({
       )}
       {message && <Message error={error}>{message}</Message>}
       {!preview && (
-        <div className="card card-border flex-row flex-wrap items-end gap-3 bg-base-200 p-4">
+        <div className="card flex-row flex-wrap items-end gap-3 bg-base-200 p-4">
           <div className="min-w-52 flex-1">
             <Field label="სცენარის სახელი">
               <input
@@ -461,7 +463,7 @@ function GoalPlanner({
       </summary>
       <div className="collapse-content">
         <div className="sr-only">
-          <h2 className="text-sm font-medium">პორტფელის მიზანი</h2>
+          <h2 className="text-base font-medium">პორტფელის მიზანი</h2>
           <p className="mt-2 text-xs text-base-content/60">
             შეადარეთ მიმდინარე პორტფელი და სცენარი თქვენს მიზანს.
           </p>

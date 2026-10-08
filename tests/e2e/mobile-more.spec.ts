@@ -50,8 +50,14 @@ test("More sheet has readable touch rows outside the dock at narrow and short vi
     await more.tap();
     await expect(sheet).toBeVisible();
     await expect(page.locator(".dock > dialog")).toHaveCount(0);
-    await expect(sheet.getByRole("link")).toHaveCount(9);
-    await expect.poll(async () => sheet.locator(".modal-box").evaluate(box => box.getBoundingClientRect().bottom)).toBeLessThanOrEqual(height + 1);
+    await expect(sheet.getByRole("link")).toHaveCount(8);
+    await expect
+      .poll(async () =>
+        sheet
+          .locator(".modal-box")
+          .evaluate((box) => box.getBoundingClientRect().bottom),
+      )
+      .toBeLessThanOrEqual(height + 1);
     const geometry = await sheet.locator(".modal-box").evaluate((box) => {
       const rect = box.getBoundingClientRect();
       return {

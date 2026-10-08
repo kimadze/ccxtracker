@@ -61,7 +61,9 @@ test("create read-only BTC and Stellar, privacy, refresh failure, edit and remov
     await db.end();
   }
   await page.getByRole("button", { name: "განახლება", exact: true }).click();
-  await expect(page.getByRole("alert").first()).toContainText("ლიმიტი");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "ლიმიტი" }),
+  ).toBeVisible();
   await expect(
     page.getByText("$60 000,00", { exact: true }).first(),
   ).toBeVisible();

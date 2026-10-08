@@ -277,16 +277,8 @@ export function Watchlist({
             <p className="mt-2 max-w-lg text-sm leading-6 text-base-content/60">
               {items.length
                 ? "შეცვალეთ ძიება ან სტატუსის ფილტრი."
-                : "დაამატეთ აქტივები, რომელთა ფასსაც აკვირდებით. ისინი პორტფელის ღირებულებაში არ ჩაითვლება."}
+                : "არჩეული აქტივების ფასები აქ გამოჩნდება."}
             </p>
-            {!items.length && !preview && (
-              <button
-                className="btn btn-outline mt-4"
-                onClick={() => setOpen(true)}
-              >
-                <Plus size={15} /> პირველი აქტივის დამატება
-              </button>
-            )}
           </li>
         )}
       </ul>
