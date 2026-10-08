@@ -238,7 +238,7 @@ export function Shell({
             <Menu size={18} />
           </button>
           <select
-            className="select min-h-11 w-full min-w-0 flex-1 border-0 bg-transparent px-1 text-sm lg:max-w-64 lg:flex-none"
+            className="select select-ghost w-full min-w-0 flex-1 pl-3 pr-9 text-base lg:max-w-64 lg:flex-none lg:text-sm"
             aria-label="პორტფელის არჩევა"
             value={activeId ?? ""}
             onChange={(event) =>

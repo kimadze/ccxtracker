@@ -1,4 +1,5 @@
 "use client";
+import { FilterButtons } from "./filter-buttons";
 import {
   Area,
   AreaChart,
@@ -82,23 +83,15 @@ export function HistoryChart({
   return (
     <div>
       {showPeriodControls && snapshots.length >= 2 && (
-        <div
-          className="tabs tabs-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden mb-1 flex flex-wrap"
-          role="group"
-          aria-label="გრაფიკის პერიოდი"
-        >
-          {(["1D", "7D", "1M", "3M", "1Y", "ALL"] as const).map((item) => (
-            <button
-              key={item}
-              type="button"
-              aria-pressed={period === item}
-              className={`tab min-h-11 min-w-11 px-2 ${period === item ? "tab-active" : ""}`}
-              onClick={() => setPeriod(item)}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
+        <FilterButtons
+          label="გრაფიკის პერიოდი"
+          value={period}
+          onChange={setPeriod}
+          className="mb-1 w-fit"
+          options={(["1D", "7D", "1M", "3M", "1Y", "ALL"] as const).map(
+            (value) => ({ value, label: value }),
+          )}
+        />
       )}
       {points.length < 2 && (
         <p role="status" className="mb-2 text-xs text-base-content/60">

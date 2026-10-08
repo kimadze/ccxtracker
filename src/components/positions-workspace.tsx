@@ -1,4 +1,5 @@
 "use client";
+import { FilterButtons } from "./filter-buttons";
 import { useState } from "react";
 import {
   Grid2X2,
@@ -76,56 +77,21 @@ export function PositionsWorkspace({
     positions[0];
   return (
     <div className="space-y-3 lg:space-y-4">
-      <section
-        className="join hidden max-w-full overflow-x-auto lg:inline-flex"
-        role="group"
-        aria-label="პოზიციების ფილტრები"
-      >
-        <button
-          aria-pressed={filter === "all"}
-          type="button"
-          className={`btn btn-ghost join-item min-h-11 shrink-0 gap-2 px-3 text-sm ${filter === "all" ? "btn-active" : ""}`}
-          onClick={() => {
-            setFilter("all");
-            setPage(0);
-          }}
-        >
-          ყველა <span className="badge badge-sm">{positions.length}</span>
-        </button>
-        <button
-          aria-pressed={filter === "profit"}
-          type="button"
-          className={`btn btn-ghost join-item min-h-11 shrink-0 gap-2 px-3 text-sm ${filter === "profit" ? "btn-active" : ""}`}
-          onClick={() => {
-            setFilter("profit");
-            setPage(0);
-          }}
-        >
-          მოგებაში <span className="badge badge-sm">{profitable}</span>
-        </button>
-        <button
-          aria-pressed={filter === "loss"}
-          type="button"
-          className={`btn btn-ghost join-item min-h-11 shrink-0 gap-2 px-3 text-sm ${filter === "loss" ? "btn-active" : ""}`}
-          onClick={() => {
-            setFilter("loss");
-            setPage(0);
-          }}
-        >
-          ზარალში <span className="badge badge-sm">{losing}</span>
-        </button>
-        <button
-          aria-pressed={filter === "unpriced"}
-          type="button"
-          className={`btn btn-ghost join-item min-h-11 shrink-0 gap-2 px-3 text-sm ${filter === "unpriced" ? "btn-active" : ""}`}
-          onClick={() => {
-            setFilter("unpriced");
-            setPage(0);
-          }}
-        >
-          ფასის გარეშე <span className="badge badge-sm">{unpriced}</span>
-        </button>
-      </section>
+      <FilterButtons
+        label="პოზიციების ფილტრები"
+        value={filter}
+        className="hidden w-fit lg:flex"
+        onChange={(value) => {
+          setFilter(value);
+          setPage(0);
+        }}
+        options={[
+          { value: "all", label: "ყველა", count: positions.length },
+          { value: "profit", label: "მოგებაში", count: profitable },
+          { value: "loss", label: "ზარალში", count: losing },
+          { value: "unpriced", label: "ფასის გარეშე", count: unpriced },
+        ]}
+      />
       <div className="min-w-0">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <label className="input min-h-11 min-w-0 flex-1 lg:max-w-md">
@@ -142,7 +108,7 @@ export function PositionsWorkspace({
             />
           </label>
           <select
-            className="select hidden min-h-11 max-w-48 lg:block"
+            className="select hidden min-h-11 max-w-48 lg:inline-flex"
             aria-label="პოზიციების დალაგება"
             value={sort}
             onChange={(e) => setSort(e.target.value)}
@@ -190,32 +156,21 @@ export function PositionsWorkspace({
                 </button>
               }
             >
-              <div
-                className="grid gap-2"
-                role="group"
-                aria-label="შედეგის ფილტრი"
-              >
-                {[
-                  ["all", "ყველა", positions.length],
-                  ["profit", "მოგებაში", profitable],
-                  ["loss", "ზარალში", losing],
-                  ["unpriced", "ფასის გარეშე", unpriced],
-                ].map(([value, label, count]) => (
-                  <button
-                    key={String(value)}
-                    type="button"
-                    className={`btn min-h-11 justify-between ${filter === value ? "btn-soft btn-primary" : "btn-ghost"}`}
-                    aria-pressed={filter === value}
-                    onClick={() => {
-                      setFilter(String(value));
-                      setPage(0);
-                    }}
-                  >
-                    <span>{String(label)}</span>
-                    <strong>{String(count)}</strong>
-                  </button>
-                ))}
-              </div>
+              <FilterButtons
+                label="შედეგის ფილტრი"
+                value={filter}
+                className="flex-col"
+                onChange={(value) => {
+                  setFilter(value);
+                  setPage(0);
+                }}
+                options={[
+                  { value: "all", label: "ყველა", count: positions.length },
+                  { value: "profit", label: "მოგებაში", count: profitable },
+                  { value: "loss", label: "ზარალში", count: losing },
+                  { value: "unpriced", label: "ფასის გარეშე", count: unpriced },
+                ]}
+              />
               <label className="fieldset mt-3">
                 <span>დალაგება</span>
                 <select

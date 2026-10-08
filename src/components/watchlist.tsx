@@ -1,4 +1,5 @@
 "use client";
+import { FilterButtons } from "./filter-buttons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, Pencil, Plus, Search, Target, Trash2 } from "lucide-react";
@@ -98,45 +99,25 @@ export function Watchlist({
         />
       )}
       {!preview && (
-        <section
-          className="grid grid-cols-2 gap-2 lg:grid-cols-4"
-          aria-label="დაკვირვების სიის შეჯამება"
-        >
-          <button
-            aria-pressed={movement === "all"}
-            className={`btn min-h-11 justify-between text-xs ${movement === "all" ? "btn-soft btn-primary" : "btn-ghost"}`}
-            onClick={() => setMovement("all")}
-          >
-            <span>სულ აქტივი</span>
-            <strong className="tabular-nums">{items.length}</strong>
-          </button>
-          <button
-            aria-pressed={movement === "up"}
-            className={`btn min-h-11 justify-between text-xs ${movement === "up" ? "btn-soft btn-primary" : "btn-ghost"}`}
-            onClick={() => setMovement("up")}
-          >
-            <span>დღეს ზრდაში</span>
-            <strong className="tabular-nums">{risingItems.length}</strong>
-          </button>
-          <button
-            aria-pressed={movement === "down"}
-            className={`btn min-h-11 justify-between text-xs ${movement === "down" ? "btn-soft btn-primary" : "btn-ghost"}`}
-            onClick={() => setMovement("down")}
-          >
-            <span>დღეს კლებაში</span>
-            <strong className="tabular-nums">{fallingItems.length}</strong>
-          </button>
-          <button
-            aria-pressed={movement === "unpriced"}
-            className={`btn min-h-11 justify-between text-xs ${movement === "unpriced" ? "btn-soft btn-primary" : "btn-ghost"}`}
-            onClick={() => setMovement("unpriced")}
-          >
-            <span>ფასის გარეშე</span>
-            <strong className="tabular-nums">
-              {items.length - pricedItems.length}
-            </strong>
-          </button>
-        </section>
+        <FilterButtons
+          label="დაკვირვების სიის შეჯამება"
+          value={movement}
+          onChange={setMovement}
+          options={[
+            { value: "all", label: "სულ აქტივი", count: items.length },
+            { value: "up", label: "დღეს ზრდაში", count: risingItems.length },
+            {
+              value: "down",
+              label: "დღეს კლებაში",
+              count: fallingItems.length,
+            },
+            {
+              value: "unpriced",
+              label: "ფასის გარეშე",
+              count: items.length - pricedItems.length,
+            },
+          ]}
+        />
       )}
       {!preview && (
         <div className="flex min-w-0 items-center gap-3">

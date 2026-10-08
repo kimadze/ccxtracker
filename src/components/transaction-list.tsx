@@ -1,4 +1,5 @@
 "use client";
+import { FilterButtons } from "./filter-buttons";
 import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -69,50 +70,31 @@ export function TransactionList({
     <div className="space-y-3 lg:space-y-4">
       <section className="card bg-base-200">
         <div className="card-body gap-4 p-4">
-          <div
-            className="tabs tabs-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex min-w-0 flex-nowrap overflow-x-auto"
-            role="group"
-            aria-label="სწრაფი ფილტრი"
-          >
-            <button
-              type="button"
-              aria-pressed={!kind}
-              className={`tab min-h-11 shrink-0 ${!kind ? "tab-active" : ""}`}
-              onClick={() => {
-                setKind("");
-                setPage(0);
-              }}
-            >
-              ყველა{" "}
-              <span className="badge badge-sm ml-2">{entries.length}</span>
-            </button>
-            {(
-              [
-                "buy",
-                "sell",
-                "deposit",
-                "withdrawal",
-                "fee",
-                "airdrop",
-              ] as const
-            ).map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={kind === value}
-                className={`tab min-h-11 shrink-0 ${kind === value ? "tab-active" : ""}`}
-                onClick={() => {
-                  setKind(value);
-                  setPage(0);
-                }}
-              >
-                {kindLabels[value]}{" "}
-                <span className="badge badge-sm ml-2">
-                  {entries.filter((entry) => entry.kind === value).length}
-                </span>
-              </button>
-            ))}
-          </div>
+          <FilterButtons
+            label="სწრაფი ფილტრი"
+            value={kind}
+            onChange={(value) => {
+              setKind(value);
+              setPage(0);
+            }}
+            options={[
+              { value: "", label: "ყველა", count: entries.length },
+              ...(
+                [
+                  "buy",
+                  "sell",
+                  "deposit",
+                  "withdrawal",
+                  "fee",
+                  "airdrop",
+                ] as const
+              ).map((value) => ({
+                value,
+                label: kindLabels[value],
+                count: entries.filter((entry) => entry.kind === value).length,
+              })),
+            ]}
+          />
           <div className="flex flex-wrap items-end gap-3">
             <label className="input min-w-0 flex-1 md:max-w-sm">
               <Search size={16} aria-hidden="true" />

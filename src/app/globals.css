@@ -62,6 +62,15 @@
     outline-offset: -2px;
   }
 }
+@utility select {
+  &:not([multiple]) {
+    min-height: 44px;
+    height: 44px;
+    align-items: center;
+    padding-block: 0;
+    line-height: 1.25;
+  }
+}
 .modal-action .btn,
 dialog form button[type="submit"] {
   min-height: 44px;

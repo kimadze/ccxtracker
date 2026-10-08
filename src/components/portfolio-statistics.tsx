@@ -1,4 +1,5 @@
 "use client";
+import { FilterButtons } from "./filter-buttons";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { PortfolioSummary } from "@/domain/types";
@@ -84,31 +85,21 @@ export function PortfolioStatistics({
               <option value="value">ღირებულება</option>
             </select>
           </div>
-          <div
-            className="join flex max-w-full overflow-x-auto"
-            role="group"
-            aria-label="პოზიციების შედეგის ფილტრი"
-          >
-            {[
-              ["all", "ყველა"],
-              [
-                "attention",
-                `ყურადღება · ${data.rows.filter(attention).length}`,
-              ],
-              ["profit", "მოგებაში"],
-              ["loss", "ზარალში"],
-            ].map(([value, label]) => (
-              <button
-                type="button"
-                className={`btn join-item shrink-0 px-2 text-xs ${filter === value ? "btn-soft btn-primary" : "btn-ghost"}`}
-                key={value}
-                aria-pressed={filter === value}
-                onClick={() => setFilter(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <FilterButtons
+            label="პოზიციების შედეგის ფილტრი"
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "all", label: "ყველა" },
+              {
+                value: "attention",
+                label: "ყურადღება",
+                count: data.rows.filter(attention).length,
+              },
+              { value: "profit", label: "მოგებაში" },
+              { value: "loss", label: "ზარალში" },
+            ]}
+          />
           <ul className="list lg:hidden">
             {rows.map((row) => (
               <li

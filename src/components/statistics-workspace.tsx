@@ -1,4 +1,5 @@
 "use client";
+import { FilterButtons } from "./filter-buttons";
 import { useState } from "react";
 import Link from "next/link";
 import { WorkspaceTabs, useWorkspaceTab } from "./workspace-tabs";
@@ -42,23 +43,12 @@ function PeriodControl({
   return (
     <div className="flex items-center justify-between gap-2">
       <span className="text-xs text-base-content/60">ფასის ცვლილება</span>
-      <div
-        className="join rounded-field bg-base-200 p-1"
-        role="group"
-        aria-label="ცვლილების პერიოდი"
-      >
-        {periods.map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            aria-pressed={value === period}
-            onClick={() => onChange(value)}
-            className={`btn btn-sm min-h-11 join-item px-3 ${value === period ? "btn-soft btn-primary" : "btn-ghost"}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <FilterButtons
+        label="ცვლილების პერიოდი"
+        value={period}
+        onChange={onChange}
+        options={periods.map(([value, label]) => ({ value, label }))}
+      />
     </div>
   );
 }

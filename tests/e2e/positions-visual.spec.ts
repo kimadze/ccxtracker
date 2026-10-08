@@ -62,6 +62,11 @@ test("populated position cards, filters and mobile rows keep their hierarchy and
   for (const width of [360, 390, 430, 768, 1024, 1440, 1874]) {
     await page.setViewportSize({ width, height: 900 });
     if (width >= 1024) {
+      await page.getByRole("button", { name: "ცხრილის ხედი" }).click();
+      await page.screenshot({
+        path: `.local/positions-controls-table-${width}-${info.project.name}.png`,
+        fullPage: true,
+      });
       await page.getByRole("button", { name: "ბარათების ხედი" }).click();
       await expect(page.locator("article.card")).toHaveCount(4);
       const cards = page.locator("article.card");
