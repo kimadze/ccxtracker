@@ -91,6 +91,20 @@ test("create read-only BTC and Stellar, privacy, refresh failure, edit and remov
   await expect(
     page.getByRole("list").getByText("LONGTOKEN123", { exact: true }),
   ).toBeVisible();
+  const nativeLogo = page
+    .getByRole("list")
+    .locator('img[src$="/wallet-stellar.svg"]');
+  await expect(nativeLogo).toBeVisible();
+  await expect
+    .poll(() =>
+      nativeLogo.evaluate(
+        (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
+      ),
+    )
+    .toBe(true);
+  await expect(
+    page.getByRole("list").getByText("LON", { exact: true }),
+  ).toBeVisible();
   await page.getByText("დეტალები", { exact: true }).click();
   await expect(page.getByText(/რეზერვი:/)).toContainText("1,5 XLM");
   await expect(page.getByText("SPAM", { exact: true })).toHaveCount(0);

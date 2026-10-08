@@ -9,6 +9,7 @@ import { decimal } from "@/domain/decimal";
 import { money, quantity, dateTime } from "@/lib/formatters";
 import { BalancePrivacyToggle } from "./shell";
 import { BalanceValue, Field, Message, Modal } from "./ui";
+import { AssetIcon } from "./positions";
 import {
   refreshWalletPortfolio,
   updateWalletPortfolio,
@@ -124,7 +125,9 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
         <Message error>
           <div>
             <p>{error}</p>
-            {snapshot && <p>ბალანსი ვერ განახლდა. წინა მონაცემები შენარჩუნებულია.</p>}
+            {snapshot && (
+              <p>ბალანსი ვერ განახლდა. წინა მონაცემები შენარჩუნებულია.</p>
+            )}
           </div>
         </Message>
       )}
@@ -199,10 +202,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
       {wallet.addresses.map((address) => {
         const account = snapshot?.accounts.find((a) => a.address === address);
         return (
-          <section
-            key={address}
-            className="card min-w-0 bg-base-200"
-          >
+          <section key={address} className="card min-w-0 bg-base-200">
             <div className="card-body gap-3 p-4">
               <div className="flex min-w-0 items-center justify-between gap-2">
                 <h2
@@ -246,13 +246,28 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                           a.symbol.localeCompare(b.symbol),
                       )
                       .slice(0, expanded[address] ? undefined : 6)
-                      .map((a) => (
+                      .map((a, index) => (
                         <li
                           key={a.id}
-                          className="list-row min-w-0 grid-cols-[1fr_auto] gap-2 border-b border-base-300 px-0 py-3"
+                          className="list-row min-w-0 grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 border-b border-base-300 px-0 py-3"
                         >
+                          <AssetIcon
+                            symbol={a.symbol}
+                            logoUrl={
+                              a.id === "native"
+                                ? `/wallet-${wallet.network}.svg`
+                                : null
+                            }
+                            index={index}
+                            size={36}
+                          />
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold">{a.symbol}</p>
+                            <p
+                              className="truncate text-sm font-semibold"
+                              title={a.symbol}
+                            >
+                              {a.symbol}
+                            </p>
                             <p className="mt-1 overflow-x-auto whitespace-nowrap text-xs tabular-nums text-base-content/60">
                               <BalanceValue>
                                 {quantity(a.quantity)}
