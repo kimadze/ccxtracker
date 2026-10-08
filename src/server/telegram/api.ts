@@ -36,7 +36,7 @@ export class TelegramError extends Error {
   }
 }
 export async function telegramCall(
-  method: "sendMessage" | "setWebhook",
+  method: "sendMessage" | "setWebhook" | "getMe" | "getWebhookInfo",
   body: Record<string, unknown>,
 ) {
   if (!telegramConfigured()) throw new Error("TELEGRAM_NOT_CONFIGURED");
