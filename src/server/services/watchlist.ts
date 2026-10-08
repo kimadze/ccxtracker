@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { Database } from "@/server/db";
 import { watchlistItems, assets } from "@/server/db/schema";
 import { idSchema, positiveAmount } from "@/domain/validation";
@@ -42,6 +42,11 @@ export function watchlistService(db: Database, userId: string) {
           target: [watchlistItems.portfolioId, watchlistItems.assetId],
           set: {
             entryPrice: data.entryPrice,
+            targetActive: sql`CASE WHEN ${watchlistItems.entryPrice} IS DISTINCT FROM ${data.entryPrice}::numeric THEN false ELSE ${watchlistItems.targetActive} END`,
+            targetQuoteAt: sql`CASE WHEN ${watchlistItems.entryPrice} IS DISTINCT FROM ${data.entryPrice}::numeric THEN NULL ELSE ${watchlistItems.targetQuoteAt} END`,
+            targetReachedAt: sql`CASE WHEN ${watchlistItems.entryPrice} IS DISTINCT FROM ${data.entryPrice}::numeric THEN NULL ELSE ${watchlistItems.targetReachedAt} END`,
+            targetReachedPrice: sql`CASE WHEN ${watchlistItems.entryPrice} IS DISTINCT FROM ${data.entryPrice}::numeric THEN NULL ELSE ${watchlistItems.targetReachedPrice} END`,
+            targetReadAt: sql`CASE WHEN ${watchlistItems.entryPrice} IS DISTINCT FROM ${data.entryPrice}::numeric THEN NULL ELSE ${watchlistItems.targetReadAt} END`,
             notes: data.notes,
             updatedAt: new Date(),
           },

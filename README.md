@@ -73,6 +73,14 @@ Simulations read the same current holdings. DCA assumes additional external capi
 
 The current release records transfers manually as withdrawals/deposits. Automatically linked transfers and consolidated cross-portfolio external-flow accounting are not implemented. Exchange synchronization, securities, automatic trading, import, multi-currency valuation and tax reporting are outside this release.
 
+### Transaction changes and planning
+
+Manual portfolios show a server-calculated before/after preview for transaction creation, editing, deletion and batch opening balances. Both valuations share one cached quote set; incomplete or stale quotes are marked. Unknown acquisition basis remains distinct from explicitly entered zero. Up to 20 distinct opening assets can be saved atomically without consuming USD cash.
+
+Each deleted transaction offers a 30-second undo using its existing audit copy. Restoring checks the complete intervening history, preserves the original record and cannot create duplicates. Backdated changes invalidate affected snapshots. Planning combines strategy, scenarios and allocation with URL-backed tabs; the previous routes redirect while retaining asset selection.
+
+Watchlist entry targets notify inside the app when a fresh price reaches or falls below the target. A new episode requires a fresh price above the target first. Read state persists; changing a target resets its episode. This is an in-app check on portfolio opening and quote refresh, not a background push notification service.
+
 ### Read-only wallet portfolios
 
 Portfolio creation also supports Stellar and Bitcoin mainnet wallets with up to ten public addresses. These are separate from the manual transaction ledger; no signature, private key or wallet connection is requested. Free public Horizon and mempool.space endpoints provide balances; native asset prices use public market endpoints. Refresh is limited to once per minute per wallet, and failures preserve the previous snapshot.

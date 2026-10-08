@@ -8,12 +8,10 @@ import {
   ChartNoAxesCombined,
   Eye,
   EyeOff,
-  FlaskConical,
   Gift,
   LayoutDashboard,
   LineChart,
   Menu,
-  PieChart,
   Plus,
   Route,
   Settings2,
@@ -32,6 +30,8 @@ import {
 import { Brand } from "./brand";
 import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
+import { TransactionUndo } from "./transaction-undo";
+import { TargetNotifications } from "./target-notifications";
 import {
   privacyEvent,
   readPrivacy,
@@ -60,9 +60,7 @@ const groups: { title: string; links: NavItem[] }[] = [
   {
     title: "დაგეგმვა",
     links: [
-      ["allocation", "განაწილება", PieChart],
-      ["strategy", "სტრატეგია", Route],
-      ["scenarios", "სცენარები", FlaskConical],
+      ["planning", "დაგეგმვა", Route],
       ["journal", "ჟურნალი", BookOpen],
     ],
   },
@@ -213,6 +211,7 @@ export function Shell({
 
   return (
     <div className="drawer lg:drawer-open min-h-screen bg-base-100 ccx-shell">
+      <TransactionUndo />
       <input
         id="ccx-main-drawer"
         type="checkbox"
@@ -251,7 +250,8 @@ export function Shell({
               </option>
             ))}
           </select>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
+            <TargetNotifications key={activeId} portfolioId={activeId} />
             <BalancePrivacyToggle />
           </div>
           <div

@@ -2,6 +2,8 @@
 import { FilterButtons } from "./filter-buttons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { decimal } from "@/domain/decimal";
 import { Eye, Pencil, Plus, Search, Target, Trash2 } from "lucide-react";
 import type { Asset, Quote } from "@/domain/types";
 import { saveWatchlist, removeWatchlist } from "@/server/settings-actions";
@@ -48,12 +50,14 @@ export function Watchlist({
     [error, setError] = useState(""),
     [pending, setPending] = useState(false);
   const router = useRouter();
+  const focusedAsset = useSearchParams().get("asset");
   const filteredItems = items.filter((item) => {
     const quote = quotes.find((q) => q.assetId === item.asset.id);
     const matchesText = `${item.asset.name} ${item.asset.symbol}`
       .toLowerCase()
       .includes(filterQuery.toLowerCase());
     if (!matchesText) return false;
+    if (focusedAsset && item.asset.id !== focusedAsset) return false;
     if (movement === "up") return Number(quote?.change24h ?? 0) > 0;
     if (movement === "down") return Number(quote?.change24h ?? 0) < 0;
     if (movement === "unpriced")
@@ -148,6 +152,12 @@ export function Watchlist({
               : null;
           const closeToTarget =
             targetGap !== null && Math.abs(Number(targetGap)) <= 5;
+          const reached = Boolean(
+            item.entryPrice &&
+            quote?.price &&
+            !quote.stale &&
+            decimal(quote.price).lte(item.entryPrice),
+          );
           return (
             <li
               key={item.id}
@@ -208,14 +218,20 @@ export function Watchlist({
                 </strong>
                 <small
                   className={
-                    closeToTarget ? "text-warning" : pnlClass(targetGap)
+                    reached
+                      ? "text-success"
+                      : closeToTarget
+                        ? "text-warning"
+                        : pnlClass(targetGap)
                   }
                 >
                   {targetGap === null
                     ? "ფასი არ არის მითითებული"
-                    : closeToTarget
-                      ? "შესვლის ფასთან ახლოსაა"
-                      : `${percentage(targetGap, true)} შესვლის ფასიდან`}
+                    : reached
+                      ? "მიზანი მიღწეულია"
+                      : closeToTarget
+                        ? "შესვლის ფასთან ახლოსაა"
+                        : `${percentage(targetGap, true)} შესვლის ფასიდან`}
                 </small>
               </div>
               {!preview && (
@@ -285,6 +301,7 @@ export function Watchlist({
                 notes: String(form.get("notes") ?? ""),
               });
               if (response.ok) {
+                window.dispatchEvent(new Event("ccx-watchlist-changed"));
                 setOpen(false);
                 router.refresh();
               } else setError(response.error);
@@ -394,6 +411,7 @@ export function Watchlist({
             try {
               const result = await removeWatchlist(portfolioId, deleting!);
               if (result.ok) {
+                window.dispatchEvent(new Event("ccx-watchlist-changed"));
                 setDeleting(null);
                 router.refresh();
               } else setError(result.error);

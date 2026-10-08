@@ -50,7 +50,7 @@ test("More sheet has readable touch rows outside the dock at narrow and short vi
     await more.tap();
     await expect(sheet).toBeVisible();
     await expect(page.locator(".dock > dialog")).toHaveCount(0);
-    await expect(sheet.getByRole("link")).toHaveCount(8);
+    await expect(sheet.getByRole("link")).toHaveCount(6);
     await expect
       .poll(async () =>
         sheet

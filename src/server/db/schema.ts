@@ -422,6 +422,11 @@ export const watchlistItems = pgTable(
       .notNull()
       .references(() => assets.id),
     entryPrice: financial("entry_price"),
+    targetActive: boolean("target_active").default(false).notNull(),
+    targetQuoteAt: timestamp("target_quote_at", { withTimezone: true }),
+    targetReachedAt: timestamp("target_reached_at", { withTimezone: true }),
+    targetReachedPrice: financial("target_reached_price"),
+    targetReadAt: timestamp("target_read_at", { withTimezone: true }),
     notes: text("notes").default("").notNull(),
     ...times(),
   },

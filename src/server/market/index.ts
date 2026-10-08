@@ -9,6 +9,7 @@ import {
 } from "@/server/db/schema";
 import type { Asset, Quote } from "@/domain/types";
 import { CoinGeckoProvider } from "./provider";
+import { evaluateWatchlistTargets } from "../services/watchlist-notifications";
 
 export const coreAssets: Asset[] = [
   {
@@ -26,7 +27,8 @@ export const coreAssets: Asset[] = [
     name: "Bitcoin",
     isStablecoin: false,
     category: "store-of-value",
-    logoUrl: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1696501400",
+    logoUrl:
+      "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1696501400",
   },
   {
     id: "ethereum",
@@ -35,7 +37,8 @@ export const coreAssets: Asset[] = [
     name: "Ethereum",
     isStablecoin: false,
     category: "layer-1",
-    logoUrl: "https://assets.coingecko.com/coins/images/279/large/ethereum.png?1696501628",
+    logoUrl:
+      "https://assets.coingecko.com/coins/images/279/large/ethereum.png?1696501628",
   },
   {
     id: "solana",
@@ -44,7 +47,8 @@ export const coreAssets: Asset[] = [
     name: "Solana",
     isStablecoin: false,
     category: "layer-1",
-    logoUrl: "https://assets.coingecko.com/coins/images/4128/large/solana.png?1696504756",
+    logoUrl:
+      "https://assets.coingecko.com/coins/images/4128/large/solana.png?1696504756",
   },
   {
     id: "tether",
@@ -53,7 +57,8 @@ export const coreAssets: Asset[] = [
     name: "Tether",
     isStablecoin: true,
     category: "stablecoin",
-    logoUrl: "https://assets.coingecko.com/coins/images/325/large/Tether.png?1696501661",
+    logoUrl:
+      "https://assets.coingecko.com/coins/images/325/large/Tether.png?1696501661",
   },
   {
     id: "usd-coin",
@@ -62,15 +67,19 @@ export const coreAssets: Asset[] = [
     name: "USDC",
     isStablecoin: true,
     category: "stablecoin",
-    logoUrl: "https://assets.coingecko.com/coins/images/6319/large/usdc.png?1696506694",
+    logoUrl:
+      "https://assets.coingecko.com/coins/images/6319/large/usdc.png?1696506694",
   },
 ];
 export async function seedAssets() {
   for (const asset of coreAssets)
-    await getDb().insert(assetTable).values(asset).onConflictDoUpdate({
-      target: assetTable.id,
-      set: { logoUrl: asset.logoUrl, updatedAt: new Date() },
-    });
+    await getDb()
+      .insert(assetTable)
+      .values(asset)
+      .onConflictDoUpdate({
+        target: assetTable.id,
+        set: { logoUrl: asset.logoUrl, updatedAt: new Date() },
+      });
 }
 
 async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
@@ -115,6 +124,11 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
             fetchedAt: new Date(),
           },
         });
+    try {
+      await evaluateWatchlistTargets(db, fresh);
+    } catch {
+      console.warn("Watchlist target evaluation failed", { retryable: true });
+    }
     return fresh;
   } catch (error) {
     console.warn("Market quote refresh failed", {
