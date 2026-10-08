@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Unplug } from "lucide-react";
 import {
   beginTelegramLink,
@@ -20,11 +20,23 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
     [message, setMessage] = useState(""),
     [error, setError] = useState(false),
     [url, setUrl] = useState("");
+  const storageKey = `ccx:telegram-link:${portfolioId}`;
+  const expiresAt = useRef(0);
+  const clearPendingLink = useCallback(() => {
+    setUrl("");
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // Linking also works when browser storage is unavailable.
+    }
+  }, [storageKey]);
   const refresh = useCallback(async () => {
     try {
       const reply = await loadTelegramSettings();
-      if (reply.ok) setStatus(reply);
-      else {
+      if (reply.ok) {
+        setStatus(reply);
+        if (reply.connected) clearPendingLink();
+      } else {
         setError(true);
         setMessage(reply.error);
       }
@@ -32,20 +44,41 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
       setError(true);
       setMessage("Telegram-ის პარამეტრები ვერ ჩაიტვირთა.");
     }
-  }, []);
+  }, [clearPendingLink]);
   useEffect(() => {
-    const initial = setTimeout(() => void refresh(), 0);
+    const initial = setTimeout(() => {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(storageKey) ?? "null");
+        if (
+          typeof saved?.url === "string" &&
+          /^https:\/\/t\.me\/[A-Za-z0-9_]{5,32}\?start=[A-Za-z0-9_-]{43}$/.test(
+            saved.url,
+          ) &&
+          typeof saved.expiresAt === "number" &&
+          saved.expiresAt > Date.now()
+        ) {
+          expiresAt.current = saved.expiresAt;
+          setUrl(saved.url);
+        } else sessionStorage.removeItem(storageKey);
+      } catch {
+        // Storage is an optional return-to-CCX convenience.
+      }
+      void refresh();
+    }, 0);
     window.addEventListener("focus", refresh);
     return () => {
       clearTimeout(initial);
       window.removeEventListener("focus", refresh);
     };
-  }, [refresh]);
+  }, [refresh, storageKey]);
   useEffect(() => {
     if (!url) return;
-    const timer = setInterval(() => void refresh(), 5000);
+    const timer = setInterval(() => {
+      if (expiresAt.current <= Date.now()) clearPendingLink();
+      else void refresh();
+    }, 5000);
     return () => clearInterval(timer);
-  }, [url, refresh]);
+  }, [url, refresh, clearPendingLink]);
   async function perform(
     action: () => Promise<{ ok: boolean; error?: string }>,
     success: string,
@@ -102,8 +135,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
       {status?.configured && (
         <div className="mt-3 space-y-3">
           <p className="text-xs text-base-content/60">
-            პირადი შეტყობინებები ფასის სამიზნის მიღწევაზე. აირჩიეთ პორტფელები და
-            გაგზავნის ტიპები.
+            მიიღე ფასის შეტყობინებები Telegram-ში.
           </p>
           {status.connected && (
             <p className="text-sm">
@@ -132,7 +164,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                     confirmTelegramLink,
                     "Telegram დაკავშირებულია.",
                   ).then((ok) => {
-                    if (ok) setUrl("");
+                    if (ok) clearPendingLink();
                   })
                 }
               >
@@ -141,17 +173,12 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
             </div>
           ) : url ? (
             <div className="space-y-2">
-              <a
-                className="btn"
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Telegram-ის გახსნა
+              <a className="btn btn-primary" href={url} rel="noreferrer">
+                ბოტის გახსნა და დაკავშირება
               </a>
               <p className="text-xs text-base-content/60">
-                დააჭირეთ Start-ს და დაბრუნდით აქ დასადასტურებლად. ბმული
-                მოქმედებს 10 წუთი.
+                Telegram-ში დააჭირე Start-ს და დაბრუნდი აქ. ბმული მოქმედებს 10
+                წუთი.
               </p>
               <button
                 className="btn btn-ghost"
@@ -173,7 +200,19 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                   const reply = await beginTelegramLink(portfolioId);
                   if (reply.ok) {
                     setUrl(reply.url);
-                    await refresh();
+                    expiresAt.current = Date.now() + 600000;
+                    try {
+                      sessionStorage.setItem(
+                        storageKey,
+                        JSON.stringify({
+                          url: reply.url,
+                          expiresAt: expiresAt.current,
+                        }),
+                      );
+                    } catch {
+                      // Do not block navigation when storage is unavailable.
+                    }
+                    window.location.assign(reply.url);
                   } else {
                     setError(true);
                     setMessage(reply.error);
@@ -186,7 +225,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                 }
               }}
             >
-              Telegram-ის დაკავშირება
+              {pending ? "ბოტი იხსნება…" : "ბოტის გახსნა და დაკავშირება"}
             </button>
           )}
           {status.connected && (
@@ -275,7 +314,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                       disconnectTelegram,
                       "Telegram გათიშულია.",
                     ).then((ok) => {
-                      if (ok) setUrl("");
+                      if (ok) clearPendingLink();
                     })
                   }
                 >
@@ -292,7 +331,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
               onClick={() =>
                 void perform(disconnectTelegram, "დაკავშირება გაუქმდა.").then(
                   (ok) => {
-                    if (ok) setUrl("");
+                    if (ok) clearPendingLink();
                   },
                 )
               }

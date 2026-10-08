@@ -13,16 +13,14 @@ test("Telegram private link, confirmation, choices and disconnect fit all sizes"
   const cookies = JSON.parse(await readFile(".local/e2e-cookies.json", "utf8")),
     user = `alice-${info.project.name}`,
     pid = randomUUID();
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "better-auth.session_token",
-        value: cookies[user],
-        domain: "localhost",
-        path: "/",
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "better-auth.session_token",
+      value: cookies[user],
+      domain: "localhost",
+      path: "/",
+    },
+  ]);
   const db = new Client({
     connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
   });
@@ -37,14 +35,34 @@ test("Telegram private link, confirmation, choices and disconnect fit all sizes"
     const section = page.locator(
       "section[aria-labelledby='settings-telegram']",
     );
+    // Never contact Telegram in browser tests; prove the same-tab navigation.
+    await page.route("https://t.me/CCXTRACKER_BOT?start=*", (route) =>
+      route.fulfill({
+        contentType: "text/html",
+        body: "<h1>Telegram test bot</h1>",
+      }),
+    );
     await section
-      .getByRole("button", { name: "Telegram-ის დაკავშირება", exact: true })
+      .getByRole("button", { name: "ბოტის გახსნა და დაკავშირება", exact: true })
       .click();
-    const href = await section
-        .getByRole("link", { name: "Telegram-ის გახსნა", exact: true })
-        .getAttribute("href"),
+    await page.waitForURL("https://t.me/CCXTRACKER_BOT?start=*");
+    const href = page.url(),
       token = new URL(href!).searchParams.get("start");
     expect(href).toContain("https://t.me/CCXTRACKER_BOT?start=");
+    await page.goBack();
+    await expect(
+      section.getByRole("link", {
+        name: "ბოტის გახსნა და დაკავშირება",
+        exact: true,
+      }),
+    ).toHaveAttribute("href", href);
+    await page.reload();
+    await expect(
+      section.getByRole("link", {
+        name: "ბოტის გახსნა და დაკავშირება",
+        exact: true,
+      }),
+    ).toHaveAttribute("href", href);
     const chat = info.project.name === "desktop" ? 123456 : 234567;
     const reply = await page.request.post("/api/telegram/webhook", {
       headers: {

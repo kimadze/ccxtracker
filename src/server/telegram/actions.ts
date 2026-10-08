@@ -20,7 +20,7 @@ export async function beginTelegramLink(portfolioId: string) {
   const user = await requireUser();
   try {
     idSchema.parse(portfolioId);
-    if (!(await consumeRateLimit(`telegram-link:${user.id}`, 5, 600000)))
+    if (!(await consumeRateLimit(`telegram-link-minute:${user.id}`, 5, 60000)))
       throw new Error("TELEGRAM_RATE_LIMIT");
     return {
       ok: true as const,
