@@ -74,6 +74,7 @@ export function ScenarioLab({
     setMessage("");
   }
   function applyPercentageChange() {
+    window.dispatchEvent(new Event("ccx-planning-changed"));
     const change = Number(bulkChange);
     if (!Number.isFinite(change)) return;
     setPrices(
@@ -150,6 +151,7 @@ export function ScenarioLab({
       setError(!response.ok);
       setMessage(response.ok ? "სცენარი შენახულია." : response.error);
       if (response.ok) {
+        window.dispatchEvent(new Event("ccx-planning-saved"));
         setActive(id);
         setName(title);
         router.refresh();
@@ -218,6 +220,7 @@ export function ScenarioLab({
                   className="btn btn-outline"
                   onClick={() => {
                     setPrices({});
+                    window.dispatchEvent(new Event("ccx-planning-changed"));
                     setBulkChange("");
                     setMessage("");
                   }}
@@ -512,6 +515,8 @@ function GoalPlanner({
                         .filter(Boolean),
                     });
                     setError(!response.ok);
+                    if (response.ok)
+                      window.dispatchEvent(new Event("ccx-planning-saved"));
                     setMessage(
                       response.ok ? "მიზანი შენახულია." : response.error,
                     );

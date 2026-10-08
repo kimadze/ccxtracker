@@ -123,6 +123,7 @@ export function AllocationWorkspace({
         rows: rows.map(({ assetId, weight }) => ({ assetId, weight })),
       });
       setError(!response.ok);
+      if (response.ok) window.dispatchEvent(new Event("ccx-planning-saved"));
       setMessage(response.ok ? "განაწილება შენახულია." : response.error);
     } catch {
       setError(true);
@@ -134,10 +135,7 @@ export function AllocationWorkspace({
 
   return (
     <div className="space-y-3 lg:space-y-4">
-      <section
-        className="card bg-base-200"
-        aria-label="მიზნობრივი განაწილება"
-      >
+      <section className="card bg-base-200" aria-label="მიზნობრივი განაწილება">
         <div className="card-body gap-3 p-4">
           <div>
             <h2 className="card-title">კრიპტოაქტივების განაწილება</h2>

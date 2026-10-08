@@ -1,37 +1,10 @@
-import { loadWorkspace } from "@/server/workspace";
-import { requireUser } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { strategyService } from "@/server/services/strategy";
-import { PageHeading } from "@/components/shell";
-import { StrategyWorkspace } from "@/components/strategy-workspace";
+import { redirectPlanning } from "@/server/planning-redirect";
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ portfolioId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { portfolioId } = await params;
-  const w = await loadWorkspace(portfolioId);
-  const user = await requireUser();
-  const data = Object.fromEntries(
-    await Promise.all(
-      w.summary.positions.map(async (p) => [
-        p.assetId,
-        await strategyService(getDb(), user.id).load(portfolioId, p.assetId),
-      ]),
-    ),
-  );
-  return (
-    <>
-      <PageHeading
-        eyebrow={w.portfolio.name}
-        title="სტრატეგია"
-        description="დაგეგმეთ დამატებითი შესყიდვა და კაპიტალის ეტაპობრივი ამოღება."
-      />
-      <StrategyWorkspace
-        summary={w.summary}
-        portfolioId={portfolioId}
-        data={data}
-      />
-    </>
-  );
+  return redirectPlanning(params, searchParams, "strategy");
 }

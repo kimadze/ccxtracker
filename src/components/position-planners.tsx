@@ -310,6 +310,8 @@ export function ExitPlanner({
                       levels,
                     });
                     setError(!response.ok);
+                    if (response.ok)
+                      window.dispatchEvent(new Event("ccx-planning-saved"));
                     setMessage(
                       response.ok ? "გასვლის გეგმა შენახულია." : response.error,
                     );
