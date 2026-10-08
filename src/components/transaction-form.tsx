@@ -102,15 +102,12 @@ export function TransactionForm({
               ? "პოზიციის დამატება"
               : "ტრანზაქციის დამატება"
         }
-        description={
-          opening
-            ? "არსებული აქტივის შესატანად მიუთითეთ რაოდენობა და საშუალო თვითღირებულება. ახალი შესყიდვისთვის აირჩიეთ შესყიდვა."
-            : "ტრანზაქცია განაახლებს პორტფელსა და მასთან დაკავშირებულ გამოთვლებს."
-        }
-        wide
+        description=""
+        className="flex flex-col overflow-hidden!"
+        contentClassName="flex min-h-0 flex-1 flex-col"
       >
         <form
-          className="space-y-3 lg:space-y-4"
+          className="flex min-h-0 flex-col"
           onSubmit={async (e) => {
             e.preventDefault();
             const form = new FormData(e.currentTarget);
@@ -162,223 +159,275 @@ export function TransactionForm({
             }
           }}
         >
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">ტრანზაქციის ტიპი</legend>
-            <div
-              className="grid grid-cols-2 gap-1 rounded-box bg-base-100 p-1 sm:grid-cols-3"
-              role="group"
-              aria-label="ტრანზაქციის ტიპი"
-            >
-              {Object.entries(kindLabels).map(([value, label]) => (
-                <button
-                  className={`btn btn-sm h-auto min-h-11 whitespace-normal px-2 py-2 ${kind === value ? "btn-soft btn-primary" : "btn-ghost"}`}
-                  key={value}
-                  type="button"
-                  aria-pressed={kind === value}
-                  onClick={() => setKind(value as TransactionKind)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="აქტივი">
+          <div
+            data-dialog-scroll
+            className="min-h-0 overflow-y-auto overscroll-contain space-y-2 pr-1"
+          >
+            <Field label="ტრანზაქციის ტიპი">
               <select
-                className="select"
-                value={assetId}
-                onChange={(e) => setAssetId(e.target.value)}
+                value={
+                  kind === "deposit"
+                    ? isCash
+                      ? "cash-deposit"
+                      : "asset-deposit"
+                    : kind
+                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "cash-deposit") {
+                    setKind("deposit");
+                    setAssetId("USD");
+                  } else if (value === "asset-deposit") {
+                    setKind("deposit");
+                    if (isCash)
+                      setAssetId(
+                        options.find((a) => a.id !== "USD")?.id ?? "bitcoin",
+                      );
+                  } else {
+                    setKind(value as TransactionKind);
+                    if (isCash && ["buy", "sell", "airdrop"].includes(value))
+                      setAssetId(
+                        options.find((a) => a.id !== "USD")?.id ?? "bitcoin",
+                      );
+                  }
+                }}
               >
-                {options.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.symbol} · {a.name}
-                  </option>
-                ))}
+                <option value="buy">შესყიდვა</option>
+                <option value="sell">გაყიდვა</option>
+                <option value="asset-deposit">არსებული აქტივის დამატება</option>
+                <option value="cash-deposit">ფულის შეტანა</option>
+                <option value="withdrawal">გატანა</option>
+                <option value="fee">საკომისიო</option>
+                <option value="airdrop">Airdrop მიღება</option>
               </select>
             </Field>
-          </div>
-          <div className="join flex w-full">
-            <input
-              className="input join-item min-w-0 flex-1"
-              aria-label="სხვა აქტივის ძიება"
-              placeholder="სხვა აქტივის ძიება…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <button
-              type="button"
-              className="btn join-item shrink-0"
-              disabled={searching || query.trim().length < 2}
-              onClick={async () => {
-                setSearching(true);
-                try {
-                  const result = await searchAssets(query);
-                  if (result.ok) {
-                    setOptions((current) => [
-                      ...current,
-                      ...result.assets.filter(
-                        (a) => !current.some((c) => c.id === a.id),
-                      ),
-                    ]);
-                    if (result.assets[0]) {
-                      setAssetId(result.assets[0].id);
-                      setQuery("");
-                    } else setError("აქტივი ვერ მოიძებნა.");
-                  } else setError(result.error);
-                } catch {
-                  setError("ძიება ვერ მოხერხდა.");
-                } finally {
-                  setSearching(false);
-                }
-              }}
-            >
-              <Search size={15} />
-              {searching ? "ძიება…" : "ძიება"}
-            </button>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={isCash ? "თანხა (USD)" : "რაოდენობა"}>
-              <input
-                className="input"
-                name="quantity"
-                type={balancesHidden ? "password" : "text"}
-                inputMode="decimal"
-                required
-                defaultValue={entry?.quantity ?? draft?.quantity}
-                placeholder="0.00"
-              />
-            </Field>
-            {!isCash &&
-              (kind === "buy" ||
-                kind === "sell" ||
-                kind === "deposit" ||
-                kind === "airdrop") && (
-                <Field
-                  label={
-                    kind === "deposit"
-                      ? "საშუალო თვითღირებულება (USD)"
-                      : kind === "airdrop"
-                        ? "მიღების მომენტში ფასი (USD)"
-                        : "ერთეულის ფასი (USD)"
-                  }
+            <div>
+              <Field label="აქტივი">
+                <select
+                  className="select"
+                  value={assetId}
+                  onChange={(e) => setAssetId(e.target.value)}
                 >
-                  <input
-                    className="input"
-                    name="price"
-                    type={balancesHidden ? "password" : "text"}
-                    inputMode="decimal"
-                    required={kind !== "deposit"}
-                    defaultValue={entry?.price ?? draft?.price ?? ""}
-                    placeholder={kind === "deposit" ? "თუ ცნობილია" : "0.00"}
-                  />
-                </Field>
-              )}
-            <Field label="საკომისიო (USD)">
-              <input
-                className="input"
-                name="fee"
-                type={balancesHidden ? "password" : "text"}
-                inputMode="decimal"
-                defaultValue={entry?.fee ?? draft?.fee ?? "0"}
-              />
-            </Field>
-            <Field label="თარიღი და დრო (თქვენი მოწყობილობის დრო)">
-              <input
-                className="input"
-                name="occurredAt"
-                type="datetime-local"
-                required
-                defaultValue={defaultDate()}
-              />
-            </Field>
-          </div>
-          {kind === "buy" && (
-            <div
-              role="alert"
-              className="alert alert-info alert-soft text-xs leading-6"
-            >
-              შესყიდვა თანხის ნაშთიდან დაიფარება. საჭიროების შემთხვევაში ჯერ
-              ჩაიწერეთ USD-ის შეტანა.
+                  {options
+                    .filter((a) =>
+                      kind === "deposit"
+                        ? isCash
+                          ? a.id === "USD"
+                          : a.id !== "USD"
+                        : ["buy", "sell", "airdrop"].includes(kind)
+                          ? a.id !== "USD"
+                          : true,
+                    )
+                    .map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.symbol} · {a.name}
+                      </option>
+                    ))}
+                </select>
+              </Field>
             </div>
-          )}
-          {kind === "deposit" && !isCash && (
-            <div
-              role="alert"
-              className="alert alert-info alert-soft text-xs leading-6"
-            >
-              თუ თვითღირებულება უცნობია, დატოვეთ ცარიელი. შესაბამისი მოგება /
-              ზარალი არ გამოითვლება.
-            </div>
-          )}
-          {kind === "airdrop" && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <Field label="პროექტი / წყარო">
-                  <input
-                    className="input"
-                    name="airdropSource"
-                    defaultValue={entry?.airdropSource ?? ""}
-                    placeholder="მაგ. Jupiter"
-                  />
-                </Field>
-                <Field label="ქსელი">
-                  <input
-                    className="input"
-                    name="airdropNetwork"
-                    defaultValue={entry?.airdropNetwork ?? ""}
-                    placeholder="მაგ. Solana"
-                  />
-                </Field>
-                <Field label="სტატუსი">
-                  <select
-                    className="select"
-                    name="airdropStatus"
-                    defaultValue={entry?.airdropStatus ?? "received"}
+            {!(kind === "deposit" && isCash) && (
+              <details className="collapse collapse-arrow bg-base-100">
+                <summary className="collapse-title min-h-11 py-3 text-xs">
+                  სხვა აქტივის ძიება
+                </summary>
+                <div className="collapse-content">
+                  <div className="join flex w-full">
+                    <input
+                      className="input join-item min-w-0 flex-1"
+                      aria-label="სხვა აქტივის ძიება"
+                      placeholder="სხვა აქტივის ძიება…"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="btn join-item shrink-0"
+                      disabled={searching || query.trim().length < 2}
+                      onClick={async () => {
+                        setSearching(true);
+                        try {
+                          const result = await searchAssets(query);
+                          if (result.ok) {
+                            setOptions((current) => [
+                              ...current,
+                              ...result.assets.filter(
+                                (a) => !current.some((c) => c.id === a.id),
+                              ),
+                            ]);
+                            if (result.assets[0]) {
+                              setAssetId(result.assets[0].id);
+                              setQuery("");
+                            } else setError("აქტივი ვერ მოიძებნა.");
+                          } else setError(result.error);
+                        } catch {
+                          setError("ძიება ვერ მოხერხდა.");
+                        } finally {
+                          setSearching(false);
+                        }
+                      }}
+                    >
+                      <Search size={15} />
+                      {searching ? "ძიება…" : "ძიება"}
+                    </button>
+                  </div>
+                </div>
+              </details>
+            )}
+            <div className="grid gap-x-3 gap-y-1 sm:grid-cols-2">
+              <Field label={isCash ? "თანხა (USD)" : "რაოდენობა"}>
+                <input
+                  className="input"
+                  name="quantity"
+                  type={balancesHidden ? "password" : "text"}
+                  inputMode="decimal"
+                  required
+                  defaultValue={entry?.quantity ?? draft?.quantity}
+                  placeholder="0.00"
+                />
+              </Field>
+              {!isCash &&
+                (kind === "buy" ||
+                  kind === "sell" ||
+                  kind === "deposit" ||
+                  kind === "airdrop") && (
+                  <Field
+                    label={
+                      kind === "deposit"
+                        ? "საშუალო თვითღირებულება (USD)"
+                        : kind === "airdrop"
+                          ? "მიღების მომენტში ფასი (USD)"
+                          : "ერთეულის ფასი (USD)"
+                    }
                   >
-                    <option value="received">მიღებული</option>
-                    <option value="locked">დაბლოკილი</option>
-                  </select>
-                </Field>
-              </div>
-              <div
-                role="alert"
-                className="alert alert-info alert-soft text-xs leading-6"
-              >
-                Airdrop პორტფელში დაემატება თანხის ნაშთის შემცირების გარეშე.
-                მიღების ფასი გახდება მისი საწყისი თვითღირებულება.
-              </div>
-            </>
-          )}
-          <details className="collapse collapse-arrow border border-base-300 bg-base-100">
-            <summary className="collapse-title min-h-11 text-sm">
-              შენიშვნა
-            </summary>
-            <div className="collapse-content">
-              <Field label="შენიშვნა">
-                <textarea
-                  className="textarea"
-                  name="notes"
-                  rows={2}
-                  maxLength={2000}
-                  defaultValue={entry?.notes}
-                  placeholder="არასავალდებულო"
+                    <input
+                      className="input"
+                      name="price"
+                      type={balancesHidden ? "password" : "text"}
+                      inputMode="decimal"
+                      required={kind !== "deposit"}
+                      defaultValue={entry?.price ?? draft?.price ?? ""}
+                      placeholder={kind === "deposit" ? "თუ ცნობილია" : "0.00"}
+                    />
+                  </Field>
+                )}
+              <Field label="თარიღი და დრო">
+                <input
+                  className="input"
+                  name="occurredAt"
+                  type="datetime-local"
+                  required
+                  defaultValue={defaultDate()}
                 />
               </Field>
             </div>
-          </details>
-          {entry && (
-            <label className="label cursor-pointer items-start justify-start gap-3 text-xs leading-5">
-              <input
-                type="checkbox"
-                required
-                className="checkbox checkbox-primary mt-1"
-              />
-              ვადასტურებ ისტორიის შესწორებასა და შემდგომი ტრანზაქციების თავიდან
-              გამოთვლას.
-            </label>
+            {kind === "buy" && (
+              <div
+                role="alert"
+                className="text-xs leading-5 text-base-content/60"
+              >
+                შესყიდვა USD-ის ნაშთს შეამცირებს.
+              </div>
+            )}
+            {kind === "deposit" && !isCash && (
+              <div
+                role="alert"
+                className="text-xs leading-5 text-base-content/60"
+              >
+                USD-ის ნაშთი არ შემცირდება. თუ თვითღირებულება უცნობია, დატოვეთ
+                ცარიელი — შესაბამისი P/L იქნება „—“.
+              </div>
+            )}
+            {kind === "airdrop" && (
+              <>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <Field label="პროექტი / წყარო">
+                    <input
+                      className="input"
+                      name="airdropSource"
+                      defaultValue={entry?.airdropSource ?? ""}
+                      placeholder="მაგ. Jupiter"
+                    />
+                  </Field>
+                  <Field label="ქსელი">
+                    <input
+                      className="input"
+                      name="airdropNetwork"
+                      defaultValue={entry?.airdropNetwork ?? ""}
+                      placeholder="მაგ. Solana"
+                    />
+                  </Field>
+                  <Field label="სტატუსი">
+                    <select
+                      className="select"
+                      name="airdropStatus"
+                      defaultValue={entry?.airdropStatus ?? "received"}
+                    >
+                      <option value="received">მიღებული</option>
+                      <option value="locked">დაბლოკილი</option>
+                    </select>
+                  </Field>
+                </div>
+                <div
+                  role="alert"
+                  className="text-xs leading-5 text-base-content/60"
+                >
+                  მიღების ფასი განსაზღვრავს თვითღირებულებას; USD-ის ნაშთი მხოლოდ
+                  საკომისიოთი შემცირდება.
+                </div>
+              </>
+            )}
+            <details
+              open={
+                !!entry?.notes ||
+                (!!entry?.fee && entry.fee !== "0") ||
+                (!!draft?.fee && draft.fee !== "0")
+              }
+              className="collapse collapse-arrow bg-base-100"
+            >
+              <summary className="collapse-title min-h-11 text-sm">
+                საკომისიო და შენიშვნა
+              </summary>
+              <div className="collapse-content">
+                <Field label="საკომისიო (USD)">
+                  <input
+                    className="input"
+                    name="fee"
+                    type={balancesHidden ? "password" : "text"}
+                    inputMode="decimal"
+                    defaultValue={entry?.fee ?? draft?.fee ?? "0"}
+                  />
+                </Field>
+                <Field label="შენიშვნა">
+                  <textarea
+                    className="textarea"
+                    name="notes"
+                    rows={2}
+                    maxLength={2000}
+                    defaultValue={entry?.notes}
+                    placeholder="არასავალდებულო"
+                  />
+                </Field>
+              </div>
+            </details>
+            {entry && (
+              <label className="label cursor-pointer items-start justify-start gap-3 text-xs leading-5">
+                <input
+                  type="checkbox"
+                  required
+                  className="checkbox checkbox-primary mt-1"
+                />
+                ვადასტურებ ისტორიის შესწორებასა და შემდგომი ტრანზაქციების
+                თავიდან გამოთვლას.
+              </label>
+            )}
+          </div>
+          {error && (
+            <div className="mt-2 shrink-0">
+              <Message error>{error}</Message>
+            </div>
           )}
-          {error && <Message error>{error}</Message>}
-          <div className="modal-action sticky bottom-0 z-10 mt-0 justify-end gap-3 border-t border-base-300 bg-base-200 py-3">
+          <div className="modal-action mt-3 shrink-0 justify-end gap-2 border-t border-base-200 bg-base-300 pt-3">
             <button
               type="button"
               className="btn btn-ghost"

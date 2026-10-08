@@ -42,7 +42,9 @@ test("compact overview supports funded positions, privacy and responsive layouts
     await page
       .getByRole("button", { name: "ტრანზაქციის დამატება", exact: true })
       .click();
-    await dialog.getByRole("button", { name: kind, exact: true }).click();
+    await dialog
+      .getByLabel("ტრანზაქციის ტიპი")
+      .selectOption(kind === "შეტანა" ? "cash-deposit" : "buy");
     await dialog
       .getByLabel("აქტივი", { exact: true })
       .selectOption(kind === "შეტანა" ? "USD" : "bitcoin");
@@ -158,7 +160,9 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(page.locator(".balance-value").first()).toContainText("••••••");
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
-  await expect(page.locator(".balance-value").first()).not.toContainText("••••••");
+  await expect(page.locator(".balance-value").first()).not.toContainText(
+    "••••••",
+  );
   await page.locator('a[href$="/positions/bitcoin"]:visible').click();
   await expect(page).toHaveURL(/positions\/bitcoin$/);
   await page.goto(base);
@@ -280,7 +284,9 @@ test("compact overview supports funded positions, privacy and responsive layouts
     name: "პოზიციების ფილტრი",
   });
   await expect(positionFilters).toBeVisible();
-  const losingFilter = positionFilters.getByRole("button", { name: /^ზარალში/ });
+  const losingFilter = positionFilters.getByRole("button", {
+    name: /^ზარალში/,
+  });
   await losingFilter.click();
   await expect(losingFilter).toHaveAttribute("aria-pressed", "true");
   await expect(positionFilters.locator(".modal-box")).toHaveCSS(
@@ -328,14 +334,15 @@ test("compact overview supports funded positions, privacy and responsive layouts
       exact: true,
     });
     for (const kind of [
-      "შესყიდვა",
-      "გაყიდვა",
-      "შეტანა",
-      "გატანა",
-      "საკომისიო",
-      "Airdrop მიღება",
+      "buy",
+      "sell",
+      "cash-deposit",
+      "asset-deposit",
+      "withdrawal",
+      "fee",
+      "airdrop",
     ]) {
-      await form.getByRole("button", { name: kind, exact: true }).click();
+      await form.getByLabel("ტრანზაქციის ტიპი").selectOption(kind);
       await expect(form.getByLabel("აქტივი", { exact: true })).toBeVisible();
       if (width === 390) {
         const quantity = form.getByLabel(/^(რაოდენობა|თანხა \(USD\))$/);

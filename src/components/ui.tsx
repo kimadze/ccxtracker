@@ -43,6 +43,7 @@ export function Modal({
   children,
   wide = false,
   className,
+  contentClassName,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -51,6 +52,7 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
   className?: string;
+  contentClassName?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useDialogViewport(dialogRef, open);
@@ -86,9 +88,11 @@ export function Modal({
         >
           {title}
         </h2>
-        <p className="mt-1 pr-12 text-xs leading-5 text-base-content/60">
-          {description}
-        </p>
+        {description && (
+          <p className="mt-1 pr-12 text-xs leading-5 text-base-content/60">
+            {description}
+          </p>
+        )}
         <button
           type="button"
           className="btn btn-ghost btn-square min-h-11 min-w-11 absolute right-3 top-3"
@@ -97,7 +101,9 @@ export function Modal({
         >
           <X size={18} />
         </button>
-        <div className="mt-3">{(open || hasOpened) && children}</div>
+        <div className={clsx("mt-3", contentClassName)}>
+          {(open || hasOpened) && children}
+        </div>
       </div>
       <form method="dialog" className="modal-backdrop">
         <button aria-label="დახურვა">დახურვა</button>

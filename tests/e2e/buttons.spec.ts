@@ -32,7 +32,21 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
   ).toBeVisible();
   const sidebar = page.getByRole("complementary", { name: "გვერდითი მენიუ" });
   await expect(sidebar).toBeVisible();
-  expect((await sidebar.boundingBox())!.width).toBe(224);
+  await expect.poll(async () => (await sidebar.boundingBox())!.width).toBe(224);
+  const assertCenteredIcons = async () => {
+    const offsets = await sidebar
+      .locator("a[aria-label]:has(svg)")
+      .evaluateAll((links) =>
+        links.map((link) => {
+          const row = link.getBoundingClientRect();
+          const icon = link.querySelector("svg")!.getBoundingClientRect();
+          return Math.abs(icon.y + icon.height / 2 - row.y - row.height / 2);
+        }),
+      );
+    expect(offsets.length).toBeGreaterThan(0);
+    for (const offset of offsets) expect(offset).toBeLessThanOrEqual(1);
+  };
+  await assertCenteredIcons();
   await page
     .getByRole("button", { name: "მენიუს შეკუმშვა", exact: true })
     .click();
@@ -40,7 +54,8 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
   await expect(
     page.getByRole("button", { name: "მენიუს გაშლა", exact: true }),
   ).toBeVisible();
-  expect((await sidebar.boundingBox())!.width).toBe(64);
+  await expect.poll(async () => (await sidebar.boundingBox())!.width).toBe(64);
+  await assertCenteredIcons();
   await page.getByRole("button", { name: "მენიუს გაშლა", exact: true }).click();
   expect(
     await sidebar
@@ -73,12 +88,9 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
       exact: true,
     });
     await expect(form).toBeVisible();
-    const deposit = form.getByRole("button", { name: "შეტანა", exact: true });
-    await deposit.click();
-    await expect(deposit).toHaveAttribute("aria-pressed", "true");
-    await expect(
-      form.getByRole("button", { name: "შესყიდვა", exact: true }),
-    ).toHaveAttribute("aria-pressed", "false");
+    const deposit = form.getByLabel("ტრანზაქციის ტიპი");
+    await deposit.selectOption("cash-deposit");
+    await expect(deposit).toHaveValue("cash-deposit");
     const save = form.getByRole("button", { name: "შენახვა", exact: true });
     const cancel = form.getByRole("button", { name: "გაუქმება", exact: true });
     await save.scrollIntoViewIfNeeded();

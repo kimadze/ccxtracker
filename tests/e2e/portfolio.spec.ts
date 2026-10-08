@@ -67,7 +67,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     page.locator("dialog[aria-labelledby]:not([open]) select"),
   ).toHaveCount(0);
   await openTransactionForm();
-  await dialog.getByRole("button", { name: "შეტანა", exact: true }).click();
+  await dialog.getByLabel("ტრანზაქციის ტიპი").selectOption("cash-deposit");
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("USD");
   await dialog.getByLabel("თანხა (USD)", { exact: true }).fill("10000");
   if (testInfo.project.name === "mobile") {
@@ -99,7 +99,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
   await openTransactionForm();
-  await dialog.getByRole("button", { name: "შესყიდვა", exact: true }).click();
+  await dialog.getByLabel("ტრანზაქციის ტიპი").selectOption("buy");
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("bitcoin");
   await dialog.getByLabel("რაოდენობა", { exact: true }).fill("0,1");
   await dialog.getByLabel("ერთეულის ფასი (USD)", { exact: true }).fill("50000");

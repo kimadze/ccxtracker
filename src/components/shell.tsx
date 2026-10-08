@@ -108,7 +108,7 @@ function Navigation({
                   className={clsx(
                     active && "bg-primary/12 text-secondary font-medium",
                     "lg:is-drawer-close:justify-center lg:is-drawer-close:px-0",
-                    "min-h-11 gap-2.5 rounded-field px-3 py-2 text-sm",
+                    "min-h-11 content-center gap-2.5 rounded-field px-3 py-2 text-sm",
                   )}
                 >
                   <Icon
