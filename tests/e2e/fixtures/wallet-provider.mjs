@@ -10,7 +10,7 @@ globalThis.fetch = async (input, init) => {
       return Response.json({ USD: 60000, time: Math.floor(Date.now() / 1000) });
     if (url.pathname.includes("/address/")) {
       btcCalls++;
-      if (btcCalls === 2) return new Response("", { status: 429 });
+      if (btcCalls % 2 === 0) return new Response("", { status: 429 });
       return Response.json({
         address: decodeURIComponent(url.pathname.split("/").at(-1)),
         chain_stats: { funded_txo_sum: 150000000, spent_txo_sum: 50000000 },

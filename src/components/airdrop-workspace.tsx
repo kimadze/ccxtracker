@@ -76,7 +76,7 @@ export function AirdropWorkspace({
 
   return (
     <div className="space-y-3 lg:space-y-4">
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-box border border-base-300 bg-base-200 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-px rounded-box border border-base-300 bg-base-200 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
           label="მიღებული Airdrop-ები"
           value={String(rows.length)}
@@ -131,7 +131,7 @@ export function AirdropWorkspace({
             {rows.map(({ entry, asset, receivedValue, movement }) => (
               <li
                 key={entry.id}
-                className="list-row grid-cols-[minmax(0,1fr)_auto] border-b border-base-300 p-3 last:border-0 lg:grid-cols-[minmax(0,1fr)_auto_auto]"
+                className="list-row grid-cols-[minmax(0,1fr)_auto] border-b border-base-300 p-3 last:border-0 xl:grid-cols-[minmax(180px,1fr)_minmax(0,2fr)_auto]"
               >
                 <div className="col-start-1 row-start-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -139,11 +139,19 @@ export function AirdropWorkspace({
                       symbol={asset?.symbol ?? "?"}
                       logoUrl={asset?.logoUrl}
                     />
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs font-semibold">
                         {asset?.symbol ?? entry.assetId}
                       </p>
-                      <p className="text-xs text-base-content/60">
+                      <p
+                        className="truncate text-xs text-base-content/60"
+                        title={[
+                          entry.airdropSource || "წყარო მითითებული არ არის",
+                          entry.airdropNetwork,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      >
                         {entry.airdropSource || "წყარო მითითებული არ არის"}
                         {entry.airdropNetwork
                           ? ` · ${entry.airdropNetwork}`
@@ -158,7 +166,7 @@ export function AirdropWorkspace({
                       : "მიღებული"}
                   </p>
                 </div>
-                <div className="col-span-2 row-start-2 grid min-w-0 grid-cols-2 gap-3 text-right lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:grid-cols-4">
+                <div className="col-span-2 row-start-2 grid min-w-0 grid-cols-2 gap-3 text-right sm:grid-cols-4 xl:col-span-1 xl:col-start-2 xl:row-start-1">
                   <Data
                     label="რაოდენობა"
                     value={quantity(entry.quantity)}
@@ -186,7 +194,7 @@ export function AirdropWorkspace({
                   />
                 </div>
                 {!preview && (
-                  <div className="col-start-2 row-start-1 lg:col-start-3">
+                  <div className="col-start-2 row-start-1 xl:col-start-3">
                     <AirdropActions
                       portfolioId={portfolioId}
                       revision={revision}

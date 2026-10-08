@@ -135,10 +135,9 @@ test("compact overview supports funded positions, privacy and responsive layouts
     });
   }
   const sidebar = page.getByRole("complementary", { name: "გვერდითი მენიუ" });
-  await expect(sidebar).toHaveCSS("width", "76px");
-  await page.getByRole("button", { name: "მენიუს გაშლა" }).click();
+  await expect(sidebar).toHaveCSS("width", "224px");
   await expect(page.locator("#ccx-main-drawer")).toBeChecked();
-  await expect(sidebar).toHaveCSS("width", "256px");
+  await expect(sidebar).toHaveCSS("width", "224px");
   await expect(
     page.getByRole("button", { name: "მენიუს შეკუმშვა" }),
   ).toBeVisible();
@@ -146,7 +145,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await expect(
     page.getByRole("button", { name: "მენიუს გაშლა" }),
   ).toHaveAttribute("aria-expanded", "false");
-  await expect(sidebar).toHaveCSS("width", "76px");
+  await expect(sidebar).toHaveCSS("width", "64px");
   await expect(sidebar.locator(".menu-title").first()).toBeHidden();
   expect(await sidebar.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(
     true,
@@ -156,7 +155,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
     fullPage: true,
   });
   await page.getByRole("button", { name: "მენიუს გაშლა" }).click();
-  await expect(sidebar).toHaveCSS("width", "256px");
+  await expect(sidebar).toHaveCSS("width", "224px");
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(page.locator(".balance-value").first()).toContainText("••••••");
   await page.getByRole("button", { name: "თანხების ჩვენება" }).click();

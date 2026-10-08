@@ -50,7 +50,7 @@ test("statistics periods, owned assets, macro trends and responsive layouts", as
         ],
       );
       await db.query(
-        "INSERT INTO market_quotes (asset_id,price,quoted_at) VALUES ($1,3000,now()) ON CONFLICT (asset_id) DO UPDATE SET quoted_at=now(),fetched_at=now()",
+        "INSERT INTO market_quotes (asset_id,price,quoted_at) VALUES ($1,3000,now()) ON CONFLICT (asset_id) DO UPDATE SET price=3000,quoted_at=now(),fetched_at=now()",
         [id],
       );
       await db.query(
@@ -125,8 +125,14 @@ test("statistics periods, owned assets, macro trends and responsive layouts", as
       .filter({ hasText: "BTC" })
       .filter({ visible: true }),
   ).toHaveCount(1);
+  const results = panel.locator("section").filter({
+    has: page.getByRole("heading", {
+      name: "პოზიციების შედეგები",
+      exact: true,
+    }),
+  });
   await expect(
-    panel.getByText("100%", { exact: true }).filter({ visible: true }),
+    results.getByText("-$3 000,00", { exact: true }).filter({ visible: true }),
   ).toBeVisible();
   await panel.getByRole("button", { name: "ყველა", exact: true }).click();
   await panel.getByLabel("სტატისტიკის აქტივის ძიება").fill("UNCOVERED");
@@ -185,14 +191,12 @@ test("statistics periods, owned assets, macro trends and responsive layouts", as
     panel.getByRole("heading", { name: "FED განაკვეთი", exact: true }),
   ).toBeVisible();
   await expect(panel.getByRole("img")).toHaveCount(7);
-  const unavailable = panel
-    .locator("article")
-    .filter({
-      has: page.getByRole("heading", {
-        name: "აშშ 2-წლიანი ობლიგაცია",
-        exact: true,
-      }),
-    });
+  const unavailable = panel.locator("article").filter({
+    has: page.getByRole("heading", {
+      name: "აშშ 2-წლიანი ობლიგაცია",
+      exact: true,
+    }),
+  });
   await expect(
     unavailable.getByText("ისტორია მიუწვდომელია", { exact: true }),
   ).toBeVisible();

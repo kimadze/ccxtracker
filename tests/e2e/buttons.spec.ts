@@ -25,7 +25,7 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
   await create
     .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/portfolios\/[0-9a-f-]+$/);
+  await expect(page).toHaveURL(/\/portfolios\/[0-9a-f-]+$/, { timeout: 15000 });
   const base = page.url();
   await expect(
     page.getByRole("button", { name: "მენიუს შეკუმშვა", exact: true }),

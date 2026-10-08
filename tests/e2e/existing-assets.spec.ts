@@ -7,16 +7,14 @@ test("existing holdings need no USD funding and compact forms retain visible act
 }, info) => {
   test.setTimeout(180000);
   const cookies = JSON.parse(await readFile(".local/e2e-cookies.json", "utf8"));
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "better-auth.session_token",
-        value: cookies[`alice-${info.project.name}`],
-        domain: "localhost",
-        path: "/",
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "better-auth.session_token",
+      value: cookies[`alice-${info.project.name}`],
+      domain: "localhost",
+      path: "/",
+    },
+  ]);
   const db = new Client({
     connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
   });
@@ -74,6 +72,7 @@ test("existing holdings need no USD funding and compact forms retain visible act
       });
     }
     await page.setViewportSize({ width: 390, height: 420 });
+    await form.getByLabel("აქტივი", { exact: true }).selectOption("bitcoin");
     await form.getByLabel("რაოდენობა", { exact: true }).fill("2");
     await expect(
       form.getByRole("button", { name: "შენახვა", exact: true }),
