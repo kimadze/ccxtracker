@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { runSnapshots } from "@/server/snapshots";
 import { processBlobCleanupJobs } from "@/server/blob-cleanup";
 import { sendJobAlert } from "@/server/job-alerts";
+import { processTelegramDeliveries } from "@/server/telegram/delivery";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
@@ -76,9 +77,20 @@ export async function GET(request: Request) {
         alerts.push("BLOB_CLEANUP_BATCH_FAILED");
       }
       // One bounded delivery avoids multiplying webhook timeouts per cron run.
-      if (alerts.length) await sendJobAlert(alerts.join(","), Math.max(1, affected));
+      if (Date.now() - startedAt < 48000) {
+        try {
+          await processTelegramDeliveries(undefined, 1);
+        } catch {
+          console.warn("TELEGRAM_QUEUE_RETRY_PENDING");
+        }
+      }
+      if (alerts.length)
+        await sendJobAlert(alerts.join(","), Math.max(1, affected));
     });
-    return Response.json({ ...initial, continuationScheduled: !initial.busy && !initial.complete });
+    return Response.json({
+      ...initial,
+      continuationScheduled: !initial.busy && !initial.complete,
+    });
   } catch {
     console.error("Snapshot job failed");
     after(() => sendJobAlert("SNAPSHOT_JOB_FAILED"));

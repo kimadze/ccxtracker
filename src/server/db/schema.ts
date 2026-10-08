@@ -490,3 +490,55 @@ export const walletPortfolios = pgTable(
     check("wallet_network", sql`${t.network} IN ('stellar','bitcoin')`),
   ],
 );
+
+// Notification metadata only; no financial ledger changes.
+export const telegramConnections = pgTable("telegram_connections", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  generation: uuid("generation").defaultRandom().notNull(),
+  chatId: text("chat_id").unique(),
+  username: text("username"),
+  linkHash: text("link_hash").unique(),
+  linkExpiresAt: timestamp("link_expires_at", { withTimezone: true }),
+  pendingChatId: text("pending_chat_id"),
+  pendingUsername: text("pending_username"),
+  buyEnabled: boolean("buy_enabled").default(true).notNull(),
+  sellEnabled: boolean("sell_enabled").default(true).notNull(),
+  portfolioIds: jsonb("portfolio_ids").$type<string[]>().default([]).notNull(),
+  lastError: text("last_error"),
+  ...times(),
+});
+export const telegramDeliveries = pgTable(
+  "telegram_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => telegramConnections.userId, { onDelete: "cascade" }),
+    generation: uuid("generation").notNull(),
+    watchlistId: uuid("watchlist_id")
+      .notNull()
+      .references(() => watchlistItems.id, { onDelete: "cascade" }),
+    side: text("side", { enum: ["buy", "sell"] }).notNull(),
+    reachedAt: timestamp("reached_at", { withTimezone: true }).notNull(),
+    target: financial("target").notNull(),
+    price: financial("price").notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    ...times(),
+  },
+  (t) => [
+    uniqueIndex("telegram_delivery_episode").on(
+      t.watchlistId,
+      t.side,
+      t.reachedAt,
+    ),
+    index("telegram_delivery_due").on(t.nextAttemptAt),
+    check("telegram_delivery_side", sql`${t.side} IN ('buy','sell')`),
+  ],
+);

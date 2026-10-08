@@ -6,6 +6,7 @@ import { renamePortfolio, removePortfolio } from "@/server/actions";
 import { updateProfile, revokeSessions } from "@/server/settings-actions";
 import { Field, Message, Modal } from "./ui";
 import { dateTime } from "@/lib/formatters";
+import { TelegramSettings } from "./telegram-settings";
 export function Settings({
   portfolioId,
   portfolioName,
@@ -59,6 +60,7 @@ export function Settings({
             ["profile", "პროფილი"],
             ["portfolio", "პორტფელი"],
             ["source", "მონაცემები"],
+            ["telegram", "Telegram"],
             ["security", "უსაფრთხოება"],
             ["danger", "წაშლა"],
           ].map(([id, label]) => (
@@ -143,6 +145,7 @@ export function Settings({
               </button>
             )}
           </form>
+          {!preview && <TelegramSettings portfolioId={portfolioId} />}
           <form
             className="card bg-base-200 p-4"
             onSubmit={async (e) => {

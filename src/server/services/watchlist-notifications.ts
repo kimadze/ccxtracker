@@ -4,6 +4,7 @@ import type { Database } from "@/server/db";
 import { watchlistItems } from "@/server/db/schema";
 import type { Quote } from "@/domain/types";
 import { targetTransition } from "@/domain/watchlist-target";
+import { enqueueTelegramTarget } from "../telegram/delivery";
 export async function evaluateWatchlistTargets(
   db: Database,
   quotes: Quote[],
@@ -69,6 +70,22 @@ export async function evaluateWatchlistTargets(
             : {}),
         })
         .where(eq(watchlistItems.id, item.id));
+      if (next?.notify)
+        await enqueueTelegramTarget(
+          tx as unknown as Database,
+          item,
+          "buy",
+          next.quoteAt,
+          next.price!,
+        );
+      if (sell?.notify)
+        await enqueueTelegramTarget(
+          tx as unknown as Database,
+          item,
+          "sell",
+          sell.quoteAt,
+          sell.price!,
+        );
     }
   });
 }

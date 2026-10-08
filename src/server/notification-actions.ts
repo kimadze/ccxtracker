@@ -8,6 +8,9 @@ import { evaluateWatchlistTargets } from "./services/watchlist-notifications";
 import { getQuotes } from "./market";
 import { idSchema } from "@/domain/validation";
 import { userError } from "./errors";
+import { after } from "next/server";
+import { processTelegramDeliveries } from "./telegram/delivery";
+import { telegramConfigured } from "./telegram/api";
 export async function loadTargetNotifications(portfolioId: string) {
   const user = await requireUser();
   try {
@@ -23,6 +26,14 @@ export async function loadTargetNotifications(portfolioId: string) {
       await getQuotes(tracked.map((row) => row.asset)),
       portfolioId,
     );
+    if (telegramConfigured())
+      after(async () => {
+        try {
+          await processTelegramDeliveries(db);
+        } catch {
+          console.warn("TELEGRAM_QUEUE_RETRY_PENDING");
+        }
+      });
     const rows = await db
       .select({
         id: watchlistItems.id,

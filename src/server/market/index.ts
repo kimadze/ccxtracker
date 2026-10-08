@@ -10,6 +10,7 @@ import {
 import type { Asset, Quote } from "@/domain/types";
 import { CoinGeckoProvider } from "./provider";
 import { evaluateWatchlistTargets } from "../services/watchlist-notifications";
+import { processTelegramDeliveries } from "../telegram/delivery";
 
 export const coreAssets: Asset[] = [
   {
@@ -181,7 +182,14 @@ export async function getQuotes(
     options.mode !== "blocking" &&
     process.env.COINGECKO_DEMO_API_KEY
   )
-    after(() => refreshExpired(expired));
+    after(async () => {
+      await refreshExpired(expired);
+      try {
+        await processTelegramDeliveries(db);
+      } catch {
+        console.warn("TELEGRAM_QUEUE_RETRY_PENDING");
+      }
+    });
   return [
     ...fresh,
     ...cached

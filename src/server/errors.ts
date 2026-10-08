@@ -1,5 +1,11 @@
 import { ZodError } from "zod";
 const errors: Record<string, string> = {
+  TELEGRAM_NOT_CONFIGURED: "Telegram ჯერ არ არის ჩართული სერვერზე.",
+  TELEGRAM_LINK_EXPIRED: "დაკავშირების ვადა ამოიწურა. დაიწყეთ თავიდან.",
+  TELEGRAM_NOT_CONNECTED: "ჯერ დააკავშირეთ Telegram.",
+  TELEGRAM_RATE_LIMIT: "ცოტა ხანში სცადეთ ხელახლა.",
+  TELEGRAM_DELIVERY_FAILED:
+    "Telegram-ში გაგზავნა ვერ მოხერხდა. შეამოწმეთ, რომ ბოტი დაბლოკილი არ არის.",
   UNDO_EXPIRED: "აღდგენის დრო ამოიწურა.",
   INVALID_ALLOCATION:
     "მიზნობრივი წილების ჯამი უნდა იყოს 100%. აქტივი არ უნდა განმეორდეს.",

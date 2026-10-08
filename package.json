@@ -21,7 +21,8 @@
     "format": "prettier --write src tests scripts *.ts *.mjs *.json docs README.md .github",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build"
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "telegram:setup": "node --conditions=react-server --import tsx scripts/setup-telegram.ts"
   },
   "engines": {
     "node": ">=22.0.0"

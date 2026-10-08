@@ -9,6 +9,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 const statisticsFixtures = process.env.CCX_E2E_STATISTICS_FIXTURES === "1";
 const walletFixtures = process.env.CCX_E2E_WALLET_FIXTURES === "1";
+const telegramFixtures = process.env.CCX_E2E_TELEGRAM_FIXTURES === "1";
 
 const db = new PGlite();
 for (const file of (await readdir("drizzle"))
@@ -70,6 +71,13 @@ const child = spawn(
             .href,
         ]
       : []),
+    ...(telegramFixtures
+      ? [
+          "--import",
+          pathToFileURL(resolve("tests/e2e/fixtures/telegram-provider.mjs"))
+            .href,
+        ]
+      : []),
     "node_modules/next/dist/bin/next",
     "start",
     "--port",
@@ -94,6 +102,16 @@ const child = spawn(
       BLOB_STORE_ID: "",
       ALLOWED_EMAILS: "",
       CRON_SECRET: randomBytes(32).toString("hex"),
+      TELEGRAM_BOT_TOKEN: telegramFixtures
+        ? "e2e-placeholder-never-a-live-token"
+        : "",
+      TELEGRAM_BOT_USERNAME: "CCXTRACKER_BOT",
+      TELEGRAM_WEBHOOK_SECRET: telegramFixtures
+        ? "e2e-only-telegram-webhook-secret-123456"
+        : "",
+      TELEGRAM_APP_ORIGIN: telegramFixtures
+        ? "https://ccxtracker.example.test"
+        : "",
     },
   },
 );

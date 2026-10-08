@@ -79,7 +79,7 @@ Manual portfolios show a server-calculated before/after preview for transaction 
 
 Each deleted transaction offers a 30-second undo using its existing audit copy. Restoring checks the complete intervening history, preserves the original record and cannot create duplicates. Backdated changes invalidate affected snapshots. Planning combines strategy, scenarios and allocation with URL-backed tabs; the previous routes redirect while retaining asset selection.
 
-Watchlist supports separate buy-at-or-below and sell-at-or-above targets. The first fresh quote establishes a baseline without alerting; subsequent crossings generate independent notices. Rearming requires returning outside the target zone first. Read state persists per target; changing one target resets only its episode. Stale quotes never trigger alerts. Checks run on portfolio opening and quote refresh, not as background push notifications. Undo notices retain their original deadline across refreshes.
+Watchlist supports separate buy-at-or-below and sell-at-or-above targets. The first fresh quote establishes a baseline without alerting; subsequent crossings generate independent notices. Rearming requires returning outside the target zone first. Read state persists per target; changing one target resets only its episode. Stale quotes never trigger alerts. Optional Telegram alerts use a separately confirmed private chat and selected portfolios; background checks require an authenticated scheduler. See [Telegram setup](docs/telegram.md). Undo notices retain their original deadline across refreshes.
 
 ### Read-only wallet portfolios
 
