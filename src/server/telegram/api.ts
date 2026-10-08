@@ -64,7 +64,12 @@ export async function telegramCall(
     throw new TelegramError(0);
   }
 }
-export function sendTelegram(chatId: string, text: string, url?: string) {
+export function sendTelegram(
+  chatId: string,
+  text: string,
+  url?: string,
+  buttonLabel = "აქტივის ნახვა",
+) {
   return telegramCall("sendMessage", {
     chat_id: chatId,
     text,
@@ -72,7 +77,7 @@ export function sendTelegram(chatId: string, text: string, url?: string) {
     link_preview_options: { is_disabled: true },
     ...(url
       ? {
-          reply_markup: { inline_keyboard: [[{ text: "აქტივის ნახვა", url }]] },
+          reply_markup: { inline_keyboard: [[{ text: buttonLabel, url }]] },
         }
       : {}),
   });

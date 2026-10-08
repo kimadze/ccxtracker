@@ -8,7 +8,7 @@ import {
   telegramDeliveries,
   portfolios,
 } from "@/server/db/schema";
-import { telegramConfigured, sendTelegram } from "./api";
+import { telegramConfigured, sendTelegram, appOrigin } from "./api";
 export const hashLink = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 export function telegramService(db: Database, userId: string) {
@@ -152,15 +152,21 @@ const updateSchema = z.object({
     }),
   }),
 });
-export async function acceptTelegramLink(db: Database, input: unknown) {
+function parseTelegramStart(input: unknown) {
   const parsed = updateSchema.safeParse(input);
-  if (!parsed.success) return false;
+  if (!parsed.success) return null;
   const { message } = parsed.data;
-  if (message.from.id !== message.chat.id) return false;
+  if (message.from.id !== message.chat.id) return null;
   const match = /^\/start(?:@[A-Za-z0-9_]+)? ([A-Za-z0-9_-]{43})$/.exec(
     message.text,
   );
-  if (!match) return false;
+  if (!match) return null;
+  return { message, token: match[1] };
+}
+export async function acceptTelegramLink(db: Database, input: unknown) {
+  const start = parseTelegramStart(input);
+  if (!start) return false;
+  const { message, token } = start;
   const rows = await db
     .update(telegramConnections)
     .set({
@@ -172,11 +178,41 @@ export async function acceptTelegramLink(db: Database, input: unknown) {
     })
     .where(
       and(
-        eq(telegramConnections.linkHash, hashLink(match[1])),
+        eq(telegramConnections.linkHash, hashLink(token)),
         gt(telegramConnections.linkExpiresAt, new Date()),
         isNull(telegramConnections.pendingChatId),
       ),
     )
     .returning({ id: telegramConnections.userId });
   return rows.length === 1;
+}
+
+/** A generic return instruction only; no alerts until CCX-side confirmation. */
+export async function replyTelegramLinkReturn(db: Database, input: unknown) {
+  const start = parseTelegramStart(input);
+  if (!start) return;
+  const [connection] = await db
+    .select()
+    .from(telegramConnections)
+    .where(
+      and(
+        eq(telegramConnections.linkHash, hashLink(start.token)),
+        eq(telegramConnections.pendingChatId, String(start.message.chat.id)),
+        gt(telegramConnections.linkExpiresAt, new Date()),
+      ),
+    );
+  if (!connection) return;
+  const owned = await db
+    .select({ id: portfolios.id })
+    .from(portfolios)
+    .where(eq(portfolios.userId, connection.userId));
+  const portfolio =
+    owned.find((p) => connection.portfolioIds.includes(p.id)) ?? owned[0];
+  if (!portfolio) return;
+  await sendTelegram(
+    String(start.message.chat.id),
+    "დაბრუნდი CCX-ში და დაადასტურე შენი Telegram ჩატი.",
+    `${appOrigin()}/portfolios/${portfolio.id}/settings#settings-telegram`,
+    "CCX-ში დაბრუნება",
+  );
 }

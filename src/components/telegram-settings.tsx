@@ -177,8 +177,8 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                 ბოტის გახსნა და დაკავშირება
               </a>
               <p className="text-xs text-base-content/60">
-                Telegram-ში დააჭირე Start-ს და დაბრუნდი აქ. ბმული მოქმედებს 10
-                წუთი.
+                Telegram-ში დააჭირე Start-ს, შემდეგ — „CCX-ში დაბრუნება“. ბმული
+                მოქმედებს 10 წუთი.
               </p>
               <button
                 className="btn btn-ghost"

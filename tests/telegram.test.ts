@@ -51,10 +51,11 @@ beforeAll(async () => {
 }, 60000);
 beforeEach(async () => {
   fetchMock.mockReset();
-  fetchMock.mockResolvedValue(
-    new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), {
-      status: 200,
-    }),
+  fetchMock.mockImplementation(
+    async () =>
+      new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), {
+        status: 200,
+      }),
   );
   await testDb.delete(schema.telegramConnections);
 });
@@ -207,6 +208,29 @@ describe("private Telegram connections and durable deliveries", () => {
     });
     expect((await POST(req)).status).toBe(200);
     expect((await svc.status()).awaitingConfirmation).toBe(true);
+    expect((await svc.status()).connected).toBe(false);
+    const reply = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(reply.chat_id).toBe("123");
+    expect(reply.reply_markup.inline_keyboard[0][0]).toEqual({
+      text: "CCX-ში დაბრუნება",
+      url: `https://ccxtracker.example.test/portfolios/${p.id}/settings#settings-telegram`,
+    });
+    expect(reply.text).not.toContain("ფასი");
+    const request = (id = 123) =>
+      new Request("https://example.test/api/telegram/webhook", {
+        method: "POST",
+        headers: { "x-telegram-bot-api-secret-token": "x".repeat(40) },
+        body: JSON.stringify(update(token, id)),
+      });
+    // A stolen/replayed code in another chat cannot receive the return link.
+    await POST(request(456));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    fetchMock.mockRejectedValueOnce(new Error("network failure"));
+    expect((await POST(request())).status).toBe(500);
+    expect((await POST(request())).status).toBe(200);
+    await svc.confirm();
+    await POST(request());
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
   it("sends a crossing to its owner's chat only and deduplicates processing", async () => {
     const p = await portfolio(),
