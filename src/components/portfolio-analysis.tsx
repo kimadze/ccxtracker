@@ -53,50 +53,53 @@ export function PortfolioAnalysis({
       : null;
   const reliable =
     data.attribution.complete && data.attribution.reconciled && !summary.stale;
-  const sourceRows = [
-    { label: "უდიდესი დადებითი წვლილი", row: data.attribution.topPositive },
-    { label: "უდიდესი უარყოფითი წვლილი", row: data.attribution.topNegative },
-  ];
+  const sourceRows = [...data.attribution.assets]
+    .filter((row) => row.totalPnl !== null)
+    .sort((a, b) => decimal(b.totalPnl!).abs().cmp(decimal(a.totalPnl!).abs()))
+    .slice(0, 6)
+    .map((row) => ({ label: row.name, row }));
+  const largestContribution = sourceRows.reduce(
+    (max, { row }) =>
+      decimal(row.totalPnl!).abs().gt(max) ? decimal(row.totalPnl!).abs() : max,
+    decimal(0),
+  );
   return (
-    <div className="space-y-3">
+    <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-4">
       <section
-        className="card card-border bg-base-200"
+        className="card min-w-0 bg-base-200 lg:col-span-2"
         aria-labelledby="capital-heading"
       >
         <div className="card-body gap-3 p-3 sm:p-4">
-          <h2 id="capital-heading" className="text-sm font-semibold">
+          <h2 id="capital-heading" className="text-base font-semibold">
             კაპიტალი და შედეგი
           </h2>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+          <div className="grid grid-cols-2 items-end gap-4 lg:grid-cols-[2fr_1fr_1fr]">
             {[
-              ["წმინდა შეტანილი კაპიტალი", netCapital],
-              ["მიმდინარე ღირებულება", summary.value],
               ["სრული P/L", summary.totalPnl],
+              ["მიმდინარე ღირებულება", summary.value],
+              ["წმინდა შეტანილი კაპიტალი", netCapital],
             ].map(([label, value], i) => (
               <div
                 key={label}
-                className={`stat min-w-0 p-0 ${i === 2 ? "col-span-2 lg:col-span-1" : ""}`}
+                className={`stat min-w-0 p-0 ${i === 0 ? "col-span-2 lg:col-span-1" : ""}`}
               >
                 <span className="stat-title whitespace-normal text-xs">
                   {label}
                 </span>
                 <span
-                  className={`stat-value mt-1 overflow-x-auto whitespace-nowrap text-xl tabular-nums ${i === 2 ? pnlClass(value) : ""}`}
+                  className={`stat-value mt-1 overflow-x-auto whitespace-nowrap tabular-nums ${i === 0 ? `text-[32px] lg:text-[40px] ${pnlClass(value)}` : "text-lg font-medium"}`}
                 >
                   <BalanceValue>{money(value)}</BalanceValue>
                 </span>
               </div>
             ))}
           </div>
-          <p className="text-xs text-base-content/60">
-            შეტანა და გატანა მოგებად არ ითვლება.
-          </p>
           {summary.stale && (
             <p role="status" className="text-xs text-warning">
               შედეგი მოძველებულ ფასებს შეიცავს.
             </p>
           )}
-          <details className="collapse collapse-arrow rounded-field bg-base-100">
+          <details className="collapse collapse-arrow rounded-none border-t border-base-300">
             <summary className="collapse-title min-h-11 py-3 text-xs">
               კაპიტალის მოძრაობა და შემოსავლიანობა
             </summary>
@@ -161,15 +164,15 @@ export function PortfolioAnalysis({
         </div>
       </section>
       <section
-        className="card card-border bg-base-200"
+        className="card min-w-0 bg-base-200"
         aria-labelledby="sources-heading"
       >
         <div className="card-body gap-3 p-3 sm:p-4">
-          <h2 id="sources-heading" className="text-sm font-semibold">
+          <h2 id="sources-heading" className="text-base font-semibold">
             რა ქმნის მოგებას და ზარალს
           </h2>
           {reliable ? (
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="divide-y divide-base-300">
               {sourceRows.map(({ label, row }) => {
                 const content = (
                   <>
@@ -186,21 +189,29 @@ export function PortfolioAnalysis({
                         </BalanceValue>
                       </span>
                     </span>
+                    <div
+                      aria-hidden="true"
+                      className="mt-2 h-1 overflow-hidden rounded-full bg-base-300"
+                    >
+                      <div
+                        className={`h-full ${decimal(row.totalPnl!).gte(0) ? "bg-success/70" : "bg-error/70"}`}
+                        style={{
+                          width: `${largestContribution.isZero() ? 0 : decimal(row.totalPnl!).abs().div(largestContribution).times(100).toNumber()}%`,
+                        }}
+                      />
+                    </div>
                   </>
                 );
                 return row && !row.isFee ? (
                   <Link
                     key={label}
-                    className="rounded-field border border-base-300 p-3 hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+                    className="block min-h-11 py-3 hover:text-secondary focus-visible:outline-2 focus-visible:outline-primary"
                     href={`/portfolios/${portfolioId}/positions/${row.assetId}`}
                   >
                     {content}
                   </Link>
                 ) : (
-                  <div
-                    key={label}
-                    className="rounded-field border border-base-300 p-3"
-                  >
+                  <div key={label} className="py-3">
                     {content}
                   </div>
                 );
@@ -216,7 +227,7 @@ export function PortfolioAnalysis({
             სრული პერიოდი · რეალიზებული და არარეალიზებული P/L.
           </p>
           <details
-            className="collapse collapse-arrow rounded-field bg-base-100"
+            className="collapse collapse-arrow rounded-none border-t border-base-300"
             onToggle={(e) => setExpanded(e.currentTarget.open)}
           >
             <summary className="collapse-title min-h-11 py-3 text-xs">
@@ -236,12 +247,12 @@ export function PortfolioAnalysis({
         </div>
       </section>
       <section
-        className="card card-border bg-base-200"
+        className="card min-w-0 bg-base-200"
         aria-labelledby="risk-heading"
       >
         <div className="card-body gap-3 p-3 sm:p-4">
           <div className="flex items-center justify-between gap-2">
-            <h2 id="risk-heading" className="text-sm font-semibold">
+            <h2 id="risk-heading" className="text-base font-semibold">
               სად არის მთავარი რისკი
             </h2>
             <Link

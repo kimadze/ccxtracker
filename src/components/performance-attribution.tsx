@@ -23,8 +23,8 @@ export function PerformanceAttribution({
   const [showAllAssets, setShowAllAssets] = useState(false);
   if (!attribution.complete || !attribution.reconciled)
     return (
-      <section className="card card-border bg-base-200 p-4">
-        <h2 className="text-sm font-medium">შედეგის წყარო</h2>
+      <section className="border-b border-base-300 pb-4">
+        <h2 className="text-base font-medium">შედეგის წყარო</h2>
         <p className="mt-2 text-xs leading-6 text-base-content/60">
           განაწილება მიუწვდომელია: ფასები ან თვითღირებულება არასრულია.
         </p>
@@ -44,13 +44,13 @@ export function PerformanceAttribution({
       className="space-y-3 lg:space-y-4"
       aria-labelledby="attribution-heading"
     >
-      <div className="card card-border bg-base-200 p-4">
+      <div className="border-b border-base-300 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
               სრული პერიოდი
             </p>
-            <h2 id="attribution-heading" className="mt-1 text-sm font-medium">
+            <h2 id="attribution-heading" className="mt-1 text-base font-medium">
               პორტფელის შედეგის წყარო
             </h2>
             <p className="sr-only">
@@ -63,11 +63,11 @@ export function PerformanceAttribution({
             <BalanceValue>{money(attribution.totalPnl)}</BalanceValue>
           </p>
         </div>
-        <details className="collapse collapse-arrow mt-3 bg-base-100">
-          <summary className="collapse-title min-h-11 py-3 text-xs">
+        <div className="mt-3">
+          <div className="py-2 text-xs font-medium">
             დამატებითი მაჩვენებლები
-          </summary>
-          <div className="collapse-content grid grid-cols-2 gap-3 xl:grid-cols-3">
+          </div>
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
             <p className="col-span-2 text-xs leading-5 text-base-content/60 xl:col-span-3">
               თანხის შეტანა და გატანა P/L-ში არ ითვლება. აქტივის შემოსავლიანობა
               თვითღირებულებას ადარებს; წვლილი — მთლიან შედეგს.
@@ -108,11 +108,11 @@ export function PerformanceAttribution({
               value={String(attribution.assetsInLoss)}
             />
           </div>
-        </details>
+        </div>
       </div>
 
       <div className="grid gap-3 lg:gap-4 xl:grid-cols-[1.45fr_1fr]">
-        <div className="card card-border overflow-hidden bg-base-200">
+        <div className="min-w-0">
           <div className="border-b border-base-300 p-3">
             <h3 className="text-sm font-medium">აქტივების წვლილი</h3>
             <p className="sr-only">
@@ -129,11 +129,8 @@ export function PerformanceAttribution({
                 ? (Math.abs(Number(row.totalPnl)) / denominator) * 100
                 : 0;
               return (
-                <details
-                  key={row.assetId}
-                  className="collapse collapse-arrow rounded-none"
-                >
-                  <summary className="collapse-title min-h-11 p-3 pr-10">
+                <div key={row.assetId} className="py-3">
+                  <div className="py-2 text-xs font-medium">
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0 text-xs">
                         <strong>
@@ -170,8 +167,8 @@ export function PerformanceAttribution({
                         style={{ width: `${width}%` }}
                       />
                     </div>
-                  </summary>
-                  <div className="collapse-content grid grid-cols-2 gap-2 text-xs text-base-content/60">
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-base-content/60">
                     <p className="col-span-2">
                       ზოლი ასახავს დოლარში წვლილს, არა შემოსავლიანობას.
                     </p>
@@ -201,7 +198,7 @@ export function PerformanceAttribution({
                       </>
                     )}
                   </div>
-                </details>
+                </div>
               );
             })}
             {attribution.assets.length > 6 && (
@@ -228,7 +225,7 @@ export function PerformanceAttribution({
             attribution.categories.map((category) => (
               <article
                 key={category.category}
-                className="card card-border bg-base-200 p-3"
+                className="border-t border-base-300 py-3"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -245,11 +242,9 @@ export function PerformanceAttribution({
                     <BalanceValue>{money(category.totalPnl)}</BalanceValue>
                   </p>
                 </div>
-                <details className="collapse collapse-arrow mt-2 bg-base-100">
-                  <summary className="collapse-title min-h-11 py-3 text-xs">
-                    დეტალები
-                  </summary>
-                  <div className="collapse-content grid grid-cols-2 gap-2 text-xs text-base-content/60">
+                <div className="mt-2">
+                  <div className="py-2 text-xs font-medium">დეტალები</div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-base-content/60">
                     <span>
                       პორტფელის მიმდინარე წილი:{" "}
                       {percentage(category.allocation)}
@@ -265,7 +260,7 @@ export function PerformanceAttribution({
                       {category.largestNegative?.symbol ?? "—"}
                     </span>
                   </div>
-                </details>
+                </div>
               </article>
             ))}
           <p className="px-1 text-xs leading-5 text-base-content/60">

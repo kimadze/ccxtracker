@@ -59,31 +59,10 @@ export function PortfolioStatistics({
     });
   return (
     <div className="space-y-3">
-      <details className="collapse collapse-arrow border border-base-300 bg-base-200">
-        <summary className="collapse-title min-h-11 py-3 text-xs">
-          როგორ იკითხება ეს მონაცემები
-        </summary>
-        <div className="collapse-content space-y-2 text-xs text-base-content/65">
-          <p>
-            დღის გავლენა: 24-საათიანი ფასის ცვლილება მიმდინარე რაოდენობაზე. დღის
-            განმავლობაში შესყიდვა/გაყიდვას არ ითვალისწინებს და რეალური დღიური
-            P/L არ არის. არასრული ან მოძველებული ფასებისას ჯამი არ გამოითვლება.
-          </p>
-          <p>
-            ცხრილის P/L არის მიმდინარე კრიპტოპოზიციების არარეალიზებული შედეგი;
-            ქეში, სტეიბლკოინები და დახურული პოზიციები არ შედის.
-          </p>
-          <p>
-            აღდგენა: საშუალო შესყიდვის ფასამდე საჭირო ზრდა. „ყურადღება“
-            აღნიშნავს კრიპტოაქტივების ≥25% წილს, ≥50% ზარალს ან
-            არასრულ/მოძველებულ მონაცემებს. ეს საინფორმაციო ფილტრია.
-          </p>
-        </div>
-      </details>
-      <section className="card card-border min-w-0 bg-base-200">
+      <section className="card min-w-0 bg-base-200">
         <div className="card-body gap-3 p-3 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">პოზიციების შედეგები</h2>
+            <h2 className="text-base font-semibold">პოზიციების შედეგები</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             <input
@@ -106,7 +85,7 @@ export function PortfolioStatistics({
             </select>
           </div>
           <div
-            className="flex flex-wrap gap-1"
+            className="join flex max-w-full overflow-x-auto"
             role="group"
             aria-label="პოზიციების შედეგის ფილტრი"
           >
@@ -121,7 +100,7 @@ export function PortfolioStatistics({
             ].map(([value, label]) => (
               <button
                 type="button"
-                className={`btn px-2 text-xs ${filter === value ? "btn-soft btn-primary" : "btn-ghost"}`}
+                className={`btn join-item shrink-0 px-2 text-xs ${filter === value ? "btn-soft btn-primary" : "btn-ghost"}`}
                 key={value}
                 aria-pressed={filter === value}
                 onClick={() => setFilter(value)}
@@ -157,42 +136,21 @@ export function PortfolioStatistics({
                         {row.position.asset.name}
                       </span>
                     </span>
-                    <span
-                      className={`max-w-[55%] overflow-x-auto whitespace-nowrap text-right ${pnlClass(row.position.unrealizedPnl)}`}
-                    >
-                      <BalanceValue>
-                        {money(row.position.unrealizedPnl)}
-                      </BalanceValue>
-                      <span className="block text-xs">
+                    <span className="max-w-[55%] overflow-x-auto whitespace-nowrap text-right tabular-nums">
+                      <BalanceValue>{money(row.position.value)}</BalanceValue>
+                      <span
+                        className={`block text-xs ${pnlClass(row.position.unrealizedPnl)}`}
+                      >
+                        P/L{" "}
+                        <BalanceValue>
+                          {money(row.position.unrealizedPnl)}
+                        </BalanceValue>
+                      </span>
+                      <span className="sr-only">
                         {percentage(row.position.returnPercent, true)}
                       </span>
                     </span>
                   </div>
-                  <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                    {[
-                      [
-                        "ღირებულება",
-                        <BalanceValue key="v">
-                          {money(row.position.value)}
-                        </BalanceValue>,
-                      ],
-                      ["კრიპტოს წილი", percentage(row.cryptoShare)],
-                      [
-                        "დღის გავლენა",
-                        <BalanceValue key="d">
-                          {money(row.dayImpact)}
-                        </BalanceValue>,
-                      ],
-                      ["აღდგენა", percentage(row.recovery)],
-                    ].map(([label, value]) => (
-                      <div key={String(label)} className="min-w-0">
-                        <dt className="text-base-content/55">{label}</dt>
-                        <dd className="mt-1 overflow-x-auto whitespace-nowrap tabular-nums">
-                          {value}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
                   {attention(row) && (
                     <p className="mt-2 text-xs text-warning">
                       {!row.position.quote || row.position.value === null
@@ -205,6 +163,42 @@ export function PortfolioStatistics({
                     </p>
                   )}
                 </Link>
+                <details className="collapse collapse-arrow rounded-none">
+                  <summary className="collapse-title min-h-11 py-3 text-xs">
+                    დეტალები
+                  </summary>
+                  <div className="collapse-content">
+                    <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      {[
+                        [
+                          "ღირებულება",
+                          <BalanceValue key="v">
+                            {money(row.position.value)}
+                          </BalanceValue>,
+                        ],
+                        ["კრიპტოს წილი", percentage(row.cryptoShare)],
+                        [
+                          "დღის გავლენა",
+                          <BalanceValue key="d">
+                            {money(row.dayImpact)}
+                          </BalanceValue>,
+                        ],
+                        ["აღდგენა", percentage(row.recovery)],
+                        [
+                          "შემოსავლიანობა",
+                          percentage(row.position.returnPercent, true),
+                        ],
+                      ].map(([label, value]) => (
+                        <div key={String(label)} className="min-w-0">
+                          <dt className="text-base-content/55">{label}</dt>
+                          <dd className="mt-1 overflow-x-auto whitespace-nowrap tabular-nums">
+                            {value}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                </details>
               </li>
             ))}
           </ul>
@@ -288,6 +282,27 @@ export function PortfolioStatistics({
           )}
         </div>
       </section>
+      <details className="collapse collapse-arrow border border-base-300 bg-base-200">
+        <summary className="collapse-title min-h-11 py-3 text-xs">
+          როგორ იკითხება ეს მონაცემები
+        </summary>
+        <div className="collapse-content space-y-2 text-xs text-base-content/65">
+          <p>
+            დღის გავლენა: 24-საათიანი ფასის ცვლილება მიმდინარე რაოდენობაზე. დღის
+            განმავლობაში შესყიდვა/გაყიდვას არ ითვალისწინებს და რეალური დღიური
+            P/L არ არის. არასრული ან მოძველებული ფასებისას ჯამი არ გამოითვლება.
+          </p>
+          <p>
+            ცხრილის P/L არის მიმდინარე კრიპტოპოზიციების არარეალიზებული შედეგი;
+            ქეში, სტეიბლკოინები და დახურული პოზიციები არ შედის.
+          </p>
+          <p>
+            აღდგენა: საშუალო შესყიდვის ფასამდე საჭირო ზრდა. „ყურადღება“
+            აღნიშნავს კრიპტოაქტივების ≥25% წილს, ≥50% ზარალს ან
+            არასრულ/მოძველებულ მონაცემებს. ეს საინფორმაციო ფილტრია.
+          </p>
+        </div>
+      </details>
     </div>
   );
 }

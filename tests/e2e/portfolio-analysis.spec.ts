@@ -10,19 +10,17 @@ test("portfolio analysis merges sources, capital, risk and legacy navigation", a
     process.env.CCX_E2E_STATISTICS_FIXTURES !== "1",
     "Requires isolated provider fixtures",
   );
-  test.setTimeout(180000);
+  test.setTimeout(360000);
   const user = `alice-${info.project.name}`;
   const cookies = JSON.parse(await readFile(".local/e2e-cookies.json", "utf8"));
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "better-auth.session_token",
-        value: cookies[user],
-        domain: "localhost",
-        path: "/",
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "better-auth.session_token",
+      value: cookies[user],
+      domain: "localhost",
+      path: "/",
+    },
+  ]);
   const portfolioId = randomUUID();
   const db = new Client({
     connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
@@ -84,6 +82,12 @@ test("portfolio analysis merges sources, capital, risk and legacy navigation", a
   await expect(
     sources.getByRole("heading", { name: "აქტივების წვლილი", exact: true }),
   ).toBeVisible();
+  await sources
+    .getByText("ყველა აქტივის წვლილი და სექტორები", { exact: true })
+    .click();
+  await capital
+    .getByText("კაპიტალის მოძრაობა და შემოსავლიანობა", { exact: true })
+    .click();
   for (const width of [360, 390, 430, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(
@@ -110,6 +114,34 @@ test("portfolio analysis merges sources, capital, risk and legacy navigation", a
     .click();
   await sources.getByRole("link").first().click();
   await expect(page).toHaveURL(new RegExp(`/positions/bitcoin$`));
+  for (const route of [
+    "",
+    "/positions",
+    "/transactions",
+    "/airdrops",
+    "/watchlist",
+    "/allocation",
+    "/strategy",
+    "/scenarios",
+    "/journal",
+    "/settings",
+  ]) {
+    await page.goto(base + route);
+    await expect(page.locator("main")).toBeVisible();
+    for (const width of [360, 390, 430, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 1,
+        ),
+        `${route} at ${width}`,
+      ).toBe(true);
+      await page.screenshot({
+        path: `.local/system-${route.slice(1) || "overview"}-${width}.png`,
+        fullPage: true,
+      });
+    }
+  }
   const mutate = new Client({
     connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
   });
