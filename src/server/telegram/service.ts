@@ -132,7 +132,7 @@ export function telegramService(db: Database, userId: string) {
       if (!row?.chatId) throw new Error("TELEGRAM_NOT_CONNECTED");
       await sendTelegram(
         row.chatId,
-        "CCX · სატესტო შეტყობინება\nTelegram-ის კავშირი მუშაობს.",
+        "სატესტო შეტყობინება\nTelegram-ის კავშირი მუშაობს.",
       );
     },
   };

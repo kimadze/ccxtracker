@@ -119,7 +119,7 @@ export async function processTelegramDeliveries(
       const url = `${appOrigin()}/portfolios/${row.portfolio.id}/watchlist?asset=${encodeURIComponent(row.asset.id)}`;
       await sendTelegram(
         row.connection.chatId,
-        `CCX · ${row.asset.symbol.slice(0, 40)}\n${direction} ფასი მიღწეულია\nსამიზნე ${job.side === "buy" ? "≤" : "≥"} ${unitPrice(job.target)}\nდაფიქსირებული ფასი: ${unitPrice(job.price)}\n${job.reachedAt.toISOString()}`,
+        `${row.asset.symbol.slice(0, 40)}\n${direction} ფასი მიღწეულია\nსამიზნე ${job.side === "buy" ? "≤" : "≥"} ${unitPrice(job.target)}\nდაფიქსირებული ფასი: ${unitPrice(job.price)}\n${job.reachedAt.toISOString()}`,
         url,
       );
       await db

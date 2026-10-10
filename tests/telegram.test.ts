@@ -247,6 +247,8 @@ describe("private Telegram connections and durable deliveries", () => {
     const payload = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(payload.chat_id).toBe("123");
     expect(payload.text).toContain("შესყიდვის");
+    expect(payload.text).toMatch(/^BTC\n/);
+    expect(payload.text).not.toContain("CCX ·");
     expect(payload.reply_markup.inline_keyboard[0][0].url).toContain(p.id);
   });
   it("respects portfolio and direction choices and cancels jobs on disconnect", async () => {
