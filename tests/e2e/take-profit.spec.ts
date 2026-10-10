@@ -109,6 +109,24 @@ test("Take Profit alerts save, warn, rearm and fit mobile and desktop", async ({
         path: `.local/take-profit-result-${width}-${info.project.name}.png`,
       });
     }
+    await db.query("UPDATE transactions SET price=10 WHERE portfolio_id=$1", [
+      pid,
+    ]);
+    await page.reload();
+    const profit = section.getByLabel("გასვლის შედეგი");
+    await expect(profit).toContainText("$50,00");
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 844 });
+      await profit.scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `.local/take-profit-known-${width}-${info.project.name}.png`,
+      });
+    }
+    await db.query("UPDATE transactions SET price=100 WHERE portfolio_id=$1", [
+      pid,
+    ]);
+    await page.reload();
+    await expect(profit).toContainText("-$625,00");
     await db.query(
       "UPDATE exit_plan_levels SET reached_at=now(),reached_price=15 WHERE plan_id=$1 AND level=1",
       [plan.id],

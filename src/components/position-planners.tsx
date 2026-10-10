@@ -240,7 +240,7 @@ export function ExitPlanner({
   return (
     <div className="space-y-3">
       <section className="min-w-0">
-        <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex min-w-0 flex-col gap-2">
           <div className="grid grid-cols-[minmax(0,1fr)_110px] items-start gap-3">
             <div>
               <h2 className="text-base font-medium">Take Profit</h2>
@@ -266,7 +266,10 @@ export function ExitPlanner({
           </div>
           {!preview && (
             <div className="flex flex-wrap items-center gap-3">
-              <label className="label min-h-11 gap-3">
+              <label
+                className="label min-h-11 gap-2"
+                title="თითო დონეზე ერთჯერადი ალერტი. გაყიდვა ავტომატურად არ შესრულდება."
+              >
                 <input
                   type="checkbox"
                   className="toggle toggle-primary"
@@ -276,17 +279,13 @@ export function ExitPlanner({
                 Telegram ალერტები
               </label>
               <Link
-                className="link text-xs"
+                className="btn btn-ghost min-h-11 text-xs"
+                aria-label="Telegram-ის დაკავშირება და მართვა"
                 href={`/portfolios/${portfolioId}/settings#settings-telegram`}
               >
-                Telegram-ის დაკავშირება
+                მართვა
               </Link>
             </div>
-          )}
-          {telegramEnabled && (
-            <p className="text-xs text-base-content/60">
-              ერთჯერადი ალერტი · ავტომატური გაყიდვის გარეშე
-            </p>
           )}
           {initial?.telegramEnabled &&
             initial.alertQuantity &&
@@ -304,12 +303,14 @@ export function ExitPlanner({
             {levels.map((level, i) => (
               <div
                 key={i}
-                className="grid grid-cols-2 items-end gap-x-3 gap-y-1 border-t border-base-300 py-2"
+                className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_44px] items-start gap-x-2 gap-y-1 border-t border-base-300 py-2 sm:grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)_44px] sm:gap-x-3"
               >
-                <div className="col-span-2 flex items-center justify-between">
+                <div className="col-span-2 flex min-h-6 items-center gap-2 sm:col-span-1 sm:row-start-1 sm:flex-col sm:items-start sm:justify-center sm:self-center">
                   <span className="badge badge-neutral">TP{i + 1}</span>
                   {initial?.levels[i] && !levelsChanged && (
-                    <span className="text-xs text-base-content/60">
+                    <span
+                      className={`text-[11px] ${telegramEnabled && initial.levels[i].reachedAt && !rearmed.includes(initial.levels[i].id ?? "") ? "text-success" : "text-base-content/50"}`}
+                    >
                       {!telegramEnabled
                         ? "გამორთულია"
                         : initial.levels[i].reachedAt &&
@@ -318,55 +319,59 @@ export function ExitPlanner({
                           : "ელოდება"}
                     </span>
                   )}
-                  <button
-                    className="btn btn-ghost btn-square min-h-11 min-w-11 text-error"
-                    aria-label={`TP${i + 1}-ის წაშლა`}
-                    disabled={levels.length <= 1}
-                    onClick={() => {
-                      setLevels((l) => l.filter((_, n) => n !== i));
-                      setMessage("");
-                    }}
-                  >
-                    <Trash2 size={15} />
-                  </button>
                 </div>
-                <Field label="სამიზნე ფასი (USD)">
-                  <input
-                    className="input"
-                    type={balancesHidden ? "password" : "text"}
-                    value={level.price}
-                    inputMode="decimal"
-                    onChange={(e) => update(i, "price", e.target.value)}
-                    placeholder="0.00"
-                  />
-                </Field>
-                <Field label="გასაყიდი წილი (%)">
-                  <input
-                    className="input"
-                    value={level.percentage}
-                    inputMode="decimal"
-                    onChange={(e) => update(i, "percentage", e.target.value)}
-                  />
-                </Field>
-                <span className="numeric text-sm">
-                  {result?.levels[i] ? (
-                    <BalanceValue>
-                      {quantity(result.levels[i].quantity)}{" "}
-                      {position.asset.symbol}
-                    </BalanceValue>
-                  ) : (
-                    "—"
-                  )}
-                </span>
-                <span className="numeric text-sm">
-                  {result?.levels[i] ? (
-                    <BalanceValue>
-                      {money(result.levels[i].revenue)}
-                    </BalanceValue>
-                  ) : (
-                    "—"
-                  )}
-                </span>
+                <button
+                  className="btn btn-ghost btn-square col-start-3 row-start-2 min-h-11 min-w-11 self-center text-base-content/40 hover:text-error sm:col-start-4 sm:row-start-1"
+                  aria-label={`TP${i + 1}-ის წაშლა`}
+                  disabled={levels.length <= 1}
+                  onClick={() => {
+                    setLevels((l) => l.filter((_, n) => n !== i));
+                    setMessage("");
+                  }}
+                >
+                  <Trash2 size={15} />
+                </button>
+                <div className="col-start-1 min-w-0 sm:col-start-2 sm:row-start-1">
+                  <Field label="სამიზნე ფასი (USD)">
+                    <input
+                      className="input font-medium"
+                      type={balancesHidden ? "password" : "text"}
+                      value={level.price}
+                      inputMode="decimal"
+                      onChange={(e) => update(i, "price", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </Field>
+                  <p className="numeric mt-1 text-xs text-base-content/55">
+                    {result?.levels[i] ? (
+                      <BalanceValue>
+                        {quantity(result.levels[i].quantity)}{" "}
+                        {position.asset.symbol}
+                      </BalanceValue>
+                    ) : (
+                      "—"
+                    )}
+                  </p>
+                </div>
+                <div className="col-start-2 min-w-0 sm:col-start-3 sm:row-start-1">
+                  <Field label="გასაყიდი წილი (%)">
+                    <input
+                      className="input text-base-content/75"
+                      value={level.percentage}
+                      inputMode="decimal"
+                      onChange={(e) => update(i, "percentage", e.target.value)}
+                    />
+                  </Field>
+                  <p className="numeric mt-1 text-xs font-medium">
+                    {result?.levels[i] ? (
+                      <BalanceValue>
+                        {money(result.levels[i].revenue)}
+                      </BalanceValue>
+                    ) : (
+                      "—"
+                    )}
+                  </p>
+                </div>
                 {telegramEnabled &&
                   (!initial?.levels[i]?.reachedAt ||
                     levelsChanged ||
@@ -383,7 +388,7 @@ export function ExitPlanner({
                       return false;
                     }
                   })() && (
-                    <p className="col-span-2 text-xs text-warning">
+                    <p className="col-span-3 text-xs text-warning sm:col-span-3 sm:col-start-2">
                       ფასი უკვე სამიზნეზეა · საჭიროა ახალი გადაკვეთა.
                     </p>
                   )}
@@ -393,7 +398,7 @@ export function ExitPlanner({
                   !levelsChanged &&
                   !preview && (
                     <button
-                      className="btn btn-ghost col-span-2 justify-self-start"
+                      className="btn btn-ghost col-span-3 justify-self-start sm:col-start-2"
                       disabled={pending}
                       onClick={async () => {
                         setPending(true);
@@ -439,6 +444,14 @@ export function ExitPlanner({
               { label: "წმინდა შემოსავალი", value: money(result.revenue) },
               {
                 label: "მოგება / ზარალი",
+                tone:
+                  position.costBasis !== null
+                    ? decimal(result.profit).lt(0)
+                      ? "text-error"
+                      : decimal(result.profit).gt(0)
+                        ? "text-success"
+                        : ""
+                    : "text-base-content/50",
                 value: money(
                   position.costBasis === null ? null : result.profit,
                 ),
@@ -451,7 +464,9 @@ export function ExitPlanner({
                 <div className="stat-title whitespace-normal text-xs">
                   {item.label}
                 </div>
-                <div className="stat-value numeric min-w-0 text-lg font-semibold whitespace-nowrap sm:text-xl">
+                <div
+                  className={`stat-value numeric min-w-0 text-lg font-semibold whitespace-nowrap sm:text-xl ${"tone" in item ? item.tone : ""}`}
+                >
                   <BalanceValue>{item.value}</BalanceValue>
                 </div>
               </div>
