@@ -492,7 +492,7 @@ export function ExitPlanner({
           </dl>
           <details className="collapse collapse-arrow mt-3 rounded-none border-t border-base-300">
             <summary className="collapse-title min-h-11 px-0 py-3 pr-8 text-sm font-medium">
-              კაპიტალის ამოღება · დეტალები
+              კაპიტალის ფიქსაცია · დეტალები
             </summary>
             <div className="collapse-content px-0">
               <p className="text-xs leading-5 text-base-content/60">
