@@ -3,7 +3,7 @@ import { ResponsiveDisclosure } from "./responsive-disclosure";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Asset, PortfolioSummary } from "@/domain/types";
-import type { ExitLevel } from "@/domain/planning";
+import type { SavedExitPlan } from "@/domain/planning";
 import { DcaPlanner, ExitPlanner } from "./position-planners";
 import { JournalForm, type JournalData } from "./journal";
 import {
@@ -23,7 +23,7 @@ export function StrategyWorkspace({
   data: Record<
     string,
     {
-      plan: { feePercent: string; levels: ExitLevel[] } | null;
+      plan: SavedExitPlan | null;
       journal: (JournalData & { id?: string }) | null;
     }
   >;

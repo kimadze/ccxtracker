@@ -250,6 +250,9 @@ export const exitPlans = pgTable(
       .notNull()
       .references(() => assets.id),
     feePercent: financial("fee_percent").default("0").notNull(),
+    telegramEnabled: boolean("telegram_enabled").default(false).notNull(),
+    alertQuantity: financial("alert_quantity"),
+    alertGeneration: uuid("alert_generation").defaultRandom().notNull(),
     ...times(),
   },
   (t) => [
@@ -270,6 +273,10 @@ export const exitLevels = pgTable(
     level: integer("level").notNull(),
     price: financial("price").notNull(),
     percentage: financial("percentage").notNull(),
+    alertQuoteAt: timestamp("alert_quote_at", { withTimezone: true }),
+    alertArmed: boolean("alert_armed").default(false).notNull(),
+    reachedAt: timestamp("reached_at", { withTimezone: true }),
+    reachedPrice: financial("reached_price"),
   },
   (t) => [
     uniqueIndex("exit_level_order_unique").on(t.planId, t.level),
@@ -280,6 +287,39 @@ export const exitLevels = pgTable(
     ),
   ],
 );
+export const takeProfitDeliveries = pgTable(
+  "take_profit_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => exitPlans.id, { onDelete: "cascade" }),
+    generation: uuid("generation").notNull(),
+    connectionGeneration: uuid("connection_generation").notNull(),
+    reachedAt: timestamp("reached_at", { withTimezone: true }).notNull(),
+    price: financial("price").notNull(),
+    levels: jsonb("levels")
+      .$type<
+        { level: number; price: string; percentage: string; quantity: string }[]
+      >()
+      .notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    ...times(),
+  },
+  (t) => [
+    uniqueIndex("take_profit_delivery_episode").on(
+      t.planId,
+      t.generation,
+      t.reachedAt,
+    ),
+    index("take_profit_delivery_due").on(t.nextAttemptAt),
+  ],
+);
+
 export const journals = pgTable(
   "position_journals",
   {

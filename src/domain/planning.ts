@@ -52,6 +52,16 @@ export interface ExitLevel {
   price: string;
   percentage: string;
 }
+export interface SavedExitPlan {
+  feePercent: string;
+  telegramEnabled?: boolean;
+  alertQuantity?: string | null;
+  levels: (ExitLevel & {
+    id?: string;
+    reachedAt?: string | null;
+    alertArmed?: boolean;
+  })[];
+}
 export function calculateExit(input: {
   quantity: string;
   costBasis: string;

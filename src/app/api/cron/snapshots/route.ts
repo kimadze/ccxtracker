@@ -4,6 +4,7 @@ import { runSnapshots } from "@/server/snapshots";
 import { processBlobCleanupJobs } from "@/server/blob-cleanup";
 import { sendJobAlert } from "@/server/job-alerts";
 import { processTelegramDeliveries } from "@/server/telegram/delivery";
+import { processTakeProfitDeliveries } from "@/server/telegram/take-profit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
@@ -80,6 +81,8 @@ export async function GET(request: Request) {
       if (Date.now() - startedAt < 48000) {
         try {
           await processTelegramDeliveries(undefined, 1);
+          if (Date.now() - startedAt < 48000)
+            await processTakeProfitDeliveries(undefined, 1);
         } catch {
           console.warn("TELEGRAM_QUEUE_RETRY_PENDING");
         }

@@ -81,6 +81,8 @@ Each deleted transaction offers a 30-second undo using its existing audit copy. 
 
 Watchlist supports separate buy-at-or-below and sell-at-or-above targets. The first fresh quote establishes a baseline without alerting; subsequent crossings generate independent notices. Rearming requires returning outside the target zone first. Read state persists per target; changing one target resets only its episode. Stale quotes never trigger alerts. Optional Telegram alerts use a separately confirmed private chat and selected portfolios; background checks require an authenticated scheduler. See [Telegram setup](docs/telegram.md). Undo notices retain their original deadline across refreshes.
 
+Position exit plans support one-shot, grouped [Take Profit Telegram alerts](docs/take-profit.md). A saved position quantity anchors the plan; quantity changes pause alerts until review. The protected GitHub Actions scheduler checks Watchlist and Take Profit prices approximately every five minutes, including while the app is closed.
+
 ### Read-only wallet portfolios
 
 Portfolio creation also supports Stellar and Bitcoin mainnet wallets with up to ten public addresses. These are separate from the manual transaction ledger; no signature, private key or wallet connection is requested. Free public Horizon and mempool.space endpoints provide balances; native asset prices use public market endpoints. Refresh is limited to once per minute per wallet, and failures preserve the previous snapshot.

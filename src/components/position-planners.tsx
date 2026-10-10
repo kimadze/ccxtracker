@@ -2,9 +2,17 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { Asset, ValuedPosition } from "@/domain/types";
-import { calculateDca, calculateExit, type ExitLevel } from "@/domain/planning";
+import {
+  calculateDca,
+  calculateExit,
+  type ExitLevel,
+  type SavedExitPlan,
+} from "@/domain/planning";
+import { decimal } from "@/domain/decimal";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { inputNumber, money, percentage, quantity } from "@/lib/formatters";
-import { saveExitPlan } from "@/server/strategy-actions";
+import { saveExitPlan, rearmTakeProfit } from "@/server/strategy-actions";
 import { Field, Message } from "./ui";
 import { BalanceValue } from "./ui";
 import { Metric } from "./overview";
@@ -174,10 +182,15 @@ export function ExitPlanner({
 }: {
   position: ValuedPosition;
   portfolioId: string;
-  initial?: { feePercent: string; levels: ExitLevel[] } | null;
+  initial?: SavedExitPlan | null;
   preview?: boolean;
 }) {
   const balancesHidden = useBalancesHidden();
+  const router = useRouter();
+  const [telegramEnabled, setTelegramEnabled] = useState(
+    initial?.telegramEnabled ?? false,
+  );
+  const [rearmed, setRearmed] = useState<string[]>([]);
   const [levels, setLevels] = useState<ExitLevel[]>(
       initial?.levels.map((level) => ({
         price: inputNumber(level.price),
@@ -190,16 +203,28 @@ export function ExitPlanner({
     [pending, setPending] = useState(false);
   let result: ReturnType<typeof calculateExit> | null = null;
   try {
-    if (position.costBasis !== null)
-      result = calculateExit({
-        quantity: position.quantity,
-        costBasis: position.costBasis,
-        feePercent,
-        levels,
-      });
+    result = calculateExit({
+      quantity: position.quantity,
+      costBasis: position.costBasis ?? "0",
+      feePercent,
+      levels,
+    });
   } catch {
     /* Validate drafts without inventing outputs. */
   }
+  const levelsChanged =
+    !initial ||
+    initial.levels.length !== levels.length ||
+    levels.some((level, i) => {
+      try {
+        return (
+          !decimal(level.price).eq(initial.levels[i].price) ||
+          !decimal(level.percentage).eq(initial.levels[i].percentage)
+        );
+      } catch {
+        return true;
+      }
+    });
   function update(i: number, field: keyof ExitLevel, value: string) {
     setLevels((l) =>
       l.map((item, n) => (n === i ? { ...item, [field]: value } : item)),
@@ -212,7 +237,7 @@ export function ExitPlanner({
         <div className="flex min-w-0 flex-col gap-3">
           <div className="grid grid-cols-[minmax(0,1fr)_110px] items-start gap-3">
             <div>
-              <h2 className="text-base font-medium">გაყიდვის ეტაპები</h2>
+              <h2 className="text-base font-medium">Take Profit</h2>
               <p className="mt-1 text-xs leading-5 text-base-content/60">
                 ყველა წილი ითვლება მიმდინარე{" "}
                 <BalanceValue>{quantity(position.quantity)}</BalanceValue>{" "}
@@ -234,6 +259,38 @@ export function ExitPlanner({
               </Field>
             </div>
           </div>
+          {!preview && (
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="label min-h-11 gap-3">
+                <input
+                  type="checkbox"
+                  className="toggle toggle-primary"
+                  checked={telegramEnabled}
+                  onChange={(e) => setTelegramEnabled(e.target.checked)}
+                />
+                Telegram ალერტები
+              </label>
+              <Link
+                className="link text-xs"
+                href={`/portfolios/${portfolioId}/settings#settings-telegram`}
+              >
+                Telegram-ის დაკავშირება
+              </Link>
+            </div>
+          )}
+          {telegramEnabled && (
+            <p className="text-xs text-base-content/60">
+              თითო დონე ერთხელ შეგატყობინებს. გაყიდვა ავტომატურად არ შესრულდება.
+            </p>
+          )}
+          {initial?.telegramEnabled &&
+            initial.alertQuantity &&
+            !decimal(initial.alertQuantity).eq(position.quantity) && (
+              <Message error>
+                რაოდენობა შეიცვალა. ალერტები შეჩერებულია — გადაამოწმე და შეინახე
+                გეგმა.
+              </Message>
+            )}
           <div
             className="divide-y divide-base-300"
             role="table"
@@ -246,6 +303,16 @@ export function ExitPlanner({
               >
                 <div className="col-span-2 flex items-center justify-between">
                   <span className="badge badge-neutral">TP{i + 1}</span>
+                  {initial?.levels[i] && !levelsChanged && (
+                    <span className="text-xs text-base-content/60">
+                      {!telegramEnabled
+                        ? "გამორთულია"
+                        : initial.levels[i].reachedAt &&
+                            !rearmed.includes(initial.levels[i].id ?? "")
+                          ? "მიღწეულია"
+                          : "ელოდება"}
+                    </span>
+                  )}
                   <button
                     className="btn btn-ghost btn-square min-h-11 min-w-11 text-error"
                     aria-label={`TP${i + 1}-ის წაშლა`}
@@ -279,12 +346,71 @@ export function ExitPlanner({
                 <span className="numeric text-sm">
                   {result?.levels[i] ? (
                     <BalanceValue>
-                      {quantity(result.levels[i].quantity)}
+                      {quantity(result.levels[i].quantity)}{" "}
+                      {position.asset.symbol}
                     </BalanceValue>
                   ) : (
                     "—"
                   )}
                 </span>
+                {telegramEnabled &&
+                  (!initial?.levels[i]?.reachedAt ||
+                    levelsChanged ||
+                    rearmed.includes(initial.levels[i]?.id ?? "")) &&
+                  position.quote &&
+                  !position.quote.stale &&
+                  (() => {
+                    try {
+                      return (
+                        decimal(level.price).gt(0) &&
+                        decimal(position.quote.price).gte(level.price)
+                      );
+                    } catch {
+                      return false;
+                    }
+                  })() && (
+                    <p className="col-span-2 text-xs text-warning">
+                      ფასი უკვე სამიზნეზეა. ალერტი დაელოდება ქვემოთ დაბრუნებას
+                      და ხელახალ მიღწევას.
+                    </p>
+                  )}
+                {initial?.levels[i]?.reachedAt &&
+                  initial.levels[i].id &&
+                  !rearmed.includes(initial.levels[i].id!) &&
+                  !levelsChanged &&
+                  !preview && (
+                    <button
+                      className="btn btn-ghost col-span-2 justify-self-start"
+                      disabled={pending}
+                      onClick={async () => {
+                        setPending(true);
+                        try {
+                          const reply = await rearmTakeProfit({
+                            portfolioId,
+                            assetId: position.assetId,
+                            levelId: initial.levels[i].id,
+                          });
+                          setError(!reply.ok);
+                          setMessage(
+                            reply.ok
+                              ? "ალერტი ხელახლა ჩართულია."
+                              : reply.error!,
+                          );
+                          if (reply.ok) {
+                            setRearmed((v) => [...v, initial.levels[i].id!]);
+                            router.refresh();
+                          }
+                        } catch {
+                          setError(true);
+                          setMessage("ალერტის ჩართვა ვერ მოხერხდა.");
+                        } finally {
+                          setPending(false);
+                        }
+                      }}
+                    >
+                      ხელახალი ჩართვა
+                    </button>
+                  )}
                 <span className="numeric text-sm">
                   {result?.levels[i] ? (
                     <BalanceValue>
@@ -320,10 +446,13 @@ export function ExitPlanner({
                       assetId: position.assetId,
                       feePercent,
                       levels,
+                      telegramEnabled,
                     });
                     setError(!response.ok);
-                    if (response.ok)
+                    if (response.ok) {
                       window.dispatchEvent(new Event("ccx-planning-saved"));
+                      router.refresh();
+                    }
                     setMessage(
                       response.ok ? "გასვლის გეგმა შენახულია." : response.error,
                     );
@@ -353,7 +482,7 @@ export function ExitPlanner({
             <Metric
               compact
               label="მოსალოდნელი მოგება"
-              value={money(result.profit)}
+              value={money(position.costBasis === null ? null : result.profit)}
               sensitive
             />
             <Metric
@@ -374,7 +503,9 @@ export function ExitPlanner({
             <p className="mt-3 text-xs leading-5 text-base-content/60">
               აღსადგენი თვითღირებულება:{" "}
               <BalanceValue>{money(position.costBasis)}</BalanceValue>.{" "}
-              {result.alreadyRecovered ? (
+              {position.costBasis === null ? (
+                "თვითღირებულება უცნობია; კაპიტალის ამოღება არ გამოითვლება."
+              ) : result.alreadyRecovered ? (
                 "დარჩენილ პოზიციას ნულოვანი თვითღირებულება აქვს."
               ) : result.recoveryLevel ? (
                 <>
@@ -405,7 +536,10 @@ export function ExitPlanner({
                     შემოსავალი: <BalanceValue>{money(l.revenue)}</BalanceValue>
                   </span>
                   <span className="text-base-content/60">
-                    მოგება: <BalanceValue>{money(l.profit)}</BalanceValue>
+                    მოგება:{" "}
+                    <BalanceValue>
+                      {money(position.costBasis === null ? null : l.profit)}
+                    </BalanceValue>
                   </span>
                 </div>
               ))}
@@ -415,7 +549,7 @@ export function ExitPlanner({
       ) : (
         <Message>
           შეიყვანეთ ზრდადი დადებითი ფასები. წილების ჯამი არ უნდა აღემატებოდეს
-          100%-ს; თვითღირებულება ცნობილი უნდა იყოს.
+          100%-ს. უცნობი თვითღირებულებისას მოგება არ გამოითვლება.
         </Message>
       )}
       {message && <Message error={error}>{message}</Message>}

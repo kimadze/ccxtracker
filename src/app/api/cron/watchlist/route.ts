@@ -6,11 +6,16 @@ import {
   portfolios,
   telegramConnections,
   jobState,
+  exitPlans,
 } from "@/server/db/schema";
 import { getQuotes } from "@/server/market";
 import { evaluateWatchlistTargets } from "@/server/services/watchlist-notifications";
 import { processTelegramDeliveries } from "@/server/telegram/delivery";
 import { secretMatches } from "@/server/telegram/api";
+import {
+  evaluateTakeProfits,
+  processTakeProfitDeliveries,
+} from "@/server/telegram/take-profit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
@@ -37,7 +42,7 @@ export async function GET(request: Request) {
     .returning();
   if (!lease) return Response.json({ busy: true });
   try {
-    const tracked = await db
+    const watchTracked = await db
       .selectDistinct({ asset: assets })
       .from(watchlistItems)
       .innerJoin(assets, eq(assets.id, watchlistItems.assetId))
@@ -56,23 +61,47 @@ export async function GET(request: Request) {
         ),
       )
       .orderBy(asc(assets.id));
+    const tpTracked = await db
+      .selectDistinct({ asset: assets })
+      .from(exitPlans)
+      .innerJoin(assets, eq(assets.id, exitPlans.assetId))
+      .innerJoin(portfolios, eq(portfolios.id, exitPlans.portfolioId))
+      .innerJoin(
+        telegramConnections,
+        eq(telegramConnections.userId, portfolios.userId),
+      )
+      .where(
+        and(
+          eq(exitPlans.telegramEnabled, true),
+          isNotNull(telegramConnections.chatId),
+        ),
+      );
+    const tracked = [
+      ...new Map(
+        [...watchTracked, ...tpTracked].map((r) => [r.asset.id, r]),
+      ).values(),
+    ].sort((a, b) => a.asset.id.localeCompare(b.asset.id));
     // Rotate across provider's bounded refresh batches instead of starving later assets.
     const cursor = typeof lease.cursor === "string" ? lease.cursor : "";
     const afterCursor = tracked.filter((r) => r.asset.id > cursor);
     const batch = (afterCursor.length ? afterCursor : tracked).slice(0, 100);
-    await evaluateWatchlistTargets(
-      db,
-      await getQuotes(
-        batch.map((r) => r.asset),
-        { mode: "blocking" },
-      ),
+    const quotes = await getQuotes(
+      batch.map((r) => r.asset),
+      { mode: "blocking" },
     );
-    const delivery = await processTelegramDeliveries(db);
+    await evaluateWatchlistTargets(db, quotes);
+    await evaluateTakeProfits(db, quotes);
+    const tpDelivery = await processTakeProfitDeliveries(db, 3);
+    const delivery = await processTelegramDeliveries(db, 3);
     await db
       .update(jobState)
       .set({ cursor: batch.at(-1)?.asset.id ?? null })
       .where(eq(jobState.key, key));
-    return Response.json({ checked: batch.length, ...delivery });
+    return Response.json({
+      checked: batch.length,
+      ...delivery,
+      takeProfit: tpDelivery,
+    });
   } catch {
     console.error("WATCHLIST_CRON_FAILED");
     return Response.json({ error: "შემოწმება ვერ შესრულდა." }, { status: 500 });

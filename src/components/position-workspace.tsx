@@ -3,7 +3,7 @@ import { ResponsiveDisclosure } from "./responsive-disclosure";
 import { useSearchParams } from "next/navigation";
 import { WorkspaceTabs, useWorkspaceTab } from "./workspace-tabs";
 import type { Asset, LedgerEntry, ValuedPosition } from "@/domain/types";
-import type { ExitLevel } from "@/domain/planning";
+import type { SavedExitPlan } from "@/domain/planning";
 import { Metric } from "./overview";
 import dynamic from "next/dynamic";
 const DcaPlanner = dynamic(() =>
@@ -38,7 +38,7 @@ export function PositionWorkspace({
   revision: number;
   assets: Asset[];
   entries: LedgerEntry[];
-  plan: { feePercent: string; levels: ExitLevel[] } | null;
+  plan: SavedExitPlan | null;
   journal: JournalData | null;
 }) {
   const searchParams = useSearchParams();

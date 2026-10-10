@@ -11,6 +11,10 @@ import type { Asset, Quote } from "@/domain/types";
 import { CoinGeckoProvider } from "./provider";
 import { evaluateWatchlistTargets } from "../services/watchlist-notifications";
 import { processTelegramDeliveries } from "../telegram/delivery";
+import {
+  evaluateTakeProfits,
+  processTakeProfitDeliveries,
+} from "../telegram/take-profit";
 
 export const coreAssets: Asset[] = [
   {
@@ -127,6 +131,7 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
         });
     try {
       await evaluateWatchlistTargets(db, fresh);
+      await evaluateTakeProfits(db, fresh);
     } catch {
       console.warn("Watchlist target evaluation failed", { retryable: true });
     }
@@ -186,6 +191,7 @@ export async function getQuotes(
       await refreshExpired(expired);
       try {
         await processTelegramDeliveries(db);
+        await processTakeProfitDeliveries(db);
       } catch {
         console.warn("TELEGRAM_QUEUE_RETRY_PENDING");
       }

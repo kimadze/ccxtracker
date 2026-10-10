@@ -4,6 +4,7 @@ import { decimal } from "./decimal";
 export const exitPlanSchema = z.object({
   portfolioId: idSchema,
   assetId: z.string().min(1).max(120),
+  telegramEnabled: z.boolean().default(false),
   feePercent: amountSchema.refine(
     (v) => decimal(v).lt(100),
     "საკომისიო უნდა იყოს 100%-ზე ნაკლები.",

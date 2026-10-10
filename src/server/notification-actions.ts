@@ -11,6 +11,11 @@ import { userError } from "./errors";
 import { after } from "next/server";
 import { processTelegramDeliveries } from "./telegram/delivery";
 import { telegramConfigured } from "./telegram/api";
+import {
+  evaluateTakeProfits,
+  processTakeProfitDeliveries,
+} from "./telegram/take-profit";
+import { exitPlans } from "./db/schema";
 export async function loadTargetNotifications(portfolioId: string) {
   const user = await requireUser();
   try {
@@ -21,15 +26,28 @@ export async function loadTargetNotifications(portfolioId: string) {
       .from(watchlistItems)
       .innerJoin(assets, eq(assets.id, watchlistItems.assetId))
       .where(eq(watchlistItems.portfolioId, portfolioId));
-    await evaluateWatchlistTargets(
-      db,
-      await getQuotes(tracked.map((row) => row.asset)),
-      portfolioId,
-    );
+    const tpAssets = await db
+      .select({ asset: assets })
+      .from(exitPlans)
+      .innerJoin(assets, eq(assets.id, exitPlans.assetId))
+      .where(
+        and(
+          eq(exitPlans.portfolioId, portfolioId),
+          eq(exitPlans.telegramEnabled, true),
+        ),
+      );
+    const quotes = await getQuotes([
+      ...new Map(
+        [...tracked, ...tpAssets].map((r) => [r.asset.id, r.asset]),
+      ).values(),
+    ]);
+    await evaluateWatchlistTargets(db, quotes, portfolioId);
+    await evaluateTakeProfits(db, quotes);
     if (telegramConfigured())
       after(async () => {
         try {
           await processTelegramDeliveries(db);
+          await processTakeProfitDeliveries(db);
         } catch {
           console.warn("TELEGRAM_QUEUE_RETRY_PENDING");
         }

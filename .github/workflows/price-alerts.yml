@@ -1,0 +1,28 @@
+name: Price alerts
+on:
+  schedule:
+    - cron: "3-58/5 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: price-alerts
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check private price alerts
+        env:
+          CCX_CRON_SECRET: ${{ secrets.CCX_CRON_SECRET }}
+        run: |
+          if [ -z "$CCX_CRON_SECRET" ]; then
+            echo "CCX_CRON_SECRET is not configured."
+            exit 1
+          fi
+          curl --silent --show-error --fail-with-body \
+            --max-time 70 --retry 2 --retry-delay 10 \
+            --request POST \
+            --header "Authorization: Bearer $CCX_CRON_SECRET" \
+            https://ccxtracker.vercel.app/api/cron/watchlist
