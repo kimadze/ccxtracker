@@ -74,6 +74,11 @@ test("Take Profit alerts save, warn, rearm and fit mobile and desktop", async ({
     await page.reload();
     await expect(section.getByLabel("Telegram ალერტები")).toBeChecked();
     await expect(section).toContainText("თვითღირებულება უცნობია");
+    const recovery = section.getByLabel("გასვლის შედეგი").locator("details");
+    await expect(recovery).not.toHaveAttribute("open", "");
+    await recovery.locator("summary").click();
+    await expect(recovery.getByText(/თვითღირებულება უცნობია/)).toBeVisible();
+    await recovery.locator("summary").click();
     for (const width of [360, 390, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 844 });
       await section
@@ -86,6 +91,22 @@ test("Take Profit alerts save, warn, rearm and fit mobile and desktop", async ({
       ).toBe(true);
       await page.screenshot({
         path: `.local/take-profit-${width}-${info.project.name}.png`,
+      });
+      const result = section.getByLabel("გასვლის შედეგი");
+      await result.scrollIntoViewIfNeeded();
+      await expect(
+        result.getByText("წმინდა შემოსავალი", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        result.getByText("მოგება / ზარალი", { exact: true }),
+      ).toBeVisible();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 1,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `.local/take-profit-result-${width}-${info.project.name}.png`,
       });
     }
     await db.query(

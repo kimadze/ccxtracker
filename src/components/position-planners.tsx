@@ -11,7 +11,13 @@ import {
 import { decimal } from "@/domain/decimal";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { inputNumber, money, percentage, quantity } from "@/lib/formatters";
+import {
+  inputNumber,
+  money,
+  percentage,
+  quantity,
+  unitPrice,
+} from "@/lib/formatters";
 import { saveExitPlan, rearmTakeProfit } from "@/server/strategy-actions";
 import { Field, Message } from "./ui";
 import { BalanceValue } from "./ui";
@@ -232,17 +238,16 @@ export function ExitPlanner({
     setMessage("");
   }
   return (
-    <div className="space-y-3 lg:space-y-4">
+    <div className="space-y-3">
       <section className="min-w-0">
         <div className="flex min-w-0 flex-col gap-3">
           <div className="grid grid-cols-[minmax(0,1fr)_110px] items-start gap-3">
             <div>
               <h2 className="text-base font-medium">Take Profit</h2>
               <p className="mt-1 text-xs leading-5 text-base-content/60">
-                ყველა წილი ითვლება მიმდინარე{" "}
+                პოზიცია:{" "}
                 <BalanceValue>{quantity(position.quantity)}</BalanceValue>{" "}
-                {position.asset.symbol}-იდან. ფასები ეტაპობრივად უნდა
-                იზრდებოდეს.
+                {position.asset.symbol}
               </p>
             </div>
             <div className="min-w-0">
@@ -280,7 +285,7 @@ export function ExitPlanner({
           )}
           {telegramEnabled && (
             <p className="text-xs text-base-content/60">
-              თითო დონე ერთხელ შეგატყობინებს. გაყიდვა ავტომატურად არ შესრულდება.
+              ერთჯერადი ალერტი · ავტომატური გაყიდვის გარეშე
             </p>
           )}
           {initial?.telegramEnabled &&
@@ -353,6 +358,15 @@ export function ExitPlanner({
                     "—"
                   )}
                 </span>
+                <span className="numeric text-sm">
+                  {result?.levels[i] ? (
+                    <BalanceValue>
+                      {money(result.levels[i].revenue)}
+                    </BalanceValue>
+                  ) : (
+                    "—"
+                  )}
+                </span>
                 {telegramEnabled &&
                   (!initial?.levels[i]?.reachedAt ||
                     levelsChanged ||
@@ -370,8 +384,7 @@ export function ExitPlanner({
                     }
                   })() && (
                     <p className="col-span-2 text-xs text-warning">
-                      ფასი უკვე სამიზნეზეა. ალერტი დაელოდება ქვემოთ დაბრუნებას
-                      და ხელახალ მიღწევას.
+                      ფასი უკვე სამიზნეზეა · საჭიროა ახალი გადაკვეთა.
                     </p>
                   )}
                 {initial?.levels[i]?.reachedAt &&
@@ -411,140 +424,109 @@ export function ExitPlanner({
                       ხელახალი ჩართვა
                     </button>
                   )}
-                <span className="numeric text-sm">
-                  {result?.levels[i] ? (
-                    <BalanceValue>
-                      {money(result.levels[i].revenue)}
-                    </BalanceValue>
-                  ) : (
-                    "—"
-                  )}
-                </span>
               </div>
             ))}
-          </div>
-          <div className="card-actions">
-            <button
-              className="btn btn-outline"
-              disabled={levels.length >= 12}
-              onClick={() =>
-                setLevels((l) => [...l, { price: "", percentage: "10" }])
-              }
-            >
-              <Plus size={15} />
-              ეტაპის დამატება
-            </button>
-            {!preview && (
-              <button
-                className="btn btn-primary"
-                disabled={!result || pending}
-                onClick={async () => {
-                  setPending(true);
-                  try {
-                    const response = await saveExitPlan({
-                      portfolioId,
-                      assetId: position.assetId,
-                      feePercent,
-                      levels,
-                      telegramEnabled,
-                    });
-                    setError(!response.ok);
-                    if (response.ok) {
-                      window.dispatchEvent(new Event("ccx-planning-saved"));
-                      router.refresh();
-                    }
-                    setMessage(
-                      response.ok ? "გასვლის გეგმა შენახულია." : response.error,
-                    );
-                  } catch {
-                    setError(true);
-                    setMessage("შენახვა ვერ მოხერხდა.");
-                  } finally {
-                    setPending(false);
-                  }
-                }}
-              >
-                {pending ? "ინახება…" : "გეგმის შენახვა"}
-              </button>
-            )}
           </div>
         </div>
       </section>
       {result ? (
-        <aside className="grid gap-3 lg:gap-4 xl:grid-cols-2">
-          <div className="grid grid-cols-2 gap-2 bg-base-100">
-            <Metric
-              compact
-              label="მოსალოდნელი წმინდა შემოსავალი"
-              value={money(result.revenue)}
-              sensitive
-            />
-            <Metric
-              compact
-              label="მოსალოდნელი მოგება"
-              value={money(position.costBasis === null ? null : result.profit)}
-              sensitive
-            />
-            <Metric
-              compact
-              label="დარჩენილი პოზიცია"
-              value={`${quantity(result.remainingQuantity)} ${position.asset.symbol}`}
-              sensitive
-            />
-            <Metric
-              compact
-              label="საშუალო წმინდა გასვლის ფასი"
-              value={money(result.weightedExitPrice)}
-              sensitive
-            />
-          </div>
-          <section className="border-t border-base-300 pt-3">
-            <h2 className="text-base font-medium">კაპიტალის ამოღება</h2>
-            <p className="mt-3 text-xs leading-5 text-base-content/60">
-              აღსადგენი თვითღირებულება:{" "}
-              <BalanceValue>{money(position.costBasis)}</BalanceValue>.{" "}
-              {position.costBasis === null ? (
-                "თვითღირებულება უცნობია; კაპიტალის ამოღება არ გამოითვლება."
-              ) : result.alreadyRecovered ? (
-                "დარჩენილ პოზიციას ნულოვანი თვითღირებულება აქვს."
-              ) : result.recoveryLevel ? (
-                <>
-                  კაპიტალი სრულად ამოიღება TP{result.recoveryLevel} ეტაპზე, ამ
-                  ეტაპის{" "}
-                  <BalanceValue>
-                    {quantity(result.recoveryQuantity!)}
-                  </BalanceValue>{" "}
-                  {position.asset.symbol}-ის გაყიდვის შემდეგ.
-                </>
-              ) : (
-                "მოცემული ეტაპებით საწყისი თვითღირებულება სრულად ვერ ამოიღება."
-              )}{" "}
-              დარჩება პოზიციის {percentage(result.remainingPercent)}.
-            </p>
-            <div className="mt-3 divide-y divide-base-300">
-              {result.levels.map((l, i) => (
-                <div
-                  key={i}
-                  className="flex flex-wrap justify-between gap-3 py-3 text-xs"
-                >
-                  <span className="text-primary">
-                    TP{i + 1} ·{" "}
-                    <BalanceValue>{quantity(l.quantity)}</BalanceValue>{" "}
-                    {position.asset.symbol}
-                  </span>
-                  <span>
-                    შემოსავალი: <BalanceValue>{money(l.revenue)}</BalanceValue>
-                  </span>
-                  <span className="text-base-content/60">
-                    მოგება:{" "}
-                    <BalanceValue>
-                      {money(position.costBasis === null ? null : l.profit)}
-                    </BalanceValue>
-                  </span>
+        <aside
+          aria-label="გასვლის შედეგი"
+          className="min-w-0 border-t border-base-300 pt-3"
+        >
+          <div className="stats grid w-full min-w-0 grid-cols-2 overflow-visible rounded-none bg-transparent shadow-none">
+            {[
+              { label: "წმინდა შემოსავალი", value: money(result.revenue) },
+              {
+                label: "მოგება / ზარალი",
+                value: money(
+                  position.costBasis === null ? null : result.profit,
+                ),
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="stat min-w-0 gap-1 border-none px-0 py-0 pr-3"
+              >
+                <div className="stat-title whitespace-normal text-xs">
+                  {item.label}
                 </div>
-              ))}
+                <div className="stat-value numeric min-w-0 text-lg font-semibold whitespace-nowrap sm:text-xl">
+                  <BalanceValue>{item.value}</BalanceValue>
+                </div>
+              </div>
+            ))}
+          </div>
+          <dl className="mt-3 grid min-w-0 gap-2 text-xs sm:grid-cols-2 sm:gap-x-4">
+            <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+              <dt className="text-base-content/60">დარჩენილი პოზიცია</dt>
+              <dd className="numeric">
+                <BalanceValue>
+                  {quantity(result.remainingQuantity)} {position.asset.symbol}
+                </BalanceValue>
+              </dd>
             </div>
-          </section>
+            <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+              <dt className="text-base-content/60">საშ. გასვლის ფასი</dt>
+              <dd className="numeric">
+                <BalanceValue>
+                  {unitPrice(result.weightedExitPrice)}
+                </BalanceValue>
+              </dd>
+            </div>
+          </dl>
+          <details className="collapse collapse-arrow mt-3 rounded-none border-t border-base-300">
+            <summary className="collapse-title min-h-11 px-0 py-3 pr-8 text-sm font-medium">
+              კაპიტალის ამოღება · დეტალები
+            </summary>
+            <div className="collapse-content px-0">
+              <p className="text-xs leading-5 text-base-content/60">
+                აღსადგენი თვითღირებულება:{" "}
+                <BalanceValue>{money(position.costBasis)}</BalanceValue>.{" "}
+                {position.costBasis === null ? (
+                  "თვითღირებულება უცნობია; კაპიტალის ამოღება არ გამოითვლება."
+                ) : result.alreadyRecovered ? (
+                  "დარჩენილ პოზიციას ნულოვანი თვითღირებულება აქვს."
+                ) : result.recoveryLevel ? (
+                  <>
+                    კაპიტალი სრულად ამოიღება TP{result.recoveryLevel} ეტაპზე, ამ
+                    ეტაპის{" "}
+                    <BalanceValue>
+                      {quantity(result.recoveryQuantity!)}
+                    </BalanceValue>{" "}
+                    {position.asset.symbol}-ის გაყიდვის შემდეგ.
+                  </>
+                ) : (
+                  "მოცემული ეტაპებით საწყისი თვითღირებულება სრულად ვერ ამოიღება."
+                )}{" "}
+                დარჩება პოზიციის {percentage(result.remainingPercent)}.
+              </p>
+              <div className="mt-3 divide-y divide-base-300">
+                {result.levels.map((l, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-wrap justify-between gap-x-3 gap-y-1 py-2 text-xs"
+                  >
+                    <span className="text-primary">
+                      TP{i + 1} ·{" "}
+                      <BalanceValue>{quantity(l.quantity)}</BalanceValue>{" "}
+                      {position.asset.symbol}
+                    </span>
+                    <span>
+                      შემოსავალი:{" "}
+                      <BalanceValue>{money(l.revenue)}</BalanceValue>
+                    </span>
+                    <span className="text-base-content/60">
+                      მოგება:{" "}
+                      <BalanceValue>
+                        {money(position.costBasis === null ? null : l.profit)}
+                      </BalanceValue>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </details>
         </aside>
       ) : (
         <Message>
@@ -552,6 +534,51 @@ export function ExitPlanner({
           100%-ს. უცნობი თვითღირებულებისას მოგება არ გამოითვლება.
         </Message>
       )}
+      <div className="card-actions">
+        <button
+          className="btn btn-outline"
+          disabled={levels.length >= 12}
+          onClick={() =>
+            setLevels((l) => [...l, { price: "", percentage: "10" }])
+          }
+        >
+          <Plus size={15} />
+          ეტაპის დამატება
+        </button>
+        {!preview && (
+          <button
+            className="btn btn-primary"
+            disabled={!result || pending}
+            onClick={async () => {
+              setPending(true);
+              try {
+                const response = await saveExitPlan({
+                  portfolioId,
+                  assetId: position.assetId,
+                  feePercent,
+                  levels,
+                  telegramEnabled,
+                });
+                setError(!response.ok);
+                if (response.ok) {
+                  window.dispatchEvent(new Event("ccx-planning-saved"));
+                  router.refresh();
+                }
+                setMessage(
+                  response.ok ? "გასვლის გეგმა შენახულია." : response.error,
+                );
+              } catch {
+                setError(true);
+                setMessage("შენახვა ვერ მოხერხდა.");
+              } finally {
+                setPending(false);
+              }
+            }}
+          >
+            {pending ? "ინახება…" : "გეგმის შენახვა"}
+          </button>
+        )}
+      </div>
       {message && <Message error={error}>{message}</Message>}
     </div>
   );
