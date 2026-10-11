@@ -35,6 +35,9 @@ export async function evaluateWatchlistTargets(
         item.targetActive,
         item.targetQuoteAt,
         quotes.find((q) => q.assetId === item.assetId),
+        Date.now(),
+        "buy",
+        item.targetReachedAt,
       );
       const sell = targetTransition(
         item.exitPrice,
@@ -43,6 +46,7 @@ export async function evaluateWatchlistTargets(
         quotes.find((q) => q.assetId === item.assetId),
         Date.now(),
         "sell",
+        item.sellTargetReachedAt,
       );
       if (!next && !sell) continue;
       await tx

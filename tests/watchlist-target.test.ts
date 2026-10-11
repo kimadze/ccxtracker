@@ -97,4 +97,31 @@ describe("fresh target transitions", () => {
       targetTransition("1", false, new Date(now + 1000), quote, now),
     ).toBeNull();
   });
+  it("does not re-notify a consumed buy or sell target after a new crossing", () => {
+    for (const direction of ["buy", "sell"] as const) {
+      const fresh = { ...quote, price: "5" };
+      expect(
+        targetTransition(
+          "5",
+          false,
+          new Date(now - 1),
+          fresh,
+          now,
+          direction,
+          new Date(now - 86400000),
+        )?.notify,
+      ).toBe(false);
+      expect(
+        targetTransition(
+          "5",
+          false,
+          new Date(now - 1),
+          fresh,
+          now,
+          direction,
+          null,
+        )?.notify,
+      ).toBe(true);
+    }
+  });
 });

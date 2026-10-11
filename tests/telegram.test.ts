@@ -251,6 +251,92 @@ describe("private Telegram connections and durable deliveries", () => {
     expect(payload.text).not.toContain("CCX ·");
     expect(payload.reply_markup.inline_keyboard[0][0].url).toContain(p.id);
   });
+  it("sends each buy and sell target once across days and only resets the changed target", async () => {
+    const p = await portfolio();
+    await link("alice", p.id);
+    await crossing(p.id);
+    await processTelegramDeliveries(db);
+    const base = Date.now();
+    let clock = base;
+    const nowSpy = vi.spyOn(Date, "now").mockImplementation(() => clock);
+    const check = async (price: string) => {
+      clock += 1000;
+      await evaluateWatchlistTargets(
+        db,
+        [
+          {
+            assetId: "btc",
+            price,
+            change24h: null,
+            stale: false,
+            updatedAt: new Date(clock).toISOString(),
+          },
+        ],
+        p.id,
+      );
+    };
+    try {
+      // First sell crossing is still independent from the completed buy target.
+      await check("10");
+      await testDb
+        .update(schema.telegramDeliveries)
+        .set({ nextAttemptAt: new Date(0) });
+      await processTelegramDeliveries(db);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const reached = (
+        await testDb
+          .select()
+          .from(schema.watchlistItems)
+          .where(eq(schema.watchlistItems.portfolioId, p.id))
+      )[0];
+      for (const day of [1, 2, 3]) {
+        clock = base + day * 86400000;
+        await check("8");
+        await check("4");
+        await check("12");
+        expect(await processTelegramDeliveries(db)).toMatchObject({ sent: 0 });
+      }
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(
+        await testDb.select().from(schema.telegramDeliveries),
+      ).toHaveLength(2);
+      const after = (
+        await testDb
+          .select()
+          .from(schema.watchlistItems)
+          .where(eq(schema.watchlistItems.portfolioId, p.id))
+      )[0];
+      expect(after.targetReachedAt).toEqual(reached.targetReachedAt);
+      expect(after.sellTargetReachedAt).toEqual(reached.sellTargetReachedAt);
+      const watch = watchlistService(db, "alice");
+      await watch.save({
+        portfolioId: p.id,
+        assetId: "btc",
+        entryPrice: "5",
+        exitPrice: "10",
+        notes: "only a note changed",
+      });
+      await check("8");
+      await check("4");
+      expect(
+        await testDb.select().from(schema.telegramDeliveries),
+      ).toHaveLength(2);
+      await watch.save({
+        portfolioId: p.id,
+        assetId: "btc",
+        entryPrice: "3",
+        exitPrice: "10",
+        notes: "new buy target",
+      });
+      await check("4");
+      await check("3");
+      const jobs = await testDb.select().from(schema.telegramDeliveries);
+      expect(jobs).toHaveLength(3);
+      expect(jobs.filter((job) => job.side === "sell")).toHaveLength(1);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
   it("respects portfolio and direction choices and cancels jobs on disconnect", async () => {
     const p = await portfolio(),
       svc = await link("alice", p.id);
@@ -267,6 +353,14 @@ describe("private Telegram connections and durable deliveries", () => {
       buyEnabled: true,
       sellEnabled: true,
       portfolioIds: [p.id],
+    });
+    // A previously reached target stays consumed; a new target is a new alert.
+    await watchlistService(db, "alice").save({
+      portfolioId: p.id,
+      assetId: "btc",
+      entryPrice: "4",
+      exitPrice: "10",
+      notes: "",
     });
     const t = Date.now();
     for (const [i, price] of ["8", "4"].entries())

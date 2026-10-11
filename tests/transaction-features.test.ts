@@ -419,7 +419,7 @@ describe("persisted Watchlist target episodes", () => {
     ).toBe(oldSell);
     expect(
       (await check("5")).find((n) => n.side === "sell")?.readAt,
-    ).toBeNull();
+    ).not.toBeNull();
     await service.save({
       portfolioId: p.id,
       assetId: "eth",
@@ -454,7 +454,7 @@ describe("persisted Watchlist target episodes", () => {
         0,
       );
   });
-  it("notifies at the exact boundary, avoids duplicates, rearms above target and preserves reads", async () => {
+  it("notifies once at the boundary and preserves the read state across later crossings", async () => {
     const p = await portfolio("Notifications"),
       service = watchlistService(db, "alice");
     await service.save({
@@ -500,8 +500,9 @@ describe("persisted Watchlist target episodes", () => {
     await evaluateWatchlistTargets(db, quotes, p.id);
     const repeated = await loadTargetNotifications(p.id);
     if (repeated.ok) {
-      expect(repeated.rows[0].readAt).toBeNull();
-      expect(Number(repeated.rows[0].price)).toBe(90);
+      expect(repeated.rows[0].readAt).not.toBeNull();
+      expect(repeated.rows[0].reachedAt).toBe(notice.reachedAt);
+      expect(Number(repeated.rows[0].price)).toBe(100);
     }
     userId = "bob";
     expect(
