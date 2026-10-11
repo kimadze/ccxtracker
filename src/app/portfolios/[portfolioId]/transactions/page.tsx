@@ -2,6 +2,7 @@ import { loadWorkspace } from "@/server/workspace";
 import { PageHeading } from "@/components/shell";
 import { TransactionList } from "@/components/transaction-list";
 import { TransactionForm } from "@/components/transaction-form";
+import { saleResults } from "@/domain/ledger";
 export default async function Page({
   params,
   searchParams,
@@ -19,13 +20,15 @@ export default async function Page({
         title="ტრანზაქციები"
         description="თქვენი პორტფელის სრული ისტორია და ყველა ცვლილების საფუძველი."
         actionClassName="hidden lg:block"
-        action={!openNewTransaction ? (
-          <TransactionForm
-            portfolioId={portfolioId}
-            revision={w.portfolio.revision}
-            assets={w.assets}
-          />
-        ) : undefined}
+        action={
+          !openNewTransaction ? (
+            <TransactionForm
+              portfolioId={portfolioId}
+              revision={w.portfolio.revision}
+              assets={w.assets}
+            />
+          ) : undefined
+        }
       />
       {openNewTransaction && (
         <TransactionForm
@@ -38,6 +41,7 @@ export default async function Page({
       )}
       <TransactionList
         entries={w.entries}
+        sales={saleResults(w.entries)}
         assets={w.assets}
         portfolioId={portfolioId}
         revision={w.portfolio.revision}

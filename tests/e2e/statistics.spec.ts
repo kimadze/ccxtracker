@@ -54,7 +54,7 @@ test("portfolio price impact, macro trends and responsive layouts", async ({
         [id, ["10", "-10", "5", "100", null, null][index]],
       );
       await db.query(
-        "INSERT INTO transactions (id,portfolio_id,asset_id,kind,quantity,occurred_at,sequence) VALUES ($1,$2,$3,'deposit',1,now(),$4)",
+        "INSERT INTO transactions (id,portfolio_id,asset_id,kind,quantity,price,occurred_at,sequence) VALUES ($1,$2,$3,'deposit',1,1000,now(),$4)",
         [randomUUID(), portfolioId, id, index],
       );
     }
@@ -86,6 +86,11 @@ test("portfolio price impact, macro trends and responsive layouts", async ({
   ).toHaveCount(0);
   await page.goto(base + "?tab=market");
   await expect(page).toHaveURL(/tab=portfolio/);
+  const sources = panel.getByRole("region", {
+    name: "რა ქმნის მოგებას და ზარალს",
+  });
+  await expect(sources.getByRole("link")).toHaveCount(3);
+  expect((await sources.boundingBox())!.height).toBeLessThan(320);
   const priceImpact = panel.getByRole("region", {
     name: "ფასის გავლენა · 24სთ",
   });

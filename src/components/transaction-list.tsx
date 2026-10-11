@@ -15,7 +15,14 @@ import {
 } from "lucide-react";
 import { decimal } from "@/domain/decimal";
 import type { Asset, LedgerEntry } from "@/domain/types";
-import { dateTime, money, quantity, unitPrice } from "@/lib/formatters";
+import {
+  dateTime,
+  money,
+  quantity,
+  unitPrice,
+  pnlClass,
+} from "@/lib/formatters";
+import type { SaleResult } from "@/domain/ledger";
 import { deleteTransaction } from "@/server/actions";
 import { TransactionForm, kindLabels } from "./transaction-form";
 import { BalanceValue, Message, Modal } from "./ui";
@@ -25,11 +32,13 @@ import { offerTransactionUndo } from "./transaction-undo";
 
 export function TransactionList({
   entries,
+  sales,
   assets,
   portfolioId,
   revision,
 }: {
   entries: LedgerEntry[];
+  sales: Record<string, SaleResult>;
   assets: Asset[];
   portfolioId: string;
   revision: number;
@@ -234,6 +243,7 @@ export function TransactionList({
                   "ფასი",
                   "საკომისიო",
                   "თანხა",
+                  "გაყიდვის P/L",
                   "მოქმედებები",
                 ].map((label) => (
                   <th key={label}>{label}</th>
@@ -270,6 +280,25 @@ export function TransactionList({
                               : decimal(e.quantity).mul(e.price).toFixed(),
                         )}
                       </BalanceValue>
+                    </td>
+                    <td
+                      className={`text-right tabular-nums ${pnlClass(sales[e.id]?.realizedPnl)}`}
+                    >
+                      {e.kind === "sell" ? (
+                        <>
+                          <BalanceValue>
+                            {money(sales[e.id]?.realizedPnl)}
+                          </BalanceValue>
+                          <span className="block text-xs text-base-content/55">
+                            წმინდა{" "}
+                            <BalanceValue>
+                              {money(sales[e.id]?.netProceeds)}
+                            </BalanceValue>
+                          </span>
+                        </>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td>
                       <div className="flex justify-end gap-1">
@@ -334,6 +363,16 @@ export function TransactionList({
                     <p className="text-sm">
                       <BalanceValue>{quantity(e.quantity)}</BalanceValue>
                     </p>
+                    {e.kind === "sell" && (
+                      <p
+                        className={`mt-1 text-xs ${pnlClass(sales[e.id]?.realizedPnl)}`}
+                      >
+                        გაყიდვის P/L:{" "}
+                        <BalanceValue>
+                          {money(sales[e.id]?.realizedPnl)}
+                        </BalanceValue>
+                      </p>
+                    )}
                     <p className="text-xs text-base-content/60">
                       <BalanceValue>
                         {money(
@@ -367,6 +406,30 @@ export function TransactionList({
                         )}{" "}
                         · საკომისიო: <BalanceValue>{money(e.fee)}</BalanceValue>
                       </p>
+                      {e.kind === "sell" && (
+                        <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <dt className="text-base-content/55">
+                              წმინდა შემოსავალი
+                            </dt>
+                            <dd className="numeric mt-1 overflow-x-auto whitespace-nowrap">
+                              <BalanceValue>
+                                {money(sales[e.id]?.netProceeds)}
+                              </BalanceValue>
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="text-base-content/55">
+                              გაყიდულის თვითღირებულება
+                            </dt>
+                            <dd className="numeric mt-1 overflow-x-auto whitespace-nowrap">
+                              <BalanceValue>
+                                {money(sales[e.id]?.costBasis)}
+                              </BalanceValue>
+                            </dd>
+                          </div>
+                        </dl>
+                      )}
                       <div className="mt-3 flex gap-2">
                         <TransactionForm
                           portfolioId={portfolioId}

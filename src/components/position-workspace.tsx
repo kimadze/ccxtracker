@@ -22,6 +22,8 @@ import {
   unitPrice,
 } from "@/lib/formatters";
 import { BalanceValue } from "./ui";
+import { amount, decimal } from "@/domain/decimal";
+import type { SaleResult } from "@/domain/ledger";
 export function PositionWorkspace({
   position: p,
   portfolioId,
@@ -29,6 +31,7 @@ export function PositionWorkspace({
   revision,
   assets,
   entries,
+  sales,
   plan,
   journal,
 }: {
@@ -38,6 +41,7 @@ export function PositionWorkspace({
   revision: number;
   assets: Asset[];
   entries: LedgerEntry[];
+  sales: Record<string, SaleResult>;
   plan: SavedExitPlan | null;
   journal: JournalData | null;
 }) {
@@ -48,6 +52,10 @@ export function PositionWorkspace({
     "overview",
   );
   const tab = requested === "dca" || requested === "exit" ? "plan" : requested;
+  const totalPnl =
+    p.realizedPnl === null || p.unrealizedPnl === null
+      ? null
+      : amount(decimal(p.realizedPnl).plus(p.unrealizedPnl));
   return (
     <WorkspaceTabs
       label="პოზიციის სექციები"
@@ -70,16 +78,29 @@ export function PositionWorkspace({
               <p className="overflow-x-auto whitespace-nowrap text-3xl font-semibold tracking-tight tabular-nums lg:text-4xl">
                 <BalanceValue>{money(p.value)}</BalanceValue>
               </p>
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm tabular-nums">
-                <span className="text-xs text-base-content/60">
-                  მოგება / ზარალი
-                </span>
-                <span className={pnlClass(p.unrealizedPnl)}>
-                  <BalanceValue>{money(p.unrealizedPnl)}</BalanceValue>
-                </span>
-                <span className={pnlClass(p.returnPercent)}>
-                  {percentage(p.returnPercent, true)}
-                </span>
+              <div
+                className="stats mt-2 grid w-full grid-flow-row grid-cols-2 overflow-visible rounded-none border-t border-base-300 bg-transparent sm:grid-cols-3"
+                aria-label="პოზიციის მოგება და ზარალი"
+              >
+                {[
+                  ["დაფიქსირებული P/L", p.realizedPnl],
+                  ["დარჩენილი პოზიციის P/L", p.unrealizedPnl],
+                  ["სრული P/L", totalPnl],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="stat min-w-0 px-0 py-2 last:col-span-2 sm:px-3 sm:first:pl-0 sm:last:col-span-1 sm:last:pr-0"
+                  >
+                    <span className="stat-title whitespace-normal text-xs">
+                      {label}
+                    </span>
+                    <span
+                      className={`stat-value numeric mt-1 overflow-x-auto whitespace-nowrap text-lg ${pnlClass(value)}`}
+                    >
+                      <BalanceValue>{money(value)}</BalanceValue>
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -110,6 +131,7 @@ export function PositionWorkspace({
       {tab === "transactions" && (
         <TransactionList
           entries={entries}
+          sales={sales}
           assets={assets}
           portfolioId={portfolioId}
           revision={revision}

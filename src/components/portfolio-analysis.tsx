@@ -56,7 +56,7 @@ export function PortfolioAnalysis({
   const sourceRows = [...data.attribution.assets]
     .filter((row) => row.totalPnl !== null)
     .sort((a, b) => decimal(b.totalPnl!).abs().cmp(decimal(a.totalPnl!).abs()))
-    .slice(0, 6)
+    .slice(0, 3)
     .map((row) => ({ label: row.name, row }));
   const largestContribution = sourceRows.reduce(
     (max, { row }) =>
@@ -176,10 +176,10 @@ export function PortfolioAnalysis({
               {sourceRows.map(({ label, row }) => {
                 const content = (
                   <>
-                    <span className="text-xs text-base-content/60">
-                      {label}
-                    </span>
-                    <span className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
+                    <span
+                      className="flex min-w-0 items-baseline justify-between gap-2"
+                      title={label}
+                    >
                       <strong className="text-sm">{row?.symbol ?? "—"}</strong>
                       <span
                         className={`whitespace-nowrap tabular-nums ${pnlClass(row?.totalPnl ?? null)}`}
@@ -191,7 +191,7 @@ export function PortfolioAnalysis({
                     </span>
                     <div
                       aria-hidden="true"
-                      className="mt-2 h-1 overflow-hidden rounded-full bg-base-300"
+                      className="mt-1 h-1 overflow-hidden rounded-full bg-base-300"
                     >
                       <div
                         className={`h-full ${decimal(row.totalPnl!).gte(0) ? "bg-success/70" : "bg-error/70"}`}
@@ -205,13 +205,13 @@ export function PortfolioAnalysis({
                 return row && !row.isFee ? (
                   <Link
                     key={label}
-                    className="block min-h-11 py-3 hover:text-secondary focus-visible:outline-2 focus-visible:outline-primary"
+                    className="block min-h-11 py-2 hover:text-secondary focus-visible:outline-2 focus-visible:outline-primary"
                     href={`/portfolios/${portfolioId}/positions/${row.assetId}`}
                   >
                     {content}
                   </Link>
                 ) : (
-                  <div key={label} className="py-3">
+                  <div key={label} className="min-h-11 py-2">
                     {content}
                   </div>
                 );
@@ -224,7 +224,7 @@ export function PortfolioAnalysis({
             </p>
           )}
           <p className="text-xs text-base-content/60">
-            სრული პერიოდი · რეალიზებული და არარეალიზებული P/L.
+            სამი უდიდესი წვლილი · სრული პერიოდის P/L.
           </p>
           <details
             className="collapse collapse-arrow rounded-none border-t border-base-300"
@@ -233,7 +233,7 @@ export function PortfolioAnalysis({
             <summary className="collapse-title min-h-11 py-3 text-xs">
               ყველა აქტივის წვლილი და სექტორები
             </summary>
-            <div className="collapse-content min-w-0">
+            <div className="collapse-content max-h-80 min-w-0 overflow-y-auto overscroll-contain">
               {expanded && reliable && (
                 <Attribution attribution={data.attribution} />
               )}

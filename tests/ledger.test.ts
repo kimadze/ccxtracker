@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { replayLedger } from "@/domain/ledger";
+import { replayLedger, saleResults } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
 import { percent, amount } from "@/domain/decimal";
 import type { LedgerEntry } from "@/domain/types";
@@ -27,6 +27,39 @@ function entry(
 }
 const fund = () => entry("deposit", "USD", "10000");
 describe("canonical ledger", () => {
+  it("keeps each sale profit separate from cumulative realised and remaining profit", () => {
+    const initial = entry("deposit", "btc", "100", "10");
+    const first = entry("sell", "btc", "40", "15", "2");
+    const second = entry("sell", "btc", "10", "8", "1");
+    const entries = [second, initial, first];
+    const sales = saleResults(entries);
+    expect(sales[first.id]).toEqual({
+      grossProceeds: "600",
+      netProceeds: "598",
+      costBasis: "400",
+      realizedPnl: "198",
+    });
+    expect(sales[second.id]).toEqual({
+      grossProceeds: "80",
+      netProceeds: "79",
+      costBasis: "100",
+      realizedPnl: "-21",
+    });
+    expect(replayLedger(entries).holdings[0]).toMatchObject({
+      quantity: "50",
+      costBasis: "500",
+      realizedPnl: "177",
+    });
+    const unknown = { ...initial, price: null };
+    expect(saleResults([unknown, first])[first.id]).toMatchObject({
+      netProceeds: "598",
+      costBasis: null,
+      realizedPnl: null,
+    });
+    expect(
+      saleResults([initial, { ...first, price: "20" }])[first.id].realizedPnl,
+    ).toBe("398");
+  });
   it("handles an empty portfolio and zero denominators", () => {
     expect(replayLedger([]).cash).toBe("0");
     expect(percent("1", "0")).toBeNull();
@@ -157,8 +190,12 @@ describe("canonical ledger", () => {
       portfolioId: crypto.randomUUID(),
       notes: "",
     };
-    expect(transactionSchema.safeParse({ ...input, price: null }).success).toBe(false);
-    expect(transactionSchema.safeParse({ ...input, assetId: "USD" }).success).toBe(false);
+    expect(transactionSchema.safeParse({ ...input, price: null }).success).toBe(
+      false,
+    );
+    expect(
+      transactionSchema.safeParse({ ...input, assetId: "USD" }).success,
+    ).toBe(false);
   });
 });
 describe("valuation", () => {
@@ -202,19 +239,20 @@ describe("valuation", () => {
       name: "USD Coin",
       isStablecoin: true,
     };
-    const result = replayLedger([
-      fund(),
-      entry("buy", "usdc", "2000", "1"),
-    ]);
-    const summary = valuePortfolio(result, [stablecoin], [
-      {
-        assetId: "usdc",
-        price: "0.999",
-        change24h: null,
-        updatedAt: "2026-01-01T12:00:00Z",
-        stale: false,
-      },
-    ]);
+    const result = replayLedger([fund(), entry("buy", "usdc", "2000", "1")]);
+    const summary = valuePortfolio(
+      result,
+      [stablecoin],
+      [
+        {
+          assetId: "usdc",
+          price: "0.999",
+          change24h: null,
+          updatedAt: "2026-01-01T12:00:00Z",
+          stale: false,
+        },
+      ],
+    );
 
     expect(summary.cash).toBe("8000");
     expect(summary.stablecoinValue).toBe("1998");

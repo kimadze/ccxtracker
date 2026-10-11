@@ -10,6 +10,7 @@ import { DeletePosition } from "@/components/delete-position";
 import { AssetIcon } from "@/components/positions";
 import { PositionShare } from "@/components/position-share";
 import { MoreHorizontal } from "lucide-react";
+import { saleResults } from "@/domain/ledger";
 export default async function Page({
   params,
 }: {
@@ -41,7 +42,10 @@ export default async function Page({
           <div className="flex flex-wrap gap-2">
             <PositionShare position={p} />
             <details className="dropdown dropdown-end">
-              <summary className="btn btn-ghost btn-square min-h-11 min-w-11" aria-label="მეტი მოქმედება">
+              <summary
+                className="btn btn-ghost btn-square min-h-11 min-w-11"
+                aria-label="მეტი მოქმედება"
+              >
                 <MoreHorizontal size={18} />
               </summary>
               <ul className="dropdown-content z-20 mt-1 rounded-box border border-base-300 bg-base-200 p-2 shadow-lg">
@@ -79,6 +83,7 @@ export default async function Page({
         revision={w.portfolio.revision}
         assets={w.assets}
         entries={w.entries.filter((e) => e.assetId === assetId)}
+        sales={saleResults(w.entries)}
         plan={data.plan}
         journal={data.journal}
       />

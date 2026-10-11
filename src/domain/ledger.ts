@@ -15,8 +15,18 @@ interface State {
   realized: InstanceType<typeof D> | null;
 }
 
+export interface SaleResult {
+  grossProceeds: string;
+  netProceeds: string;
+  costBasis: string | null;
+  realizedPnl: string | null;
+}
+
 /** Replay the complete ledger so backdated edits are checked against every later balance. */
-export function replayLedger(entries: LedgerEntry[]): LedgerResult {
+function replay(
+  entries: LedgerEntry[],
+  sales?: Record<string, SaleResult>,
+): LedgerResult {
   let cash = new D(0),
     contributions = new D(0),
     withdrawals = new D(0),
@@ -60,8 +70,15 @@ export function replayLedger(entries: LedgerEntry[]): LedgerResult {
         basis: new D(0),
         realized: new D(0),
       };
-      if (entry.kind === "buy" || entry.kind === "deposit" || entry.kind === "airdrop") {
-        if ((entry.kind === "buy" || entry.kind === "airdrop") && (!price || price.lte(0)))
+      if (
+        entry.kind === "buy" ||
+        entry.kind === "deposit" ||
+        entry.kind === "airdrop"
+      ) {
+        if (
+          (entry.kind === "buy" || entry.kind === "airdrop") &&
+          (!price || price.lte(0))
+        )
           throw new LedgerError("INVALID_TRANSACTION");
         const basis = price?.mul(q) ?? null;
         if (entry.kind === "buy") cash = cash.minus(basis!).minus(fee);
@@ -69,8 +86,7 @@ export function replayLedger(entries: LedgerEntry[]): LedgerResult {
           if (basis === null) unknownContributions = true;
           contributions = contributions.plus(basis ?? 0);
           cash = cash.minus(fee);
-        }
-        else cash = cash.minus(fee);
+        } else cash = cash.minus(fee);
         s.basis =
           s.basis === null || basis === null
             ? null
@@ -83,6 +99,17 @@ export function replayLedger(entries: LedgerEntry[]): LedgerResult {
           if (!price || price.lte(0) || fee.gt(q.mul(price)))
             throw new LedgerError("INVALID_TRANSACTION");
           const proceeds = q.mul(price).minus(fee);
+          if (sales) {
+            sales[entry.id] = {
+              grossProceeds: amount(q.mul(price)),
+              netProceeds: amount(proceeds),
+              costBasis: removedBasis === null ? null : amount(removedBasis),
+              realizedPnl:
+                removedBasis === null
+                  ? null
+                  : amount(proceeds.minus(removedBasis)),
+            };
+          }
           cash = cash.plus(proceeds);
           s.realized =
             s.realized === null || removedBasis === null
@@ -137,4 +164,17 @@ export function replayLedger(entries: LedgerEntry[]): LedgerResult {
     cashFees: amount(cashFees),
     realizedPnl: realized,
   };
+}
+
+export function replayLedger(entries: LedgerEntry[]): LedgerResult {
+  return replay(entries);
+}
+
+/** Derive individual sale results from the same full chronological replay. */
+export function saleResults(
+  entries: LedgerEntry[],
+): Record<string, SaleResult> {
+  const sales: Record<string, SaleResult> = {};
+  replay(entries, sales);
+  return sales;
 }
