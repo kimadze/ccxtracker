@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 
-test("statistics periods, owned assets, macro trends and responsive layouts", async ({
+test("portfolio price impact, macro trends and responsive layouts", async ({
   page,
 }, info) => {
   test.skip(
@@ -50,8 +50,8 @@ test("statistics periods, owned assets, macro trends and responsive layouts", as
         ],
       );
       await db.query(
-        "INSERT INTO market_quotes (asset_id,price,quoted_at) VALUES ($1,3000,now()) ON CONFLICT (asset_id) DO UPDATE SET price=3000,quoted_at=now(),fetched_at=now()",
-        [id],
+        "INSERT INTO market_quotes (asset_id,price,change_24h,quoted_at) VALUES ($1,3000,$2,now()) ON CONFLICT (asset_id) DO UPDATE SET price=3000,change_24h=$2,quoted_at=now(),fetched_at=now()",
+        [id, ["10", "-10", "5", "100", null, null][index]],
       );
       await db.query(
         "INSERT INTO transactions (id,portfolio_id,asset_id,kind,quantity,occurred_at,sequence) VALUES ($1,$2,$3,'deposit',1,now(),$4)",
@@ -81,29 +81,23 @@ test("statistics periods, owned assets, macro trends and responsive layouts", as
   await expect(
     panel.getByRole("heading", { name: "პოზიციების შედეგები", exact: true }),
   ).toBeVisible();
-  await page.getByRole("tab", { name: "კრიპტო ბაზარი", exact: true }).click();
   await expect(
-    panel.getByText("დაფარვა: 4/5 აქტივი · 1 ცვლილება მიუწვდომელია"),
-  ).toBeVisible();
-  const gainers = panel.locator("section").filter({
-    has: page.getByRole("heading", {
-      name: "ყველაზე დიდი ზრდა",
-      exact: true,
-    }),
+    page.getByRole("tab", { name: "კრიპტო ბაზარი", exact: true }),
+  ).toHaveCount(0);
+  await page.goto(base + "?tab=market");
+  await expect(page).toHaveURL(/tab=portfolio/);
+  const priceImpact = panel.getByRole("region", {
+    name: "ფასის გავლენა · 24სთ",
   });
   await expect(
-    gainers.locator("strong").filter({ hasText: /^BTC$/ }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "1სთ", exact: true }).click();
-  await expect(
-    gainers.locator("strong").filter({ hasText: /^BTC$/ }),
-  ).toHaveCount(0);
-  await expect(
-    gainers.locator("strong").filter({ hasText: /^ETH$/ }),
+    priceImpact.getByText("არასრული ჯამი · შეფასებულია 4/6 აქტივი."),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "1სთ", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+    priceImpact.getByRole("link").filter({ hasText: "BTC" }),
+  ).toContainText("$272,73");
+  await expect(
+    priceImpact.getByRole("link").filter({ hasText: "ETH" }),
+  ).toContainText("-$333,33");
   for (const width of [360, 390, 430, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: width < 768 ? 844 : 1000 });
     expect(
@@ -112,25 +106,23 @@ test("statistics periods, owned assets, macro trends and responsive layouts", as
       ),
     ).toBe(true);
     await page.screenshot({
-      path: `.local/statistics-market-${width}.png`,
+      path: `.local/statistics-impact-${width}-${info.project.name}.png`,
       fullPage: true,
     });
   }
-  await page.getByRole("tab", { name: "ჩემი პორტფელი", exact: true }).click();
-  await expect(page).toHaveURL(/tab=portfolio/);
-  await panel.getByRole("button", { name: "ზარალში", exact: true }).click();
-  await expect(
-    panel
-      .getByRole("link")
-      .filter({ hasText: "BTC" })
-      .filter({ visible: true }),
-  ).toHaveCount(1);
   const results = panel.locator("section").filter({
     has: page.getByRole("heading", {
       name: "პოზიციების შედეგები",
       exact: true,
     }),
   });
+  await results.getByRole("button", { name: "ზარალში", exact: true }).click();
+  await expect(
+    results
+      .getByRole("link")
+      .filter({ hasText: "BTC" })
+      .filter({ visible: true }),
+  ).toHaveCount(1);
   await expect(
     results.getByText("-$3 000,00", { exact: true }).filter({ visible: true }),
   ).toBeVisible();
@@ -157,33 +149,11 @@ test("statistics periods, owned assets, macro trends and responsive layouts", as
   }
   await page.getByRole("button", { name: "თანხების დამალვა" }).click();
   await expect(panel.locator(".balance-value").first()).toContainText("••••••");
-  await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
-  await panel.getByText("აქტივების საბაზრო კონტექსტი", { exact: true }).click();
-  await expect(panel.getByText("საბაზრო დაფარვა: 5/6")).toBeVisible();
-  const owned = panel.locator("section").filter({
-    has: page.getByRole("heading", {
-      name: "ჩემი აქტივები ბაზარზე",
-      exact: true,
-    }),
-  });
-  const bitcoin = owned.getByRole("link").filter({ hasText: "BTC" });
-  await page.getByRole("button", { name: "7დღ", exact: true }).click();
-  await expect(bitcoin).toContainText("+10%");
-  const uncovered = owned.getByRole("link").filter({ hasText: "UNCOVERED" });
-  await expect(uncovered).toContainText("ისტორია მიუწვდომელია");
-  await expect(uncovered).toContainText("—");
-  for (const width of [360, 390, 430, 768, 1024, 1440]) {
-    await page.setViewportSize({ width, height: width < 768 ? 844 : 1000 });
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth + 1,
-      ),
-    ).toBe(true);
-    await page.screenshot({
-      path: `.local/statistics-owned-${width}.png`,
-      fullPage: true,
-    });
+  for (const value of await priceImpact.locator(".balance-value").all()) {
+    await expect(value).toContainText("••••••");
   }
+  await page.getByRole("button", { name: "თანხების ჩვენება" }).click();
+  const bitcoin = priceImpact.getByRole("link").filter({ hasText: "BTC" });
   await bitcoin.click();
   await expect(page).toHaveURL(new RegExp(`/positions/bitcoin`));
   await page.goto(base + "?tab=macro");

@@ -1,10 +1,6 @@
 import { PageHeading } from "@/components/shell";
 import { StatisticsWorkspace } from "@/components/statistics-workspace";
 import { loadWorkspace } from "@/server/workspace";
-import {
-  getMarketStatistics,
-  getAssetMarketStatistics,
-} from "@/server/market/statistics";
 import { getMacroStatistics } from "@/server/macro/provider";
 import { getDb } from "@/server/db";
 import { snapshots } from "@/server/db/schema";
@@ -12,6 +8,7 @@ import { asc, eq } from "drizzle-orm";
 import { analyzePerformance } from "@/domain/analytics";
 import { calculatePortfolioAttribution } from "@/domain/attribution";
 import { replayLedger } from "@/domain/ledger";
+import { redirect } from "next/navigation";
 
 export default async function Page({
   params,
@@ -22,22 +19,16 @@ export default async function Page({
 }) {
   const { portfolioId } = await params;
   const requestedTab = (await searchParams).tab;
-  const tab = ["market", "macro", "portfolio"].includes(requestedTab ?? "")
+  if (requestedTab === "market") {
+    redirect(`/portfolios/${portfolioId}/statistics?tab=portfolio`);
+  }
+  const tab = ["macro", "portfolio"].includes(requestedTab ?? "")
     ? requestedTab
     : "portfolio";
-  const [workspace, market, macro] = await Promise.all([
+  const [workspace, macro] = await Promise.all([
     loadWorkspace(portfolioId),
-    tab === "market" ? getMarketStatistics() : Promise.resolve(null),
     tab === "macro" ? getMacroStatistics() : Promise.resolve(null),
   ]);
-  const ownedAssets =
-    tab === "portfolio"
-      ? await getAssetMarketStatistics(
-          workspace.summary.positions
-            .filter((position) => position.quantity !== "0")
-            .map((position) => position.asset.providerId),
-        )
-      : [];
   const history =
     tab === "portfolio"
       ? await getDb()
@@ -76,11 +67,9 @@ export default async function Page({
         description={null}
       />
       <StatisticsWorkspace
-        market={market}
         macro={macro}
         summary={workspace.summary}
         portfolioId={portfolioId}
-        ownedAssets={ownedAssets}
         analysis={analysis}
       />
     </>
