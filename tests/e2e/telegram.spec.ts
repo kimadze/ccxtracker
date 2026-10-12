@@ -86,6 +86,13 @@ test("Telegram private link, confirmation, choices and disconnect fit all sizes"
       .getByRole("button", { name: "ჩატის დადასტურება", exact: true })
       .click();
     await expect(section).toContainText("დაკავშირებულია");
+    await expect(
+      section.getByLabel("ყოველდღიური ანგარიში", { exact: true }),
+    ).not.toBeChecked();
+    await section.getByLabel("ყოველდღიური ანგარიში", { exact: true }).check();
+    await section
+      .getByRole("combobox", { name: "შეჯამების დრო" })
+      .selectOption("18");
     await section.getByLabel("ფასის ვარდნა ↓", { exact: true }).uncheck();
     await section
       .getByRole("button", { name: "არჩევანის შენახვა", exact: true })
@@ -94,11 +101,16 @@ test("Telegram private link, confirmation, choices and disconnect fit all sizes"
     expect(
       (
         await db.query(
-          "SELECT buy_enabled,sell_enabled FROM telegram_connections WHERE user_id=$1",
+          "SELECT buy_enabled,sell_enabled,summary_enabled,summary_hour FROM telegram_connections WHERE user_id=$1",
           [user],
         )
       ).rows[0],
-    ).toEqual({ buy_enabled: false, sell_enabled: true });
+    ).toEqual({
+      buy_enabled: false,
+      sell_enabled: true,
+      summary_enabled: true,
+      summary_hour: 18,
+    });
     await section
       .getByRole("button", { name: "სატესტო შეტყობინება", exact: true })
       .click();

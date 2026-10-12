@@ -256,7 +256,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
           {status.connected && (
             <>
               <form
-                key={`${status.buyEnabled}:${status.sellEnabled}:${status.portfolioIds.join(",")}`}
+                key={`${status.summaryEnabled}:${status.summaryAiEnabled}:${status.summaryHour}:${status.buyEnabled}:${status.sellEnabled}:${status.portfolioIds.join(",")}`}
                 className="space-y-3"
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -266,6 +266,9 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                       saveTelegramPreferences({
                         buyEnabled: data.has("buy"),
                         sellEnabled: data.has("sell"),
+                        summaryEnabled: data.has("summary"),
+                        summaryAiEnabled: data.has("summaryAi"),
+                        summaryHour: Number(data.get("summaryHour")),
                         portfolioIds: data.getAll("portfolio"),
                       }),
                     "შეტყობინებების არჩევანი შენახულია.",
@@ -291,6 +294,54 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                     </label>
                   ))}
                 </div>
+                <fieldset className="fieldset border-t border-base-300 pt-2">
+                  <legend className="fieldset-legend">დღიური შეჯამება</legend>
+                  <label className="label min-h-11 justify-start gap-3 whitespace-normal">
+                    <input
+                      type="checkbox"
+                      className="toggle"
+                      name="summary"
+                      defaultChecked={status.summaryEnabled}
+                      disabled={pending}
+                    />{" "}
+                    ყოველდღიური ანგარიში
+                  </label>
+                  <label className="label min-h-11 justify-start gap-3 whitespace-normal">
+                    <input
+                      type="checkbox"
+                      className="toggle"
+                      name="summaryAi"
+                      defaultChecked={status.summaryAiEnabled}
+                      disabled={pending || !status.aiConfigured}
+                    />{" "}
+                    Luna-ს მოკლე აქცენტი
+                  </label>
+                  <p className="text-xs text-base-content/60">
+                    AI-ის ჩართვისას არჩეული პორტფელების შეჯამებული თანხები და
+                    სიმბოლოები OpenAI-ს გადაეცემა. მისამართები და ტრანზაქციების
+                    შენიშვნები არ იგზავნება.
+                  </p>
+                  <label className="label min-h-11 flex-wrap justify-start gap-3">
+                    თბილისის დროით
+                    <select
+                      className="select w-auto"
+                      name="summaryHour"
+                      defaultValue={status.summaryHour}
+                      disabled={pending}
+                      aria-label="შეჯამების დრო"
+                    >
+                      {[8, 12, 18, 21].map((hour) => (
+                        <option key={hour} value={hour}>
+                          {String(hour).padStart(2, "0")}:00
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p className="text-xs text-base-content/60">
+                    დღეში ერთხელ · მაქსიმუმ 10 პორტფელი · გაგზავნა შეიძლება
+                    რამდენიმე წუთით დაგვიანდეს.
+                  </p>
+                </fieldset>
                 <fieldset className="fieldset">
                   <legend className="fieldset-legend">პორტფელები</legend>
                   <div className="grid gap-1 sm:grid-cols-2">

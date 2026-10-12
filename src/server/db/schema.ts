@@ -545,10 +545,37 @@ export const telegramConnections = pgTable("telegram_connections", {
   pendingUsername: text("pending_username"),
   buyEnabled: boolean("buy_enabled").default(true).notNull(),
   sellEnabled: boolean("sell_enabled").default(true).notNull(),
+  summaryEnabled: boolean("summary_enabled").default(false).notNull(),
+  summaryAiEnabled: boolean("summary_ai_enabled").default(false).notNull(),
+  summaryHour: integer("summary_hour").default(21).notNull(),
   portfolioIds: jsonb("portfolio_ids").$type<string[]>().default([]).notNull(),
   lastError: text("last_error"),
   ...times(),
 });
+export const telegramDigests = pgTable(
+  "telegram_digests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    generation: uuid("generation").notNull(),
+    day: date("day").notNull(),
+    portfolioIds: jsonb("portfolio_ids").$type<string[]>().notNull(),
+    body: text("body"),
+    attempts: integer("attempts").default(0).notNull(),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    ...times(),
+  },
+  (t) => [
+    uniqueIndex("telegram_digest_user_day").on(t.userId, t.day),
+    index("telegram_digest_due").on(t.nextAttemptAt),
+  ],
+);
 export const telegramDeliveries = pgTable(
   "telegram_deliveries",
   {

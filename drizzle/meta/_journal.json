@@ -120,6 +120,13 @@
       "when": 1791657451935,
       "tag": "0016_flowery_jack_murdock",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791822834851,
+      "tag": "0017_lethal_swordsman",
+      "breakpoints": true
     }
   ]
 }

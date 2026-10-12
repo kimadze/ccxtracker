@@ -8,15 +8,12 @@ import type { Asset, LedgerEntry, TransactionKind } from "@/domain/types";
 import { saveTransaction, searchAssets } from "@/server/actions";
 import { Field, Message, Modal } from "./ui";
 import { useBalancesHidden } from "./balance-privacy";
+import {
+  AiTransactionDraft,
+  type AiAppliedDraft,
+} from "./ai-transaction-draft";
 
-export const kindLabels: Record<TransactionKind, string> = {
-  buy: "შესყიდვა",
-  sell: "გაყიდვა",
-  deposit: "შეტანა",
-  withdrawal: "გატანა",
-  fee: "საკომისიო",
-  airdrop: "Airdrop მიღება",
-};
+export { kindLabels } from "@/domain/transaction-labels";
 export function TransactionForm({
   portfolioId,
   revision,
@@ -63,6 +60,24 @@ export function TransactionForm({
   const [formVersion, setFormVersion] = useState(0);
   const [preview, setPreview] = useState<unknown>(null);
   const [previewReady, setPreviewReady] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiDraft, setAiDraft] = useState<AiAppliedDraft | null>(null);
+  useEffect(() => {
+    if (!aiDraft || !open || !formRef.current) return;
+    const values = {
+      quantity: aiDraft.quantity,
+      price: aiDraft.price ?? "",
+      fee: aiDraft.fee ?? "0",
+      ...(aiDraft.day ? { occurredAt: `${aiDraft.day}T12:00` } : {}),
+    };
+    for (const [name, value] of Object.entries(values)) {
+      const input = formRef.current.elements.namedItem(name);
+      if (input instanceof HTMLInputElement) input.value = value;
+    }
+    setPreviewReady(false);
+    setFormVersion((v) => v + 1);
+    setAiDraft(null);
+  }, [aiDraft, open, kind, assetId]);
   useEffect(() => {
     if (!open || !formRef.current) return;
     const form = new FormData(formRef.current);
@@ -124,9 +139,9 @@ export function TransactionForm({
       </button>
       <Modal
         open={open}
-        closeDisabled={pending}
+        closeDisabled={pending || aiBusy}
         onOpenChange={(value) => {
-          if (!pending) setOpen(value);
+          if (!pending && !aiBusy) setOpen(value);
         }}
         title={
           entry
@@ -203,6 +218,23 @@ export function TransactionForm({
             data-dialog-scroll
             className="min-h-0 overflow-y-auto overscroll-contain space-y-2 pr-1"
           >
+            {!entry && !opening && (
+              <AiTransactionDraft
+                key={submissionId}
+                portfolioId={portfolioId}
+                onBusy={setAiBusy}
+                onApply={(draft) => {
+                  setOptions((current) =>
+                    current.some((a) => a.id === draft.asset.id)
+                      ? current
+                      : [...current, draft.asset],
+                  );
+                  setAssetId(draft.asset.id);
+                  setKind(draft.kind);
+                  setAiDraft(draft);
+                }}
+              />
+            )}
             <Field label="ტრანზაქციის ტიპი">
               <select
                 value={
@@ -479,13 +511,13 @@ export function TransactionForm({
             <button
               type="button"
               className="btn btn-ghost"
-              disabled={pending}
+              disabled={pending || aiBusy}
               onClick={() => setOpen(false)}
             >
               გაუქმება
             </button>
             <button
-              disabled={pending || !previewReady}
+              disabled={pending || aiBusy || !previewReady}
               aria-busy={pending}
               className="btn btn-primary min-w-28"
             >

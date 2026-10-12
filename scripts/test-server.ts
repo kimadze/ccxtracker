@@ -9,6 +9,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 const statisticsFixtures = process.env.CCX_E2E_STATISTICS_FIXTURES === "1";
 const walletFixtures = process.env.CCX_E2E_WALLET_FIXTURES === "1";
+const aiFixtures = process.env.CCX_E2E_AI_FIXTURES === "1";
 const telegramFixtures = process.env.CCX_E2E_TELEGRAM_FIXTURES === "1";
 
 const db = new PGlite();
@@ -78,6 +79,12 @@ const child = spawn(
             .href,
         ]
       : []),
+    ...(aiFixtures
+      ? [
+          "--import",
+          pathToFileURL(resolve("tests/e2e/fixtures/ai-provider.mjs")).href,
+        ]
+      : []),
     "node_modules/next/dist/bin/next",
     "start",
     "--port",
@@ -90,6 +97,7 @@ const child = spawn(
     windowsHide: true,
     env: {
       ...process.env,
+      OPENAI_API_KEY: aiFixtures ? "e2e-not-a-real-key" : "",
       DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
       DATABASE_POOL_MAX: "1",
       DATABASE_MIGRATION_URL: "",

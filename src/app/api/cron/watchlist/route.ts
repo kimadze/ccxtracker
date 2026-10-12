@@ -1,4 +1,6 @@
 import { and, eq, isNotNull, isNull, or, asc, lte, sql } from "drizzle-orm";
+import { after } from "next/server";
+import { processDailyDigests } from "@/server/telegram/digest";
 import { getDb } from "@/server/db";
 import {
   assets,
@@ -112,6 +114,14 @@ export async function GET(request: Request) {
     await evaluateTakeProfits(db, usable);
     const tpDelivery = await processTakeProfitDeliveries(db, 3);
     const delivery = await processTelegramDeliveries(db, 3);
+    after(async () => {
+      if (Date.now() - now.getTime() > 25000) return;
+      try {
+        await processDailyDigests(db);
+      } catch {
+        console.warn("TELEGRAM_DIGEST_PENDING");
+      }
+    });
     const degraded = usable.length < batch.length;
     const health = {
       requested: batch.length,

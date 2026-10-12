@@ -1,5 +1,7 @@
 import { ZodError } from "zod";
 const errors: Record<string, string> = {
+  AI_NOT_CONFIGURED: "AI ჯერ არ არის ჩართული სერვერზე.",
+  DIGEST_PORTFOLIOS_INVALID: "დღიური შეჯამებისთვის აირჩიე 1–10 პორტფელი.",
   TELEGRAM_NOT_CONFIGURED: "Telegram ჯერ არ არის ჩართული სერვერზე.",
   TELEGRAM_LINK_EXPIRED: "დაკავშირების ვადა ამოიწურა. დაიწყეთ თავიდან.",
   TELEGRAM_NOT_CONNECTED: "ჯერ დააკავშირეთ Telegram.",

@@ -1,3 +1,4 @@
+// Unit requests have no Next.js request lifecycle; digest delivery is tested separately.
 import { beforeAll, afterAll, it, expect, vi } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
@@ -178,3 +179,5 @@ it("supports the installed Production spelling without widening endpoint access"
     vi.stubEnv("PRICE_ALERT_CRON_SECRET", "");
   }
 });
+
+vi.mock("next/server", () => ({ after: vi.fn() }));
