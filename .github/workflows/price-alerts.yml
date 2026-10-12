@@ -1,7 +1,6 @@
 name: Price alerts
 on:
-  schedule:
-    - cron: "3-58/5 * * * *"
+  # Automatic checks run through cron-job.org (job 8630759).
   workflow_dispatch:
 permissions:
   contents: read

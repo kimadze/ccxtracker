@@ -21,6 +21,8 @@ Never place CRON_SECRET in a URL. Use the scheduler's protected header field. Pr
 
 ### External scheduler and operational health
 
+Activated and smoke-tested on 2026-10-12: cron-job.org returned HTTP 200 with three requested/evaluated quotes, zero missing quotes and zero delivery failures. Failure notification is enabled after three consecutive failures, with a recovery notice through the account's existing notification channels. The GitHub workflow now supports manual dispatch only.
+
 The installed Production variable was initially named `PRICE_ALERT_CRON_SECRE`. That spelling is supported as a fallback when `PRICE_ALERT_CRON_SECRET` is absent; both are scoped to the price-alert endpoint only. New installations should use the complete name.
 
 The cron-job.org job `CCX price alerts` (8630759) uses POST to `/api/cron/watchlist` every five minutes in Asia/Tbilisi. Its Authorization header must contain `Bearer <PRICE_ALERT_CRON_SECRET>`, with the same server-only Production variable on Vercel. This separate credential is accepted only by the price-alert endpoint; never share the primary CRON_SECRET or Telegram token with the scheduler. Keep the job disabled until the credential and deployed code are ready. Disable the automatic GitHub schedule after a successful external execution; retain workflow_dispatch as an operator fallback. Do not put credentials in URLs or save response bodies in external history.
