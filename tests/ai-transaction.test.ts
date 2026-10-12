@@ -88,6 +88,40 @@ describe("AI draft boundary", () => {
     );
     await expect(lunaJson("", {}, {})).rejects.toThrow("AI_UNAVAILABLE");
   });
+  it("uses inline image input without a file upload, persistence or retries", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-only");
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            status: "completed",
+            output: [
+              {
+                content: [{ type: "output_text", text: JSON.stringify(trade) }],
+              },
+            ],
+          }),
+        ),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    await lunaJson(
+      "extract",
+      { localToday: "2026-10-12" },
+      {},
+      "data:image/jpeg;base64,fixture",
+    );
+    const request = JSON.parse(
+      (fetcher.mock.calls[0] as unknown as [string, RequestInit])[1]
+        .body as string,
+    );
+    expect(request.store).toBe(false);
+    expect(request.input[0].content[1]).toEqual({
+      type: "input_image",
+      image_url: "data:image/jpeg;base64,fixture",
+      detail: "high",
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
   it("does not call a provider without configuration", async () => {
     vi.stubEnv("OPENAI_API_KEY", "");
     const fetcher = vi.fn();

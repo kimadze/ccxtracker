@@ -9,6 +9,7 @@ export async function lunaJson(
   instructions: string,
   input: unknown,
   schema: Record<string, unknown>,
+  image?: string,
 ) {
   if (!aiConfigured()) throw new Error("AI_NOT_CONFIGURED");
   try {
@@ -24,7 +25,17 @@ export async function lunaJson(
         reasoning: { effort: "none" },
         max_output_tokens: 600,
         instructions,
-        input: JSON.stringify(input),
+        input: image
+          ? [
+              {
+                role: "user",
+                content: [
+                  { type: "input_text", text: JSON.stringify(input) },
+                  { type: "input_image", image_url: image, detail: "high" },
+                ],
+              },
+            ]
+          : JSON.stringify(input),
         text: {
           format: {
             type: "json_schema",

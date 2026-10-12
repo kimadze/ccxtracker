@@ -7,6 +7,7 @@ import { assets } from "@/server/db/schema";
 import { portfolioService } from "@/server/services/portfolio";
 import { consumeRateLimit } from "@/server/rate-limit";
 import { aiConfigured, lunaJson } from "./client";
+import { screenshotAllowed } from "./screenshot";
 import {
   aiTransactionJsonSchema,
   validateAiTransaction,
@@ -15,6 +16,9 @@ import {
 export async function aiAvailability() {
   await requireUser();
   return aiConfigured();
+}
+export async function screenshotAvailability() {
+  return screenshotAllowed(await requireUser());
 }
 export async function parseTransactionText(input: unknown) {
   const user = await requireUser();

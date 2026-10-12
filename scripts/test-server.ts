@@ -98,6 +98,7 @@ const child = spawn(
     env: {
       ...process.env,
       OPENAI_API_KEY: aiFixtures ? "e2e-not-a-real-key" : "",
+      AI_SCREENSHOT_USER_ID: aiFixtures ? "alice-desktop" : "",
       DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
       DATABASE_POOL_MAX: "1",
       DATABASE_MIGRATION_URL: "",

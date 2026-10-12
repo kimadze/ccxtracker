@@ -1,7 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
-import { aiAvailability, parseTransactionText } from "@/server/ai/actions";
+import {
+  aiAvailability,
+  parseTransactionText,
+  screenshotAvailability,
+} from "@/server/ai/actions";
+import { AiScreenshotDraft } from "./ai-screenshot-draft";
 import { BalanceValue, Field, Message } from "./ui";
 import { kindLabels } from "@/domain/transaction-labels";
 import { quantity, unitPrice } from "@/lib/formatters";
@@ -23,6 +28,8 @@ export function AiTransactionDraft({
   onBusy: (busy: boolean) => void;
 }) {
   const [available, setAvailable] = useState<boolean | null>(null);
+  const [imageAvailable, setImageAvailable] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
   const [text, setText] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const [assetId, setAssetId] = useState("");
@@ -40,6 +47,11 @@ export function AiTransactionDraft({
       .catch(() => {
         if (mounted) setAvailable(false);
       });
+    void screenshotAvailability()
+      .then((value) => {
+        if (mounted) setImageAvailable(value);
+      })
+      .catch(() => {});
     return () => {
       mounted = false;
       pendingRequest.current++;
@@ -63,6 +75,7 @@ export function AiTransactionDraft({
             className="textarea w-full"
             rows={2}
             maxLength={600}
+            disabled={pending || imageBusy}
             value={text}
             onChange={(e) => {
               request.current++;
@@ -81,7 +94,9 @@ export function AiTransactionDraft({
         <button
           type="button"
           className="btn min-h-11"
-          disabled={!available || pending || text.trim().length < 5}
+          disabled={
+            !available || pending || imageBusy || text.trim().length < 5
+          }
           onClick={async () => {
             const version = ++request.current;
             setPending(true);
@@ -118,6 +133,25 @@ export function AiTransactionDraft({
           მონახაზის მომზადება
         </button>
         {error && <Message error>{error}</Message>}
+        {imageAvailable && (
+          <AiScreenshotDraft
+            portfolioId={portfolioId}
+            disabled={pending}
+            onReset={() => {
+              request.current++;
+              setResult(null);
+              setError("");
+            }}
+            onBusy={(busy) => {
+              setImageBusy(busy);
+              onBusy(busy);
+            }}
+            onResult={(reply) => {
+              setResult(reply);
+              setAssetId(reply.matches.length === 1 ? reply.matches[0].id : "");
+            }}
+          />
+        )}
         {result && (
           <div className="space-y-2 border-t border-base-300 pt-2">
             <p className="text-sm">
