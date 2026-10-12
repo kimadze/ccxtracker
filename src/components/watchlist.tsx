@@ -3,7 +3,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { decimal } from "@/domain/decimal";
-import { Eye, Pencil, Plus, Search, Target, Trash2 } from "lucide-react";
+import {
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
 import type { Asset, Quote } from "@/domain/types";
 import { saveWatchlist, removeWatchlist } from "@/server/settings-actions";
 import { searchAssets } from "@/server/actions";
@@ -41,15 +48,16 @@ export function Watchlist({
   void revision;
   const [open, setOpen] = useState(false),
     [selected, setSelected] = useState<WatchItem | null>(null),
+    [detailsItem, setDetailsItem] = useState<WatchItem | null>(null),
     [deleting, setDeleting] = useState<string | null>(null),
     [options, setOptions] = useState(assets.filter((a) => a.id !== "USD")),
     [assetId, setAssetId] = useState(
       assets.find((a) => a.id !== "USD")?.id ?? "",
     ),
     [filterQuery, setFilterQuery] = useState(""),
-    [movement, setMovement] = useState<"all" | "up" | "down" | "unpriced">(
-      "all",
-    ),
+    [movement, setMovement] = useState<
+      "all" | "pending" | "sent" | "up" | "down" | "unpriced"
+    >("all"),
     [query, setQuery] = useState(""),
     [error, setError] = useState(""),
     [pending, setPending] = useState(false);
@@ -62,29 +70,160 @@ export function Watchlist({
       .includes(filterQuery.toLowerCase());
     if (!matchesText) return false;
     if (focusedAsset && item.asset.id !== focusedAsset) return false;
+    if (movement === "pending")
+      return Boolean(
+        (item.entryPrice && !item.targetReachedAt) ||
+        (item.exitPrice && !item.sellTargetReachedAt),
+      );
+    if (movement === "sent")
+      return Boolean(item.targetReachedAt || item.sellTargetReachedAt);
     if (movement === "up") return Number(quote?.change24h ?? 0) > 0;
     if (movement === "down") return Number(quote?.change24h ?? 0) < 0;
     if (movement === "unpriced")
       return quote?.price === null || quote?.price === undefined;
     return true;
   });
-  const pricedItems = items.filter((item) =>
-    quotes.some(
-      (quote) => quote.assetId === item.asset.id && quote.price !== null,
-    ),
-  );
-  const risingItems = items.filter(
-    (item) =>
-      Number(
-        quotes.find((quote) => quote.assetId === item.asset.id)?.change24h ?? 0,
-      ) > 0,
-  );
-  const fallingItems = items.filter(
-    (item) =>
-      Number(
-        quotes.find((quote) => quote.assetId === item.asset.id)?.change24h ?? 0,
-      ) < 0,
-  );
+  function edit(item: WatchItem) {
+    setDetailsItem(null);
+    setSelected(item);
+    setAssetId(item.asset.id);
+    setError("");
+    setOpen(true);
+  }
+  function identity(item: WatchItem, index: number) {
+    return (
+      <div className="flex min-w-0 items-center gap-3">
+        <AssetIcon
+          symbol={item.asset.symbol}
+          logoUrl={item.asset.logoUrl}
+          index={index}
+        />
+        <div className="min-w-0">
+          <p className="font-semibold">{item.asset.symbol}</p>
+          <p
+            className="max-w-48 truncate text-xs text-base-content/55"
+            title={item.asset.name}
+          >
+            {item.asset.name}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  function price(quote: Quote | undefined) {
+    return (
+      <div className="shrink-0 text-right">
+        <strong className="numeric whitespace-nowrap text-base">
+          {unitPrice(quote?.price ?? null)}
+        </strong>
+        <p
+          className={
+            "mt-0.5 text-xs " +
+            pnlClass(quote?.change24h == null ? null : String(quote.change24h))
+          }
+        >
+          {quote?.stale
+            ? "მოძველებული ფასი"
+            : percentage(
+                quote?.change24h == null ? null : String(quote.change24h),
+                true,
+              )}
+        </p>
+      </div>
+    );
+  }
+  function target(
+    item: WatchItem,
+    side: "buy" | "sell",
+    quote: Quote | undefined,
+  ) {
+    const value = side === "buy" ? item.entryPrice : item.exitPrice;
+    const reached =
+      side === "buy" ? item.targetReachedAt : item.sellTargetReachedAt;
+    if (!value)
+      return preview ? (
+        <span className="text-base-content/40">—</span>
+      ) : (
+        <button
+          className="btn btn-ghost btn-sm min-h-11 px-2 text-base-content/55"
+          aria-label={
+            item.asset.symbol +
+            (side === "buy" ? " ყიდვის" : " გაყიდვის") +
+            " სამიზნის დამატება"
+          }
+          onClick={() => edit(item)}
+        >
+          <Plus size={13} /> დამატება
+        </button>
+      );
+    return (
+      <div className="shrink-0 text-right">
+        <strong className="numeric whitespace-nowrap font-medium">
+          <BalanceValue>{unitPrice(value)}</BalanceValue>
+        </strong>
+        <p className="mt-0.5 text-xs text-base-content/55">
+          {reached
+            ? "გაგზავნილია"
+            : quote?.stale || quote?.price == null
+              ? "ფასი მიუწვდომელია"
+              : "ელოდება"}
+        </p>
+      </div>
+    );
+  }
+  function actions(item: WatchItem) {
+    if (preview) return null;
+    return (
+      <div className="flex items-center justify-end gap-1">
+        <button
+          className="btn btn-ghost btn-square min-h-11 min-w-11"
+          aria-label={item.asset.symbol + " რედაქტირება"}
+          title="რედაქტირება"
+          onClick={() => edit(item)}
+        >
+          <Pencil size={16} />
+        </button>
+        <details className="dropdown dropdown-end">
+          <summary
+            role="button"
+            className="btn btn-ghost btn-square min-h-11 min-w-11"
+            aria-label={item.asset.symbol + " სხვა მოქმედებები"}
+          >
+            <MoreHorizontal size={18} />
+          </summary>
+          <ul className="menu dropdown-content z-20 w-44 rounded-box border border-base-300 bg-base-200 p-1 shadow-lg">
+            <li>
+              <button
+                className="min-h-11"
+                onClick={(event) => {
+                  event.currentTarget
+                    .closest("details")
+                    ?.removeAttribute("open");
+                  setDetailsItem(item);
+                }}
+              >
+                დეტალები
+              </button>
+            </li>
+            <li>
+              <button
+                className="min-h-11 text-error"
+                onClick={(event) => {
+                  event.currentTarget
+                    .closest("details")
+                    ?.removeAttribute("open");
+                  setDeleting(item.id);
+                  setError("");
+                }}
+              >
+                <Trash2 size={15} /> წაშლა
+              </button>
+            </li>
+          </ul>
+        </details>
+      </div>
+    );
+  }
   return (
     <div className="space-y-3 lg:space-y-4">
       {!preview && (
@@ -108,7 +247,7 @@ export function Watchlist({
       )}
       {!preview && (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-          <label className="input min-h-11 min-w-0 flex-1">
+          <label className="input min-h-11 w-full min-w-0">
             <Search size={17} />
             <input
               value={filterQuery}
@@ -119,18 +258,18 @@ export function Watchlist({
           </label>
           <select
             className="select select-sm min-h-11 w-auto max-w-36"
-            aria-label="ფასის ფილტრი"
+            aria-label="დაკვირვების სიის ფილტრი"
             value={movement}
             onChange={(event) =>
               setMovement(event.target.value as typeof movement)
             }
           >
             <option value="all">ყველა · {items.length}</option>
-            <option value="up">ზრდაში · {risingItems.length}</option>
-            <option value="down">კლებაში · {fallingItems.length}</option>
-            <option value="unpriced">
-              ფასის გარეშე · {items.length - pricedItems.length}
-            </option>
+            <option value="pending">მოლოდინში</option>
+            <option value="sent">გაგზავნილი</option>
+            <option value="up">ფასი იზრდება</option>
+            <option value="down">ფასი იკლებს</option>
+            <option value="unpriced">ფასის გარეშე</option>
           </select>
         </div>
       )}
@@ -138,183 +277,175 @@ export function Watchlist({
         {filteredItems.length} აქტივი
         {focusedAsset ? " · შეტყობინებიდან გახსნილი" : ""}
       </p>
-      <ul className="list rounded-box border border-base-300 bg-base-200">
-        {filteredItems.map((item, i) => {
-          const quote = quotes.find((q) => q.assetId === item.asset.id);
-          return (
-            <li
-              key={item.id}
-              className="list-row block border-b border-base-300 p-3 last:border-0 sm:p-4"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <AssetIcon
-                  symbol={item.asset.symbol}
-                  logoUrl={item.asset.logoUrl}
-                  index={i}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold" title={item.asset.name}>
-                    {item.asset.name}
-                    <span className="badge badge-sm ml-2 align-middle">
-                      {item.asset.symbol}
-                    </span>
-                  </p>
-                  <div className="mt-1 flex flex-wrap items-baseline gap-x-2 text-xs">
-                    <span className="text-base-content/55">მიმდინარე ფასი</span>
-                    <strong className="numeric whitespace-nowrap">
-                      {unitPrice(quote?.price ?? null)}
-                    </strong>
-                    <span
-                      className={pnlClass(
-                        quote?.change24h == null
-                          ? null
-                          : String(quote.change24h),
-                      )}
-                    >
-                      {percentage(
-                        quote?.change24h == null
-                          ? null
-                          : String(quote.change24h),
-                        true,
-                      )}
-                      {quote?.stale ? " · მოძველებული ფასი" : ""}
-                    </span>
-                  </div>
-                </div>
-                {!preview && (
-                  <div className="flex shrink-0 items-center gap-1">
-                    <button
-                      className="btn btn-ghost btn-square min-h-11 min-w-11"
-                      aria-label={`${item.asset.symbol} რედაქტირება`}
-                      onClick={() => {
-                        setSelected(item);
-                        setAssetId(item.asset.id);
-                        setError("");
-                        setOpen(true);
-                      }}
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      className="btn btn-ghost btn-square min-h-11 min-w-11 text-error"
-                      aria-label={`${item.asset.symbol} წაშლა`}
-                      onClick={() => {
-                        setDeleting(item.id);
-                        setError("");
-                      }}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className="mt-3 grid min-w-0 grid-cols-2 gap-2 border-t border-base-300 pt-2 sm:gap-3">
-                {(["buy", "sell"] as const).map((side) => {
-                  const target =
-                    side === "buy" ? item.entryPrice : item.exitPrice;
-                  const reachedAt =
-                    side === "buy"
-                      ? item.targetReachedAt
-                      : item.sellTargetReachedAt;
-                  const reachedPrice =
-                    side === "buy"
-                      ? item.targetReachedPrice
-                      : item.sellTargetReachedPrice;
-                  const gap =
-                    target && quote?.price
-                      ? decimal(quote.price)
-                          .minus(target)
-                          .div(target)
-                          .times(100)
-                      : null;
-                  const within =
-                    gap &&
-                    !quote?.stale &&
-                    (side === "buy" ? gap.lte(0) : gap.gte(0));
-                  const nearby = gap && !quote?.stale && gap.abs().lte(5);
+      {filteredItems.length > 0 ? (
+        <>
+          <div className="hidden rounded-box border border-base-300 bg-base-200 lg:block">
+            <table className="table w-full table-fixed">
+              <colgroup>
+                <col className="w-[26%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+                <col className="w-[14%]" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>აქტივი</th>
+                  <th className="text-right">მიმდინარე ფასი</th>
+                  <th className="text-right">ყიდვის სამიზნე ↓</th>
+                  <th className="text-right">გაყიდვის სამიზნე ↑</th>
+                  <th>
+                    <span className="sr-only">მოქმედებები</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.map((item, i) => {
+                  const quote = quotes.find((q) => q.assetId === item.asset.id);
                   return (
-                    <div
-                      key={side}
-                      className={`min-w-0 px-1 ${side === "sell" ? "border-l border-base-300 pl-3" : ""}`}
-                    >
-                      <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-xs">
-                        <Target
-                          size={13}
-                          className="shrink-0 text-base-content/50"
-                        />
-                        <span className="font-medium">
-                          {side === "buy" ? "ყიდვა ≤" : "გაყიდვა ≥"}
-                        </span>
-                        <span
-                          className={`badge badge-sm ${!target ? "badge-ghost" : reachedAt ? "badge-success badge-soft" : "badge-info badge-soft"}`}
-                        >
-                          {!target
-                            ? "გამორთულია"
-                            : reachedAt
-                              ? "მიღწეულია"
-                              : "აქტიურია"}
-                        </span>
-                      </div>
-                      <strong className="numeric mt-1 block overflow-x-auto whitespace-nowrap text-sm sm:text-base">
-                        <BalanceValue>{unitPrice(target ?? null)}</BalanceValue>
-                      </strong>
-                      <small
-                        className={
-                          nearby
-                            ? "block text-warning"
-                            : "block text-base-content/60"
-                        }
-                      >
-                        {!target ? (
-                          "სამიზნე ფასი არ არის"
-                        ) : !gap || quote?.stale ? (
-                          quote?.stale ? (
-                            "ფასი მოძველებულია"
-                          ) : (
-                            "ფასი მიუწვდომელია"
-                          )
-                        ) : within ? (
-                          "სამიზნე ზონაშია"
-                        ) : nearby ? (
-                          "ფასთან ახლოსაა"
-                        ) : (
-                          <>
-                            <BalanceValue>
-                              {percentage(gap.abs().toString())}
-                            </BalanceValue>{" "}
-                            დაშორება
-                          </>
-                        )}
-                      </small>
-                      {reachedAt && (
-                        <small className="mt-1 block truncate text-[11px] text-base-content/50">
-                          დაფიქსირდა {unitPrice(reachedPrice)} ·{" "}
-                          {dateTime(reachedAt, true)}
-                        </small>
-                      )}
-                    </div>
+                    <tr key={item.id}>
+                      <td className="py-3">{identity(item, i)}</td>
+                      <td>{price(quote)}</td>
+                      <td>{target(item, "buy", quote)}</td>
+                      <td>{target(item, "sell", quote)}</td>
+                      <td>{actions(item)}</td>
+                    </tr>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+          <ul className="list rounded-box border border-base-300 bg-base-200 lg:hidden">
+            {filteredItems.map((item, i) => {
+              const quote = quotes.find((q) => q.assetId === item.asset.id);
+              return (
+                <li
+                  className="list-row block min-w-0 border-b border-base-300 p-3 last:border-0"
+                  key={item.id}
+                >
+                  <div className="flex min-w-0 items-center justify-between gap-3">
+                    {identity(item, i)}
+                    {price(quote)}
+                  </div>
+                  <div className="mt-3 border-t border-base-300 pt-1">
+                    <div className="flex min-h-11 items-center justify-between gap-3">
+                      <span className="text-sm text-base-content/65">
+                        ყიდვის სამიზნე ↓
+                      </span>
+                      {target(item, "buy", quote)}
+                    </div>
+                    <div className="flex min-h-11 items-center justify-between gap-3">
+                      <span className="text-sm text-base-content/65">
+                        გაყიდვის სამიზნე ↑
+                      </span>
+                      {target(item, "sell", quote)}
+                    </div>
+                  </div>
+                  {!preview && (
+                    <div className="mt-1 flex items-center justify-between">
+                      <button
+                        className="btn btn-ghost btn-sm min-h-11 px-0 text-base-content/55"
+                        onClick={() => setDetailsItem(item)}
+                      >
+                        დეტალები
+                      </button>
+                      {actions(item)}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      ) : (
+        <div className="rounded-box border border-base-300 px-4 py-6 text-center">
+          <Eye size={22} className="mx-auto text-base-content/40" />
+          <h2 className="mt-2 font-semibold">
+            {items.length
+              ? "აქტივი ვერ მოიძებნა"
+              : "დაკვირვების სია ჯერ ცარიელია"}
+          </h2>
+          <p className="mt-1 text-sm text-base-content/55">
+            {items.length
+              ? "შეცვალეთ ძიება ან ფილტრი."
+              : "დაამატეთ აქტივი და მიუთითეთ სასურველი ფასი."}
+          </p>
+        </div>
+      )}
+      <Modal
+        open={detailsItem !== null}
+        description=""
+        onOpenChange={(value) => {
+          if (!value) setDetailsItem(null);
+        }}
+        title={
+          detailsItem ? detailsItem.asset.symbol + " · დეტალები" : "დეტალები"
+        }
+      >
+        {detailsItem && (
+          <div className="space-y-4">
+            {(["buy", "sell"] as const).map((side) => {
+              const value =
+                side === "buy" ? detailsItem.entryPrice : detailsItem.exitPrice;
+              const reachedAt =
+                side === "buy"
+                  ? detailsItem.targetReachedAt
+                  : detailsItem.sellTargetReachedAt;
+              const reachedPrice =
+                side === "buy"
+                  ? detailsItem.targetReachedPrice
+                  : detailsItem.sellTargetReachedPrice;
+              const quote = quotes.find(
+                (q) => q.assetId === detailsItem.asset.id,
+              );
+              const gap =
+                value &&
+                decimal(value).gt(0) &&
+                quote?.price != null &&
+                !quote.stale
+                  ? decimal(quote.price)
+                      .minus(value)
+                      .div(value)
+                      .times(100)
+                      .abs()
+                  : null;
+              return (
+                <section key={side} className="border-b border-base-300 pb-3">
+                  <h3 className="mb-2 font-medium">
+                    {side === "buy" ? "ყიდვის სამიზნე ↓" : "გაყიდვის სამიზნე ↑"}
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    {target(detailsItem, side, quote)}
+                  </div>
+                  {reachedAt ? (
+                    <p className="mt-2 text-xs text-base-content/60">
+                      დაფიქსირდა{" "}
+                      <BalanceValue>{unitPrice(reachedPrice)}</BalanceValue> ·{" "}
+                      {dateTime(reachedAt)}
+                    </p>
+                  ) : gap ? (
+                    <p className="mt-2 text-xs text-base-content/60">
+                      სამიზნემდე{" "}
+                      <BalanceValue>{percentage(gap.toString())}</BalanceValue>
+                    </p>
+                  ) : null}
+                </section>
+              );
+            })}
+            {detailsItem.notes && (
+              <div>
+                <h3 className="mb-1 text-sm font-medium">შენიშვნა</h3>
+                <p className="whitespace-pre-wrap break-words text-sm text-base-content/65">
+                  {detailsItem.notes}
+                </p>
               </div>
-            </li>
-          );
-        })}
-        {!filteredItems.length && (
-          <li className="flex flex-col items-center px-6 py-6 text-center">
-            <Eye size={22} />
-            <h2 className="mt-3 font-semibold">
-              {items.length
-                ? "აქტივი ვერ მოიძებნა"
-                : "დაკვირვების სია ჯერ ცარიელია"}
-            </h2>
-            <p className="mt-2 max-w-lg text-sm leading-6 text-base-content/60">
-              {items.length
-                ? "შეცვალეთ ძიება ან სტატუსის ფილტრი."
-                : "არჩეული აქტივების ფასები აქ გამოჩნდება."}
+            )}
+            <p className="text-xs text-base-content/50">
+              დამატებულია {dateTime(detailsItem.createdAt)}
             </p>
-          </li>
+          </div>
         )}
-      </ul>
+      </Modal>
       <Modal
         open={open}
         closeDisabled={pending}
