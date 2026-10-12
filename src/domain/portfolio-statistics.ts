@@ -22,7 +22,11 @@ export function positionStatistics(position: ValuedPosition) {
           D.max(0, decimal(position.averagePrice).div(price).minus(1).mul(100)),
         )
       : null;
-  return { position, dayImpact, recovery };
+  const totalPnl =
+    position.realizedPnl === null || position.unrealizedPnl === null
+      ? null
+      : amount(decimal(position.realizedPnl).plus(position.unrealizedPnl));
+  return { position, dayImpact, recovery, totalPnl };
 }
 
 export function portfolioStatistics(summary: PortfolioSummary) {

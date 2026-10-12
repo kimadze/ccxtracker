@@ -17,6 +17,10 @@ export interface WatchItem {
   asset: Asset;
   entryPrice: string | null;
   exitPrice?: string | null;
+  targetReachedAt?: string | null;
+  targetReachedPrice?: string | null;
+  sellTargetReachedAt?: string | null;
+  sellTargetReachedPrice?: string | null;
   notes: string;
   createdAt: string;
 }
@@ -198,6 +202,14 @@ export function Watchlist({
                 {(["buy", "sell"] as const).map((side) => {
                   const target =
                     side === "buy" ? item.entryPrice : item.exitPrice;
+                  const reachedAt =
+                    side === "buy"
+                      ? item.targetReachedAt
+                      : item.sellTargetReachedAt;
+                  const reachedPrice =
+                    side === "buy"
+                      ? item.targetReachedPrice
+                      : item.sellTargetReachedPrice;
                   const gap =
                     target && quote?.price
                       ? decimal(quote.price)
@@ -215,6 +227,15 @@ export function Watchlist({
                       <span className="flex items-center gap-1 text-xs text-base-content/60 lg:justify-end">
                         <Target size={13} />
                         {side === "buy" ? "შესყიდვა ≤" : "გაყიდვა ≥"}
+                        <span
+                          className={`badge badge-xs ${!target ? "badge-ghost" : reachedAt ? "badge-success badge-soft" : "badge-primary badge-soft"}`}
+                        >
+                          {!target
+                            ? "გამორთულია"
+                            : reachedAt
+                              ? "მიღწეულია"
+                              : "აქტიურია"}
+                        </span>
                       </span>
                       <strong className="numeric block whitespace-nowrap">
                         <BalanceValue>{unitPrice(target ?? null)}</BalanceValue>
@@ -238,6 +259,12 @@ export function Watchlist({
                           </BalanceValue>
                         )}
                       </small>
+                      {reachedAt && (
+                        <small className="block text-base-content/50">
+                          {unitPrice(reachedPrice)} ·{" "}
+                          {dateTime(reachedAt, true)}
+                        </small>
+                      )}
                     </div>
                   );
                 })}

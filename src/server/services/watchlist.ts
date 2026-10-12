@@ -26,6 +26,10 @@ export function watchlistService(db: Database, userId: string) {
           asset: assets,
           entryPrice: watchlistItems.entryPrice,
           exitPrice: watchlistItems.exitPrice,
+          targetReachedAt: watchlistItems.targetReachedAt,
+          targetReachedPrice: watchlistItems.targetReachedPrice,
+          sellTargetReachedAt: watchlistItems.sellTargetReachedAt,
+          sellTargetReachedPrice: watchlistItems.sellTargetReachedPrice,
           notes: watchlistItems.notes,
           createdAt: watchlistItems.createdAt,
         })

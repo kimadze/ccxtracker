@@ -24,7 +24,7 @@ export function PortfolioStatistics({
     !row.position.quote ||
     row.position.quote.stale ||
     row.position.value === null ||
-    row.position.unrealizedPnl === null ||
+    row.totalPnl === null ||
     (row.cryptoShare !== null && decimal(row.cryptoShare).gte(25)) ||
     (row.position.returnPercent !== null &&
       decimal(row.position.returnPercent).lte(-50));
@@ -38,11 +38,11 @@ export function PortfolioStatistics({
         (filter === "all" ||
           (filter === "attention" && attention(row)) ||
           (filter === "profit" &&
-            p.unrealizedPnl !== null &&
-            decimal(p.unrealizedPnl).gt(0)) ||
+            row.totalPnl !== null &&
+            decimal(row.totalPnl).gt(0)) ||
           (filter === "loss" &&
-            p.unrealizedPnl !== null &&
-            decimal(p.unrealizedPnl).lt(0)))
+            row.totalPnl !== null &&
+            decimal(row.totalPnl).lt(0)))
       );
     })
     .sort((a, b) => {
@@ -51,7 +51,7 @@ export function PortfolioStatistics({
           ? row.position.value
           : sort === "day"
             ? row.dayImpact
-            : row.position.unrealizedPnl;
+            : row.totalPnl;
       const av = value(a),
         bv = value(b);
       if (av === null) return bv === null ? 0 : 1;
@@ -127,12 +127,21 @@ export function PortfolioStatistics({
                         {row.position.asset.name}
                       </span>
                     </span>
-                    <span className="max-w-[55%] overflow-x-auto whitespace-nowrap text-right tabular-nums">
+                    <span className="max-w-[58%] overflow-x-auto whitespace-nowrap text-right tabular-nums">
                       <BalanceValue>{money(row.position.value)}</BalanceValue>
                       <span
-                        className={`block text-xs ${pnlClass(row.position.unrealizedPnl)}`}
+                        className={`block text-xs font-medium ${pnlClass(row.totalPnl)}`}
                       >
-                        P/L{" "}
+                        სრული P/L{" "}
+                        <BalanceValue>{money(row.totalPnl)}</BalanceValue>
+                      </span>
+                      <span className="block text-[10px] text-base-content/55">
+                        დაფიქს.{" "}
+                        <BalanceValue>
+                          {money(row.position.realizedPnl)}
+                        </BalanceValue>
+                        {" · "}
+                        დარჩ.{" "}
                         <BalanceValue>
                           {money(row.position.unrealizedPnl)}
                         </BalanceValue>
@@ -148,7 +157,7 @@ export function PortfolioStatistics({
                         ? "ფასი მიუწვდომელია"
                         : row.position.quote.stale
                           ? "ფასი მოძველებულია"
-                          : row.position.unrealizedPnl === null
+                          : row.totalPnl === null
                             ? "შესყიდვის მონაცემები არასრულია"
                             : "ყურადღების ფილტრი"}
                     </p>
@@ -201,7 +210,7 @@ export function PortfolioStatistics({
                     "აქტივი",
                     "ღირებულება",
                     "კრიპტოს წილი",
-                    "P/L",
+                    "სრული P/L",
                     "დღის გავლენა",
                     "აღდგენა",
                   ].map((label, i) => (
@@ -242,13 +251,18 @@ export function PortfolioStatistics({
                       {percentage(row.cryptoShare)}
                     </td>
                     <td
-                      className={`whitespace-nowrap text-right ${pnlClass(row.position.unrealizedPnl)}`}
+                      className={`whitespace-nowrap text-right ${pnlClass(row.totalPnl)}`}
                     >
-                      <BalanceValue>
-                        {money(row.position.unrealizedPnl)}
-                      </BalanceValue>
-                      <small className="block">
-                        {percentage(row.position.returnPercent, true)}
+                      <BalanceValue>{money(row.totalPnl)}</BalanceValue>
+                      <small className="block text-base-content/60">
+                        დაფიქს.{" "}
+                        <BalanceValue>
+                          {money(row.position.realizedPnl)}
+                        </BalanceValue>
+                        {" · დარჩ. "}
+                        <BalanceValue>
+                          {money(row.position.unrealizedPnl)}
+                        </BalanceValue>
                       </small>
                     </td>
                     <td

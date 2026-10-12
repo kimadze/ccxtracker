@@ -23,6 +23,8 @@ export default async function Page({
         items={items.map((i) => ({
           ...i,
           createdAt: i.createdAt.toISOString(),
+          targetReachedAt: i.targetReachedAt?.toISOString() ?? null,
+          sellTargetReachedAt: i.sellTargetReachedAt?.toISOString() ?? null,
         }))}
         quotes={await getQuotes(items.map((i) => i.asset))}
       />
