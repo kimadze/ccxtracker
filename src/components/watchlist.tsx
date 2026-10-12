@@ -119,7 +119,11 @@ export function Watchlist({
         <p
           className={
             "mt-0.5 text-xs " +
-            pnlClass(quote?.change24h == null ? null : String(quote.change24h))
+            (quote?.stale
+              ? "text-warning"
+              : pnlClass(
+                  quote?.change24h == null ? null : String(quote.change24h),
+                ))
           }
         >
           {quote?.stale
@@ -164,7 +168,7 @@ export function Watchlist({
         <p className="mt-0.5 text-xs text-base-content/55">
           {reached
             ? "გაგზავნილია"
-            : quote?.stale || quote?.price == null
+            : quote?.price == null
               ? "ფასი მიუწვდომელია"
               : "ელოდება"}
         </p>
