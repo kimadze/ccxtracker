@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
@@ -30,6 +31,27 @@ export interface WatchItem {
   notes: string;
   createdAt: string;
 }
+type AlertRow = { direction: "below" | "above"; price: string };
+function alertsFor(item: WatchItem): AlertRow[] {
+  return [
+    ...(item.entryPrice
+      ? [
+          {
+            direction: "below" as const,
+            price: decimal(item.entryPrice).toFixed(),
+          },
+        ]
+      : []),
+    ...(item.exitPrice
+      ? [
+          {
+            direction: "above" as const,
+            price: decimal(item.exitPrice).toFixed(),
+          },
+        ]
+      : []),
+  ];
+}
 export function Watchlist({
   portfolioId,
   revision,
@@ -47,6 +69,7 @@ export function Watchlist({
 }) {
   void revision;
   const [open, setOpen] = useState(false),
+    [alertRows, setAlertRows] = useState<AlertRow[]>([]),
     [selected, setSelected] = useState<WatchItem | null>(null),
     [detailsItem, setDetailsItem] = useState<WatchItem | null>(null),
     [deleting, setDeleting] = useState<string | null>(null),
@@ -83,7 +106,14 @@ export function Watchlist({
       return quote?.price === null || quote?.price === undefined;
     return true;
   });
-  function edit(item: WatchItem) {
+  function edit(item: WatchItem, side?: "buy" | "sell") {
+    const rows = alertsFor(item);
+    if (side) {
+      const direction = side === "buy" ? "below" : "above";
+      if (!rows.some((row) => row.direction === direction))
+        rows.push({ direction, price: "" });
+    }
+    setAlertRows(rows);
     setDetailsItem(null);
     setSelected(item);
     setAssetId(item.asset.id);
@@ -152,10 +182,10 @@ export function Watchlist({
           className="btn btn-ghost btn-sm min-h-11 px-2 text-base-content/55"
           aria-label={
             item.asset.symbol +
-            (side === "buy" ? " ყიდვის" : " გაყიდვის") +
-            " სამიზნის დამატება"
+            (side === "buy" ? " ფასის ვარდნის" : " ფასის ზრდის") +
+            " ალერტის დამატება"
           }
-          onClick={() => edit(item)}
+          onClick={() => edit(item, side)}
         >
           <Plus size={13} /> დამატება
         </button>
@@ -240,6 +270,7 @@ export function Watchlist({
               className="btn btn-primary"
               onClick={() => {
                 setSelected(null);
+                setAlertRows([]);
                 setError("");
                 setOpen(true);
               }}
@@ -296,8 +327,8 @@ export function Watchlist({
                 <tr>
                   <th>აქტივი</th>
                   <th className="text-right">მიმდინარე ფასი</th>
-                  <th className="text-right">ყიდვის სამიზნე ↓</th>
-                  <th className="text-right">გაყიდვის სამიზნე ↑</th>
+                  <th className="text-right">ფასის ვარდნა ↓</th>
+                  <th className="text-right">ფასის ზრდა ↑</th>
                   <th>
                     <span className="sr-only">მოქმედებები</span>
                   </th>
@@ -334,13 +365,13 @@ export function Watchlist({
                   <div className="mt-3 border-t border-base-300 pt-1">
                     <div className="flex min-h-11 items-center justify-between gap-3">
                       <span className="text-sm text-base-content/65">
-                        ყიდვის სამიზნე ↓
+                        ფასის ვარდნა ↓
                       </span>
                       {target(item, "buy", quote)}
                     </div>
                     <div className="flex min-h-11 items-center justify-between gap-3">
                       <span className="text-sm text-base-content/65">
-                        გაყიდვის სამიზნე ↑
+                        ფასის ზრდა ↑
                       </span>
                       {target(item, "sell", quote)}
                     </div>
@@ -416,7 +447,7 @@ export function Watchlist({
               return (
                 <section key={side} className="border-b border-base-300 pb-3">
                   <h3 className="mb-2 font-medium">
-                    {side === "buy" ? "ყიდვის სამიზნე ↓" : "გაყიდვის სამიზნე ↑"}
+                    {side === "buy" ? "ფასის ვარდნა ↓" : "ფასის ზრდა ↑"}
                   </h3>
                   <div className="flex items-center justify-between">
                     {target(detailsItem, side, quote)}
@@ -472,8 +503,14 @@ export function Watchlist({
               const response = await saveWatchlist({
                 portfolioId,
                 assetId,
-                entryPrice: String(form.get("entryPrice") ?? "").trim() || null,
-                exitPrice: String(form.get("exitPrice") ?? "").trim() || null,
+                entryPrice:
+                  alertRows
+                    .find((row) => row.direction === "below")
+                    ?.price.trim() || null,
+                exitPrice:
+                  alertRows
+                    .find((row) => row.direction === "above")
+                    ?.price.trim() || null,
                 notes: String(form.get("notes") ?? ""),
               });
               if (response.ok) {
@@ -541,35 +578,120 @@ export function Watchlist({
               </button>
             </div>
           )}
-          <Field label="შესყიდვის შეტყობინების ფასი (USD)">
-            <input
-              className="input"
-              name="entryPrice"
-              inputMode="decimal"
-              defaultValue={
-                selected?.entryPrice
-                  ? decimal(selected.entryPrice).toFixed()
-                  : ""
-              }
-              placeholder="არასავალდებულო"
-            />
-          </Field>
-          <Field label="გაყიდვის შეტყობინების ფასი (USD)">
-            <input
-              className="input"
-              name="exitPrice"
-              inputMode="decimal"
-              defaultValue={
-                selected?.exitPrice ? decimal(selected.exitPrice).toFixed() : ""
-              }
-              placeholder="არასავალდებულო"
-            />
-          </Field>
-          <p className="text-xs text-base-content/60">
-            შესყიდვა: ფასი ≤ სამიზნეს. გაყიდვა: ფასი ≥ სამიზნეს. თითო სამიზნეზე
-            ერთი შეტყობინება — შემდეგი გადაკვეთისას. ხელახლა ჩასართავად შეცვალეთ
-            სამიზნე ფასი.
-          </p>
+          <fieldset className="fieldset gap-3">
+            <legend className="fieldset-legend text-sm">ფასის ალერტები</legend>
+            {alertRows.map((row, index) => (
+              <div
+                key={index}
+                className="grid min-w-0 grid-cols-[minmax(0,1fr)_44px] items-end gap-2"
+              >
+                <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Field label={"პირობა " + (index + 1)}>
+                    <select
+                      className="select w-full min-w-0"
+                      aria-label={"ალერტის მიმართულება " + (index + 1)}
+                      value={row.direction}
+                      disabled={pending}
+                      onChange={(event) =>
+                        setAlertRows((rows) =>
+                          rows.map((r, i) =>
+                            i === index
+                              ? {
+                                  ...r,
+                                  direction: event.target
+                                    .value as AlertRow["direction"],
+                                }
+                              : r,
+                          ),
+                        )
+                      }
+                    >
+                      <option
+                        value="above"
+                        disabled={alertRows.some(
+                          (r, i) => i !== index && r.direction === "above",
+                        )}
+                      >
+                        ↑ ზემოთ ასვლისას
+                      </option>
+                      <option
+                        value="below"
+                        disabled={alertRows.some(
+                          (r, i) => i !== index && r.direction === "below",
+                        )}
+                      >
+                        ↓ ქვემოთ ჩამოსვლისას
+                      </option>
+                    </select>
+                  </Field>
+                  <Field label={"ფასი (USD) " + (index + 1)}>
+                    <input
+                      className="input w-full min-w-0"
+                      aria-label={"ალერტის ფასი " + (index + 1)}
+                      inputMode="decimal"
+                      value={row.price}
+                      disabled={pending}
+                      placeholder="მაგ. 5.00"
+                      onChange={(event) =>
+                        setAlertRows((rows) =>
+                          rows.map((r, i) =>
+                            i === index
+                              ? { ...r, price: event.target.value }
+                              : r,
+                          ),
+                        )
+                      }
+                    />
+                  </Field>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-square min-h-11 min-w-11 text-base-content/55"
+                  aria-label={"ალერტი " + (index + 1) + " წაშლა"}
+                  disabled={pending}
+                  onClick={() =>
+                    setAlertRows((rows) => rows.filter((_, i) => i !== index))
+                  }
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+            {alertRows.length < 2 && (
+              <button
+                type="button"
+                className="btn btn-sm min-h-11 justify-self-start"
+                disabled={pending}
+                onClick={() =>
+                  setAlertRows((rows) => [
+                    ...rows,
+                    {
+                      direction: rows.some((r) => r.direction === "above")
+                        ? "below"
+                        : "above",
+                      price: "",
+                    },
+                  ])
+                }
+              >
+                <Plus size={15} /> ალერტის დამატება
+              </button>
+            )}
+            <p className="text-xs text-base-content/55">
+              შეტყობინება ერთხელ, ფასის გადაკვეთისას.
+            </p>
+            <p className="text-xs text-base-content/55">
+              აპში ·{" "}
+              <Link
+                className="link link-hover inline-flex min-h-11 items-center"
+                href={
+                  "/portfolios/" + portfolioId + "/settings#settings-telegram"
+                }
+              >
+                Telegram-ის პარამეტრები ↗
+              </Link>
+            </p>
+          </fieldset>
           <Field label="შენიშვნები">
             <textarea
               className="textarea"

@@ -115,11 +115,11 @@ export async function processTelegramDeliveries(
       continue;
     }
     try {
-      const direction = job.side === "buy" ? "შესყიდვის" : "გაყიდვის";
+      const direction = job.side === "buy" ? "ფასის ვარდნის" : "ფასის ზრდის";
       const url = `${appOrigin()}/portfolios/${row.portfolio.id}/watchlist?asset=${encodeURIComponent(row.asset.id)}`;
       await sendTelegram(
         row.connection.chatId,
-        `${row.asset.symbol.slice(0, 40)}\n${direction} ფასი მიღწეულია\nსამიზნე ${job.side === "buy" ? "≤" : "≥"} ${unitPrice(job.target)}\nდაფიქსირებული ფასი: ${unitPrice(job.price)}\n${job.reachedAt.toISOString()}`,
+        `${row.asset.symbol.slice(0, 40)}\n${direction} ალერტი\nსამიზნე ${job.side === "buy" ? "≤" : "≥"} ${unitPrice(job.target)}\nდაფიქსირებული ფასი: ${unitPrice(job.price)}\n${job.reachedAt.toISOString()}`,
         url,
       );
       await db

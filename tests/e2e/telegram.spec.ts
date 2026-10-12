@@ -86,7 +86,7 @@ test("Telegram private link, confirmation, choices and disconnect fit all sizes"
       .getByRole("button", { name: "ჩატის დადასტურება", exact: true })
       .click();
     await expect(section).toContainText("დაკავშირებულია");
-    await section.getByLabel("შესყიდვა", { exact: true }).uncheck();
+    await section.getByLabel("ფასის ვარდნა ↓", { exact: true }).uncheck();
     await section
       .getByRole("button", { name: "არჩევანის შენახვა", exact: true })
       .click();

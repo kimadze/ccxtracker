@@ -164,9 +164,9 @@ test("opening batch, previews, undo, planning and target notices work at all bre
       name: "შეტყობინებები",
       exact: true,
     });
-    await expect(panel).toContainText("BTC · შესყიდვის ფასი მიღწეულია");
+    await expect(panel).toContainText("BTC · ფასის ვარდნის ალერტი");
     await panel
-      .getByRole("button", { name: /BTC · შესყიდვის ფასი მიღწეულია/ })
+      .getByRole("button", { name: /BTC · ფასის ვარდნის ალერტი/ })
       .click();
     await expect(page).toHaveURL(new RegExp(`/watchlist\\?asset=bitcoin$`));
     await expect(
@@ -185,12 +185,8 @@ test("opening batch, previews, undo, planning and target notices work at all bre
       name: "ჩანაწერის რედაქტირება",
       exact: true,
     });
-    await expect(
-      watchForm.getByLabel("შესყიდვის შეტყობინების ფასი (USD)"),
-    ).toHaveValue("175");
-    await expect(
-      watchForm.getByLabel("გაყიდვის შეტყობინების ფასი (USD)"),
-    ).toBeVisible();
+    await expect(watchForm.getByLabel("ალერტის ფასი 1")).toHaveValue("175");
+    await expect(watchForm.getByLabel("ალერტის ფასი 2")).toBeVisible();
     for (const width of [360, 390, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 844 });
       expect(
@@ -207,8 +203,8 @@ test("opening batch, previews, undo, planning and target notices work at all bre
       .first()
       .click();
     await page.getByRole("button", { name: "BTC რედაქტირება" }).click();
-    await watchForm.getByLabel("შესყიდვის შეტყობინების ფასი (USD)").fill("0.5");
-    await watchForm.getByLabel("გაყიდვის შეტყობინების ფასი (USD)").fill("5");
+    await watchForm.getByLabel("ალერტის ფასი 1").fill("0.5");
+    await watchForm.getByLabel("ალერტის ფასი 2").fill("5");
     await watchForm
       .getByRole("button", { name: "შენახვა", exact: true })
       .click();
@@ -242,9 +238,9 @@ test("opening batch, previews, undo, planning and target notices work at all bre
     await page
       .getByRole("button", { name: /შეტყობინებები · 1 წაუკითხავი/ })
       .click();
-    await expect(panel).toContainText("BTC · გაყიდვის ფასი მიღწეულია");
+    await expect(panel).toContainText("BTC · ფასის ზრდის ალერტი");
     await panel
-      .getByRole("button", { name: /BTC · გაყიდვის ფასი მიღწეულია/ })
+      .getByRole("button", { name: /BTC · ფასის ზრდის ალერტი/ })
       .click();
     for (const tab of ["strategy", "scenarios", "allocation"]) {
       await page.goto(`${base}/${tab}?asset=bitcoin`);

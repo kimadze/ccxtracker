@@ -227,7 +227,11 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     .getByRole("button", { name: "აქტივის დამატება", exact: true })
     .click();
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("ethereum");
-  await dialog.getByLabel("სასურველი შესვლის ფასი (USD)").fill("2000");
+  await dialog
+    .getByRole("button", { name: "ალერტის დამატება", exact: true })
+    .click();
+  await dialog.getByLabel("ალერტის მიმართულება 1").selectOption("below");
+  await dialog.getByLabel("ალერტის ფასი 1").fill("2000");
   await dialog
     .getByLabel("შენიშვნები", { exact: true })
     .fill("დაკვირვების ტესტი");

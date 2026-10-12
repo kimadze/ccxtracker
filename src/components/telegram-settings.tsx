@@ -250,8 +250,8 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                 <div className="flex flex-wrap gap-x-6 gap-y-2">
                   {(
                     [
-                      ["buy", "შესყიდვა", status.buyEnabled],
-                      ["sell", "გაყიდვა", status.sellEnabled],
+                      ["buy", "ფასის ვარდნა ↓", status.buyEnabled],
+                      ["sell", "ფასის ზრდა ↑", status.sellEnabled],
                     ] as const
                   ).map(([name, label, checked]) => (
                     <label key={name} className="label min-h-11 gap-3">

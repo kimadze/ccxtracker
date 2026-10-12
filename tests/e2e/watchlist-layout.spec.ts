@@ -46,6 +46,8 @@ test("watchlist separates prices and alert states across layouts", async ({
       const content =
         width >= 1024 ? page.locator("table") : page.locator("ul.list");
       await expect(content).toBeVisible();
+      await expect(content).toContainText("ფასის ვარდნა ↓");
+      await expect(content).toContainText("ფასის ზრდა ↑");
       await expect(content).toContainText("ელოდება");
       await expect(content).toContainText("გაგზავნილია");
       await expect(content).toContainText("ფასი მიუწვდომელია");
@@ -81,6 +83,17 @@ test("watchlist separates prices and alert states across layouts", async ({
       await expect(
         page.getByRole("dialog", { name: "ჩანაწერის რედაქტირება" }),
       ).toBeVisible();
+      await expect(page.getByLabel("ალერტის მიმართულება 1")).toHaveValue(
+        "below",
+      );
+      await expect(page.getByLabel("ალერტის მიმართულება 2")).toHaveValue(
+        "above",
+      );
+      await expect(page.getByLabel("ალერტის ფასი 1")).toHaveValue("100");
+      await expect(page.getByLabel("ალერტის ფასი 2")).toHaveValue("200");
+      await page.screenshot({
+        path: `.local/watchlist-direction-form-${width}.png`,
+      });
       await page.keyboard.press("Escape");
     }
     const filter = page.getByLabel("დაკვირვების სიის ფილტრი");
@@ -89,6 +102,52 @@ test("watchlist separates prices and alert states across layouts", async ({
     await filter.selectOption("pending");
     await expect(page.locator("table tbody tr")).toHaveCount(2);
     await filter.selectOption("all");
+    await page
+      .locator("table")
+      .getByRole("button", { name: "ETH ფასის ზრდის ალერტის დამატება" })
+      .click();
+    await expect(page.getByLabel("ალერტის მიმართულება 1")).toHaveValue("above");
+    await page.getByLabel("ალერტის ფასი 1").fill("5");
+    await page
+      .getByRole("dialog", { name: "ჩანაწერის რედაქტირება" })
+      .getByRole("button", { name: "შენახვა", exact: true })
+      .click();
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
+    expect(
+      (
+        await db.query(
+          "SELECT entry_price IS NULL AS below, exit_price=5 AS above FROM watchlist_items WHERE portfolio_id=$1 AND asset_id='ethereum'",
+          [id],
+        )
+      ).rows[0],
+    ).toEqual({ below: true, above: true });
+    await expect(
+      page.locator("table tbody tr").filter({ hasText: "Ethereum" }),
+    ).toContainText("$5");
+    await page
+      .locator("table")
+      .getByRole("button", { name: "ETH რედაქტირება" })
+      .click();
+    await page.getByLabel("ალერტის მიმართულება 1").selectOption("below");
+    await page.getByLabel("ალერტის ფასი 1").fill("0.0000001");
+    await page
+      .getByRole("button", { name: "ალერტის დამატება", exact: true })
+      .click();
+    await expect(page.getByLabel("ალერტის მიმართულება 2")).toHaveValue("above");
+    await page.getByLabel("ალერტის ფასი 2").fill("5");
+    await page
+      .getByRole("dialog", { name: "ჩანაწერის რედაქტირება" })
+      .getByRole("button", { name: "შენახვა", exact: true })
+      .click();
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
+    expect(
+      (
+        await db.query(
+          "SELECT entry_price=0.0000001 AS below, exit_price=5 AS above FROM watchlist_items WHERE portfolio_id=$1 AND asset_id='ethereum'",
+          [id],
+        )
+      ).rows[0],
+    ).toEqual({ below: true, above: true });
     await page.getByLabel("დაკვირვების სიის ძიება").fill("ვერ მოიძებნება");
     await expect(
       page.getByRole("heading", { name: "აქტივი ვერ მოიძებნა" }),

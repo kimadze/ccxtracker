@@ -112,14 +112,13 @@ export function TargetNotifications({ portfolioId }: { portfolioId: string }) {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">
                     {row.symbol} ·{" "}
-                    {row.side === "buy" ? "შესყიდვის" : "გაყიდვის"} ფასი
-                    მიღწეულია
+                    {row.side === "buy" ? "ფასის ვარდნის" : "ფასის ზრდის"}{" "}
+                    ალერტი
                   </p>
                   <p className="mt-1 text-xs">
                     <BalanceValue>
-                      მიზანი {row.side === "buy" ? "≤" : "≥"}{" "}
-                      {unitPrice(row.target)} · დაფიქსირდა{" "}
-                      {unitPrice(row.price)}
+                      {row.side === "buy" ? "↓" : "↑"} {unitPrice(row.target)} ·
+                      დაფიქსირდა {unitPrice(row.price)}
                     </BalanceValue>
                   </p>
                   <p className="mt-1 text-xs text-base-content/60">
