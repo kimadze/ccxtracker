@@ -1,5 +1,4 @@
 "use client";
-import { FilterButtons } from "./filter-buttons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
@@ -108,28 +107,7 @@ export function Watchlist({
         />
       )}
       {!preview && (
-        <FilterButtons
-          label="დაკვირვების სიის შეჯამება"
-          value={movement}
-          onChange={setMovement}
-          options={[
-            { value: "all", label: "სულ აქტივი", count: items.length },
-            { value: "up", label: "დღეს ზრდაში", count: risingItems.length },
-            {
-              value: "down",
-              label: "დღეს კლებაში",
-              count: fallingItems.length,
-            },
-            {
-              value: "unpriced",
-              label: "ფასის გარეშე",
-              count: items.length - pricedItems.length,
-            },
-          ]}
-        />
-      )}
-      {!preview && (
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
           <label className="input min-h-11 min-w-0 flex-1">
             <Search size={17} />
             <input
@@ -139,66 +117,98 @@ export function Watchlist({
               placeholder="მოძებნეთ აქტივი ან სიმბოლო…"
             />
           </label>
-          <span className="shrink-0 text-xs text-base-content/60">
-            {filteredItems.length} აქტივი
-          </span>
+          <select
+            className="select select-sm min-h-11 w-auto max-w-36"
+            aria-label="ფასის ფილტრი"
+            value={movement}
+            onChange={(event) =>
+              setMovement(event.target.value as typeof movement)
+            }
+          >
+            <option value="all">ყველა · {items.length}</option>
+            <option value="up">ზრდაში · {risingItems.length}</option>
+            <option value="down">კლებაში · {fallingItems.length}</option>
+            <option value="unpriced">
+              ფასის გარეშე · {items.length - pricedItems.length}
+            </option>
+          </select>
         </div>
       )}
+      <p className="text-xs text-base-content/55">
+        {filteredItems.length} აქტივი
+        {focusedAsset ? " · შეტყობინებიდან გახსნილი" : ""}
+      </p>
       <ul className="list rounded-box border border-base-300 bg-base-200">
         {filteredItems.map((item, i) => {
           const quote = quotes.find((q) => q.assetId === item.asset.id);
           return (
             <li
               key={item.id}
-              className="list-row grid-cols-2 gap-3 border-b border-base-300 p-3 last:border-0 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto]"
+              className="list-row block border-b border-base-300 p-3 last:border-0 sm:p-4"
             >
-              <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <AssetIcon
                   symbol={item.asset.symbol}
                   logoUrl={item.asset.logoUrl}
                   index={i}
                 />
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">
-                    {item.asset.name}{" "}
-                    <span className="badge badge-sm ml-1">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold" title={item.asset.name}>
+                    {item.asset.name}
+                    <span className="badge badge-sm ml-2 align-middle">
                       {item.asset.symbol}
                     </span>
                   </p>
-                  <small className="block text-base-content/50">
-                    დამატებულია {dateTime(item.createdAt, true)}
-                  </small>
-                  {item.notes && (
-                    <small className="mt-1 block max-w-md truncate text-base-content/60">
-                      {item.notes}
-                    </small>
-                  )}
+                  <div className="mt-1 flex flex-wrap items-baseline gap-x-2 text-xs">
+                    <span className="text-base-content/55">მიმდინარე ფასი</span>
+                    <strong className="numeric whitespace-nowrap">
+                      {unitPrice(quote?.price ?? null)}
+                    </strong>
+                    <span
+                      className={pnlClass(
+                        quote?.change24h == null
+                          ? null
+                          : String(quote.change24h),
+                      )}
+                    >
+                      {percentage(
+                        quote?.change24h == null
+                          ? null
+                          : String(quote.change24h),
+                        true,
+                      )}
+                      {quote?.stale ? " · მოძველებული ფასი" : ""}
+                    </span>
+                  </div>
                 </div>
+                {!preview && (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      className="btn btn-ghost btn-square min-h-11 min-w-11"
+                      aria-label={`${item.asset.symbol} რედაქტირება`}
+                      onClick={() => {
+                        setSelected(item);
+                        setAssetId(item.asset.id);
+                        setError("");
+                        setOpen(true);
+                      }}
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-square min-h-11 min-w-11 text-error"
+                      aria-label={`${item.asset.symbol} წაშლა`}
+                      onClick={() => {
+                        setDeleting(item.id);
+                        setError("");
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                )}
               </div>
-              <div className="col-start-1 row-start-2 min-w-0 text-left lg:col-start-2 lg:row-start-1 lg:text-right">
-                <span className="text-xs text-base-content/50">
-                  მიმდინარე ფასი
-                </span>
-                <strong className="numeric block whitespace-nowrap">
-                  {unitPrice(quote?.price ?? null)}
-                </strong>
-                <small
-                  className={pnlClass(
-                    quote?.change24h === null || quote?.change24h === undefined
-                      ? null
-                      : String(quote.change24h),
-                  )}
-                >
-                  {percentage(
-                    quote?.change24h === null || quote?.change24h === undefined
-                      ? null
-                      : String(quote.change24h),
-                    true,
-                  )}
-                  {quote?.stale ? " · მოძველებულია" : ""}
-                </small>
-              </div>
-              <div className="col-span-2 row-start-3 grid min-w-0 grid-cols-2 gap-3 border-t border-base-300 pt-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:border-0 lg:pt-0">
+              <div className="mt-3 grid min-w-0 grid-cols-2 gap-2 border-t border-base-300 pt-2 sm:gap-3">
                 {(["buy", "sell"] as const).map((side) => {
                   const target =
                     side === "buy" ? item.entryPrice : item.exitPrice;
@@ -223,12 +233,20 @@ export function Watchlist({
                     (side === "buy" ? gap.lte(0) : gap.gte(0));
                   const nearby = gap && !quote?.stale && gap.abs().lte(5);
                   return (
-                    <div key={side} className="min-w-0 lg:text-right">
-                      <span className="flex items-center gap-1 text-xs text-base-content/60 lg:justify-end">
-                        <Target size={13} />
-                        {side === "buy" ? "შესყიდვა ≤" : "გაყიდვა ≥"}
+                    <div
+                      key={side}
+                      className={`min-w-0 px-1 ${side === "sell" ? "border-l border-base-300 pl-3" : ""}`}
+                    >
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-xs">
+                        <Target
+                          size={13}
+                          className="shrink-0 text-base-content/50"
+                        />
+                        <span className="font-medium">
+                          {side === "buy" ? "ყიდვა ≤" : "გაყიდვა ≥"}
+                        </span>
                         <span
-                          className={`badge badge-xs ${!target ? "badge-ghost" : reachedAt ? "badge-success badge-soft" : "badge-primary badge-soft"}`}
+                          className={`badge badge-sm ${!target ? "badge-ghost" : reachedAt ? "badge-success badge-soft" : "badge-info badge-soft"}`}
                         >
                           {!target
                             ? "გამორთულია"
@@ -236,32 +254,41 @@ export function Watchlist({
                               ? "მიღწეულია"
                               : "აქტიურია"}
                         </span>
-                      </span>
-                      <strong className="numeric block whitespace-nowrap">
+                      </div>
+                      <strong className="numeric mt-1 block overflow-x-auto whitespace-nowrap text-sm sm:text-base">
                         <BalanceValue>{unitPrice(target ?? null)}</BalanceValue>
                       </strong>
                       <small
                         className={
-                          nearby ? "text-warning" : "text-base-content/60"
+                          nearby
+                            ? "block text-warning"
+                            : "block text-base-content/60"
                         }
                       >
                         {!target ? (
-                          "გამორთულია"
+                          "სამიზნე ფასი არ არის"
                         ) : !gap || quote?.stale ? (
-                          "ფასი დაუდასტურებელია"
+                          quote?.stale ? (
+                            "ფასი მოძველებულია"
+                          ) : (
+                            "ფასი მიუწვდომელია"
+                          )
                         ) : within ? (
                           "სამიზნე ზონაშია"
                         ) : nearby ? (
                           "ფასთან ახლოსაა"
                         ) : (
-                          <BalanceValue>
-                            {percentage(gap.toString(), true)}
-                          </BalanceValue>
+                          <>
+                            <BalanceValue>
+                              {percentage(gap.abs().toString())}
+                            </BalanceValue>{" "}
+                            დაშორება
+                          </>
                         )}
                       </small>
                       {reachedAt && (
-                        <small className="block text-base-content/50">
-                          {unitPrice(reachedPrice)} ·{" "}
+                        <small className="mt-1 block truncate text-[11px] text-base-content/50">
+                          დაფიქსირდა {unitPrice(reachedPrice)} ·{" "}
                           {dateTime(reachedAt, true)}
                         </small>
                       )}
@@ -269,32 +296,6 @@ export function Watchlist({
                   );
                 })}
               </div>
-              {!preview && (
-                <div className="col-start-2 row-start-1 flex justify-end gap-1 lg:col-start-4">
-                  <button
-                    className="btn btn-ghost btn-square min-h-11 min-w-11"
-                    aria-label={`${item.asset.symbol} რედაქტირება`}
-                    onClick={() => {
-                      setSelected(item);
-                      setAssetId(item.asset.id);
-                      setError("");
-                      setOpen(true);
-                    }}
-                  >
-                    <Pencil size={15} />
-                  </button>
-                  <button
-                    className="btn btn-ghost btn-square min-h-11 min-w-11 text-error"
-                    aria-label={`${item.asset.symbol} წაშლა`}
-                    onClick={() => {
-                      setDeleting(item.id);
-                      setError("");
-                    }}
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              )}
             </li>
           );
         })}
