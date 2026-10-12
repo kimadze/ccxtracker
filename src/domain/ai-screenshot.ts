@@ -104,16 +104,13 @@ export function confirmScreenshot(
   if (stable && !parsedRate.success)
     throw new Error("მიუთითე USD კურსი, 0-ზე მეტი.");
   const rate = stable && parsedRate.success ? parsedRate.data : "1";
-  if (!fields.day || !fields.fee)
-    throw new Error(
-      "დააზუსტე თარიღი და საკომისიო ანგარიშსწორების ვალუტაში; საკომისიოს გარეშე მიუთითე 0.",
-    );
+  if (!fields.day) throw new Error("დააზუსტე ტრანზაქციის თარიღი.");
   const draft = validateAiTransaction({
     kind: fields.kind || null,
     symbol: extraction.symbol,
     quantity: fields.quantity || null,
     price: fields.price || null,
-    fee: fields.fee,
+    fee: fields.fee.trim() || "0",
     day: fields.day,
     issues: [],
   });

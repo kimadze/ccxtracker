@@ -183,7 +183,9 @@ test("private image draft previews, applies and waits for manual save", async ({
     await expect(
       dialog.getByRole("button", { name: "ფორმაში გადატანა" }),
     ).toHaveCount(0);
-    await dialog.getByLabel("საკომისიო USDT-ში (გარეშე: 0)").fill("0");
+    await expect(dialog.getByLabel("საკომისიო — სურვილისამებრ")).toHaveValue(
+      "",
+    );
     await dialog
       .getByLabel("ტრანზაქციის თარიღი (შენი დროით)")
       .fill("2026-10-12");

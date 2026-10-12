@@ -67,13 +67,10 @@ it.each(["canceled", "partially_filled", "open", "pending", "unknown"])(
     ).toThrow();
   },
 );
-it("requires a positive settlement rate and review confirmation, complete day and explicit fee", () => {
+it("requires a positive settlement rate, review confirmation and complete day", () => {
   const extraction = reviewScreenshot(base);
   expect(() => confirmScreenshot(extraction, fields, true, "")).toThrow();
   expect(() => confirmScreenshot(extraction, fields, false, "1")).toThrow();
-  expect(() =>
-    confirmScreenshot(extraction, { ...fields, fee: "" }, true, "1"),
-  ).toThrow();
   expect(() =>
     confirmScreenshot(extraction, { ...fields, day: "" }, true, "1"),
   ).toThrow();
@@ -82,6 +79,17 @@ it("requires a positive settlement rate and review confirmation, complete day an
     day: "2026-10-12",
     quantity: "526.05",
   });
+});
+it.each(["", "   ", "0", "0.25"])("accepts optional fee %j", (fee) => {
+  expect(
+    confirmScreenshot(reviewScreenshot(base), { ...fields, fee }, true, "1")
+      .fee,
+  ).toBe(fee.trim() || "0");
+});
+it.each(["-1", "invalid"])("rejects invalid explicit fee %j", (fee) => {
+  expect(() =>
+    confirmScreenshot(reviewScreenshot(base), { ...fields, fee }, true, "1"),
+  ).toThrow();
 });
 it("preserves foreign currency, missing prices and issues without inventing facts", () => {
   expect(

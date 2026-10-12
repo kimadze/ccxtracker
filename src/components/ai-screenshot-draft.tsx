@@ -281,10 +281,7 @@ export function AiScreenshotDraft({
               [
                 ["quantity", "შესრულებული რაოდენობა"],
                 ["price", "შესრულების ფასი"],
-                [
-                  "fee",
-                  `საკომისიო ${["USDT", "USDC"].includes(review.extraction.currency ?? "") ? review.extraction.currency : "USD"}-ში (გარეშე: 0)`,
-                ],
+                ["fee", "საკომისიო — სურვილისამებრ"],
                 ["day", "ტრანზაქციის თარიღი (შენი დროით)"],
               ] as const
             ).map(([key, label]) => (
@@ -293,6 +290,7 @@ export function AiScreenshotDraft({
                   className="input min-h-11 w-full min-w-0"
                   type={key === "day" ? "date" : "text"}
                   inputMode={key === "day" ? undefined : "decimal"}
+                  placeholder={key === "fee" ? "ცარიელი = 0" : undefined}
                   value={fields[key]}
                   onChange={(e) => {
                     setConfirmed(false);
