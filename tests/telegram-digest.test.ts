@@ -47,15 +47,13 @@ beforeAll(async () => {
 beforeEach(async () => {
   await testDb.delete(schema.telegramDigests);
   await testDb.delete(schema.telegramConnections);
-  await testDb
-    .insert(schema.telegramConnections)
-    .values({
-      userId: "owner",
-      chatId: "123",
-      summaryEnabled: true,
-      summaryHour: 21,
-      portfolioIds: [pid],
-    });
+  await testDb.insert(schema.telegramConnections).values({
+    userId: "owner",
+    chatId: "123",
+    summaryEnabled: true,
+    summaryHour: 21,
+    portfolioIds: [pid],
+  });
   fetcher.mockReset();
   fetcher.mockResolvedValue(
     new Response(JSON.stringify({ ok: true, result: { message_id: 1 } })),
@@ -116,30 +114,24 @@ it("cancels pending summaries when preferences change", async () => {
 it("keeps the daily reservation after disconnect/reconnect", async () => {
   await processDailyDigests(db, now);
   await telegramService(db, "owner").disconnect();
-  await testDb
-    .insert(schema.telegramConnections)
-    .values({
-      userId: "owner",
-      chatId: "123",
-      summaryEnabled: true,
-      summaryHour: 21,
-      portfolioIds: [pid],
-    });
+  await testDb.insert(schema.telegramConnections).values({
+    userId: "owner",
+    chatId: "123",
+    summaryEnabled: true,
+    summaryHour: 21,
+    portfolioIds: [pid],
+  });
   await processDailyDigests(db, now);
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
-it("sends deterministic figures when optional AI fails", async () => {
+it("never calls AI, even if a legacy preference was enabled", async () => {
   await testDb
     .update(schema.telegramConnections)
     .set({ summaryAiEnabled: true })
     .where(eq(schema.telegramConnections.userId, "owner"));
-  ai.mockRejectedValue(new Error("AI_UNAVAILABLE"));
   expect(await processDailyDigests(db, now)).toEqual({ sent: 1, failed: 0 });
-  const body = JSON.parse(fetcher.mock.calls[0][1].body);
-  expect(body.text).toContain("My portfolio");
-  expect(body.text).toContain("სრული P/L");
-  expect(body.text).toContain("დროებით მიუწვდომელია");
-  expect(JSON.stringify(ai.mock.calls)).not.toContain("My portfolio");
+  expect(ai).not.toHaveBeenCalled();
+  expect(JSON.parse(fetcher.mock.calls[0][1].body).text).not.toContain("Luna");
 });
 it("retries a failed delivery without rebuilding or duplicating a completed digest", async () => {
   fetcher.mockResolvedValueOnce(

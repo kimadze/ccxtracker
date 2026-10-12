@@ -13,7 +13,6 @@ import {
   exitPlans,
 } from "@/server/db/schema";
 import { telegramConfigured, sendTelegram, appOrigin } from "./api";
-import { aiConfigured } from "@/server/ai/client";
 export const hashLink = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 export function telegramService(db: Database, userId: string) {
@@ -44,9 +43,7 @@ export function telegramService(db: Database, userId: string) {
         buyEnabled: row?.buyEnabled ?? true,
         sellEnabled: row?.sellEnabled ?? true,
         summaryEnabled: row?.summaryEnabled ?? false,
-        summaryAiEnabled: row?.summaryAiEnabled ?? false,
         summaryHour: row?.summaryHour ?? 21,
-        aiConfigured: aiConfigured(),
         portfolioIds: row?.portfolioIds ?? [],
         portfolios: owned,
         lastError: row?.lastError ?? null,
@@ -126,7 +123,6 @@ export function telegramService(db: Database, userId: string) {
           buyEnabled: z.boolean(),
           sellEnabled: z.boolean(),
           summaryEnabled: z.boolean().optional(),
-          summaryAiEnabled: z.boolean().optional(),
           summaryHour: z.number().int().min(0).max(23).optional(),
           portfolioIds: z.array(z.uuid()).max(100),
         })
@@ -136,8 +132,6 @@ export function telegramService(db: Database, userId: string) {
         (!data.portfolioIds.length || data.portfolioIds.length > 10)
       )
         throw new Error("DIGEST_PORTFOLIOS_INVALID");
-      if (data.summaryEnabled && data.summaryAiEnabled && !aiConfigured())
-        throw new Error("AI_NOT_CONFIGURED");
       const owned = await db
         .select({ id: portfolios.id })
         .from(portfolios)
@@ -154,8 +148,6 @@ export function telegramService(db: Database, userId: string) {
           current &&
           ((data.summaryEnabled !== undefined &&
             data.summaryEnabled !== current.summaryEnabled) ||
-            (data.summaryAiEnabled !== undefined &&
-              data.summaryAiEnabled !== current.summaryAiEnabled) ||
             (data.summaryHour !== undefined &&
               data.summaryHour !== current.summaryHour) ||
             [...data.portfolioIds].sort().join() !==

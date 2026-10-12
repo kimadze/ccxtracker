@@ -256,7 +256,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
           {status.connected && (
             <>
               <form
-                key={`${status.summaryEnabled}:${status.summaryAiEnabled}:${status.summaryHour}:${status.buyEnabled}:${status.sellEnabled}:${status.portfolioIds.join(",")}`}
+                key={`${status.summaryEnabled}:${status.summaryHour}:${status.buyEnabled}:${status.sellEnabled}:${status.portfolioIds.join(",")}`}
                 className="space-y-3"
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -267,7 +267,6 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                         buyEnabled: data.has("buy"),
                         sellEnabled: data.has("sell"),
                         summaryEnabled: data.has("summary"),
-                        summaryAiEnabled: data.has("summaryAi"),
                         summaryHour: Number(data.get("summaryHour")),
                         portfolioIds: data.getAll("portfolio"),
                       }),
@@ -306,21 +305,6 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                     />{" "}
                     ყოველდღიური ანგარიში
                   </label>
-                  <label className="label min-h-11 justify-start gap-3 whitespace-normal">
-                    <input
-                      type="checkbox"
-                      className="toggle"
-                      name="summaryAi"
-                      defaultChecked={status.summaryAiEnabled}
-                      disabled={pending || !status.aiConfigured}
-                    />{" "}
-                    Luna-ს მოკლე აქცენტი
-                  </label>
-                  <p className="text-xs text-base-content/60">
-                    AI-ის ჩართვისას არჩეული პორტფელების შეჯამებული თანხები და
-                    სიმბოლოები OpenAI-ს გადაეცემა. მისამართები და ტრანზაქციების
-                    შენიშვნები არ იგზავნება.
-                  </p>
                   <label className="label min-h-11 flex-wrap justify-start gap-3">
                     თბილისის დროით
                     <select
