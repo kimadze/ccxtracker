@@ -409,12 +409,19 @@ export function Metric({
   compact?: boolean;
 }) {
   return (
-    <div className={`stat min-w-0 ${compact ? "px-0 py-1" : "p-3"}`}>
+    <div
+      className={`stat min-w-0 [container-type:inline-size] ${compact ? "px-0 py-1" : "p-3"}`}
+    >
       <div className="stat-title whitespace-normal text-xs" title={hint}>
         {label}
       </div>
       <div
-        className={`stat-value overflow-x-auto whitespace-nowrap text-lg tabular-nums ${tone}`}
+        className={`stat-value min-w-0 whitespace-nowrap text-lg tabular-nums ${tone}`}
+        style={
+          value.length > 12
+            ? { fontSize: `clamp(0.75rem, ${165 / value.length}cqi, 1.125rem)` }
+            : undefined
+        }
       >
         {sensitive ? <BalanceValue>{value}</BalanceValue> : value}
       </div>

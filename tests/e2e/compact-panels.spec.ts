@@ -17,7 +17,7 @@ test("populated airdrop and scenario panels preserve names and complete amounts"
     },
   ]);
   const id = randomUUID();
-  const assetId = `panel-${info.project.name}`;
+  const assetId = `panel-${randomUUID()}`;
   const db = new Client({
     connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
   });

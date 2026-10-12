@@ -79,6 +79,9 @@ test("empty workspace preserves all routes and responsive navigation", async ({
     page.getByRole("dialog", { name: "ყველა ხელსაწყო" }),
   ).not.toBeVisible();
   await page.goto(base + "/bubble-map");
-  await expect(page).toHaveURL(/\/allocation$/);
+  await expect(page).toHaveURL(/\/planning\?tab=allocation$/);
+  await expect(
+    page.getByRole("tab", { name: "განაწილება", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
   expect(errors).toEqual([]);
 });

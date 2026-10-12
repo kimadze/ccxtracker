@@ -67,9 +67,11 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
   ).toBeInViewport();
   await page.setViewportSize({ width: 1440, height: 650 });
   const navigation = sidebar.getByRole("list", { name: "მთავარი ნავიგაცია" });
-  expect(
-    await navigation.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
-  ).toBe(true);
+  await expect
+    .poll(() =>
+      navigation.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+    )
+    .toBe(true);
   await sidebar
     .getByRole("link", { name: "პარამეტრები", exact: true })
     .scrollIntoViewIfNeeded();
@@ -91,12 +93,15 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
     const deposit = form.getByLabel("ტრანზაქციის ტიპი");
     await deposit.selectOption("cash-deposit");
     await expect(deposit).toHaveValue("cash-deposit");
+    await form.getByLabel("თანხა (USD)", { exact: true }).fill("100");
     const save = form.getByRole("button", { name: "შენახვა", exact: true });
     const cancel = form.getByRole("button", { name: "გაუქმება", exact: true });
+    await expect(save).toBeEnabled();
     await save.scrollIntoViewIfNeeded();
     for (const control of [deposit, save, cancel]) {
-      const bounds = await control.boundingBox();
-      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+      await expect
+        .poll(async () => (await control.boundingBox())?.height ?? 0)
+        .toBeGreaterThanOrEqual(44);
     }
     await save.press("Shift+Tab");
     await expect(cancel).toBeFocused();

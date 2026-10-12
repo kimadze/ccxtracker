@@ -238,7 +238,9 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
   await page.reload();
-  await expect(page.getByText("ETH", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("ETH", { exact: true }).filter({ visible: true }).first(),
+  ).toBeVisible();
   const portfolioId = new URL(portfolioUrl).pathname.split("/").at(-1);
   const exported = await page.request.get(
     `/api/portfolios/${portfolioId}/export`,

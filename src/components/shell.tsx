@@ -96,7 +96,7 @@ function Navigation({
               path === href ||
               (segment === "positions" && path.startsWith(href + "/"));
             return (
-              <li key={segment}>
+              <li key={segment} className="min-w-0">
                 <Link
                   href={href}
                   aria-current={active ? "page" : undefined}
@@ -106,7 +106,7 @@ function Navigation({
                   className={clsx(
                     active && "bg-primary/12 text-secondary font-medium",
                     "lg:is-drawer-close:justify-center lg:is-drawer-close:px-0",
-                    "min-h-11 content-center gap-2.5 rounded-field px-3 py-2 text-sm",
+                    "min-h-11 min-w-0 grid-cols-[auto_minmax(0,1fr)] content-center gap-2.5 rounded-field px-3 py-2 text-sm lg:is-drawer-close:grid-cols-[auto]",
                   )}
                 >
                   <Icon

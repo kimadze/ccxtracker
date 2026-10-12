@@ -59,7 +59,9 @@ test("existing holdings need no USD funding and compact forms retain visible act
         await type.selectOption(kind);
         const save = form.getByRole("button", { name: "შენახვა", exact: true });
         await expect(save).toBeInViewport();
-        expect((await save.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+        await expect
+          .poll(async () => (await save.boundingBox())?.height ?? 0)
+          .toBeGreaterThanOrEqual(44);
         expect(
           await page.evaluate(
             () => document.documentElement.scrollWidth <= innerWidth + 1,

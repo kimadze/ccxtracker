@@ -257,7 +257,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
     page.getByRole("tab", { name: "გეგმა", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(
-    page.getByRole("heading", { name: "გაყიდვის ეტაპები" }),
+    page.getByRole("heading", { name: "Take Profit", exact: true }),
   ).toBeVisible();
   await page
     .getByRole("tab", { name: "გეგმა", exact: true })
