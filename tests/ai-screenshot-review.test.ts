@@ -1,5 +1,13 @@
 import { expect, it } from "vitest";
 import { reviewScreenshot, confirmScreenshot } from "@/domain/ai-screenshot";
+it("separates explicit market pair from its quote currency", () => {
+  expect(
+    reviewScreenshot({ ...base, symbol: " strk/usdt ", currency: null }),
+  ).toMatchObject({ symbol: "STRK", currency: "USDT" });
+  expect(
+    reviewScreenshot({ ...base, symbol: "STRK/USDT", currency: "EUR" }),
+  ).toMatchObject({ symbol: "STRK", currency: null });
+});
 const base = {
   kind: "sell",
   symbol: "STRK",

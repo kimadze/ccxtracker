@@ -21,6 +21,17 @@ vi.mock("@/server/ai/client", () => ({
   lunaJson: mocks.provider,
 }));
 const owner = { id: "owner", emailVerified: true };
+it("looks up the base asset rather than the trading pair", async () => {
+  mocks.provider.mockResolvedValue({
+    ...trade,
+    symbol: "XLM/USDT",
+    currency: null,
+  });
+  expect(await parseScreenshot(owner, await form())).toMatchObject({
+    ok: true,
+    extraction: { symbol: "XLM", currency: "USDT" },
+  });
+});
 const trade = {
   kind: "sell",
   symbol: "XLM",

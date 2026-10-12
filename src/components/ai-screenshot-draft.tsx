@@ -88,12 +88,16 @@ export function AiScreenshotDraft({
       aria-label="სქრინშოტიდან შევსება"
       className="space-y-2 border-t border-base-300 pt-3"
     >
-      <button
-        type="button"
+      <textarea
         aria-label="სურათის ჩასმის არე"
-        className="btn btn-dash min-h-11 h-auto w-full whitespace-normal py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        placeholder="ჩასვი სურათი Ctrl+V-ით ან აირჩიე ფაილი"
+        rows={2}
+        value=""
+        onChange={() => {}}
+        className="textarea min-h-11 w-full resize-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         disabled={disabled || pending}
         onPaste={(event) => {
+          event.preventDefault();
           const images = Array.from(event.clipboardData.items).filter(
             (item) => item.kind === "file",
           );
@@ -107,10 +111,7 @@ export function AiScreenshotDraft({
           const chosen = images[0].getAsFile();
           if (chosen) selectImage(chosen, true);
         }}
-      >
-        <ImagePlus size={18} aria-hidden="true" />
-        ჩასვი სურათი Ctrl+V-ით ან აირჩიე ფაილი
-      </button>
+      />
       <Field label="სქრინშოტიდან შევსება">
         <input
           ref={input}

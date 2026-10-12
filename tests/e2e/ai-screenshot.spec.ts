@@ -65,7 +65,7 @@ test("private image draft previews, applies and waits for manual save", async ({
       mimeType: "image/png",
       buffer: png,
     });
-    const pasteArea = dialog.getByRole("button", {
+    const pasteArea = dialog.getByRole("textbox", {
       name: "სურათის ჩასმის არე",
     });
     const preview = dialog.getByAltText("არჩეული ტრანზაქციის სქრინშოტი");
@@ -102,7 +102,27 @@ test("private image draft previews, applies and waits for manual save", async ({
       );
     };
     const original = await preview.getAttribute("src");
-    await paste();
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"], {
+        origin: "http://localhost:3100",
+      });
+    await page.evaluate(async (base64) => {
+      const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "image/png": new Blob([bytes], { type: "image/png" }),
+        }),
+      ]);
+    }, png.toString("base64"));
+    await pasteArea.press("Control+v");
+    await expect(preview).not.toHaveAttribute("src", original!);
+    await expect(pasteArea).toHaveValue("");
+    await page.evaluate(async () =>
+      navigator.clipboard.writeText("ordinary text"),
+    );
+    await pasteArea.press("Control+v");
+    await expect(pasteArea).toHaveValue("");
     await expect(preview).not.toHaveAttribute("src", original!);
     const pasted = await preview.getAttribute("src");
     await paste(2);
@@ -118,6 +138,8 @@ test("private image draft previews, applies and waits for manual save", async ({
     const description = dialog.getByRole("textbox", {
       name: "ტრანზაქციის აღწერა",
     });
+    await description.press("Control+v");
+    await expect(description).toHaveValue("ordinary text");
     await description.evaluate((element) => {
       const clipboardData = new DataTransfer();
       clipboardData.setData("text/plain", "ordinary text");

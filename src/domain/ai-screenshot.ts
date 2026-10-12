@@ -44,6 +44,10 @@ export const screenshotJsonSchema = {
 };
 export function reviewScreenshot(input: unknown) {
   const value = screenshotExtractionSchema.parse(input);
+  const symbol = value.symbol?.trim().toUpperCase() ?? null;
+  const pair = symbol?.match(/^([^/\s]+)\s*\/\s*([A-Z0-9]{2,16})$/);
+  const currency = value.currency?.trim().toUpperCase() ?? null;
+  const currencyConflict = Boolean(pair && currency && pair[2] !== currency);
   if (value.multiple) throw new Error("ამოჭერი მხოლოდ ერთი ტრანზაქცია.");
   const completed = ["filled", "completed"].includes(value.status);
   const trade = value.kind === "buy" || value.kind === "sell";
@@ -59,8 +63,14 @@ export function reviewScreenshot(input: unknown) {
   }
   return {
     ...value,
-    symbol: value.symbol?.trim().toUpperCase() ?? null,
-    currency: value.currency?.toUpperCase() ?? null,
+    symbol: pair ? pair[1] : symbol,
+    currency: currencyConflict ? null : (currency ?? pair?.[2] ?? null),
+    issues: currencyConflict
+      ? [
+          ...value.issues,
+          "წყვილისა და ფასის ვალუტები განსხვავდება; ფასი დააზუსტე USD-ში.",
+        ]
+      : value.issues,
     feeCurrency: value.feeCurrency?.toUpperCase() ?? null,
     quantity: trade
       ? (value.executedQuantity ?? (completed ? value.quantity : null))

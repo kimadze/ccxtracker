@@ -15,7 +15,7 @@ globalThis.fetch = async (input, options) => {
       data.text || image
         ? {
             kind: "sell",
-            symbol: "XLM",
+            symbol: image ? "XLM/USDT" : "XLM",
             quantity: "500",
             price: "0.12",
             fee: null,
