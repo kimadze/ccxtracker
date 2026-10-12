@@ -21,6 +21,17 @@ globalThis.fetch = async (input, options) => {
             fee: null,
             day: null,
             issues: [],
+            ...(image
+              ? {
+                  status: "filled",
+                  currency: "USDT",
+                  feeCurrency: null,
+                  executedQuantity: "500",
+                  executedPrice: "0.12",
+                  dateText: "10-12 00:55:47",
+                  multiple: false,
+                }
+              : {}),
           }
         : { focus: "performance" };
     return new Response(

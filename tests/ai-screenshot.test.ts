@@ -29,6 +29,13 @@ const trade = {
   fee: null,
   day: null,
   issues: [],
+  status: "filled",
+  currency: "USD",
+  feeCurrency: null,
+  executedQuantity: "500",
+  executedPrice: "0.12",
+  dateText: null,
+  multiple: false,
 };
 async function image(type = "png") {
   const bytes = await sharp({
@@ -112,10 +119,14 @@ it("rejects oversized, corrupt, mislabeled, unsupported and multiple files", asy
 it.each(["buy", "sell"])(
   "returns a %s draft without writing or sending history",
   async (kind) => {
-    mocks.provider.mockResolvedValue({ ...trade, kind, price: "0.000000012" });
+    mocks.provider.mockResolvedValue({
+      ...trade,
+      kind,
+      executedPrice: "0.000000012",
+    });
     expect(await parseScreenshot(owner, await form())).toMatchObject({
       ok: true,
-      draft: { kind, price: "0.000000012" },
+      extraction: { kind, price: "0.000000012" },
     });
     expect(mocks.provider.mock.calls[0][1]).toEqual({
       localToday: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
@@ -125,14 +136,34 @@ it.each(["buy", "sell"])(
     );
   },
 );
-it.each(["two trades", "non-USD", "ambiguous numbers"])(
-  "blocks uncertain extraction: %s",
+it.each(["non-USD", "ambiguous numbers"])(
+  "returns uncertain extraction for explicit review: %s",
   async (issue) => {
     mocks.provider.mockResolvedValue({ ...trade, issues: [issue] });
-    expect((await parseScreenshot(owner, await form())).ok).toBe(false);
-    expect(mocks.select).not.toHaveBeenCalled();
+    expect(await parseScreenshot(owner, await form())).toMatchObject({
+      ok: true,
+      extraction: { issues: [issue] },
+    });
   },
 );
+it("blocks multiple records and unexecuted cancellations with specific reasons", async () => {
+  mocks.provider.mockResolvedValue({ ...trade, multiple: true });
+  expect(await parseScreenshot(owner, await form())).toMatchObject({
+    ok: false,
+    error: "ამოჭერი მხოლოდ ერთი ტრანზაქცია.",
+  });
+  mocks.provider.mockResolvedValue({
+    ...trade,
+    status: "canceled",
+    executedQuantity: null,
+    executedPrice: null,
+  });
+  expect(await parseScreenshot(owner, await form())).toMatchObject({
+    ok: false,
+    error: "ორდერი არ შესრულებულა.",
+  });
+  expect(mocks.select).not.toHaveBeenCalled();
+});
 it("does not retry provider failures or leak provider errors", async () => {
   mocks.provider.mockRejectedValue(new Error("private provider response"));
   const result = await parseScreenshot(owner, await form());

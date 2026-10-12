@@ -2,6 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import type { parseScreenshot } from "@/server/ai/screenshot";
+import { confirmScreenshot } from "@/domain/ai-screenshot";
+import type { validateAiTransaction } from "@/domain/ai-transaction";
+import { kindLabels } from "@/domain/transaction-labels";
 import {
   prepareScreenshotUpload,
   SCREENSHOT_MAX_BYTES,
@@ -12,6 +15,11 @@ type Result = Extract<
   Awaited<ReturnType<typeof parseScreenshot>>,
   { ok: true }
 >;
+type ConfirmedResult = {
+  ok: true;
+  draft: ReturnType<typeof validateAiTransaction>;
+  matches: Result["matches"];
+};
 export function AiScreenshotDraft({
   portfolioId,
   disabled,
@@ -21,7 +29,7 @@ export function AiScreenshotDraft({
 }: {
   portfolioId: string;
   disabled: boolean;
-  onResult: (result: Result) => void;
+  onResult: (result: ConfirmedResult) => void;
   onReset: () => void;
   onBusy: (busy: boolean) => void;
 }) {
@@ -29,6 +37,16 @@ export function AiScreenshotDraft({
   const [preview, setPreview] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [review, setReview] = useState<Result | null>(null);
+  const [fields, setFields] = useState({
+    kind: "",
+    quantity: "",
+    price: "",
+    fee: "",
+    day: "",
+  });
+  const [confirmed, setConfirmed] = useState(false);
+  const [currencyConfirmed, setCurrencyConfirmed] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const version = useRef(0);
   const previewUrl = useRef("");
@@ -46,14 +64,53 @@ export function AiScreenshotDraft({
     previewUrl.current = "";
     setPreview("");
     setError("");
+    setReview(null);
     onReset();
     if (clearInput && input.current) input.current.value = "";
+  };
+  const selectImage = (chosen: File, pasted = false) => {
+    if (disabled || pending) return;
+    if (
+      chosen.size > SCREENSHOT_MAX_BYTES ||
+      !chosen.size ||
+      !["image/png", "image/jpeg", "image/webp"].includes(chosen.type)
+    ) {
+      setError("აირჩიე PNG, JPEG ან WebP სურათი, მაქსიმუმ 5MB.");
+      return;
+    }
+    reset(pasted);
+    setFile(chosen);
+    previewUrl.current = URL.createObjectURL(chosen);
+    setPreview(previewUrl.current);
   };
   return (
     <section
       aria-label="სქრინშოტიდან შევსება"
       className="space-y-2 border-t border-base-300 pt-3"
     >
+      <button
+        type="button"
+        aria-label="სურათის ჩასმის არე"
+        className="btn btn-dash min-h-11 h-auto w-full whitespace-normal py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        disabled={disabled || pending}
+        onPaste={(event) => {
+          const images = Array.from(event.clipboardData.items).filter(
+            (item) => item.kind === "file",
+          );
+          if (!images.length) return;
+          event.preventDefault();
+          if (disabled || pending) return;
+          if (images.length !== 1) {
+            setError("ჩასვი მხოლოდ ერთი სურათი.");
+            return;
+          }
+          const chosen = images[0].getAsFile();
+          if (chosen) selectImage(chosen, true);
+        }}
+      >
+        <ImagePlus size={18} aria-hidden="true" />
+        ჩასვი სურათი Ctrl+V-ით ან აირჩიე ფაილი
+      </button>
       <Field label="სქრინშოტიდან შევსება">
         <input
           ref={input}
@@ -63,19 +120,8 @@ export function AiScreenshotDraft({
           disabled={disabled || pending}
           onChange={(e) => {
             const chosen = e.currentTarget.files?.[0];
-            reset(false);
             if (!chosen) return;
-            if (
-              chosen.size > SCREENSHOT_MAX_BYTES ||
-              !chosen.size ||
-              !["image/png", "image/jpeg", "image/webp"].includes(chosen.type)
-            ) {
-              setError("აირჩიე PNG, JPEG ან WebP სურათი, მაქსიმუმ 5MB.");
-              return;
-            }
-            setFile(chosen);
-            previewUrl.current = URL.createObjectURL(chosen);
-            setPreview(previewUrl.current);
+            selectImage(chosen);
           }}
         />
       </Field>
@@ -113,6 +159,9 @@ export function AiScreenshotDraft({
               setPending(true);
               onBusy(true);
               setError("");
+              setReview(null);
+              setConfirmed(false);
+              setCurrencyConfirmed(false);
               onReset();
               try {
                 const upload = await prepareScreenshotUpload(file);
@@ -130,8 +179,22 @@ export function AiScreenshotDraft({
                 });
                 const result = await response.json();
                 if (current !== version.current) return;
-                if (response.ok && result.ok) onResult(result as Result);
-                else
+                if (response.ok && result.ok) {
+                  const reply = result as Result;
+                  const value = reply.extraction;
+                  setReview(reply);
+                  setFields({
+                    kind: value.kind ?? "",
+                    quantity: value.quantity ?? "",
+                    price: ["USD", "USDT", "USDC"].includes(
+                      value.currency ?? "",
+                    )
+                      ? (value.price ?? "")
+                      : "",
+                    fee: value.feeCurrency === "USD" ? (value.fee ?? "") : "",
+                    day: value.day ?? "",
+                  });
+                } else
                   setError(
                     typeof result.error === "string"
                       ? result.error
@@ -157,6 +220,136 @@ export function AiScreenshotDraft({
               <ImagePlus size={16} />
             )}{" "}
             ამოკითხვა
+          </button>
+        </div>
+      )}
+      {review && (
+        <div className="space-y-2 border-t border-base-300 pt-3">
+          <p className="text-sm font-medium">
+            {review.extraction.symbol} · {review.extraction.status} ·{" "}
+            {review.extraction.currency ?? "ვალუტა უცნობია"}
+          </p>
+          {review.extraction.partial && (
+            <Message>
+              მხოლოდ შესრულებული ნაწილი — ორდერის სრული რაოდენობა არ დაემატება.
+            </Message>
+          )}
+          {review.extraction.dateText && (
+            <p className="text-xs text-base-content/60">
+              სურათის თარიღი: {review.extraction.dateText}. წელი და დროის
+              სარტყელი გადაამოწმე.
+            </p>
+          )}
+          {review.extraction.issues.map((issue, index) => (
+            <p key={index} className="text-xs text-warning">
+              {issue}
+            </p>
+          ))}
+          {!["USD", "USDT", "USDC"].includes(
+            review.extraction.currency ?? "",
+          ) && (
+            <Message>
+              ვალუტა USD არ არის ან უცნობია. ფასი ხელით მიუთითე USD-ში.
+            </Message>
+          )}
+          <Field label="ამოკითხული მოქმედება">
+            <select
+              className="select min-h-11 w-full"
+              value={fields.kind}
+              onChange={(e) => {
+                setConfirmed(false);
+                onReset();
+                setFields({ ...fields, kind: e.target.value });
+              }}
+            >
+              <option value="">აირჩიე მოქმედება</option>
+              {Object.entries(kindLabels).map(([kind, label]) => (
+                <option key={kind} value={kind}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {(
+              [
+                ["quantity", "შესრულებული რაოდენობა"],
+                ["price", "შესრულების ფასი"],
+                ["fee", "საკომისიო USD-ში (გარეშე: 0)"],
+                ["day", "ტრანზაქციის თარიღი (შენი დროით)"],
+              ] as const
+            ).map(([key, label]) => (
+              <Field key={key} label={label}>
+                <input
+                  className="input min-h-11 w-full min-w-0"
+                  type={key === "day" ? "date" : "text"}
+                  inputMode={key === "day" ? undefined : "decimal"}
+                  value={fields[key]}
+                  onChange={(e) => {
+                    setConfirmed(false);
+                    onReset();
+                    setFields({ ...fields, [key]: e.target.value });
+                  }}
+                />
+              </Field>
+            ))}
+          </div>
+          {["USDT", "USDC"].includes(review.extraction.currency ?? "") && (
+            <label className="flex min-h-11 items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                className="checkbox"
+                checked={currencyConfirmed}
+                onChange={(e) => {
+                  onReset();
+                  setCurrencyConfirmed(e.target.checked);
+                }}
+              />
+              ვადასტურებ {review.extraction.currency}-ის USD-ში 1:1 გამოყენებას
+            </label>
+          )}
+          <label className="flex min-h-11 items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              className="checkbox"
+              checked={confirmed}
+              onChange={(e) => {
+                onReset();
+                setConfirmed(e.target.checked);
+              }}
+            />
+            გადავამოწმე შესრულებული რაოდენობა, ფასი, საკომისიო და თარიღი
+          </label>
+          <button
+            type="button"
+            className="btn min-h-11"
+            disabled={
+              disabled ||
+              pending ||
+              !confirmed ||
+              (["USDT", "USDC"].includes(review.extraction.currency ?? "") &&
+                !currencyConfirmed)
+            }
+            onClick={() => {
+              try {
+                const draft = confirmScreenshot(
+                  review.extraction,
+                  fields,
+                  confirmed,
+                  currencyConfirmed,
+                );
+                setError("");
+                onResult({ ok: true, draft, matches: review.matches });
+              } catch (failure) {
+                setError(
+                  failure instanceof Error
+                    ? failure.message
+                    : "დააზუსტე მონაცემები.",
+                );
+              }
+            }}
+          >
+            მონახაზის დადასტურება
           </button>
         </div>
       )}

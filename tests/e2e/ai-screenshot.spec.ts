@@ -65,9 +65,118 @@ test("private image draft previews, applies and waits for manual save", async ({
       mimeType: "image/png",
       buffer: png,
     });
+    const pasteArea = dialog.getByRole("button", {
+      name: "სურათის ჩასმის არე",
+    });
+    const preview = dialog.getByAltText("არჩეული ტრანზაქციის სქრინშოტი");
+    let requests = 0;
+    page.on("request", (request) => {
+      if (request.url().includes("/api/ai/transaction-screenshot")) requests++;
+    });
+    const paste = async (count = 1, type = "image/png", size = 0) => {
+      await pasteArea.focus();
+      await pasteArea.evaluate(
+        (element, payload) => {
+          const clipboardData = new DataTransfer();
+          const bytes = Uint8Array.from(atob(payload.base64), (c) =>
+            c.charCodeAt(0),
+          );
+          for (let i = 0; i < payload.count; i++) {
+            clipboardData.items.add(
+              new File(
+                [payload.size ? new Uint8Array(payload.size) : bytes],
+                `paste-${i}.png`,
+                { type: payload.type },
+              ),
+            );
+          }
+          element.dispatchEvent(
+            new ClipboardEvent("paste", {
+              clipboardData,
+              bubbles: true,
+              cancelable: true,
+            }),
+          );
+        },
+        { count, type, size, base64: png.toString("base64") },
+      );
+    };
+    const original = await preview.getAttribute("src");
+    await paste();
+    await expect(preview).not.toHaveAttribute("src", original!);
+    const pasted = await preview.getAttribute("src");
+    await paste(2);
+    await expect(dialog.getByText("ჩასვი მხოლოდ ერთი სურათი.")).toBeVisible();
+    await expect(preview).toHaveAttribute("src", pasted!);
+    await paste(1, "image/gif");
+    await expect(
+      dialog.getByText("აირჩიე PNG, JPEG ან WebP სურათი, მაქსიმუმ 5MB."),
+    ).toBeVisible();
+    await expect(preview).toHaveAttribute("src", pasted!);
+    await paste(1, "image/png", 5 * 1024 * 1024 + 1);
+    await expect(preview).toHaveAttribute("src", pasted!);
+    const description = dialog.getByRole("textbox", {
+      name: "ტრანზაქციის აღწერა",
+    });
+    await description.evaluate((element) => {
+      const clipboardData = new DataTransfer();
+      clipboardData.setData("text/plain", "ordinary text");
+      const event = new ClipboardEvent("paste", {
+        clipboardData,
+        bubbles: true,
+        cancelable: true,
+      });
+      element.dispatchEvent(event);
+      if (event.defaultPrevented) throw new Error("Text paste intercepted");
+    });
+    await expect(preview).toHaveAttribute("src", pasted!);
+    expect(requests).toBe(0);
+    await paste();
+    await page.route(
+      "**/api/ai/transaction-screenshot",
+      async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ ok: false, error: "ორდერი არ შესრულებულა." }),
+        });
+      },
+      { times: 1 },
+    );
     await dialog
       .getByRole("button", { name: "ამოკითხვა", exact: true })
       .click();
+    await expect(dialog.getByText("ორდერი არ შესრულებულა.")).toBeVisible();
+    await expect(
+      dialog.getByRole("button", { name: "ფორმაში გადატანა" }),
+    ).toHaveCount(0);
+    await dialog
+      .getByRole("button", { name: "ამოკითხვა", exact: true })
+      .click();
+    const confirm = dialog.getByRole("button", {
+      name: "მონახაზის დადასტურება",
+    });
+    await expect(confirm).toBeVisible();
+    await expect(confirm).toBeDisabled();
+    await expect(
+      dialog.getByRole("button", { name: "ფორმაში გადატანა" }),
+    ).toHaveCount(0);
+    await dialog.getByLabel("საკომისიო USD-ში (გარეშე: 0)").fill("0");
+    await dialog
+      .getByLabel("ტრანზაქციის თარიღი (შენი დროით)")
+      .fill("2026-10-12");
+    await dialog
+      .getByRole("checkbox", {
+        name: "ვადასტურებ USDT-ის USD-ში 1:1 გამოყენებას",
+      })
+      .check();
+    await expect(confirm).toBeDisabled();
+    await dialog
+      .getByRole("checkbox", {
+        name: "გადავამოწმე შესრულებული რაოდენობა, ფასი, საკომისიო და თარიღი",
+      })
+      .check();
+    await confirm.click();
     await expect(
       dialog.getByRole("button", { name: "ფორმაში გადატანა" }),
     ).toBeVisible();
