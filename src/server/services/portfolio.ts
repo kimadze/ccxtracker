@@ -135,6 +135,13 @@ export function portfolioService(db: Database, userId: string) {
           .from(assets)
           .where(eq(assets.id, data.assetId));
         if (!asset) throw new Error("UNKNOWN_ASSET");
+        if (data.settlementAssetId !== "USD") {
+          const [settlement] = await tx
+            .select()
+            .from(assets)
+            .where(eq(assets.id, data.settlementAssetId));
+          if (!settlement?.isStablecoin) throw new Error("UNKNOWN_ASSET");
+        }
         const sequence =
           old?.sequence ??
           Math.max(portfolio.revision, ...existing.map((row) => row.sequence)) +

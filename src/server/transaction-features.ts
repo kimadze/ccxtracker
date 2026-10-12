@@ -110,7 +110,7 @@ export async function previewTransactionChange(
           old = before.find((t) => t.id === id);
         if (!old) throw new AccessError();
         after = before.filter((t) => t.id !== id);
-        changed = [old.assetId];
+        changed = [old.assetId, old.settlementAssetId ?? "USD"];
       } else {
         const parsed =
           operation === "batch"
@@ -136,10 +136,10 @@ export async function previewTransactionChange(
           })),
         ];
         changed = [
-          ...parsed.map((t) => t.assetId),
+          ...parsed.flatMap((t) => [t.assetId, t.settlementAssetId]),
           ...before
             .filter((t) => parsed.some((p) => p.id === t.id))
-            .map((t) => t.assetId),
+            .flatMap((t) => [t.assetId, t.settlementAssetId ?? "USD"]),
         ];
       }
       const allAssets = await tx.select().from(assets);

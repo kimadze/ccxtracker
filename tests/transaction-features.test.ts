@@ -80,6 +80,71 @@ async function ledger(id: string) {
     .where(eq(schema.transactions.portfolioId, id));
 }
 describe("authorized transaction previews, atomic opening assets and quick undo", () => {
+  it("persists both settlement legs through preview, edit, delete and idempotent undo", async () => {
+    const p = await portfolio("Stablecoin settlement"),
+      service = portfolioService(db, "alice");
+    await service.mutateTransaction(entry(p.id), "create", 0);
+    const sale = entry(p.id, {
+      kind: "sell",
+      quantity: "1",
+      price: "150",
+      fee: "1",
+      settlementAssetId: "tether",
+      settlementRate: "0.98",
+      occurredAt: "2026-02-01T00:00:00Z",
+    });
+    const preview = await previewTransactionChange(p.id, 1, "create", sale);
+    expect(preview).toMatchObject({
+      ok: true,
+      impact: {
+        cash: { before: "0", after: "0" },
+        assets: expect.arrayContaining([
+          {
+            id: "tether",
+            symbol: "USDT",
+            quantity: { before: "0", after: "149" },
+            basis: { before: "0", after: "146.02" },
+          },
+        ]),
+      },
+    });
+    await service.mutateTransaction(sale, "create", 1);
+    const corrected = { ...sale, price: "160" };
+    await service.mutateTransaction(corrected, "update", 2);
+    expect(
+      (await service.entries(p.id)).find((t) => t.id === sale.id),
+    ).toMatchObject({ settlementAssetId: "tether" });
+    const balances = await testDb
+      .select()
+      .from(schema.positions)
+      .where(eq(schema.positions.portfolioId, p.id));
+    expect(Number(balances.find((b) => b.assetId === "tether")?.quantity)).toBe(
+      159,
+    );
+    const undo = await service.deleteTransaction(p.id, sale.id, 3);
+    expect(
+      (
+        await testDb
+          .select()
+          .from(schema.positions)
+          .where(eq(schema.positions.portfolioId, p.id))
+      ).some((b) => b.assetId === "tether"),
+    ).toBe(false);
+    expect(await restoreTransaction(p.id, undo.undoId)).toMatchObject({
+      ok: true,
+    });
+    expect(await restoreTransaction(p.id, undo.undoId)).toMatchObject({
+      ok: true,
+    });
+    expect(await ledger(p.id)).toHaveLength(2);
+    const restored = (await ledger(p.id)).find((t) => t.id === sale.id)!;
+    expect(restored.settlementAssetId).toBe("tether");
+    expect(Number(restored.settlementRate)).toBe(0.98);
+    userId = "bob";
+    expect(
+      await previewTransactionChange(p.id, 5, "delete", sale.id),
+    ).toMatchObject({ ok: false });
+  });
   it("previews each transaction kind without writing, with shared quotes", async () => {
     const p = await portfolio("Preview kinds"),
       service = portfolioService(db, "alice");

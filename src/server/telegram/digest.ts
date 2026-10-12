@@ -138,7 +138,9 @@ export async function collectDailyDigest(db: Database, job: Job, now: Date) {
     .from(transactions)
     .where(inArray(transactions.portfolioId, job.portfolioIds))
     .orderBy(asc(transactions.occurredAt), asc(transactions.sequence));
-  const ids = [...new Set(entries.map((e) => e.assetId))];
+  const ids = [
+    ...new Set(entries.flatMap((e) => [e.assetId, e.settlementAssetId])),
+  ];
   const allAssets = ids.length
     ? await db.select().from(assets).where(inArray(assets.id, ids))
     : [];

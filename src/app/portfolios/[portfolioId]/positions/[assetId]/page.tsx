@@ -82,7 +82,9 @@ export default async function Page({
         portfolioValue={w.summary.value}
         revision={w.portfolio.revision}
         assets={w.assets}
-        entries={w.entries.filter((e) => e.assetId === assetId)}
+        entries={w.entries.filter(
+          (e) => e.assetId === assetId || e.settlementAssetId === assetId,
+        )}
         sales={saleResults(w.entries)}
         plan={data.plan}
         journal={data.journal}

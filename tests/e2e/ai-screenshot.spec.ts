@@ -183,15 +183,14 @@ test("private image draft previews, applies and waits for manual save", async ({
     await expect(
       dialog.getByRole("button", { name: "ფორმაში გადატანა" }),
     ).toHaveCount(0);
-    await dialog.getByLabel("საკომისიო USD-ში (გარეშე: 0)").fill("0");
+    await dialog.getByLabel("საკომისიო USDT-ში (გარეშე: 0)").fill("0");
     await dialog
       .getByLabel("ტრანზაქციის თარიღი (შენი დროით)")
       .fill("2026-10-12");
     await dialog
-      .getByRole("checkbox", {
-        name: "ვადასტურებ USDT-ის USD-ში 1:1 გამოყენებას",
-      })
-      .check();
+      .getByRole("region", { name: "სქრინშოტიდან შევსება" })
+      .getByLabel("1 USDT = USD")
+      .fill("1");
     await expect(confirm).toBeDisabled();
     await dialog
       .getByRole("checkbox", {
@@ -240,6 +239,24 @@ test("private image draft previews, applies and waits for manual save", async ({
         )
       ).rows[0].count,
     ).toBe("2");
+    const settled = (
+      await db.query(
+        "SELECT settlement_asset_id, settlement_rate FROM transactions WHERE portfolio_id=$1 AND kind='sell'",
+        [pid],
+      )
+    ).rows[0];
+    expect(settled.settlement_asset_id).toBe("tether");
+    expect(Number(settled.settlement_rate)).toBe(1);
+    expect(
+      Number(
+        (
+          await db.query(
+            "SELECT quantity FROM positions WHERE portfolio_id=$1 AND asset_id='tether'",
+            [pid],
+          )
+        ).rows[0].quantity,
+      ),
+    ).toBe(60);
     await page.context().clearCookies();
     await page.context().addCookies([
       {

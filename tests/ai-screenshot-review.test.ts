@@ -67,19 +67,17 @@ it.each(["canceled", "partially_filled", "open", "pending", "unknown"])(
     ).toThrow();
   },
 );
-it("requires currency and review confirmation, complete day and explicit fee", () => {
+it("requires a positive settlement rate and review confirmation, complete day and explicit fee", () => {
   const extraction = reviewScreenshot(base);
-  expect(() => confirmScreenshot(extraction, fields, true, false)).toThrow(
-    "1:1",
-  );
-  expect(() => confirmScreenshot(extraction, fields, false, true)).toThrow();
+  expect(() => confirmScreenshot(extraction, fields, true, "")).toThrow();
+  expect(() => confirmScreenshot(extraction, fields, false, "1")).toThrow();
   expect(() =>
-    confirmScreenshot(extraction, { ...fields, fee: "" }, true, true),
+    confirmScreenshot(extraction, { ...fields, fee: "" }, true, "1"),
   ).toThrow();
   expect(() =>
-    confirmScreenshot(extraction, { ...fields, day: "" }, true, true),
+    confirmScreenshot(extraction, { ...fields, day: "" }, true, "1"),
   ).toThrow();
-  expect(confirmScreenshot(extraction, fields, true, true)).toMatchObject({
+  expect(confirmScreenshot(extraction, fields, true, "1")).toMatchObject({
     fee: "0",
     day: "2026-10-12",
     quantity: "526.05",

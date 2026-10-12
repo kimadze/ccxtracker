@@ -9,6 +9,7 @@ import {
   percentage,
   pnlClass,
   unitPrice,
+  quantity,
 } from "@/lib/formatters";
 import { AssetIcon } from "./positions";
 import { BalanceValue } from "./ui";
@@ -28,9 +29,9 @@ export function Overview({
   history?: ReactNode;
   action?: ReactNode;
 }) {
-  const positions = [...s.positions].sort(
-    (a, b) => Number(b.value ?? 0) - Number(a.value ?? 0),
-  );
+  const positions = s.positions
+    .filter((p) => !p.asset.isStablecoin)
+    .sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0));
   const crypto = positions.filter(
     (p) => !p.asset.isStablecoin && Number(p.value ?? 0) > 0,
   );
@@ -41,18 +42,16 @@ export function Overview({
   const displayedValue = cryptoOnlyValue
     ? cryptoTotal.toString()
     : (s.value ?? s.knownValue);
-  const liquidityShare =
-    s.value && s.liquidity !== null ? percent(s.liquidity, s.value) : null;
   const netCapital =
     s.contributions !== null && s.withdrawals !== null
       ? decimal(s.contributions).minus(s.withdrawals).toString()
       : null;
-  const updatedAt = positions
+  const updatedAt = s.positions
     .map((p) => p.quote?.updatedAt)
     .filter((d): d is string => Boolean(d))
     .sort()
     .at(-1);
-  const freshness = !positions.length
+  const freshness = !s.positions.length
     ? "აქტივები ჯერ არ არის"
     : s.stale
       ? "ფასები დაგვიანებულია"
@@ -139,7 +138,7 @@ export function Overview({
   const liquidityDetails = (
     <dl className="space-y-3 text-sm">
       <div className="flex flex-wrap justify-between gap-2">
-        <dt className="text-base-content/60">ნაღდი ფული</dt>
+        <dt className="text-base-content/60">USD ნაშთი</dt>
         <dd className="whitespace-nowrap">
           <BalanceValue>{money(s.cash)}</BalanceValue>
         </dd>
@@ -150,6 +149,32 @@ export function Overview({
           <BalanceValue>{money(s.stablecoinValue)}</BalanceValue>
         </dd>
       </div>
+      {s.positions
+        .filter((p) => p.asset.isStablecoin)
+        .map((p) => (
+          <div
+            key={p.assetId}
+            className="flex items-center justify-between gap-2 border-t border-base-300 pt-2"
+          >
+            <dt className="flex min-w-0 items-center gap-2">
+              <AssetIcon
+                symbol={p.asset.symbol}
+                logoUrl={p.asset.logoUrl}
+                size={24}
+                index={0}
+              />
+              <span>{p.asset.symbol}</span>
+            </dt>
+            <dd className="min-w-0 text-right tabular-nums">
+              <BalanceValue>
+                {quantity(p.quantity)} {p.asset.symbol}
+              </BalanceValue>
+              <span className="block text-xs text-base-content/60">
+                <BalanceValue>{money(p.value)}</BalanceValue>
+              </span>
+            </dd>
+          </div>
+        ))}
     </dl>
   );
   const status = (
@@ -217,7 +242,7 @@ export function Overview({
             )}
             <div className="min-w-0 border-t border-base-300 pt-3">
               <h2 className="mb-1 text-xs text-base-content/60">
-                პორტფელის ისტორია · ლიკვიდობის ჩათვლით
+                პორტფელის ისტორია · სრული ღირებულება
               </h2>
               {history ?? (
                 <p className="py-2 text-xs text-base-content/60">
@@ -229,35 +254,11 @@ export function Overview({
         </section>
 
         <div className="grid min-w-0 items-start gap-3 md:grid-cols-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:items-stretch lg:gap-4">
-          <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:hidden">
-            <summary className="collapse-title flex min-h-14 flex-wrap items-center justify-between gap-2 py-3 pl-3 pr-10 text-sm">
-              <span>ლიკვიდობა</span>
-              <span className="whitespace-nowrap font-semibold tabular-nums">
-                <BalanceValue>{money(s.liquidity)}</BalanceValue>
-                <span className="ml-2 text-xs font-normal text-base-content/60">
-                  {percentage(liquidityShare)}
-                </span>
-              </span>
-            </summary>
-            <div className="collapse-content">{liquidityDetails}</div>
-          </details>
-          <section className="card hidden bg-base-200 lg:block">
-            <div className="card-body gap-3 p-4!">
-              <h2 className="text-base font-semibold">ლიკვიდობა</h2>
-              <p className="overflow-x-auto whitespace-nowrap text-2xl font-semibold tabular-nums">
-                <BalanceValue>{money(s.liquidity)}</BalanceValue>
-              </p>
-              <div className="flex items-center gap-3">
-                <progress
-                  className="progress h-1.5 flex-1"
-                  value={Number(liquidityShare ?? 0)}
-                  max="100"
-                  aria-label="ლიკვიდობის წილი"
-                />
-                <span className="text-xs text-base-content/60">
-                  {percentage(liquidityShare)}
-                </span>
-              </div>
+          <section
+            className="card bg-base-200"
+            aria-label="USD ნაშთი და სტეიბლკოინები"
+          >
+            <div className="card-body gap-2 p-3! sm:p-4!">
               {liquidityDetails}
             </div>
           </section>

@@ -30,6 +30,22 @@ import { MobileBottomSheet } from "./mobile-components";
 import { ImpactPreview } from "./transaction-impact";
 import { offerTransactionUndo } from "./transaction-undo";
 
+function settlementAmount(
+  entry: LedgerEntry,
+  value: string | null,
+  price = false,
+) {
+  const id =
+    entry.kind === "buy" || entry.kind === "sell"
+      ? (entry.settlementAssetId ?? "USD")
+      : "USD";
+  if (id === "USD") return price ? unitPrice(value) : money(value);
+  return value === null
+    ? "—"
+    : (price ? unitPrice(value).replace("$", "") : quantity(value)) +
+        " " +
+        (id === "tether" ? "USDT" : "USDC");
+}
 export function TransactionList({
   entries,
   sales,
@@ -265,14 +281,17 @@ export function TransactionList({
                       <BalanceValue>{quantity(e.quantity)}</BalanceValue>
                     </td>
                     <td className="text-right tabular-nums">
-                      <BalanceValue>{unitPrice(e.price)}</BalanceValue>
+                      <BalanceValue>
+                        {settlementAmount(e, e.price, true)}
+                      </BalanceValue>
                     </td>
                     <td className="text-right tabular-nums">
-                      <BalanceValue>{money(e.fee)}</BalanceValue>
+                      <BalanceValue>{settlementAmount(e, e.fee)}</BalanceValue>
                     </td>
                     <td className="text-right tabular-nums">
                       <BalanceValue>
-                        {money(
+                        {settlementAmount(
+                          e,
                           e.assetId === "USD"
                             ? e.quantity
                             : e.price === null
@@ -292,7 +311,15 @@ export function TransactionList({
                           <span className="block text-xs text-base-content/55">
                             წმინდა{" "}
                             <BalanceValue>
-                              {money(sales[e.id]?.netProceeds)}
+                              {settlementAmount(
+                                e,
+                                e.price
+                                  ? decimal(e.quantity)
+                                      .mul(e.price)
+                                      .minus(e.fee)
+                                      .toString()
+                                  : null,
+                              )}
                             </BalanceValue>
                           </span>
                         </>
@@ -375,7 +402,8 @@ export function TransactionList({
                     )}
                     <p className="text-xs text-base-content/60">
                       <BalanceValue>
-                        {money(
+                        {settlementAmount(
+                          e,
                           e.assetId === "USD"
                             ? e.quantity
                             : e.price === null
@@ -399,12 +427,17 @@ export function TransactionList({
                         {e.price ? (
                           <>
                             ფასი:{" "}
-                            <BalanceValue>{unitPrice(e.price)}</BalanceValue>
+                            <BalanceValue>
+                              {settlementAmount(e, e.price, true)}
+                            </BalanceValue>
                           </>
                         ) : (
                           "ფასი არ არის მითითებული"
                         )}{" "}
-                        · საკომისიო: <BalanceValue>{money(e.fee)}</BalanceValue>
+                        · საკომისიო:{" "}
+                        <BalanceValue>
+                          {settlementAmount(e, e.fee)}
+                        </BalanceValue>
                       </p>
                       {e.kind === "sell" && (
                         <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
@@ -414,7 +447,15 @@ export function TransactionList({
                             </dt>
                             <dd className="numeric mt-1 overflow-x-auto whitespace-nowrap">
                               <BalanceValue>
-                                {money(sales[e.id]?.netProceeds)}
+                                {settlementAmount(
+                                  e,
+                                  e.price
+                                    ? decimal(e.quantity)
+                                        .mul(e.price)
+                                        .minus(e.fee)
+                                        .toString()
+                                    : null,
+                                )}
                               </BalanceValue>
                             </dd>
                           </div>

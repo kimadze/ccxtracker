@@ -91,22 +91,24 @@ export function confirmScreenshot(
     day: string;
   },
   confirmed: boolean,
-  currencyConfirmed: boolean,
+  settlementRate: string,
 ) {
   if (!confirmed)
     throw new Error(
       "გადაამოწმე შესრულებული მონაცემები და დაადასტურე მონახაზი.",
     );
-  if (
+  const stable =
     ["USDT", "USDC"].includes(extraction.currency ?? "") &&
-    !currencyConfirmed
-  )
-    throw new Error("დაადასტურე სტეიბლკოინის USD-ში 1:1 გამოყენება.");
+    ["buy", "sell"].includes(fields.kind);
+  const parsedRate = positiveAmount.safeParse(settlementRate);
+  if (stable && !parsedRate.success)
+    throw new Error("მიუთითე USD კურსი, 0-ზე მეტი.");
+  const rate = stable && parsedRate.success ? parsedRate.data : "1";
   if (!fields.day || !fields.fee)
     throw new Error(
-      "დააზუსტე თარიღი და საკომისიო USD-ში; საკომისიოს გარეშე მიუთითე 0.",
+      "დააზუსტე თარიღი და საკომისიო ანგარიშსწორების ვალუტაში; საკომისიოს გარეშე მიუთითე 0.",
     );
-  return validateAiTransaction({
+  const draft = validateAiTransaction({
     kind: fields.kind || null,
     symbol: extraction.symbol,
     quantity: fields.quantity || null,
@@ -115,4 +117,13 @@ export function confirmScreenshot(
     day: fields.day,
     issues: [],
   });
+  return {
+    ...draft,
+    settlementAssetId: stable
+      ? extraction.currency === "USDT"
+        ? "tether"
+        : "usd-coin"
+      : "USD",
+    settlementRate: rate,
+  };
 }

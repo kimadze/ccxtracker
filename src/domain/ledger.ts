@@ -4,7 +4,10 @@ import type { LedgerEntry, LedgerResult } from "./types";
 export class LedgerError extends Error {
   constructor(
     public code:
-      "INSUFFICIENT_CASH" | "INSUFFICIENT_HOLDINGS" | "INVALID_TRANSACTION",
+      | "INSUFFICIENT_CASH"
+      | "INSUFFICIENT_HOLDINGS"
+      | "INSUFFICIENT_SETTLEMENT"
+      | "INVALID_TRANSACTION",
   ) {
     super(code);
   }
@@ -34,6 +37,12 @@ function replay(
   let unknownContributions = false,
     unknownWithdrawals = false;
   const states = new Map<string, State>();
+  const state = (id: string): State =>
+    states.get(id) ?? {
+      quantity: new D(0),
+      basis: new D(0),
+      realized: new D(0),
+    };
   const sorted = [...entries].sort(
     (a, b) =>
       Date.parse(a.occurredAt) - Date.parse(b.occurredAt) ||
@@ -41,6 +50,46 @@ function replay(
       a.id.localeCompare(b.id),
   );
   for (const entry of sorted) {
+    const settlement = entry.settlementAssetId ?? "USD";
+    const rate = decimal(entry.settlementRate ?? "1");
+    const trade = entry.kind === "buy" || entry.kind === "sell";
+    if (
+      !["USD", "tether", "usd-coin"].includes(settlement) ||
+      rate.lte(0) ||
+      (settlement === "USD" && !rate.eq(1)) ||
+      (!trade && settlement !== "USD") ||
+      (trade && settlement === entry.assetId)
+    )
+      throw new LedgerError("INVALID_TRANSACTION");
+    const settle = (units: InstanceType<typeof D>, credit: boolean) => {
+      if (settlement === "USD") {
+        cash = credit ? cash.plus(units) : cash.minus(units);
+        return;
+      }
+      const balance = state(settlement);
+      const usd = units.mul(rate);
+      if (credit) {
+        balance.quantity = balance.quantity.plus(units);
+        balance.basis = balance.basis?.plus(usd) ?? null;
+      } else {
+        if (units.gt(balance.quantity))
+          throw new LedgerError("INSUFFICIENT_SETTLEMENT");
+        const removed = units.isZero()
+          ? new D(0)
+          : (balance.basis?.mul(units).div(balance.quantity) ?? null);
+        balance.realized =
+          balance.realized === null || removed === null
+            ? null
+            : balance.realized.plus(usd).minus(removed);
+        balance.quantity = balance.quantity.minus(units);
+        balance.basis = balance.quantity.isZero()
+          ? new D(0)
+          : balance.basis === null || removed === null
+            ? null
+            : balance.basis.minus(removed);
+      }
+      states.set(settlement, balance);
+    };
     const q = decimal(entry.quantity),
       fee = decimal(entry.fee),
       price = entry.price === null ? null : decimal(entry.price);
@@ -80,8 +129,9 @@ function replay(
           (!price || price.lte(0))
         )
           throw new LedgerError("INVALID_TRANSACTION");
-        const basis = price?.mul(q) ?? null;
-        if (entry.kind === "buy") cash = cash.minus(basis!).minus(fee);
+        const basis = price?.mul(q).mul(trade ? rate : 1) ?? null;
+        const basisFee = fee.mul(trade ? rate : 1);
+        if (entry.kind === "buy") settle(q.mul(price!).plus(fee), false);
         else if (entry.kind === "deposit") {
           if (basis === null) unknownContributions = true;
           contributions = contributions.plus(basis ?? 0);
@@ -90,7 +140,7 @@ function replay(
         s.basis =
           s.basis === null || basis === null
             ? null
-            : s.basis.plus(basis).plus(fee);
+            : s.basis.plus(basis).plus(basisFee);
         s.quantity = s.quantity.plus(q);
       } else {
         if (q.gt(s.quantity)) throw new LedgerError("INSUFFICIENT_HOLDINGS");
@@ -98,10 +148,11 @@ function replay(
         if (entry.kind === "sell") {
           if (!price || price.lte(0) || fee.gt(q.mul(price)))
             throw new LedgerError("INVALID_TRANSACTION");
-          const proceeds = q.mul(price).minus(fee);
+          const settlementProceeds = q.mul(price).minus(fee);
+          const proceeds = settlementProceeds.mul(rate);
           if (sales) {
             sales[entry.id] = {
-              grossProceeds: amount(q.mul(price)),
+              grossProceeds: amount(q.mul(price).mul(rate)),
               netProceeds: amount(proceeds),
               costBasis: removedBasis === null ? null : amount(removedBasis),
               realizedPnl:
@@ -110,7 +161,7 @@ function replay(
                   : amount(proceeds.minus(removedBasis)),
             };
           }
-          cash = cash.plus(proceeds);
+          settle(settlementProceeds, true);
           s.realized =
             s.realized === null || removedBasis === null
               ? null

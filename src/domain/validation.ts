@@ -44,6 +44,8 @@ export const transactionSchema = z
     quantity: positiveAmount,
     price: amountSchema.nullable(),
     fee: amountSchema,
+    settlementAssetId: z.enum(["USD", "tether", "usd-coin"]).default("USD"),
+    settlementRate: positiveAmount.default("1"),
     occurredAt: z
       .string()
       .datetime({ offset: true, error: "შეიყვანეთ სწორი თარიღი." })
@@ -71,6 +73,19 @@ export const transactionSchema = z
       .default(null),
   })
   .superRefine((value, ctx) => {
+    const trade = value.kind === "buy" || value.kind === "sell";
+    if (
+      (!trade && value.settlementAssetId !== "USD") ||
+      (value.settlementAssetId === "USD" &&
+        !decimal(value.settlementRate).eq(1)) ||
+      (trade && value.assetId === value.settlementAssetId)
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["settlementAssetId"],
+        message:
+          "აირჩიეთ აქტივისგან განსხვავებული ანგარიშსწორების ვალუტა; USD-ის კურსია 1.",
+      });
     if (
       (value.kind === "buy" ||
         value.kind === "sell" ||

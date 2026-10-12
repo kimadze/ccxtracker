@@ -17,6 +17,10 @@ for (const file of (await readdir("drizzle"))
   .filter((f) => f.endsWith(".sql"))
   .sort())
   await db.exec(await readFile(`drizzle/${file}`, "utf8"));
+// Canonical cash metadata exists in the app catalogue even for portfolios with zero USD.
+await db.exec(
+  "INSERT INTO assets(id,symbol,name,provider_id,category) VALUES ('USD','USD','US Dollar','usd','cash') ON CONFLICT DO NOTHING",
+);
 const secret = randomBytes(48).toString("base64url");
 const users = [
   "alice-desktop",

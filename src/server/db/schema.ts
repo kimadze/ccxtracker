@@ -136,6 +136,11 @@ export const transactions = pgTable(
     quantity: financial("quantity").notNull(),
     price: financial("price"),
     fee: financial("fee").default("0").notNull(),
+    settlementAssetId: text("settlement_asset_id")
+      .default("USD")
+      .notNull()
+      .references(() => assets.id),
+    settlementRate: financial("settlement_rate").default("1").notNull(),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
     sequence: integer("sequence").notNull(),
     notes: text("notes").default("").notNull(),
@@ -153,6 +158,10 @@ export const transactions = pgTable(
       sql`${t.price} IS NULL OR ${t.price} >= 0`,
     ),
     check("transaction_fee_nonnegative", sql`${t.fee} >= 0`),
+    check(
+      "transaction_settlement_valid",
+      sql`${t.settlementAssetId} IN ('USD', 'tether', 'usd-coin') AND ${t.settlementRate} > 0 AND (${t.settlementAssetId} <> 'USD' OR ${t.settlementRate} = 1) AND (${t.kind} IN ('buy', 'sell') OR ${t.settlementAssetId} = 'USD') AND (${t.kind} NOT IN ('buy', 'sell') OR ${t.assetId} <> ${t.settlementAssetId})`,
+    ),
     check(
       "transaction_kind_valid",
       sql`${t.kind} IN ('buy', 'sell', 'deposit', 'withdrawal', 'fee', 'airdrop')`,

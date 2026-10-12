@@ -46,6 +46,19 @@ export function TransactionForm({
     [assetId, setAssetId] = useState(
       entry?.assetId ?? initialAsset ?? (opening ? "bitcoin" : "bitcoin"),
     );
+  const [settlementAssetId, setSettlementAssetId] = useState(
+    entry ? (entry.settlementAssetId ?? "USD") : "tether",
+  );
+  const [settlementRate, setSettlementRate] = useState(
+    entry?.settlementRate ?? "1",
+  );
+  const trade = kind === "buy" || kind === "sell";
+  const settlementSymbol =
+    !trade || settlementAssetId === "USD"
+      ? "USD"
+      : settlementAssetId === "tether"
+        ? "USDT"
+        : "USDC";
   const [options, setOptions] = useState(assets),
     [query, setQuery] = useState(""),
     [error, setError] = useState(""),
@@ -90,6 +103,9 @@ export function TransactionForm({
       quantity: String(form.get("quantity") ?? ""),
       price: String(form.get("price") ?? "").trim() || null,
       fee: String(form.get("fee") || "0"),
+      settlementAssetId: trade ? settlementAssetId : "USD",
+      settlementRate:
+        trade && settlementAssetId !== "USD" ? settlementRate : "1",
       occurredAt: Number.isNaN(date.getTime()) ? "" : date.toISOString(),
       notes: String(form.get("notes") ?? ""),
       airdropSource:
@@ -103,7 +119,17 @@ export function TransactionForm({
     });
     setPreview(parsed.success ? parsed.data : null);
     setPreviewReady(false);
-  }, [open, formVersion, assetId, kind, submissionId, portfolioId]);
+  }, [
+    open,
+    formVersion,
+    assetId,
+    kind,
+    submissionId,
+    portfolioId,
+    trade,
+    settlementAssetId,
+    settlementRate,
+  ]);
   const balancesHidden = useBalancesHidden();
   const isCash = assetId === "USD";
   const defaultDate = () => {
@@ -179,6 +205,9 @@ export function TransactionForm({
                   quantity: String(form.get("quantity")),
                   price: rawPrice || null,
                   fee: String(form.get("fee") || "0"),
+                  settlementAssetId: trade ? settlementAssetId : "USD",
+                  settlementRate:
+                    trade && settlementAssetId !== "USD" ? settlementRate : "1",
                   occurredAt: new Date(
                     String(form.get("occurredAt")),
                   ).toISOString(),
@@ -231,6 +260,8 @@ export function TransactionForm({
                   );
                   setAssetId(draft.asset.id);
                   setKind(draft.kind);
+                  setSettlementAssetId(draft.settlementAssetId ?? "USD");
+                  setSettlementRate(draft.settlementRate ?? "1");
                   setAiDraft(draft);
                 }}
               />
@@ -346,6 +377,35 @@ export function TransactionForm({
                 </div>
               </details>
             )}
+            {trade && (
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Field label="ანგარიშსწორების ვალუტა">
+                  <select
+                    className="select min-h-11"
+                    value={settlementAssetId}
+                    onChange={(e) => {
+                      setSettlementAssetId(e.target.value);
+                      setSettlementRate("1");
+                    }}
+                  >
+                    <option value="tether">USDT</option>
+                    <option value="USD">USD</option>
+                    <option value="usd-coin">USDC</option>
+                  </select>
+                </Field>
+                {settlementAssetId !== "USD" && (
+                  <Field label={`1 ${settlementSymbol} = USD`}>
+                    <input
+                      className="input min-h-11"
+                      inputMode="decimal"
+                      required
+                      value={settlementRate}
+                      onChange={(e) => setSettlementRate(e.target.value)}
+                    />
+                  </Field>
+                )}
+              </div>
+            )}
             <div className="grid gap-x-3 gap-y-1 sm:grid-cols-2">
               <Field label={isCash ? "თანხა (USD)" : "რაოდენობა"}>
                 <input
@@ -369,7 +429,7 @@ export function TransactionForm({
                         ? "საშუალო თვითღირებულება (USD)"
                         : kind === "airdrop"
                           ? "მიღების მომენტში ფასი (USD)"
-                          : "ერთეულის ფასი (USD)"
+                          : `ერთეულის ფასი (${settlementSymbol})`
                     }
                   >
                     <input
@@ -398,7 +458,8 @@ export function TransactionForm({
                 role="alert"
                 className="text-xs leading-5 text-base-content/60"
               >
-                შესყიდვა USD-ის ნაშთს შეამცირებს.
+                შესყიდვა {settlementSymbol}-ის ნაშთს შეამცირებს. სხვა ვალუტა
+                ავტომატურად არ დაიხარჯება.
               </div>
             )}
             {kind === "deposit" && !isCash && (
@@ -461,7 +522,7 @@ export function TransactionForm({
                 საკომისიო და შენიშვნა
               </summary>
               <div className="collapse-content">
-                <Field label="საკომისიო (USD)">
+                <Field label={`საკომისიო (${settlementSymbol})`}>
                   <input
                     className="input"
                     name="fee"

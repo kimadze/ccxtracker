@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import type { parseScreenshot } from "@/server/ai/screenshot";
 import { confirmScreenshot } from "@/domain/ai-screenshot";
-import type { validateAiTransaction } from "@/domain/ai-transaction";
+
 import { kindLabels } from "@/domain/transaction-labels";
 import {
   prepareScreenshotUpload,
@@ -17,7 +17,7 @@ type Result = Extract<
 >;
 type ConfirmedResult = {
   ok: true;
-  draft: ReturnType<typeof validateAiTransaction>;
+  draft: ReturnType<typeof confirmScreenshot>;
   matches: Result["matches"];
 };
 export function AiScreenshotDraft({
@@ -46,7 +46,7 @@ export function AiScreenshotDraft({
     day: "",
   });
   const [confirmed, setConfirmed] = useState(false);
-  const [currencyConfirmed, setCurrencyConfirmed] = useState(false);
+  const [settlementRate, setSettlementRate] = useState("1");
   const input = useRef<HTMLInputElement>(null);
   const version = useRef(0);
   const previewUrl = useRef("");
@@ -162,7 +162,7 @@ export function AiScreenshotDraft({
               setError("");
               setReview(null);
               setConfirmed(false);
-              setCurrencyConfirmed(false);
+              setSettlementRate("1");
               onReset();
               try {
                 const upload = await prepareScreenshotUpload(file);
@@ -192,7 +192,12 @@ export function AiScreenshotDraft({
                     )
                       ? (value.price ?? "")
                       : "",
-                    fee: value.feeCurrency === "USD" ? (value.fee ?? "") : "",
+                    fee:
+                      value.feeCurrency &&
+                      value.feeCurrency === value.currency &&
+                      ["USD", "USDT", "USDC"].includes(value.currency ?? "")
+                        ? (value.fee ?? "")
+                        : "",
                     day: value.day ?? "",
                   });
                 } else
@@ -276,7 +281,10 @@ export function AiScreenshotDraft({
               [
                 ["quantity", "შესრულებული რაოდენობა"],
                 ["price", "შესრულების ფასი"],
-                ["fee", "საკომისიო USD-ში (გარეშე: 0)"],
+                [
+                  "fee",
+                  `საკომისიო ${["USDT", "USDC"].includes(review.extraction.currency ?? "") ? review.extraction.currency : "USD"}-ში (გარეშე: 0)`,
+                ],
                 ["day", "ტრანზაქციის თარიღი (შენი დროით)"],
               ] as const
             ).map(([key, label]) => (
@@ -296,18 +304,18 @@ export function AiScreenshotDraft({
             ))}
           </div>
           {["USDT", "USDC"].includes(review.extraction.currency ?? "") && (
-            <label className="flex min-h-11 items-center gap-2 text-xs">
+            <Field label={`1 ${review.extraction.currency} = USD`}>
               <input
-                type="checkbox"
-                className="checkbox"
-                checked={currencyConfirmed}
+                className="input min-h-11 w-full"
+                inputMode="decimal"
+                value={settlementRate}
                 onChange={(e) => {
+                  setSettlementRate(e.target.value);
+                  setConfirmed(false);
                   onReset();
-                  setCurrencyConfirmed(e.target.checked);
                 }}
               />
-              ვადასტურებ {review.extraction.currency}-ის USD-ში 1:1 გამოყენებას
-            </label>
+            </Field>
           )}
           <label className="flex min-h-11 items-center gap-2 text-xs">
             <input
@@ -329,7 +337,7 @@ export function AiScreenshotDraft({
               pending ||
               !confirmed ||
               (["USDT", "USDC"].includes(review.extraction.currency ?? "") &&
-                !currencyConfirmed)
+                !settlementRate)
             }
             onClick={() => {
               try {
@@ -337,7 +345,7 @@ export function AiScreenshotDraft({
                   review.extraction,
                   fields,
                   confirmed,
-                  currencyConfirmed,
+                  settlementRate,
                 );
                 setError("");
                 onResult({ ok: true, draft, matches: review.matches });

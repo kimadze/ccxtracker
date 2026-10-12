@@ -1,0 +1,8 @@
+INSERT INTO "assets" ("id", "symbol", "name", "provider_id", "is_stablecoin", "category", "logo_url") VALUES
+('tether', 'USDT', 'Tether', 'tether', true, 'stablecoin', 'https://assets.coingecko.com/coins/images/325/large/Tether.png?1696501661'),
+('usd-coin', 'USDC', 'USDC', 'usd-coin', true, 'stablecoin', 'https://assets.coingecko.com/coins/images/6319/large/usdc.png?1696506694')
+ON CONFLICT ("id") DO UPDATE SET "is_stablecoin" = true, "category" = 'stablecoin';--> statement-breakpoint
+ALTER TABLE "transactions" ADD COLUMN "settlement_asset_id" text DEFAULT 'USD' NOT NULL;--> statement-breakpoint
+ALTER TABLE "transactions" ADD COLUMN "settlement_rate" numeric(48, 18) DEFAULT '1' NOT NULL;--> statement-breakpoint
+ALTER TABLE "transactions" ADD CONSTRAINT "transactions_settlement_asset_id_assets_id_fk" FOREIGN KEY ("settlement_asset_id") REFERENCES "public"."assets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "transactions" ADD CONSTRAINT "transaction_settlement_valid" CHECK ("transactions"."settlement_asset_id" IN ('USD', 'tether', 'usd-coin') AND "transactions"."settlement_rate" > 0 AND ("transactions"."settlement_asset_id" <> 'USD' OR "transactions"."settlement_rate" = 1) AND ("transactions"."kind" IN ('buy', 'sell') OR "transactions"."settlement_asset_id" = 'USD') AND ("transactions"."kind" NOT IN ('buy', 'sell') OR "transactions"."asset_id" <> "transactions"."settlement_asset_id"));

@@ -11,10 +11,16 @@ import { BalanceValue, Field, Message } from "./ui";
 import { kindLabels } from "@/domain/transaction-labels";
 import { quantity, unitPrice } from "@/lib/formatters";
 
-type Result = Extract<
+type TextResult = Extract<
   Awaited<ReturnType<typeof parseTransactionText>>,
   { ok: true }
 >;
+type Result = Omit<TextResult, "draft"> & {
+  draft: TextResult["draft"] & {
+    settlementAssetId?: string;
+    settlementRate?: string;
+  };
+};
 export type AiAppliedDraft = Result["draft"] & {
   asset: Result["matches"][number];
 };
@@ -158,7 +164,18 @@ export function AiTransactionDraft({
               {kindLabels[result.draft.kind]} ·{" "}
               <BalanceValue>{quantity(result.draft.quantity)}</BalanceValue>{" "}
               {result.draft.symbol} ·{" "}
-              <BalanceValue>{unitPrice(result.draft.price)}</BalanceValue>
+              <BalanceValue>
+                {result.draft.settlementAssetId &&
+                result.draft.settlementAssetId !== "USD"
+                  ? (result.draft.price === null
+                      ? "—"
+                      : quantity(result.draft.price)) +
+                    " " +
+                    (result.draft.settlementAssetId === "tether"
+                      ? "USDT"
+                      : "USDC")
+                  : unitPrice(result.draft.price)}
+              </BalanceValue>
             </p>
             {result.matches.length > 1 && (
               <Field label="დააზუსტე აქტივი">

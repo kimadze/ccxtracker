@@ -1,4 +1,5 @@
-export type TransactionKind = "buy" | "sell" | "deposit" | "withdrawal" | "fee" | "airdrop";
+export type TransactionKind =
+  "buy" | "sell" | "deposit" | "withdrawal" | "fee" | "airdrop";
 export interface LedgerEntry {
   id: string;
   assetId: string;
@@ -6,6 +7,9 @@ export interface LedgerEntry {
   quantity: string;
   price: string | null;
   fee: string;
+  /** Legacy entries without settlement metadata use USD at rate 1. */
+  settlementAssetId?: string;
+  settlementRate?: string;
   occurredAt: string;
   sequence: number;
   notes?: string;
