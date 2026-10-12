@@ -69,10 +69,12 @@ export function sendTelegram(
   text: string,
   url?: string,
   buttonLabel = "აქტივის ნახვა",
+  options?: { parseMode: "HTML" },
 ) {
   return telegramCall("sendMessage", {
     chat_id: chatId,
     text,
+    ...(options?.parseMode ? { parse_mode: options.parseMode } : {}),
     protect_content: true,
     link_preview_options: { is_disabled: true },
     ...(url

@@ -145,3 +145,90 @@ it("retries a failed delivery without rebuilding or duplicating a completed dige
   await processDailyDigests(db, now);
   expect(fetcher).toHaveBeenCalledTimes(2);
 });
+
+it("rebuilds legacy cached reports and sends HTML only for the daily report", async () => {
+  await enqueueDailyDigests(db, now);
+  await testDb
+    .update(schema.telegramDigests)
+    .set({ body: "დღიური შეჯამება · ძველი" });
+  await processDailyDigests(db, now);
+  const payload = JSON.parse(fetcher.mock.calls[0][1].body);
+  expect(payload.parse_mode).toBe("HTML");
+  expect(payload.text).toContain("<b>დღიური ანგარიში");
+  expect(payload.text).not.toContain("ძველი");
+});
+
+it("collects reached alerts within the Tbilisi day and deduplicates delivery/current state", async () => {
+  await testDb
+    .insert(schema.assets)
+    .values({
+      id: "digest-xlm",
+      symbol: "XLM",
+      name: "Stellar",
+      providerId: "stellar",
+    })
+    .onConflictDoNothing();
+  const [item] = await testDb
+    .insert(schema.watchlistItems)
+    .values({
+      portfolioId: pid,
+      assetId: "digest-xlm",
+      entryPrice: "0.1",
+      exitPrice: "0.2",
+      targetReachedAt: new Date("2026-10-11T20:00:00Z"),
+      targetReachedPrice: "0.09",
+      sellTargetReachedAt: new Date("2026-10-12T17:02:00Z"),
+      sellTargetReachedPrice: "0.21",
+    })
+    .returning();
+  const [connection] = await testDb.select().from(schema.telegramConnections);
+  await testDb.insert(schema.telegramDeliveries).values({
+    userId: "owner",
+    generation: connection.generation,
+    watchlistId: item.id,
+    side: "buy",
+    reachedAt: item.targetReachedAt!,
+    target: "0.1",
+    price: "0.09",
+  });
+  const [plan] = await testDb
+    .insert(schema.exitPlans)
+    .values({ portfolioId: pid, assetId: "digest-xlm" })
+    .returning();
+  await testDb.insert(schema.exitLevels).values(
+    [1, 2].map((level) => ({
+      planId: plan.id,
+      level,
+      price: String(level),
+      percentage: "20",
+      reachedAt: new Date("2026-10-12T16:00:00Z"),
+      reachedPrice: "2.1",
+    })),
+  );
+  await testDb
+    .insert(schema.takeProfitDeliveries)
+    .values({
+      planId: plan.id,
+      generation: plan.alertGeneration,
+      connectionGeneration: connection.generation,
+      reachedAt: new Date("2026-10-12T16:00:00Z"),
+      price: "2.1",
+      levels: [1, 2].map((level) => ({
+        level,
+        price: String(level),
+        percentage: "20",
+        quantity: "10",
+      })),
+    });
+  await processDailyDigests(db, now);
+  const payload = JSON.parse(fetcher.mock.calls[0][1].body);
+  expect(payload.text.match(/ვარდნა ↓/g)).toHaveLength(1);
+  expect(payload.text).not.toContain("ზრდა ↑");
+  expect(payload.text.match(/TP1/g)).toHaveLength(1);
+  expect(payload.text.match(/TP2/g)).toHaveLength(1);
+  expect(payload.text).toContain("სამიზნე $0,1 · დაფიქსირდა $0,09 · 00:00");
+  await testDb
+    .delete(schema.watchlistItems)
+    .where(eq(schema.watchlistItems.id, item.id));
+  await testDb.delete(schema.exitPlans).where(eq(schema.exitPlans.id, plan.id));
+});

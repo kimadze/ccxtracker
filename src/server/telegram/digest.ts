@@ -2,8 +2,8 @@ import "server-only";
 import {
   and,
   asc,
-  desc,
   eq,
+  gte,
   inArray,
   isNotNull,
   isNull,
@@ -17,17 +17,22 @@ import {
   telegramDigests,
   portfolios,
   transactions,
-  snapshots,
   watchlistItems,
   exitPlans,
   exitLevels,
+  telegramDeliveries,
+  takeProfitDeliveries,
 } from "@/server/db/schema";
 import { toLedger } from "@/server/services/portfolio";
 import { replayLedger } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
 import { decimal } from "@/domain/decimal";
 import { getQuotes } from "@/server/market";
-import { money, percentage } from "@/lib/formatters";
+import {
+  DIGEST_PREFIX,
+  formatDailyDigest,
+  type DigestAlert,
+} from "./digest-format";
 import {
   sendTelegram,
   telegramConfigured,
@@ -116,7 +121,7 @@ function consentMatches(connection: Connection | undefined, job: Job) {
   );
 }
 
-async function prepareDigest(db: Database, job: Job) {
+export async function collectDailyDigest(db: Database, job: Job, now: Date) {
   const selected = await db
     .select()
     .from(portfolios)
@@ -155,67 +160,131 @@ async function prepareDigest(db: Database, job: Job) {
     .from(watchlistItems)
     .where(inArray(watchlistItems.portfolioId, job.portfolioIds));
   const levels = await db
-    .select({ reachedAt: exitLevels.reachedAt })
+    .select({ level: exitLevels, plan: exitPlans })
     .from(exitLevels)
     .innerJoin(exitPlans, eq(exitPlans.id, exitLevels.planId))
     .where(inArray(exitPlans.portfolioId, job.portfolioIds));
-  const notices = [
-    ...watch.flatMap((w) => [w.targetReachedAt, w.sellTargetReachedAt]),
-    ...levels.map((l) => l.reachedAt),
-  ].filter((d) => d && d >= start && d <= new Date()).length;
-  const blocks: string[] = [`დღიური შეჯამება · ${job.day}`];
-  for (const portfolio of selected) {
-    const summary = valuePortfolio(
-      ledgerById.get(portfolio.id)!,
-      allAssets,
-      quotes,
+  const deliveries = await db
+    .select({ delivery: telegramDeliveries, item: watchlistItems })
+    .from(telegramDeliveries)
+    .innerJoin(
+      watchlistItems,
+      eq(watchlistItems.id, telegramDeliveries.watchlistId),
+    )
+    .where(
+      and(
+        eq(telegramDeliveries.userId, job.userId),
+        inArray(watchlistItems.portfolioId, job.portfolioIds),
+        gte(telegramDeliveries.reachedAt, start),
+        lte(telegramDeliveries.reachedAt, now),
+      ),
     );
-    const [previous] = await db
-      .select()
-      .from(snapshots)
-      .where(
-        and(
-          eq(snapshots.portfolioId, portfolio.id),
-          lt(snapshots.capturedAt, start),
-        ),
-      )
-      .orderBy(desc(snapshots.capturedAt))
-      .limit(1);
-    const fresh = summary.complete && !summary.stale;
-    const change =
-      fresh &&
-      previous &&
-      start.getTime() - previous.capturedAt.getTime() <= 36 * 3600000
-        ? decimal(summary.value!).minus(previous.value).toFixed()
-        : null;
-    blocks.push(
-      `\n${portfolio.name.slice(0, 80)}\n${fresh ? "ღირებულება" : "ცნობილი ღირებულება · არასრული/მოძველებული"}: ${money(fresh ? summary.value : summary.knownValue)}\nსრული P/L: ${money(fresh ? summary.totalPnl : null)}\nრეალიზებული P/L: ${money(summary.realizedPnl)}\nღირებულების ცვლილება*: ${money(change)}`,
+  const tp = await db
+    .select({ delivery: takeProfitDeliveries, plan: exitPlans })
+    .from(takeProfitDeliveries)
+    .innerJoin(exitPlans, eq(exitPlans.id, takeProfitDeliveries.planId))
+    .where(
+      and(
+        inArray(exitPlans.portfolioId, job.portfolioIds),
+        gte(takeProfitDeliveries.reachedAt, start),
+        lte(takeProfitDeliveries.reachedAt, now),
+      ),
     );
-    const movers = summary.positions
-      .filter((p) => p.quote && !p.quote.stale && p.quote.change24h !== null)
-      .sort((a, b) =>
-        decimal(b.quote!.change24h!)
-          .abs()
-          .cmp(decimal(a.quote!.change24h!).abs()),
-      )
-      .slice(0, 2);
-    if (movers.length)
-      blocks.push(
-        `ფასი · 24სთ: ${movers.map((p) => `${p.asset.symbol} ${percentage(p.quote!.change24h, true)}`).join(" · ")}`,
+  const alertAssetIds = [
+    ...new Set([
+      ...watch.map((w) => w.assetId),
+      ...levels.map((l) => l.plan.assetId),
+      ...tp.map((d) => d.plan.assetId),
+    ]),
+  ];
+  const alertAssets = alertAssetIds.length
+    ? await db.select().from(assets).where(inArray(assets.id, alertAssetIds))
+    : [];
+  const alerts = new Map<string, DigestAlert>();
+  const add = (
+    key: string,
+    portfolioId: string,
+    assetId: string,
+    kind: string,
+    target: string | null,
+    price: string | null,
+    at: Date | null,
+  ) => {
+    if (!at || at < start || at > now || alerts.has(key)) return;
+    alerts.set(key, {
+      portfolioId,
+      symbol: alertAssets.find((a) => a.id === assetId)?.symbol ?? assetId,
+      kind,
+      target,
+      price,
+      at,
+    });
+  };
+  // Durable payloads retain original targets after editing. Current states cover in-app-only alerts.
+  for (const { delivery: d, item: w } of deliveries)
+    add(
+      `w:${w.id}:${d.side}:${d.reachedAt.toISOString()}`,
+      w.portfolioId,
+      w.assetId,
+      d.side === "buy" ? "ვარდნა ↓" : "ზრდა ↑",
+      d.target,
+      d.price,
+      d.reachedAt,
+    );
+  for (const w of watch) {
+    if (w.targetReachedAt)
+      add(
+        `w:${w.id}:buy:${w.targetReachedAt.toISOString()}`,
+        w.portfolioId,
+        w.assetId,
+        "ვარდნა ↓",
+        w.entryPrice,
+        w.targetReachedPrice,
+        w.targetReachedAt,
+      );
+    if (w.sellTargetReachedAt)
+      add(
+        `w:${w.id}:sell:${w.sellTargetReachedAt.toISOString()}`,
+        w.portfolioId,
+        w.assetId,
+        "ზრდა ↑",
+        w.exitPrice,
+        w.sellTargetReachedPrice,
+        w.sellTargetReachedAt,
       );
   }
-  blocks.push(
-    `\nდღეს მიღწეული ალერტები: ${notices}\n*ტრანზაქციების ჩათვლით; შედარება წინა ხელმისაწვდომ დღიურ შეფასებასთან.`,
-  );
-  const message: string[] = [];
-  for (const block of blocks) {
-    if (message.join("\n").length + block.length > 3800) {
-      message.push("\nდანარჩენი დეტალები იხილე აპში.");
-      break;
-    }
-    message.push(block);
-  }
-  return message.join("\n");
+  for (const { delivery: d, plan } of tp)
+    for (const l of d.levels)
+      add(
+        `tp:${plan.id}:${l.level}:${d.reachedAt.toISOString()}`,
+        plan.portfolioId,
+        plan.assetId,
+        `TP${l.level}`,
+        l.price,
+        d.price,
+        d.reachedAt,
+      );
+  for (const { level: l, plan } of levels)
+    if (l.reachedAt)
+      add(
+        `tp:${plan.id}:${l.level}:${l.reachedAt.toISOString()}`,
+        plan.portfolioId,
+        plan.assetId,
+        `TP${l.level}`,
+        l.price,
+        l.reachedPrice,
+        l.reachedAt,
+      );
+  return {
+    day: job.day,
+    preparedAt: now,
+    portfolios: selected.map((p) => ({
+      id: p.id,
+      name: p.name,
+      summary: valuePortfolio(ledgerById.get(p.id)!, allAssets, quotes),
+    })),
+    alerts: [...alerts.values()],
+  };
 }
 
 export async function processDailyDigests(
@@ -264,10 +333,9 @@ export async function processDailyDigests(
       continue;
     }
     try {
-      const body =
-        job.body && !job.body.includes("\nLuna")
-          ? job.body
-          : await prepareDigest(db, job);
+      const body = job.body?.startsWith(DIGEST_PREFIX)
+        ? job.body
+        : formatDailyDigest(await collectDailyDigest(db, job, now));
       const [latest] = await db
         .select()
         .from(telegramConnections)
@@ -301,6 +369,7 @@ export async function processDailyDigests(
         body,
         `${appOrigin()}/portfolios`,
         "პორტფელების ნახვა",
+        { parseMode: "HTML" },
       );
       await db
         .update(telegramDigests)
