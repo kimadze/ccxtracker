@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, isNull, lte } from "drizzle-orm";
+import { and, asc, eq, isNull, lte, lt } from "drizzle-orm";
 import { getDb, type Database } from "@/server/db";
 import {
   telegramConnections,
@@ -65,6 +65,7 @@ export async function processTelegramDeliveries(
       .where(
         and(
           isNull(telegramDeliveries.sentAt),
+          lt(telegramDeliveries.attempts, 8),
           lte(telegramDeliveries.nextAttemptAt, new Date()),
         ),
       )
@@ -74,13 +75,20 @@ export async function processTelegramDeliveries(
     for (const job of due)
       await tx
         .update(telegramDeliveries)
-        .set({ nextAttemptAt: new Date(Date.now() + 60000) })
+        .set({ nextAttemptAt: new Date(Date.now() + 300000) })
         .where(eq(telegramDeliveries.id, job.id));
     return due;
   });
   let sent = 0,
     failed = 0;
   for (const job of jobs) {
+    if (Date.now() - job.createdAt.getTime() > 6 * 3600000) {
+      await db
+        .update(telegramDeliveries)
+        .set({ attempts: 8, lastError: "EXPIRED", updatedAt: new Date() })
+        .where(eq(telegramDeliveries.id, job.id));
+      continue;
+    }
     const [row] = await db
       .select({
         connection: telegramConnections,
@@ -93,6 +101,13 @@ export async function processTelegramDeliveries(
       .innerJoin(assets, eq(assets.id, watchlistItems.assetId))
       .innerJoin(portfolios, eq(portfolios.id, watchlistItems.portfolioId))
       .where(eq(telegramConnections.userId, job.userId));
+    if (row?.connection.lastError === "BOT_BLOCKED") {
+      await db
+        .update(telegramDeliveries)
+        .set({ attempts: 8, lastError: "TELEGRAM_403", updatedAt: new Date() })
+        .where(eq(telegramDeliveries.id, job.id));
+      continue;
+    }
     const episode =
       row &&
       (job.side === "buy"
@@ -100,14 +115,14 @@ export async function processTelegramDeliveries(
         : row.item.sellTargetReachedAt);
     if (
       !row?.connection.chatId ||
+      row.connection.lastError === "BOT_BLOCKED" ||
       row.portfolio.userId !== job.userId ||
       row.connection.generation !== job.generation ||
       !row.connection.portfolioIds.includes(row.portfolio.id) ||
       !(job.side === "buy"
         ? row.connection.buyEnabled
         : row.connection.sellEnabled) ||
-      episode?.getTime() !== job.reachedAt.getTime() ||
-      Date.now() - job.createdAt.getTime() > 6 * 3600000
+      episode?.getTime() !== job.reachedAt.getTime()
     ) {
       await db
         .delete(telegramDeliveries)
@@ -135,8 +150,6 @@ export async function processTelegramDeliveries(
         await db
           .update(telegramConnections)
           .set({
-            buyEnabled: false,
-            sellEnabled: false,
             lastError: "BOT_BLOCKED",
             updatedAt: new Date(),
           })
@@ -146,11 +159,26 @@ export async function processTelegramDeliveries(
               eq(telegramConnections.generation, job.generation),
             ),
           );
-      if (code === 403 || code === 400 || attempts >= 8)
+      if (code === 403 || code === 400 || attempts >= 8) {
         await db
-          .delete(telegramDeliveries)
+          .update(telegramDeliveries)
+          .set({
+            attempts: 8,
+            lastError: `TELEGRAM_${code}`,
+            updatedAt: new Date(),
+          })
           .where(eq(telegramDeliveries.id, job.id));
-      else
+        if (code !== 403)
+          await db
+            .update(telegramConnections)
+            .set({ lastError: "DELIVERY_FAILED", updatedAt: new Date() })
+            .where(
+              and(
+                eq(telegramConnections.userId, job.userId),
+                eq(telegramConnections.generation, job.generation),
+              ),
+            );
+      } else
         await db
           .update(telegramDeliveries)
           .set({

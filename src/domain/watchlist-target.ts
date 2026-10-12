@@ -1,5 +1,6 @@
 import { decimal } from "./decimal";
 import type { Quote } from "./types";
+import { usableAlertQuote } from "./alert-quote";
 export function targetTransition(
   target: string | null,
   active: boolean,
@@ -9,7 +10,7 @@ export function targetTransition(
   direction: "buy" | "sell" = "buy",
   reachedAt: Date | null = null,
 ) {
-  if (!target || !quote || quote.stale || !quote.price) return null;
+  if (!target || !usableAlertQuote(quote, now)) return null;
   const time = Date.parse(quote.updatedAt);
   if (
     !Number.isFinite(time) ||

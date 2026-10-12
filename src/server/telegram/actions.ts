@@ -68,3 +68,14 @@ export async function testTelegramConnection() {
     return { ok: false as const, error: userError(error) };
   }
 }
+export async function retryFailedTelegramDeliveries() {
+  const user = await requireUser();
+  try {
+    if (!(await consumeRateLimit(`telegram-retry:${user.id}`, 3, 60000)))
+      throw new Error("TELEGRAM_RATE_LIMIT");
+    await telegramService(getDb(), user.id).retryFailed();
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: userError(error) };
+  }
+}

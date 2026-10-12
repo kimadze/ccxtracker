@@ -416,8 +416,8 @@ describe("private Telegram connections and durable deliveries", () => {
     );
     await processTelegramDeliveries(db);
     const status = await telegramService(db, "alice").status();
-    expect(status.buyEnabled).toBe(false);
-    expect(status.sellEnabled).toBe(false);
+    expect(status.buyEnabled).toBe(true);
+    expect(status.sellEnabled).toBe(true);
     expect(status.lastError).toBe("BOT_BLOCKED");
   });
   it("never sends an obsolete target or a queue from a previous connection", async () => {
@@ -440,4 +440,61 @@ describe("private Telegram connections and durable deliveries", () => {
     fetchMock.mockRejectedValueOnce(new Error("private-url-token"));
     await expect(svc.test()).rejects.toEqual(new TelegramError(0));
   });
+});
+it("keeps terminal failures visible and retries them only after explicit recovery", async () => {
+  const p = await portfolio(),
+    svc = await link("alice", p.id);
+  await crossing(p.id);
+  fetchMock.mockResolvedValueOnce(
+    new Response(JSON.stringify({ ok: false, error_code: 403 }), {
+      status: 403,
+    }),
+  );
+  await processTelegramDeliveries(db);
+  expect((await svc.status()).lastError).toBe("BOT_BLOCKED");
+  await expect(svc.retryFailed()).rejects.toThrow("TELEGRAM_BOT_BLOCKED");
+  expect(
+    (await watchlistService(db, "alice").list(p.id))[0].targetDelivery,
+  ).toBe("failed");
+  await svc.test();
+  expect((await svc.status()).lastError).toBeNull();
+  expect((await svc.status()).buyEnabled).toBe(true);
+  await svc.retryFailed();
+  await processTelegramDeliveries(db);
+  expect(
+    (await watchlistService(db, "alice").list(p.id))[0].targetDelivery,
+  ).toBe("sent");
+  const before = fetchMock.mock.calls.length;
+  await svc.retryFailed();
+  await processTelegramDeliveries(db);
+  expect(fetchMock).toHaveBeenCalledTimes(before);
+});
+it("baselines Watchlist enrollment from a fresh cached price", async () => {
+  const p = await portfolio();
+  await link("alice", p.id);
+  const now = Date.now();
+  await testDb
+    .insert(schema.marketQuotes)
+    .values({ assetId: "btc", price: "4", quotedAt: new Date(now - 10000) });
+  await watchlistService(db, "alice").save({
+    portfolioId: p.id,
+    assetId: "btc",
+    entryPrice: null,
+    exitPrice: "5",
+    notes: "",
+  });
+  await evaluateWatchlistTargets(
+    db,
+    [
+      {
+        assetId: "btc",
+        price: "5",
+        change24h: null,
+        stale: false,
+        updatedAt: new Date(now).toISOString(),
+      },
+    ],
+    p.id,
+  );
+  expect(await testDb.select().from(schema.telegramDeliveries)).toHaveLength(1);
 });

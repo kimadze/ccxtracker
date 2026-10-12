@@ -10,6 +10,10 @@ Crossing state and delivery creation commit atomically. Delivery jobs have bound
 
 ## Closed-app checks
 
+Reached state belongs to a target price: editing another level, changing percentages, toggling alerts or reviewing a changed position quantity does not re-notify an already reached price. Only explicit rearm or a new target price starts a new episode. Fresh cached quotes can establish an enrollment baseline, avoiding the loss of a first crossing before the next poll. Queued unchanged levels retain their episode when another level is edited; current level numbering is used when delivered.
+
+Terminal delivery failures are retained and can be retried from Telegram Settings within the six-hour lifetime. Blocked connections pause both Watchlist and Take Profit delivery until a successful connection test. Take Profit opt-in remains independent of Watchlist preferences. Messages label the observed price and CoinGecko USD source; these are price alerts, not executable exchange orders.
+
 `.github/workflows/price-alerts.yml` calls the protected `/api/cron/watchlist` endpoint approximately every five minutes, using the repository secret `CCX_CRON_SECRET` matching production `CRON_SECRET`. The secret is passed only in an Authorization header. Both Watchlist and Take Profit assets share the rotating scan, quote cache and provider lease. A run processes at most 100 unique assets; larger sets need several runs. The daily snapshot job also drains retries.
 
 GitHub scheduling can be delayed or skipped; this is not a real-time trading execution service. Public repositories may have scheduled workflows disabled after 60 days without repository activity. GitHub Actions, hosting and price-provider quotas apply. Workflow output contains only aggregate counts. Use workflow_dispatch for an operator smoke check after deployment.

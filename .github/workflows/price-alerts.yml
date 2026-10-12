@@ -21,8 +21,10 @@ jobs:
             echo "CCX_CRON_SECRET is not configured."
             exit 1
           fi
-          curl --silent --show-error --fail-with-body \
+          result=$(curl --silent --show-error --fail-with-body \
             --max-time 70 --retry 2 --retry-delay 10 \
             --request POST \
             --header "Authorization: Bearer $CCX_CRON_SECRET" \
-            https://ccxtracker.vercel.app/api/cron/watchlist
+            https://ccxtracker.vercel.app/api/cron/watchlist)
+          echo "$result"
+          echo "$result" | jq -e '(.busy != true) and (.degraded != true) and (.configured == true) and (.failed == 0) and (.takeProfit.failed == 0)' > /dev/null

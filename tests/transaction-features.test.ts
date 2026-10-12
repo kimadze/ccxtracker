@@ -1,4 +1,12 @@
-import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
+import {
+  beforeAll,
+  beforeEach,
+  afterAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { readdir, readFile } from "node:fs/promises";
@@ -377,6 +385,11 @@ describe("authorized transaction previews, atomic opening assets and quick undo"
   });
 });
 describe("persisted Watchlist target episodes", () => {
+  beforeEach(async () => {
+    // These cases exercise enrollment without a cached observation.
+    // Cached enrollment and first crossing are covered in telegram.test.ts.
+    await db.delete(schema.marketQuotes);
+  });
   it("tracks buy and sell independently, ignores initial conditions and preserves each read state", async () => {
     const p = await portfolio("Two-sided targets"),
       service = watchlistService(db, "alice");

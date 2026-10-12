@@ -49,7 +49,7 @@ test("watchlist separates prices and alert states across layouts", async ({
       await expect(content).toContainText("ფასის ვარდნა ↓");
       await expect(content).toContainText("ფასის ზრდა ↑");
       await expect(content).toContainText("ელოდება");
-      await expect(content).toContainText("გაგზავნილია");
+      await expect(content).toContainText("მიღწეულია");
       await expect(content).toContainText("ფასი მიუწვდომელია");
       expect(
         await page.evaluate(

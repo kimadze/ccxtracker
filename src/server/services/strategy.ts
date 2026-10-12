@@ -9,11 +9,13 @@ import {
   journals,
   assets,
   telegramConnections,
+  marketQuotes,
 } from "@/server/db/schema";
 import { portfolioService } from "./portfolio";
 import { exitPlanSchema, journalSchema } from "@/domain/strategy-validation";
 import { calculateExit } from "@/domain/planning";
 import { replayLedger } from "@/domain/ledger";
+import { usableAlertQuote } from "@/domain/alert-quote";
 export function strategyService(db: Database, userId: string) {
   const portfolios = portfolioService(db, userId);
   return {
@@ -111,7 +113,7 @@ export function strategyService(db: Database, userId: string) {
               eq(exitPlans.portfolioId, data.portfolioId),
               eq(exitPlans.assetId, data.assetId),
             ),
-          );
+          ).for("update");
         const oldLevels = existing
           ? await tx
               .select()
@@ -120,6 +122,7 @@ export function strategyService(db: Database, userId: string) {
               .orderBy(asc(exitLevels.level))
           : [];
         const unchanged =
+          // Keep completed levels even if another level is edited.
           existing &&
           decimal(existing.alertQuantity ?? "0").eq(holding.quantity) &&
           oldLevels.length === data.levels.length &&
@@ -134,7 +137,11 @@ export function strategyService(db: Database, userId: string) {
           feePercent: data.feePercent,
           telegramEnabled: data.telegramEnabled,
           alertQuantity: holding.quantity,
-          ...(reset ? { alertGeneration: randomUUID() } : {}),
+          ...(existing &&
+          (!decimal(existing.alertQuantity ?? "0").eq(holding.quantity) ||
+            existing.telegramEnabled !== data.telegramEnabled)
+            ? { alertGeneration: randomUUID() }
+            : {}),
           updatedAt: new Date(),
         };
         const [plan] = await tx
@@ -152,13 +159,53 @@ export function strategyService(db: Database, userId: string) {
           })
           .returning();
         if (!reset) return;
+        const [cached] = await tx
+          .select()
+          .from(marketQuotes)
+          .where(eq(marketQuotes.assetId, data.assetId));
+        const quote = cached
+          ? {
+              assetId: data.assetId,
+              price: cached.price,
+              change24h: cached.change24h,
+              updatedAt: cached.quotedAt.toISOString(),
+              stale: false,
+            }
+          : undefined;
+        const baseline = usableAlertQuote(quote) ? cached!.quotedAt : null;
         await tx.delete(exitLevels).where(eq(exitLevels.planId, plan.id));
         await tx.insert(exitLevels).values(
-          data.levels.map((l, i) => ({
-            planId: plan.id,
-            level: i + 1,
-            ...l,
-          })),
+          data.levels.map((l, i) => {
+            const previous = oldLevels.find((old) =>
+              decimal(old.price).eq(l.price),
+            );
+            const sameQuantity =
+              existing &&
+              decimal(existing.alertQuantity ?? "0").eq(holding.quantity);
+            return {
+              id: previous?.id,
+              planId: plan.id,
+              level: i + 1,
+              ...l,
+              alertQuoteAt: baseline,
+              alertArmed: Boolean(
+                baseline && decimal(cached!.price!).lt(l.price),
+              ),
+              ...(previous
+                ? {
+                    reachedAt: previous.reachedAt,
+                    reachedPrice: previous.reachedPrice,
+                    ...(sameQuantity &&
+                    existing.telegramEnabled === data.telegramEnabled
+                      ? {
+                          alertQuoteAt: previous.alertQuoteAt,
+                          alertArmed: previous.alertArmed,
+                        }
+                      : {}),
+                  }
+                : {}),
+            };
+          }),
         );
       });
     },
@@ -176,13 +223,35 @@ export function strategyService(db: Database, userId: string) {
           )
           .for("update");
         if (!plan) throw new Error("RESOURCE_NOT_FOUND");
+        const [cached] = await tx
+          .select()
+          .from(marketQuotes)
+          .where(eq(marketQuotes.assetId, assetId));
+        const [level] = await tx
+          .select()
+          .from(exitLevels)
+          .where(
+            and(eq(exitLevels.id, levelId), eq(exitLevels.planId, plan.id)),
+          );
+        const quote = cached
+          ? {
+              assetId,
+              price: cached.price,
+              change24h: cached.change24h,
+              updatedAt: cached.quotedAt.toISOString(),
+              stale: false,
+            }
+          : undefined;
+        const baseline = usableAlertQuote(quote) ? cached!.quotedAt : null;
         const rows = await tx
           .update(exitLevels)
           .set({
             reachedAt: null,
             reachedPrice: null,
-            alertArmed: false,
-            alertQuoteAt: null,
+            alertArmed: Boolean(
+              level && baseline && decimal(cached!.price!).lt(level.price),
+            ),
+            alertQuoteAt: baseline,
           })
           .where(
             and(eq(exitLevels.id, levelId), eq(exitLevels.planId, plan.id)),

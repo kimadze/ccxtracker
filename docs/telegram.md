@@ -19,6 +19,14 @@ Never place CRON_SECRET in a URL. Use the scheduler's protected header field. Pr
 
 ## Delivery behavior
 
+### External scheduler and operational health
+
+The cron-job.org job `CCX price alerts` (8630759) uses POST to `/api/cron/watchlist` every five minutes in Asia/Tbilisi. Its Authorization header must contain `Bearer <PRICE_ALERT_CRON_SECRET>`, with the same server-only Production variable on Vercel. This separate credential is accepted only by the price-alert endpoint; never share the primary CRON_SECRET or Telegram token with the scheduler. Keep the job disabled until the credential and deployed code are ready. Disable the automatic GitHub schedule after a successful external execution; retain workflow_dispatch as an operator fallback. Do not put credentials in URLs or save response bodies in external history.
+
+The response reports requested, evaluated, missing and degraded counts. No usable quotes returns HTTP 503; partial coverage is explicitly degraded. Settings warns when no successful complete scan has occurred in 15 minutes. This is monitoring, not a real-time delivery guarantee. Fresh enrollment can use a cached observation up to 15 minutes old; absent a valid cache, the first quote establishes the baseline without sending.
+
+Watchlist distinguishes target reached from Telegram pending/sent/failed. Terminal failures remain visible; failed deliveries within six hours can be queued again from Settings after checking the connection. A blocked bot pauses delivery without changing saved preferences. A successful connection test clears the blocked status. Jobs are claimed for five minutes to cover the server execution budget; records expire after six hours and are removed after seven days. Telegram's acceptance/DB-acknowledgement crash window remains, so exactly-once delivery cannot be promised.
+
 Only future buy-downward/sell-upward crossing episodes after enrollment are queued; linking does not send past notices. Queue creation and crossing state commit atomically. A unique episode key and row leases prevent normal duplicate/concurrent sending. Network/429 failures retry with bounded backoff; blocked bots pause buy/sell delivery. Removed targets/items, changed episodes, unselected portfolios and old connection generations cancel pending sends. Unsent alerts expire after six hours; records are cleaned after seven days. Telegram has no idempotency key for sendMessage: a process crash after Telegram accepts a message but before DB acknowledgement can produce a duplicate on retry. Financial ledger data is never modified.
 
 Configuration absent: the Settings panel states that server setup is incomplete, and no outbound call occurs. No real Telegram deliveries are used in automated tests.

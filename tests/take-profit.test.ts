@@ -211,3 +211,56 @@ it("retries provider rate limits and cancels alerts after disconnect", async () 
   await processTakeProfitDeliveries(db);
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
+it("preserves completed and queued unchanged levels when another TP changes", async () => {
+  const { input, service, p } = await setup();
+  await quote("5");
+  await quote("11", 1000);
+  const before = (await service.load(p.id, "btc")).plan!.levels[0].reachedAt;
+  await service.saveExit({
+    ...input,
+    levels: [input.levels[0], { price: "30", percentage: "50" }],
+  });
+  expect((await service.load(p.id, "btc")).plan!.levels[0].reachedAt).toBe(
+    before,
+  );
+  expect(await processTakeProfitDeliveries(db)).toEqual({ sent: 1, failed: 0 });
+  await quote("5", 2000);
+  await quote("11", 3000);
+  await processTakeProfitDeliveries(db);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+it("keeps blocked deliveries and reports the blocked connection without changing preferences", async () => {
+  await setup();
+  await quote("5");
+  await quote("21", 1000);
+  fetchMock.mockResolvedValueOnce(
+    new Response(JSON.stringify({ ok: false, error_code: 403 }), {
+      status: 403,
+    }),
+  );
+  expect(await processTakeProfitDeliveries(db)).toEqual({ sent: 0, failed: 1 });
+  const [job] = await db.select().from(s.takeProfitDeliveries);
+  expect(job.attempts).toBe(8);
+  expect(job.sentAt).toBeNull();
+  const [connection] = await db.select().from(s.telegramConnections);
+  expect(connection.lastError).toBe("BOT_BLOCKED");
+  expect(connection.sellEnabled).toBe(true);
+  await processTakeProfitDeliveries(db);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+it("uses a fresh cached enrollment baseline to catch the very next quote", async () => {
+  const { input, service } = await setup();
+  await db
+    .insert(s.marketQuotes)
+    .values({
+      assetId: "btc",
+      price: "5",
+      quotedAt: new Date(Date.now() - 10000),
+    });
+  await service.saveExit({
+    ...input,
+    levels: [{ price: "11", percentage: "25" }],
+  });
+  await quote("12");
+  expect(await db.select().from(s.takeProfitDeliveries)).toHaveLength(1);
+});

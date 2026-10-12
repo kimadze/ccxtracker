@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, inArray, isNull, lte } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, lte, lt } from "drizzle-orm";
 import type { Database } from "@/server/db";
 import { getDb } from "@/server/db";
 import {
@@ -21,22 +21,10 @@ import {
   telegramConfigured,
 } from "./api";
 import { quantity, unitPrice, money } from "@/lib/formatters";
+import { usableAlertQuote } from "@/domain/alert-quote";
 
 export async function evaluateTakeProfits(db: Database, quotes: Quote[]) {
-  const valid = quotes.filter((q) => {
-    const time = Date.parse(q.updatedAt);
-    try {
-      return (
-        !q.stale &&
-        Number.isFinite(time) &&
-        time <= Date.now() + 60000 &&
-        Date.now() - time < 15 * 60000 &&
-        decimal(q.price).gt(0)
-      );
-    } catch {
-      return false;
-    }
-  });
+  const valid = quotes.filter((q) => usableAlertQuote(q));
   if (!valid.length) return;
   const plans = await db
     .select({ plan: exitPlans, userId: portfolios.userId })
@@ -65,7 +53,7 @@ export async function evaluateTakeProfits(db: Database, quotes: Quote[]) {
           .from(telegramConnections)
           .where(eq(telegramConnections.userId, item.userId))
       )[0];
-      if (!connection?.chatId) return;
+      if (!connection?.chatId || connection.lastError === "BOT_BLOCKED") return;
       const holding = replayLedger(
         await portfolioService(tx as unknown as Database, item.userId).entries(
           plan.portfolioId,
@@ -139,6 +127,7 @@ export async function processTakeProfitDeliveries(
       .where(
         and(
           isNull(takeProfitDeliveries.sentAt),
+          lt(takeProfitDeliveries.attempts, 8),
           lte(takeProfitDeliveries.nextAttemptAt, new Date()),
         ),
       )
@@ -148,13 +137,20 @@ export async function processTakeProfitDeliveries(
     for (const row of rows)
       await tx
         .update(takeProfitDeliveries)
-        .set({ nextAttemptAt: new Date(Date.now() + 60000) })
+        .set({ nextAttemptAt: new Date(Date.now() + 300000) })
         .where(eq(takeProfitDeliveries.id, row.id));
     return rows;
   });
   let sent = 0,
     failed = 0;
   for (const job of jobs) {
+    if (Date.now() - job.createdAt.getTime() > 6 * 3600000) {
+      await db
+        .update(takeProfitDeliveries)
+        .set({ attempts: 8, updatedAt: new Date() })
+        .where(eq(takeProfitDeliveries.id, job.id));
+      continue;
+    }
     const [row] = await db
       .select({
         plan: exitPlans,
@@ -169,6 +165,13 @@ export async function processTakeProfitDeliveries(
         eq(telegramConnections.userId, portfolios.userId),
       )
       .where(eq(exitPlans.id, job.planId));
+    if (row?.connection.lastError === "BOT_BLOCKED") {
+      await db
+        .update(takeProfitDeliveries)
+        .set({ attempts: 8, updatedAt: new Date() })
+        .where(eq(takeProfitDeliveries.id, job.id));
+      continue;
+    }
     const holding = row
       ? replayLedger(
           await portfolioService(db, row.connection.userId).entries(
@@ -178,12 +181,12 @@ export async function processTakeProfitDeliveries(
       : null;
     if (
       !row?.connection.chatId ||
+      row.connection.lastError === "BOT_BLOCKED" ||
       !row.plan.telegramEnabled ||
       row.plan.alertGeneration !== job.generation ||
       row.connection.generation !== job.connectionGeneration ||
       !holding ||
-      !decimal(holding.quantity).eq(row.plan.alertQuantity ?? "0") ||
-      Date.now() - job.createdAt.getTime() > 6 * 3600000
+      !decimal(holding.quantity).eq(row.plan.alertQuantity ?? "0")
     ) {
       await db
         .delete(takeProfitDeliveries)
@@ -195,13 +198,15 @@ export async function processTakeProfitDeliveries(
         .select()
         .from(exitLevels)
         .where(eq(exitLevels.planId, job.planId));
-      const activeLevels = job.levels.filter((l) =>
-        currentLevels.some(
+      const activeLevels = job.levels.flatMap((l) => {
+        const current = currentLevels.find(
           (current) =>
-            current.level === l.level &&
+            decimal(current.price).eq(l.price) &&
+            decimal(current.percentage).eq(l.percentage) &&
             current.reachedAt?.getTime() === job.reachedAt.getTime(),
-        ),
-      );
+        );
+        return current ? [{...l,level:current.level}] : [];
+      });
       if (!activeLevels.length) {
         await db
           .delete(takeProfitDeliveries)
@@ -216,7 +221,7 @@ export async function processTakeProfitDeliveries(
         .join("\n\n");
       await sendTelegram(
         row.connection.chatId,
-        `${row.asset.symbol.slice(0, 40)} · Take Profit მიღწეულია\nმიმდინარე ფასი: ${unitPrice(job.price)}\n\n${details}\n\n${job.reachedAt.toISOString()}\nგაყიდვა ავტომატურად არ შესრულებულა.`,
+        `${row.asset.symbol.slice(0, 40)} · Take Profit მიღწეულია\nდაფიქსირებული ფასი: ${unitPrice(job.price)}\nწყარო: CoinGecko · USD\n\n${details}\n\n${job.reachedAt.toISOString()}\nგაყიდვა ავტომატურად არ შესრულებულა.`,
         `${appOrigin()}/portfolios/${row.plan.portfolioId}/positions/${encodeURIComponent(row.asset.id)}?tab=exit`,
         "პოზიციის გახსნა",
       );
@@ -228,11 +233,24 @@ export async function processTakeProfitDeliveries(
     } catch (error) {
       const attempts = job.attempts + 1,
         code = error instanceof TelegramError ? error.code : 0;
-      if (code === 400 || code === 403 || attempts >= 8)
+      if (code === 400 || code === 403 || attempts >= 8) {
         await db
-          .delete(takeProfitDeliveries)
+          .update(takeProfitDeliveries)
+          .set({ attempts: 8, updatedAt: new Date() })
           .where(eq(takeProfitDeliveries.id, job.id));
-      else
+        await db
+          .update(telegramConnections)
+          .set({
+            lastError: code === 403 ? "BOT_BLOCKED" : "DELIVERY_FAILED",
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(telegramConnections.userId, row.connection.userId),
+              eq(telegramConnections.generation, job.connectionGeneration),
+            ),
+          );
+      } else
         await db
           .update(takeProfitDeliveries)
           .set({

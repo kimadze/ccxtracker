@@ -8,6 +8,7 @@ import {
   loadTelegramSettings,
   saveTelegramPreferences,
   testTelegramConnection,
+  retryFailedTelegramDeliveries,
 } from "@/server/telegram/actions";
 import { Message } from "./ui";
 type Status = Extract<
@@ -135,7 +136,8 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
       {status?.configured && (
         <div className="mt-3 space-y-3">
           <p className="text-xs text-base-content/60">
-            მიიღე ფასის შეტყობინებები Telegram-ში.
+            Watchlist-ის შეტყობინებები. Take Profit ცალკე, პოზიციის გეგმიდან
+            ირთვება.
           </p>
           {status.connected && (
             <p className="text-sm">
@@ -144,8 +146,31 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
           )}
           {status.lastError && (
             <Message error>
-              ბოტი დაბლოკილია. გახსენით Telegram და მოხსენით ბლოკი.
+              {status.lastError === "BOT_BLOCKED"
+                ? "ბოტი დაბლოკილია. მოხსენით ბლოკი და გაუშვით კავშირის ტესტი."
+                : "ზოგი შეტყობინება ვერ გაიგზავნა. შეამოწმეთ კავშირი."}
             </Message>
+          )}
+          {status.monitoringDelayed && (
+            <Message error>
+              ფასების ფონური შემოწმება დაგვიანებულია. ალერტები შეიძლება
+              დაგვიანდეს.
+            </Message>
+          )}
+          {status.connected && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm min-h-11"
+              disabled={pending || status.lastError === "BOT_BLOCKED"}
+              onClick={() =>
+                void perform(
+                  retryFailedTelegramDeliveries,
+                  "ბოლო 6 საათის ჩავარდნილი შეტყობინებები რიგში დაბრუნდა.",
+                )
+              }
+            >
+              ჩავარდნილის ხელახლა გაგზავნა
+            </button>
           )}
           {status.awaitingConfirmation ? (
             <div className="space-y-2">

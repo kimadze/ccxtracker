@@ -28,6 +28,8 @@ export interface WatchItem {
   targetReachedPrice?: string | null;
   sellTargetReachedAt?: string | null;
   sellTargetReachedPrice?: string | null;
+  targetDelivery?: "sent" | "pending" | "failed" | null;
+  sellTargetDelivery?: "sent" | "pending" | "failed" | null;
   notes: string;
   createdAt: string;
 }
@@ -197,11 +199,26 @@ export function Watchlist({
         </strong>
         <p className="mt-0.5 text-xs text-base-content/55">
           {reached
-            ? "გაგზავნილია"
+            ? "მიღწეულია"
             : quote?.price == null
               ? "ფასი მიუწვდომელია"
               : "ელოდება"}
         </p>
+        {reached &&
+          (side === "buy" ? item.targetDelivery : item.sellTargetDelivery) && (
+            <p className="mt-0.5 text-xs text-base-content/55">
+              Telegram:{" "}
+              {(side === "buy"
+                ? item.targetDelivery
+                : item.sellTargetDelivery) === "sent"
+                ? "გაგზავნილია"
+                : (side === "buy"
+                      ? item.targetDelivery
+                      : item.sellTargetDelivery) === "failed"
+                  ? "ვერ გაიგზავნა"
+                  : "რიგშია"}
+            </p>
+          )}
       </div>
     );
   }
@@ -301,7 +318,7 @@ export function Watchlist({
           >
             <option value="all">ყველა · {items.length}</option>
             <option value="pending">მოლოდინში</option>
-            <option value="sent">გაგზავნილი</option>
+            <option value="sent">მიღწეული</option>
             <option value="up">ფასი იზრდება</option>
             <option value="down">ფასი იკლებს</option>
             <option value="unpriced">ფასის გარეშე</option>

@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, or, asc, lte } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or, asc, lte, sql } from "drizzle-orm";
 import { getDb } from "@/server/db";
 import {
   assets,
@@ -7,8 +7,11 @@ import {
   telegramConnections,
   jobState,
   exitPlans,
+  exitLevels,
 } from "@/server/db/schema";
 import { getQuotes } from "@/server/market";
+import { usableAlertQuote } from "@/domain/alert-quote";
+import { sendJobAlert } from "@/server/job-alerts";
 import { evaluateWatchlistTargets } from "@/server/services/watchlist-notifications";
 import { processTelegramDeliveries } from "@/server/telegram/delivery";
 import { secretMatches } from "@/server/telegram/api";
@@ -19,12 +22,14 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
-  if (!process.env.CRON_SECRET || process.env.CRON_SECRET.length < 32)
-    return new Response(null, { status: 503 });
+  const secrets = [
+    process.env.PRICE_ALERT_CRON_SECRET,
+    process.env.CRON_SECRET,
+  ].filter((value): value is string => Boolean(value && value.length >= 32));
+  if (!secrets.length) return new Response(null, { status: 503 });
   if (
-    !secretMatches(
-      request.headers.get("authorization"),
-      `Bearer ${process.env.CRON_SECRET}`,
+    !secrets.some((secret) =>
+      secretMatches(request.headers.get("authorization"), `Bearer ${secret}`),
     )
   )
     return new Response(null, { status: 401 });
@@ -54,9 +59,18 @@ export async function GET(request: Request) {
       .where(
         and(
           isNotNull(telegramConnections.chatId),
+          sql`${telegramConnections.portfolioIds} @> jsonb_build_array(${watchlistItems.portfolioId}::text)`,
           or(
-            isNotNull(watchlistItems.entryPrice),
-            isNotNull(watchlistItems.exitPrice),
+            and(
+              isNotNull(watchlistItems.entryPrice),
+              eq(telegramConnections.buyEnabled, true),
+              isNull(watchlistItems.targetReachedAt),
+            ),
+            and(
+              isNotNull(watchlistItems.exitPrice),
+              eq(telegramConnections.sellEnabled, true),
+              isNull(watchlistItems.sellTargetReachedAt),
+            ),
           ),
         ),
       )
@@ -64,6 +78,7 @@ export async function GET(request: Request) {
     const tpTracked = await db
       .selectDistinct({ asset: assets })
       .from(exitPlans)
+      .innerJoin(exitLevels, eq(exitLevels.planId, exitPlans.id))
       .innerJoin(assets, eq(assets.id, exitPlans.assetId))
       .innerJoin(portfolios, eq(portfolios.id, exitPlans.portfolioId))
       .innerJoin(
@@ -73,6 +88,7 @@ export async function GET(request: Request) {
       .where(
         and(
           eq(exitPlans.telegramEnabled, true),
+          isNull(exitLevels.reachedAt),
           isNotNull(telegramConnections.chatId),
         ),
       );
@@ -89,19 +105,49 @@ export async function GET(request: Request) {
       batch.map((r) => r.asset),
       { mode: "blocking" },
     );
-    await evaluateWatchlistTargets(db, quotes);
-    await evaluateTakeProfits(db, quotes);
+    const usable = quotes.filter((q) => usableAlertQuote(q));
+    await evaluateWatchlistTargets(db, usable);
+    await evaluateTakeProfits(db, usable);
     const tpDelivery = await processTakeProfitDeliveries(db, 3);
     const delivery = await processTelegramDeliveries(db, 3);
+    const degraded = usable.length < batch.length;
+    const health = {
+      requested: batch.length,
+      evaluated: usable.length,
+      missing: batch.length - usable.length,
+      degraded,
+    };
+    await db
+      .insert(jobState)
+      .values({
+        key: "watchlist-health",
+        cursor: JSON.stringify(health),
+        leaseUntil: degraded ? new Date(0) : new Date(),
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: jobState.key,
+        set: {
+          cursor: JSON.stringify(health),
+          ...(!degraded ? { leaseUntil: new Date() } : {}),
+          updatedAt: new Date(),
+        },
+      });
+    if (degraded)
+      await sendJobAlert("PRICE_ALERT_QUOTES_INCOMPLETE", health.missing);
     await db
       .update(jobState)
       .set({ cursor: batch.at(-1)?.asset.id ?? null })
       .where(eq(jobState.key, key));
-    return Response.json({
-      checked: batch.length,
-      ...delivery,
-      takeProfit: tpDelivery,
-    });
+    return Response.json(
+      {
+        checked: usable.length,
+        ...health,
+        ...delivery,
+        takeProfit: tpDelivery,
+      },
+      { status: batch.length && !usable.length ? 503 : 200 },
+    );
   } catch {
     console.error("WATCHLIST_CRON_FAILED");
     return Response.json({ error: "შემოწმება ვერ შესრულდა." }, { status: 500 });

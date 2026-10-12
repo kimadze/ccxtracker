@@ -1,12 +1,15 @@
 import "server-only";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Database } from "@/server/db";
 import {
   telegramConnections,
   telegramDeliveries,
   portfolios,
+  jobState,
+  takeProfitDeliveries,
+  exitPlans,
 } from "@/server/db/schema";
 import { telegramConfigured, sendTelegram, appOrigin } from "./api";
 export const hashLink = (token: string) =>
@@ -22,6 +25,10 @@ export function telegramService(db: Database, userId: string) {
         .select({ id: portfolios.id, name: portfolios.name })
         .from(portfolios)
         .where(eq(portfolios.userId, userId));
+      const [health] = await db
+        .select()
+        .from(jobState)
+        .where(eq(jobState.key, "watchlist-health"));
       return {
         configured: telegramConfigured(),
         connected: Boolean(row?.chatId),
@@ -37,6 +44,13 @@ export function telegramService(db: Database, userId: string) {
         portfolioIds: row?.portfolioIds ?? [],
         portfolios: owned,
         lastError: row?.lastError ?? null,
+        monitoringDelayed: Boolean(
+          row?.chatId &&
+          (!health ||
+            health.leaseUntil.getTime() === 0 ||
+            Date.now() - health.leaseUntil.getTime() > 15 * 60000),
+        ),
+        lastMonitorAt: health?.updatedAt.toISOString() ?? null,
       };
     },
     async begin(portfolioId: string) {
@@ -124,6 +138,63 @@ export function telegramService(db: Database, userId: string) {
         .delete(telegramConnections)
         .where(eq(telegramConnections.userId, userId));
     },
+    async retryFailed() {
+      const [connection] = await db
+        .select()
+        .from(telegramConnections)
+        .where(eq(telegramConnections.userId, userId));
+      if (!connection?.chatId) throw new Error("TELEGRAM_NOT_CONNECTED");
+      if (connection.lastError === "BOT_BLOCKED")
+        throw new Error("TELEGRAM_BOT_BLOCKED");
+      const cutoff = new Date(Date.now() - 6 * 3600000);
+      await db.transaction(async (tx) => {
+        await tx
+          .update(telegramDeliveries)
+          .set({
+            attempts: 0,
+            lastError: null,
+            nextAttemptAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(telegramDeliveries.userId, userId),
+              eq(telegramDeliveries.generation, connection.generation),
+              eq(telegramDeliveries.attempts, 8),
+              isNull(telegramDeliveries.sentAt),
+              gt(telegramDeliveries.createdAt, cutoff),
+            ),
+          );
+        const plans = await tx
+          .select({ id: exitPlans.id })
+          .from(exitPlans)
+          .innerJoin(portfolios, eq(portfolios.id, exitPlans.portfolioId))
+          .where(eq(portfolios.userId, userId));
+        if (plans.length)
+          await tx
+            .update(takeProfitDeliveries)
+            .set({
+              attempts: 0,
+              nextAttemptAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(
+              and(
+                inArray(
+                  takeProfitDeliveries.planId,
+                  plans.map((p) => p.id),
+                ),
+                eq(
+                  takeProfitDeliveries.connectionGeneration,
+                  connection.generation,
+                ),
+                eq(takeProfitDeliveries.attempts, 8),
+                isNull(takeProfitDeliveries.sentAt),
+                gt(takeProfitDeliveries.createdAt, cutoff),
+              ),
+            );
+      });
+    },
     async test() {
       const [row] = await db
         .select()
@@ -134,6 +205,15 @@ export function telegramService(db: Database, userId: string) {
         row.chatId,
         "სატესტო შეტყობინება\nTelegram-ის კავშირი მუშაობს.",
       );
+      await db
+        .update(telegramConnections)
+        .set({ lastError: null, updatedAt: new Date() })
+        .where(
+          and(
+            eq(telegramConnections.userId, userId),
+            eq(telegramConnections.generation, row.generation),
+          ),
+        );
     },
   };
 }
