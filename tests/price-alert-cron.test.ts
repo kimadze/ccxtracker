@@ -150,3 +150,31 @@ it("accepts the separate price-alert scheduler secret", async () => {
     vi.stubEnv("PRICE_ALERT_CRON_SECRET", "");
   }
 });
+
+it("supports the installed Production spelling without widening endpoint access", async () => {
+  vi.stubEnv("PRICE_ALERT_CRON_SECRET", undefined);
+  vi.stubEnv("PRICE_ALERT_CRON_SECRE", "p".repeat(40));
+  quotesMock.mockResolvedValueOnce([]);
+  try {
+    const response = await POST(
+      new Request("https://example.test/api/cron/watchlist", {
+        method: "POST",
+        headers: { authorization: `Bearer ${"p".repeat(40)}` },
+      }),
+    );
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ requested: 1, missing: 1 });
+    expect(
+      (
+        await POST(
+          new Request("https://example.test/api/cron/watchlist", {
+            headers: { authorization: `Bearer ${"wrong".repeat(10)}` },
+          }),
+        )
+      ).status,
+    ).toBe(401);
+  } finally {
+    vi.stubEnv("PRICE_ALERT_CRON_SECRE", "");
+    vi.stubEnv("PRICE_ALERT_CRON_SECRET", "");
+  }
+});

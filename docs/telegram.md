@@ -21,6 +21,8 @@ Never place CRON_SECRET in a URL. Use the scheduler's protected header field. Pr
 
 ### External scheduler and operational health
 
+The installed Production variable was initially named `PRICE_ALERT_CRON_SECRE`. That spelling is supported as a fallback when `PRICE_ALERT_CRON_SECRET` is absent; both are scoped to the price-alert endpoint only. New installations should use the complete name.
+
 The cron-job.org job `CCX price alerts` (8630759) uses POST to `/api/cron/watchlist` every five minutes in Asia/Tbilisi. Its Authorization header must contain `Bearer <PRICE_ALERT_CRON_SECRET>`, with the same server-only Production variable on Vercel. This separate credential is accepted only by the price-alert endpoint; never share the primary CRON_SECRET or Telegram token with the scheduler. Keep the job disabled until the credential and deployed code are ready. Disable the automatic GitHub schedule after a successful external execution; retain workflow_dispatch as an operator fallback. Do not put credentials in URLs or save response bodies in external history.
 
 The response reports requested, evaluated, missing and degraded counts. No usable quotes returns HTTP 503; partial coverage is explicitly degraded. Settings warns when no successful complete scan has occurred in 15 minutes. This is monitoring, not a real-time delivery guarantee. Fresh enrollment can use a cached observation up to 15 minutes old; absent a valid cache, the first quote establishes the baseline without sending.

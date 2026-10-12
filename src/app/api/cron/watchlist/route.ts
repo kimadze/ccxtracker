@@ -22,10 +22,12 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
-  const secrets = [
-    process.env.PRICE_ALERT_CRON_SECRET,
-    process.env.CRON_SECRET,
-  ].filter((value): value is string => Boolean(value && value.length >= 32));
+  // Compatibility with the already configured Production variable name.
+  const alertSecret =
+    process.env.PRICE_ALERT_CRON_SECRET ?? process.env.PRICE_ALERT_CRON_SECRE;
+  const secrets = [alertSecret, process.env.CRON_SECRET].filter(
+    (value): value is string => Boolean(value && value.length >= 32),
+  );
   if (!secrets.length) return new Response(null, { status: 503 });
   if (
     !secrets.some((secret) =>
