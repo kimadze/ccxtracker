@@ -16,6 +16,13 @@ vi.mock("@/server/services/portfolio", () => ({
   portfolioService: () => ({ owned: mocks.owned }),
 }));
 vi.mock("@/server/rate-limit", () => ({ consumeRateLimit: mocks.limit }));
+vi.mock("@/server/ai/policy", () => ({
+  aiPolicy: async () => ({
+    aiEnabled: true,
+    userDailyLimit: 20,
+    globalDailyLimit: 300,
+  }),
+}));
 vi.mock("@/server/ai/client", () => ({
   aiConfigured: () => true,
   lunaJson: mocks.provider,

@@ -15,6 +15,7 @@ import {
   Plus,
   Route,
   Settings2,
+  ShieldCheck,
   Wallet,
   X,
 } from "lucide-react";
@@ -157,10 +158,12 @@ export function BalancePrivacyToggle() {
 export function Shell({
   children,
   portfolios,
+  adminEnabled = false,
 }: {
   children: React.ReactNode;
   portfolios: { id: string; name: string }[];
   userName: string;
+  adminEnabled?: boolean;
 }) {
   const path = usePathname();
   const router = useRouter();
@@ -251,6 +254,16 @@ export function Shell({
             ))}
           </select>
           <div className="ml-auto flex items-center gap-1">
+            {adminEnabled && (
+              <Link
+                href="/admin"
+                className="btn btn-ghost btn-square min-h-11"
+                aria-label="ადმინისტრირება"
+                title="ადმინისტრირება"
+              >
+                <ShieldCheck size={18} />
+              </Link>
+            )}
             <TargetNotifications key={activeId} portfolioId={activeId} />
             <BalancePrivacyToggle />
           </div>
@@ -411,6 +424,17 @@ export function Shell({
                 setDrawerOpen(false);
             }}
           />
+          {adminEnabled && (
+            <Link
+              href="/admin"
+              className="btn btn-ghost min-h-11 justify-start lg:is-drawer-close:justify-center"
+              title="ადმინისტრირება"
+              aria-label="ადმინისტრირება"
+            >
+              <ShieldCheck size={18} />
+              <span className="lg:is-drawer-close:hidden">ადმინისტრირება</span>
+            </Link>
+          )}
           <div className="mt-2 shrink-0 space-y-1 border-t border-base-300 pt-2 lg:is-drawer-close:hidden">
             <div className={"nav-label lg:is-drawer-close:hidden"}>
               <PortfolioCreate compact />

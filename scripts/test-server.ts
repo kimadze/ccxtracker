@@ -114,6 +114,7 @@ const child = spawn(
       BLOB_READ_WRITE_TOKEN: "",
       BLOB_STORE_ID: "",
       ALLOWED_EMAILS: "",
+      ADMIN_EMAILS: "alice-desktop@example.test,alice-mobile@example.test",
       CRON_SECRET: randomBytes(32).toString("hex"),
       TELEGRAM_BOT_TOKEN: telegramFixtures
         ? "e2e-placeholder-never-a-live-token"

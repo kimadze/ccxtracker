@@ -25,6 +25,49 @@ const times = () => ({
     .notNull(),
 });
 const financial = (name: string) => numeric(name, { precision: 48, scale: 18 });
+export const adminControls = pgTable("admin_controls", {
+  key: text("key").primaryKey(),
+  aiEnabled: boolean("ai_enabled").default(true).notNull(),
+  userDailyLimit: integer("user_daily_limit").default(20).notNull(),
+  globalDailyLimit: integer("global_daily_limit").default(300).notNull(),
+  ...times(),
+});
+export const adminEvents = pgTable("admin_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  actorId: text("actor_id").notNull(),
+  action: text("action").notNull(),
+  targetId: text("target_id"),
+  details: jsonb("details").$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+export const suspendedUsers = pgTable("suspended_users", {
+  userId: text("user_id").primaryKey(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+export const aiUsage = pgTable(
+  "ai_usage",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id").notNull(),
+    feature: text("feature").notNull(),
+    status: text("status").notNull(),
+    inputTokens: integer("input_tokens"),
+    cachedTokens: integer("cached_tokens"),
+    outputTokens: integer("output_tokens"),
+    estimatedCost: financial("estimated_cost"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("ai_usage_created_idx").on(t.createdAt),
+    index("ai_usage_user_created_idx").on(t.userId, t.createdAt),
+  ],
+);
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),

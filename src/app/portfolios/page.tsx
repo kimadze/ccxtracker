@@ -8,6 +8,8 @@ import { Brand } from "@/components/brand";
 import { PortfolioCard } from "@/components/portfolio-card";
 import { walletService } from "@/server/services/wallet";
 import { WalletPortfolioCard } from "@/components/wallet-portfolio-card";
+import Link from "next/link";
+import { isAdmin } from "@/server/admin-access";
 export default async function Portfolios() {
   const user = await requireUser();
   const portfolios = await portfolioService(getDb(), user.id).list();
@@ -22,7 +24,14 @@ export default async function Portfolios() {
     >
       <div className="flex items-center justify-between border-b border-base-300 pb-4">
         <Brand />
-        <BalancePrivacyToggle />
+        <div className="flex items-center gap-2">
+          {isAdmin(user) && (
+            <Link href="/admin" className="btn btn-ghost min-h-11">
+              ადმინისტრირება
+            </Link>
+          )}
+          <BalancePrivacyToggle />
+        </div>
       </div>
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>

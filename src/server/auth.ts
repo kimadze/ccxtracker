@@ -4,6 +4,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { eq } from "drizzle-orm";
 import { getDb } from "./db";
 import {
   users,
@@ -11,6 +12,7 @@ import {
   accounts,
   verifications,
   rateLimits,
+  suspendedUsers,
 } from "./db/schema";
 import { authConfig, isConfigured } from "./config";
 
@@ -60,6 +62,13 @@ export function getAuth() {
 export const getCurrentUser = cache(async () => {
   if (!isConfigured()) return null;
   const session = await getAuth().api.getSession({ headers: await headers() });
+  if (session?.user) {
+    const [blocked] = await getDb()
+      .select({ id: suspendedUsers.userId })
+      .from(suspendedUsers)
+      .where(eq(suspendedUsers.userId, session.user.id));
+    if (blocked) return null;
+  }
   return session?.user ?? null;
 });
 export async function requireUser() {

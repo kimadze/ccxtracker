@@ -4,6 +4,7 @@ import { portfolioService, AccessError } from "@/server/services/portfolio";
 import { notFound } from "next/navigation";
 import { ZodError } from "zod";
 import { Shell } from "@/components/shell";
+import { isAdmin } from "@/server/admin-access";
 export default async function Layout({
   children,
   params,
@@ -18,7 +19,11 @@ export default async function Layout({
     throw error;
   });
   return (
-    <Shell userName={user.name} portfolios={await service.list()}>
+    <Shell
+      userName={user.name}
+      portfolios={await service.list()}
+      adminEnabled={isAdmin(user)}
+    >
       {children}
     </Shell>
   );

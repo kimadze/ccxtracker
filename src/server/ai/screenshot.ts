@@ -8,6 +8,7 @@ import { portfolioService } from "@/server/services/portfolio";
 import { consumeRateLimit } from "@/server/rate-limit";
 import { screenshotJsonSchema, reviewScreenshot } from "@/domain/ai-screenshot";
 import { aiConfigured, lunaJson } from "./client";
+import { aiPolicy } from "./policy";
 
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
 type User = { id: string; emailVerified: boolean };
@@ -74,6 +75,12 @@ export async function parseScreenshot(user: User | null, form: FormData) {
     const portfolioId = z.uuid().parse(form.get("portfolioId"));
     const timezone = z.string().min(1).max(80).parse(form.get("timezone"));
     await portfolioService(getDb(), user!.id).owned(portfolioId);
+    const policy = await aiPolicy();
+    if (!policy.aiEnabled)
+      return {
+        ok: false as const,
+        error: "AI დროებით გამორთულია. შეავსე ფორმა ხელით.",
+      };
     const today = new Intl.DateTimeFormat("en-CA", {
       timeZone: timezone,
       year: "numeric",
@@ -85,7 +92,16 @@ export async function parseScreenshot(user: User | null, form: FormData) {
       return { ok: false as const, error: "აირჩიე ერთი სურათი." };
     if (
       !(await consumeRateLimit(`ai-image-minute:${user!.id}`, 3, 60000)) ||
-      !(await consumeRateLimit(`ai-image-day:${user!.id}`, 20, 86400000))
+      !(await consumeRateLimit(
+        `ai-day:${user!.id}`,
+        policy.userDailyLimit,
+        86400000,
+      )) ||
+      !(await consumeRateLimit(
+        "ai-global-day",
+        policy.globalDailyLimit,
+        86400000,
+      ))
     )
       return {
         ok: false as const,
@@ -97,6 +113,7 @@ export async function parseScreenshot(user: User | null, form: FormData) {
       { localToday: today },
       screenshotJsonSchema,
       image,
+      { userId: user!.id, feature: "screenshot" },
     );
     let extraction;
     try {
