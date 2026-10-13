@@ -23,6 +23,7 @@ import { TelegramError, secretMatches } from "@/server/telegram/api";
 import { evaluateWatchlistTargets } from "@/server/services/watchlist-notifications";
 import { watchlistService } from "@/server/services/watchlist";
 import { POST } from "@/app/api/telegram/webhook/route";
+import { replyTelegramAssistant } from "@/server/telegram/assistant";
 const client = new PGlite(),
   testDb = drizzle(client, { schema }),
   db = testDb as unknown as Database;
@@ -88,6 +89,71 @@ async function link(userId: string, pid: string, id = 123) {
   await svc.confirm();
   return svc;
 }
+
+it("assistant only serves a confirmed private chat and suppresses provider retries", async () => {
+  const p = await portfolio();
+  const payload = {
+    update_id: 98765,
+    message: {
+      date: Math.floor(Date.now() / 1000),
+      text: "/help",
+      chat: { id: 123, type: "private" },
+      from: { id: 123, is_bot: false },
+    },
+  };
+  await replyTelegramAssistant(db, payload);
+  expect(fetchMock).not.toHaveBeenCalled();
+  await link("alice", p.id);
+  await replyTelegramAssistant(db, {
+    ...payload,
+    message: { ...payload.message, chat: { id: 123, type: "group" } },
+  });
+  expect(fetchMock).not.toHaveBeenCalled();
+  await replyTelegramAssistant(db, payload);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body).text).toContain(
+    "/position XLM",
+  );
+  await replyTelegramAssistant(db, payload);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+it("assistant never reads another user's portfolio even with a tampered selection", async () => {
+  const own = await portfolio();
+  const foreign = await portfolio("bob");
+  await testDb
+    .insert(schema.assets)
+    .values({ id: "USD", symbol: "USD", name: "US Dollar", providerId: "usd" })
+    .onConflictDoNothing();
+  await testDb.insert(schema.transactions).values({
+    id: crypto.randomUUID(),
+    portfolioId: foreign.id,
+    assetId: "btc",
+    kind: "deposit",
+    quantity: "123",
+    occurredAt: new Date(),
+    sequence: 1,
+  });
+  await link("alice", own.id);
+  await testDb
+    .update(schema.telegramConnections)
+    .set({ portfolioIds: [foreign.id] })
+    .where(eq(schema.telegramConnections.userId, "alice"));
+  await replyTelegramAssistant(db, {
+    update_id: 98766,
+    message: {
+      date: Math.floor(Date.now() / 1000),
+      text: "/position BTC",
+      chat: { id: 123, type: "private" },
+      from: { id: 123, is_bot: false },
+    },
+  });
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body).text).toContain(
+    "ეს პოზიცია არ არის",
+  );
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body).text).not.toContain("123");
+});
 async function crossing(pid: string) {
   const watch = watchlistService(db, "alice");
   await watch.save({

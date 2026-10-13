@@ -1,4 +1,5 @@
 import { getDb } from "@/server/db";
+import { replyTelegramAssistant } from "@/server/telegram/assistant";
 import { secretMatches, telegramConfigured } from "@/server/telegram/api";
 import {
   acceptTelegramLink,
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
     await acceptTelegramLink(getDb(), payload);
     // On provider retries, only the same valid pending private chat may get the link.
     await replyTelegramLinkReturn(getDb(), payload);
+    await replyTelegramAssistant(getDb(), payload);
     return Response.json({ ok: true });
   } catch {
     console.error("TELEGRAM_WEBHOOK_FAILED");
