@@ -69,7 +69,11 @@ export function sendTelegram(
   text: string,
   url?: string,
   buttonLabel = "აქტივის ნახვა",
-  options?: { parseMode: "HTML" },
+  options?: {
+    parseMode?: "HTML";
+    keyboard?: string[][];
+    links?: { text: string; url: string }[][];
+  },
 ) {
   return telegramCall("sendMessage", {
     chat_id: chatId,
@@ -77,6 +81,20 @@ export function sendTelegram(
     ...(options?.parseMode ? { parse_mode: options.parseMode } : {}),
     protect_content: true,
     link_preview_options: { is_disabled: true },
+    ...(options?.keyboard
+      ? {
+          reply_markup: {
+            keyboard: options.keyboard.map((row) =>
+              row.map((text) => ({ text })),
+            ),
+            resize_keyboard: true,
+            one_time_keyboard: false,
+          },
+        }
+      : {}),
+    ...(options?.links
+      ? { reply_markup: { inline_keyboard: options.links } }
+      : {}),
     ...(url
       ? {
           reply_markup: { inline_keyboard: [[{ text: buttonLabel, url }]] },

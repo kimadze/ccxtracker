@@ -24,6 +24,7 @@ import { evaluateWatchlistTargets } from "@/server/services/watchlist-notificati
 import { watchlistService } from "@/server/services/watchlist";
 import { POST } from "@/app/api/telegram/webhook/route";
 import { replyTelegramAssistant } from "@/server/telegram/assistant";
+import { assistantReport } from "@/server/telegram/assistant-report";
 const client = new PGlite(),
   testDb = drizzle(client, { schema }),
   db = testDb as unknown as Database;
@@ -150,10 +151,172 @@ it("assistant never reads another user's portfolio even with a tampered selectio
   });
   expect(fetchMock).toHaveBeenCalledTimes(1);
   expect(JSON.parse(fetchMock.mock.calls[0][1].body).text).toContain(
-    "ეს პოზიცია არ არის",
+    "პორტფელი ვერ მოიძებნა",
   );
   expect(JSON.parse(fetchMock.mock.calls[0][1].body).text).not.toContain("123");
 });
+it("reports sale proceeds separately, values remaining holdings and ranks only fresh pending targets", async () => {
+  const p = await portfolio();
+  await testDb
+    .insert(schema.assets)
+    .values({ id: "USD", symbol: "USD", name: "Dollar", providerId: "usd" })
+    .onConflictDoNothing();
+  await testDb.insert(schema.transactions).values([
+    {
+      id: crypto.randomUUID(),
+      portfolioId: p.id,
+      assetId: "btc",
+      kind: "deposit",
+      quantity: "10",
+      price: "10",
+      occurredAt: new Date(Date.now() - 60000),
+      sequence: 1,
+    },
+    {
+      id: crypto.randomUUID(),
+      portfolioId: p.id,
+      assetId: "btc",
+      kind: "sell",
+      quantity: "4",
+      price: "20",
+      occurredAt: new Date(Date.now() - 30000),
+      sequence: 2,
+    },
+  ]);
+  await testDb
+    .insert(schema.marketQuotes)
+    .values({ assetId: "btc", price: "20", quotedAt: new Date() })
+    .onConflictDoUpdate({
+      target: schema.marketQuotes.assetId,
+      set: { price: "20", quotedAt: new Date() },
+    });
+  const sale = await assistantReport(db, "alice", [p.id], {
+    kind: "sales",
+    symbol: "BTC",
+  });
+  expect(sale.body).toContain("გაყიდული: 4 BTC");
+  expect(sale.body).toContain("წმინდა მიღებული: $80,00");
+  expect(sale.body).toContain("გაყიდვების P/L: $40,00");
+  expect(sale.links?.[0][0].url).toContain(`/portfolios/${p.id}/positions/btc`);
+  const summary = await assistantReport(db, "alice", [p.id], {
+    kind: "portfolio",
+    portfolio: 1,
+  });
+  expect(summary.body).toContain("ღირებულება: $200,00");
+  expect(summary.body).toContain("USD: $80,00");
+  expect(summary.keyboard[0]).toContain("/portfolio 1");
+  await testDb.insert(schema.watchlistItems).values({
+    portfolioId: p.id,
+    assetId: "btc",
+    entryPrice: "15",
+    exitPrice: "25",
+    targetQuoteAt: new Date(),
+    sellTargetQuoteAt: new Date(),
+    targetActive: false,
+    sellTargetActive: false,
+  });
+  const [plan] = await testDb
+    .insert(schema.exitPlans)
+    .values({
+      portfolioId: p.id,
+      assetId: "btc",
+      telegramEnabled: true,
+      alertQuantity: "6",
+    })
+    .returning();
+  await testDb.insert(schema.exitLevels).values([
+    {
+      planId: plan.id,
+      level: 1,
+      price: "30",
+      percentage: "20",
+      alertArmed: true,
+    },
+    {
+      planId: plan.id,
+      level: 2,
+      price: "40",
+      percentage: "20",
+      reachedAt: new Date(),
+    },
+  ]);
+  const next = await assistantReport(db, "alice", [p.id], { kind: "next" });
+  expect(next.body).toContain("დარჩენილია 25%");
+  expect(next.body).toContain("დარჩენილია 50%");
+  expect(next.body).not.toContain("TP2");
+  const disabledWatch = await assistantReport(
+    db,
+    "alice",
+    [p.id],
+    { kind: "next" },
+    { buyEnabled: false, sellEnabled: false },
+  );
+  expect(disabledWatch.body).not.toContain("დარჩენილია 25%");
+  expect(disabledWatch.body).toContain("დარჩენილია 50%");
+  const alerts = await assistantReport(db, "alice", [p.id], { kind: "alerts" });
+  expect(alerts.body).toContain("TP2");
+  expect(alerts.body).toContain("მიღწეული");
+  await testDb
+    .update(schema.marketQuotes)
+    .set({ quotedAt: new Date(Date.now() - 3600000) })
+    .where(eq(schema.marketQuotes.assetId, "btc"));
+  const stale = await assistantReport(db, "alice", [p.id], { kind: "next" });
+  expect(stale.body).not.toContain("დარჩენილია");
+  const denied = await assistantReport(db, "bob", [p.id], {
+    kind: "portfolio",
+  });
+  expect(denied.body).not.toContain("$200");
+  await testDb
+    .delete(schema.marketQuotes)
+    .where(eq(schema.marketQuotes.assetId, "btc"));
+});
+
+it("limits history to five, keeps explicit scope and unknown valuation, and offers safe links", async () => {
+  const first = await portfolio();
+  const second = await portfolio();
+  await testDb
+    .update(schema.portfolios)
+    .set({ name: "მეორე & <პორტფელი>" })
+    .where(eq(schema.portfolios.id, second.id));
+  const now = Date.now();
+  for (let i = 0; i < 6; i++)
+    await testDb.insert(schema.transactions).values({
+      id: crypto.randomUUID(),
+      portfolioId: second.id,
+      assetId: "btc",
+      kind: "deposit",
+      quantity: "1",
+      price: null,
+      sequence: i + 1,
+      occurredAt: new Date(now - 60000 + i * 1000),
+    });
+  const history = await assistantReport(db, "alice", [first.id, second.id], {
+    kind: "transactions",
+    portfolio: 2,
+  });
+  expect(history.body.split("შეტანა").length - 1).toBe(5);
+  expect(history.links?.[0][0].url).toContain(second.id);
+  const summary = await assistantReport(db, "alice", [first.id, second.id], {
+    kind: "portfolio",
+    portfolio: 2,
+  });
+  expect(summary.body).toContain("მეორე & <პორტფელი>");
+  expect(summary.body).toContain("ცნობილი ღირებულება");
+  expect(summary.body).toContain("სრული P/L: —");
+  const choose = await assistantReport(db, "alice", [first.id, second.id], {
+    kind: "choose",
+  });
+  expect(choose.keyboard).toContainEqual(["/portfolio 2"]);
+  expect(
+    (
+      await assistantReport(db, "alice", [first.id], {
+        kind: "portfolio",
+        portfolio: 2,
+      })
+    ).body,
+  ).toContain("პორტფელი ვერ მოიძებნა");
+});
+
 async function crossing(pid: string) {
   const watch = watchlistService(db, "alice");
   await watch.save({

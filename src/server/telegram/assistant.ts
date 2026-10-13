@@ -1,19 +1,11 @@
+import { assistantReport } from "./assistant-report";
 import "server-only";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import type { Database } from "@/server/db";
-import {
-  assets,
-  exitLevels,
-  exitPlans,
-  portfolios,
-  telegramConnections,
-} from "@/server/db/schema";
-import { portfolioService } from "@/server/services/portfolio";
+import { telegramConnections } from "@/server/db/schema";
 import { consumeRateLimit } from "@/server/rate-limit";
-import { replayLedger } from "@/domain/ledger";
 import { parseTelegramCommand } from "@/domain/telegram-command";
-import { quantity, unitPrice } from "@/lib/formatters";
 import { sendTelegram } from "./api";
 
 const update = z.object({
@@ -32,7 +24,7 @@ const update = z.object({
   }),
 });
 const help =
-  "პორტფელის ასისტენტი\n\n/position XLM — რაოდენობა\n/plan STRK — გაყიდვის გეგმა\n\nასევე: „რამდენი XLM მაქვს?“ ან „მაჩვენე STRK-ის გაყიდვის გეგმა“.\nმხოლოდ Telegram-ში არჩეული ხელით სამართავი პორტფელები. მონაცემები არ იცვლება.";
+  "პორტფელის ასისტენტი\n\n/position XLM — რაოდენობა\n/plan STRK — გაყიდვის გეგმა\n/sales XLM — გაყიდვების შედეგი\n/portfolio — ანგარიში\n/alerts — ალერტები\n/next — უახლოესი სამიზნეები\n/transactions — ბოლო ჩანაწერები\n/choose — პორტფელის არჩევა\n\nასევე: „რამდენი XLM მაქვს?“ ან „მაჩვენე STRK-ის გაყიდვის გეგმა“.\nმხოლოდ Telegram-ში არჩეული ხელით სამართავი პორტფელები. მონაცემები არ იცვლება.";
 
 export async function replyTelegramAssistant(db: Database, input: unknown) {
   const parsed = update.safeParse(input);
@@ -66,82 +58,26 @@ export async function replyTelegramAssistant(db: Database, input: unknown) {
   )
     return;
   const command = parseTelegramCommand(message.text);
-  let body = help;
-  if (command && command.kind !== "help") {
-    const owned = await db
-      .select()
-      .from(portfolios)
-      .where(
-        and(
-          eq(portfolios.userId, connection.userId),
-          inArray(
-            portfolios.id,
-            connection.portfolioIds.length
-              ? connection.portfolioIds
-              : ["00000000-0000-0000-0000-000000000000"],
-          ),
-        ),
-      )
-      .orderBy(asc(portfolios.createdAt));
-    const matching = (await db.select().from(assets)).filter(
-      (a) => a.symbol.toUpperCase() === command.symbol,
-    );
-    if (matching.length !== 1)
-      body = matching.length
-        ? "სიმბოლო რამდენიმე აქტივს ეკუთვნის. გახსენით აპი აქტივის ზუსტად ასარჩევად."
-        : "აქტივი ვერ მოიძებნა. გადაამოწმეთ სიმბოლო.";
-    else {
-      const asset = matching[0];
-      const sections: string[] = [];
-      for (const portfolio of owned.slice(0, 10)) {
-        const entries = await portfolioService(db, connection.userId).entries(
-          portfolio.id,
-        );
-        const holding = replayLedger(
-          entries.filter((e) => new Date(e.occurredAt).getTime() <= Date.now()),
-        ).holdings.find((h) => h.assetId === asset.id);
-        if (!holding) continue;
-        if (command.kind === "position")
-          sections.push(
-            `${portfolio.name.slice(0, 100)}\n${quantity(holding.quantity)} ${asset.symbol}`,
-          );
-        else {
-          const [plan] = await db
-            .select()
-            .from(exitPlans)
-            .where(
-              and(
-                eq(exitPlans.portfolioId, portfolio.id),
-                eq(exitPlans.assetId, asset.id),
-              ),
-            );
-          const levels = plan
-            ? await db
-                .select()
-                .from(exitLevels)
-                .where(eq(exitLevels.planId, plan.id))
-                .orderBy(asc(exitLevels.level))
-            : [];
-          sections.push(
-            `${portfolio.name.slice(0, 100)}\n${quantity(holding.quantity)} ${asset.symbol}\n${
-              levels.length
-                ? levels
-                    .slice(0, 20)
-                    .map(
-                      (l) =>
-                        `TP${l.level} · ${unitPrice(l.price)} · ${quantity(l.percentage)}%${l.reachedAt ? " · მიღწეული" : ""}`,
-                    )
-                    .join("\n")
-                : "გაყიდვის გეგმა არ არის."
-            }`,
-          );
-        }
-      }
-      body = sections.length
-        ? `${asset.symbol}${command.kind === "plan" ? " · გაყიდვის გეგმა" : ""}\n\n${sections.join("\n\n")}\n\n${command.kind === "plan" ? "გეგმაა, არა ბირჟის ორდერი. ავტომატური გაყიდვა არ ხდება." : "აღრიცხული რაოდენობა · ბირჟის ცოცხალი ნაშთი არ არის."}`
-        : "არჩეულ ხელით სამართავ პორტფელებში ეს პოზიცია არ არის.";
-    }
-  }
+  const response =
+    command && command.kind !== "help"
+      ? await assistantReport(
+          db,
+          connection.userId,
+          connection.portfolioIds,
+          command,
+          {
+            buyEnabled: connection.buyEnabled,
+            sellEnabled: connection.sellEnabled,
+          },
+        )
+      : {
+          body: help,
+          keyboard: [
+            ["/portfolio", "/choose"],
+            ["/alerts", "/next"],
+            ["/transactions", "/help"],
+          ],
+        };
   const [current] = await db
     .select()
     .from(telegramConnections)
@@ -156,8 +92,11 @@ export async function replyTelegramAssistant(db: Database, input: unknown) {
     return;
   await sendTelegram(
     connection.chatId!,
-    body.length <= 4000
-      ? body
-      : "მონაცემები შეტყობინებაში არ ეტევა. სრული გეგმა ნახეთ აპში.",
+    response.body,
+    undefined,
+    undefined,
+    "links" in response
+      ? { links: response.links }
+      : { keyboard: response.keyboard },
   );
 }
