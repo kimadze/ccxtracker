@@ -1,11 +1,39 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import { Client } from "pg";
 test("admin sections fit responsive sizes, preserve AI controls and deny other users", async ({
   page,
 }, info) => {
   test.setTimeout(120000);
   const cookies = JSON.parse(await readFile(".local/e2e-cookies.json", "utf8"));
   const owner = `alice-${info.project.name}`;
+  const db = new Client({
+    connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
+  });
+  await db.connect();
+  try {
+    for (const [index, error] of [
+      null,
+      "BOT_BLOCKED",
+      "TELEGRAM_429",
+      "CANCELLED",
+      "EXPIRED",
+      "DELIVERY_FAILED",
+      null,
+    ].entries()) {
+      await db.query(
+        "INSERT INTO telegram_digests(user_id,generation,day,portfolio_ids,attempts,last_error,sent_at) VALUES ($1,gen_random_uuid(),$2,'[]',1,$3,$4)",
+        [
+          owner,
+          `2026-10-${String(index + 1).padStart(2, "0")}`,
+          error,
+          index === 0 ? new Date() : null,
+        ],
+      );
+    }
+  } finally {
+    await db.end();
+  }
   await page.context().addCookies([
     {
       name: "better-auth.session_token",
@@ -21,6 +49,18 @@ test("admin sections fit responsive sizes, preserve AI controls and deny other u
       await expect(
         page.getByRole("heading", { name: "ადმინისტრირება", exact: true }),
       ).toBeVisible();
+      if (tab === "notifications") {
+        await expect(
+          page.getByText("ბოტი დაბლოკილია", { exact: true }).first(),
+        ).toBeVisible();
+        await expect(
+          page.getByText("გაგზავნილია", { exact: true }).first(),
+        ).toHaveClass(/badge-success/);
+        await expect(
+          page.getByText("ხელახალი ცდა დაგეგმილია", { exact: true }).first(),
+        ).toHaveClass(/badge-dash/);
+        await expect(page.getByText("EXPIRED", { exact: true })).toHaveCount(0);
+      }
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth,

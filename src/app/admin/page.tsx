@@ -10,6 +10,8 @@ import { telegramConfigured } from "@/server/telegram/api";
 import { AdminControls, AdminOperation } from "@/components/admin-controls";
 import { Brand } from "@/components/brand";
 import { dateTime } from "@/lib/formatters";
+import { AdminStatusBadge } from "@/components/admin-status";
+import { deliveryStatus, type AdminStatus } from "@/lib/admin-presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "ადმინისტრირება — CCX",
@@ -112,29 +114,55 @@ export default async function AdminPage({
           <div className="grid gap-3 md:grid-cols-2">
             <Panel title="მდგომარეობა">
               <ul className="list divide-y divide-base-300 text-sm">
-                {[
-                  ["ფასის ალერტები", alertOk ? "მუშაობს" : "შემოწმება საჭიროა"],
+                {(
                   [
-                    "Telegram",
-                    telegramConfigured() ? "მომზადებულია" : "არ არის გამართული",
-                  ],
-                  [
-                    "AI",
-                    aiConfigured()
-                      ? data.controls.aiEnabled
-                        ? "ჩართულია"
-                        : "გამორთულია"
-                      : "გასაღები არ არის გამართული",
-                  ],
-                ].map(([label, status]) => (
-                  <li
-                    key={label}
-                    className="flex min-h-11 items-center justify-between gap-3 py-2"
-                  >
-                    <span>{label}</span>
-                    <span className="badge badge-outline h-auto py-1">
-                      {status}
-                    </span>
+                    {
+                      name: "ფასის ალერტები",
+                      label: alertOk ? "ახლახან შემოწმდა" : "შემოწმება საჭიროა",
+                      tone: alertOk ? "success" : "warning",
+                      pending: !alertOk,
+                      detail: alertOk
+                        ? undefined
+                        : "ბოლო 15 წუთში სრული შემოწმება არ დაფიქსირებულა. გადაამოწმე გარე scheduler-ის გაშვებები.",
+                    },
+                    {
+                      name: "Telegram",
+                      label: telegramConfigured()
+                        ? "კონფიგურაცია მზადაა"
+                        : "კონფიგურაცია აკლია",
+                      tone: telegramConfigured() ? "info" : "error",
+                      detail: telegramConfigured()
+                        ? "მიწოდების შედეგი იხილე შეტყობინებებში."
+                        : "Vercel-ში გადაამოწმე ბოტის username, token და webhook secret; შემდეგ გაუშვი Redeploy.",
+                    },
+                    {
+                      name: "AI",
+                      label: !aiConfigured()
+                        ? "გასაღები აკლია"
+                        : data.controls.aiEnabled
+                          ? "ჩართულია"
+                          : "გამორთულია",
+                      tone: !aiConfigured()
+                        ? "error"
+                        : data.controls.aiEnabled
+                          ? "success"
+                          : "neutral",
+                      detail: !aiConfigured()
+                        ? "Vercel-ში დაამატე OPENAI_API_KEY და გაუშვი Redeploy."
+                        : undefined,
+                    },
+                  ] satisfies (AdminStatus & { name: string })[]
+                ).map(({ name, ...status }) => (
+                  <li key={name} className="space-y-1 py-2">
+                    <div className="flex min-h-11 items-center justify-between gap-3">
+                      <span>{name}</span>
+                      <AdminStatusBadge {...status} />
+                    </div>
+                    {status.detail && (
+                      <p className="text-xs text-base-content/60">
+                        {status.detail}
+                      </p>
+                    )}
                   </li>
                 ))}
                 <li className="py-2 text-xs text-base-content/60">
@@ -225,54 +253,59 @@ export default async function AdminPage({
         <Panel title="შეტყობინებები · ბოლო 50 ჩანაწერი">
           <ul className="list divide-y divide-base-300">
             {(await service.notifications()).map((row) => {
-              const cancelled =
-                  row.lastError === "CANCELLED" ||
-                  row.lastError === "BOT_BLOCKED",
-                stale =
-                  data.preparedAt.getTime() - row.createdAt.getTime() >
-                  6 * 3600000;
+              const status = deliveryStatus(row, data.preparedAt);
+              const retryable =
+                !row.sentAt &&
+                status.tone !== "neutral" &&
+                !["BOT_BLOCKED", "TELEGRAM_403"].includes(
+                  row.lastError ?? "",
+                ) &&
+                row.attempts > 0 &&
+                row.nextAttemptAt <= data.preparedAt;
               return (
                 <li
                   key={row.id}
                   className="flex flex-wrap items-center justify-between gap-3 py-3"
                 >
                   <div className="min-w-0 space-y-1 text-sm">
-                    <p className="font-medium">
-                      {
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium">
                         {
-                          watchlist: "ფასის ალერტი",
-                          digest: "დღიური ანგარიში",
-                          "take-profit": "Take Profit",
-                        }[row.kind]
-                      }{" "}
-                      ·{" "}
-                      {row.sentAt
-                        ? "გაგზავნილია"
-                        : cancelled
-                          ? "გაუქმებულია"
-                          : stale
-                            ? "ვადა გასულია"
-                            : row.attempts
-                              ? "ხელახალი ცდა"
-                              : "მოლოდინში"}
-                    </p>
+                          {
+                            watchlist: "ფასის ალერტი",
+                            digest: "დღიური ანგარიში",
+                            "take-profit": "Take Profit",
+                          }[row.kind]
+                        }
+                      </p>
+                      <AdminStatusBadge {...status} />
+                    </div>
                     <p className="text-xs text-base-content/60">
                       {dateTime(row.createdAt)} · ცდა {row.attempts}
-                      {row.lastError ? ` · ${row.lastError}` : ""}
                     </p>
-                  </div>
-                  {!row.sentAt &&
-                    !cancelled &&
-                    !stale &&
-                    row.attempts > 0 &&
-                    row.nextAttemptAt <= data.preparedAt && (
-                      <AdminOperation
-                        kind="retry"
-                        input={{ id: row.id, kind: row.kind }}
-                        label="ხელახალი ცდა"
-                        confirmation="ჩანაწერი ხელახალი გაგზავნის რიგში დაბრუნდება. თუ Telegram-მა წინა მოთხოვნა მიიღო, მაგრამ პასუხი დაიკარგა, შეტყობინება შეიძლება განმეორდეს. გაგრძელება?"
-                      />
+                    {status.detail && (
+                      <p className="max-w-2xl text-xs text-base-content/70">
+                        {status.detail}
+                      </p>
                     )}
+                    {!row.sentAt &&
+                      status.tone !== "neutral" &&
+                      status.label !== "ბოტი დაბლოკილია" &&
+                      row.nextAttemptAt > data.preparedAt && (
+                        <p className="text-xs text-base-content/60">
+                          შემდეგი ცდა შესაძლებელია {dateTime(row.nextAttemptAt)}
+                          -დან
+                        </p>
+                      )}
+                  </div>
+                  {retryable && (
+                    <AdminOperation
+                      kind="retry"
+                      input={{ id: row.id, kind: row.kind }}
+                      label="ხელახალი ცდა"
+                      confirmation="ჩანაწერი ხელახალი გაგზავნის რიგში დაბრუნდება. თუ Telegram-მა წინა მოთხოვნა მიიღო, მაგრამ პასუხი დაიკარგა, შეტყობინება შეიძლება განმეორდეს. გაგრძელება?"
+                    />
+                  )}
                 </li>
               );
             })}
@@ -293,14 +326,27 @@ export default async function AdminPage({
               >
                 <div className="min-w-0 text-sm">
                   <p className="break-all font-medium">{member.email}</p>
-                  <p className="text-xs text-base-content/60">
-                    {dateTime(member.createdAt)} ·{" "}
-                    {member.suspended
-                      ? "წვდომა შეჩერებულია"
-                      : isAdmin(member)
-                        ? "ადმინისტრატორი"
-                        : "აქტიური"}
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-base-content/60">
+                      {dateTime(member.createdAt)}
+                    </span>
+                    <AdminStatusBadge
+                      label={
+                        member.suspended
+                          ? "წვდომა შეჩერებულია"
+                          : isAdmin(member)
+                            ? "ადმინისტრატორი"
+                            : "აქტიური"
+                      }
+                      tone={
+                        member.suspended
+                          ? "error"
+                          : isAdmin(member)
+                            ? "primary"
+                            : "success"
+                      }
+                    />
+                  </div>
                 </div>
                 {!isAdmin(member) && (
                   <AdminOperation

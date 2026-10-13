@@ -167,6 +167,9 @@ it("does not retry sent, cancelled or expired reports; accepted retry only queue
     { sentAt: new Date() },
     { lastError: "CANCELLED" },
     { lastError: "BOT_BLOCKED" },
+    { lastError: "TELEGRAM_403" },
+    { lastError: "PREFERENCES_CHANGED" },
+    { lastError: "EXPIRED" },
     { createdAt: new Date(Date.now() - 7 * 3600000) },
     { nextAttemptAt: new Date(Date.now() + 60000) },
   ]) {

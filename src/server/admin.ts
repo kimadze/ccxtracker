@@ -233,7 +233,13 @@ export function adminService(db: Database, actor: AdminActor) {
           row.nextAttemptAt > now ||
           now.getTime() - row.createdAt.getTime() > 6 * 3600000 ||
           ("lastError" in row &&
-            ["CANCELLED", "BOT_BLOCKED"].includes(row.lastError ?? ""))
+            [
+              "CANCELLED",
+              "BOT_BLOCKED",
+              "PREFERENCES_CHANGED",
+              "TELEGRAM_403",
+              "EXPIRED",
+            ].includes(row.lastError ?? ""))
         )
           throw new Error("RETRY_UNAVAILABLE");
         await tx

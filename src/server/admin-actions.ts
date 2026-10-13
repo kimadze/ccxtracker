@@ -6,6 +6,7 @@ import { isAdmin } from "./admin-access";
 import { getDb } from "./db";
 import { adminService } from "./admin";
 import { consumeRateLimit } from "./rate-limit";
+import { adminErrorMessage } from "@/lib/admin-presentation";
 
 export async function adminAction(
   kind: "controls" | "suspend" | "retry",
@@ -26,10 +27,10 @@ export async function adminAction(
     else return { ok: false, error: "მოქმედება მიუწვდომელია." };
     revalidatePath("/admin");
     return { ok: true, error: null };
-  } catch {
+  } catch (error) {
     return {
       ok: false,
-      error: "მოქმედება ვერ შესრულდა. გადაამოწმე მდგომარეობა და სცადე ხელახლა.",
+      error: adminErrorMessage(error),
     };
   }
 }

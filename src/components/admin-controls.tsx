@@ -17,6 +17,7 @@ export function AdminControls({
     [globalLimit, setGlobalLimit] = useState(String(initial.globalDailyLimit));
   const [pending, start] = useTransition(),
     [message, setMessage] = useState("");
+  const [failed, setFailed] = useState(false);
   const router = useRouter();
   return (
     <form
@@ -25,13 +26,21 @@ export function AdminControls({
         event.preventDefault();
         setMessage("");
         start(async () => {
-          const result = await adminAction("controls", {
-            aiEnabled: enabled,
-            userDailyLimit: Number(userLimit),
-            globalDailyLimit: Number(globalLimit),
-          });
-          setMessage(result.ok ? "პარამეტრები შენახულია." : result.error!);
-          if (result.ok) router.refresh();
+          try {
+            const result = await adminAction("controls", {
+              aiEnabled: enabled,
+              userDailyLimit: Number(userLimit),
+              globalDailyLimit: Number(globalLimit),
+            });
+            setMessage(result.ok ? "პარამეტრები შენახულია." : result.error!);
+            setFailed(!result.ok);
+            if (result.ok) router.refresh();
+          } catch {
+            setFailed(true);
+            setMessage(
+              "სერვერთან კავშირი ვერ დამყარდა. ველები შენარჩუნებულია; სცადე ხელახლა.",
+            );
+          }
         });
       }}
     >
@@ -83,7 +92,14 @@ export function AdminControls({
           {pending ? "ინახება…" : "შენახვა"}
         </button>
       </fieldset>
-      <p role="status" className="mt-2 text-sm">
+      <p
+        role="status"
+        className={
+          message
+            ? `alert alert-soft mt-2 text-sm ${failed ? "alert-error" : "alert-success"}`
+            : "sr-only"
+        }
+      >
         {message}
       </p>
     </form>
@@ -103,6 +119,7 @@ export function AdminOperation({
 }) {
   const [pending, start] = useTransition(),
     [message, setMessage] = useState("");
+  const [failed, setFailed] = useState(false);
   const router = useRouter();
   return (
     <div className="min-w-0">
@@ -111,16 +128,38 @@ export function AdminOperation({
         disabled={pending}
         onClick={() => {
           if (!window.confirm(confirmation)) return;
+          setMessage("");
           start(async () => {
-            const result = await adminAction(kind, input);
-            setMessage(result.ok ? "შესრულებულია." : result.error!);
-            if (result.ok) router.refresh();
+            try {
+              const result = await adminAction(kind, input);
+              setMessage(
+                result.ok
+                  ? kind === "retry"
+                    ? "ჩანაწერი დაბრუნდა გაგზავნის რიგში."
+                    : "წვდომის მდგომარეობა განახლდა."
+                  : result.error!,
+              );
+              setFailed(!result.ok);
+              if (result.ok) router.refresh();
+            } catch {
+              setFailed(true);
+              setMessage(
+                "სერვერთან კავშირი ვერ დამყარდა. განაახლე სია და გადაამოწმე შედეგი ხელახალ ცდამდე.",
+              );
+            }
           });
         }}
       >
         {pending ? "მუშავდება…" : label}
       </button>
-      <p role="status" className="mt-1 text-xs">
+      <p
+        role="status"
+        className={
+          message
+            ? `alert alert-soft mt-2 max-w-md text-xs ${failed ? "alert-error" : "alert-success"}`
+            : "sr-only"
+        }
+      >
         {message}
       </p>
     </div>
