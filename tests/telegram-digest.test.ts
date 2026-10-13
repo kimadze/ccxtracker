@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { beforeAll, beforeEach, afterAll, expect, it, vi } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
@@ -9,6 +10,7 @@ import {
   digestClock,
   enqueueDailyDigests,
   processDailyDigests,
+  collectDailyDigest,
 } from "@/server/telegram/digest";
 import { telegramService } from "@/server/telegram/service";
 const client = new PGlite(),
@@ -46,6 +48,8 @@ beforeAll(async () => {
 }, 60000);
 beforeEach(async () => {
   await testDb.delete(schema.telegramDigests);
+  await testDb.delete(schema.transactions);
+  await testDb.delete(schema.snapshots);
   await testDb.delete(schema.telegramConnections);
   await testDb.insert(schema.telegramConnections).values({
     userId: "owner",
@@ -144,91 +148,85 @@ it("retries a failed delivery without rebuilding or duplicating a completed dige
   expect(await processDailyDigests(db, now)).toEqual({ sent: 1, failed: 0 });
   await processDailyDigests(db, now);
   expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(JSON.parse(fetcher.mock.calls[0][1].body).text).toBe(
+    JSON.parse(fetcher.mock.calls[1][1].body).text,
+  );
 });
 
 it("rebuilds legacy cached reports and sends HTML only for the daily report", async () => {
   await enqueueDailyDigests(db, now);
   await testDb
     .update(schema.telegramDigests)
-    .set({ body: "დღიური შეჯამება · ძველი" });
+    .set({ body: "<b>დღიური ანგარიში · ძველი</b>\nსრული P/L: $10" });
   await processDailyDigests(db, now);
   const payload = JSON.parse(fetcher.mock.calls[0][1].body);
   expect(payload.parse_mode).toBe("HTML");
   expect(payload.text).toContain("<b>დღიური ანგარიში");
   expect(payload.text).not.toContain("ძველი");
 });
-
-it("collects reached alerts within the Tbilisi day and deduplicates delivery/current state", async () => {
+it("uses only owned midnight valuations, adjusts cash funding and omits alert lists", async () => {
   await testDb
     .insert(schema.assets)
     .values({
-      id: "digest-xlm",
-      symbol: "XLM",
-      name: "Stellar",
-      providerId: "stellar",
+      id: "USD",
+      symbol: "USD",
+      name: "US Dollar",
+      providerId: "usd",
+      isStablecoin: true,
     })
     .onConflictDoNothing();
-  const [item] = await testDb
-    .insert(schema.watchlistItems)
-    .values({
+  await testDb.insert(schema.transactions).values([
+    {
+      id: randomUUID(),
       portfolioId: pid,
-      assetId: "digest-xlm",
-      entryPrice: "0.1",
-      exitPrice: "0.2",
-      targetReachedAt: new Date("2026-10-11T20:00:00Z"),
-      targetReachedPrice: "0.09",
-      sellTargetReachedAt: new Date("2026-10-12T17:02:00Z"),
-      sellTargetReachedPrice: "0.21",
-    })
-    .returning();
-  const [connection] = await testDb.select().from(schema.telegramConnections);
-  await testDb.insert(schema.telegramDeliveries).values({
-    userId: "owner",
-    generation: connection.generation,
-    watchlistId: item.id,
-    side: "buy",
-    reachedAt: item.targetReachedAt!,
-    target: "0.1",
-    price: "0.09",
+      assetId: "USD",
+      kind: "deposit",
+      quantity: "1000",
+      price: null,
+      fee: "0",
+      sequence: 1,
+      occurredAt: new Date("2026-10-11T10:00:00Z"),
+    },
+    {
+      id: randomUUID(),
+      portfolioId: pid,
+      assetId: "USD",
+      kind: "deposit",
+      quantity: "500",
+      price: null,
+      fee: "0",
+      sequence: 2,
+      occurredAt: new Date("2026-10-12T06:00:00Z"),
+    },
+  ]);
+  await testDb.insert(schema.snapshots).values({
+    portfolioId: pid,
+    day: "2026-10-11",
+    capturedAt: new Date("2026-10-11T20:00:00Z"),
+    value: "1000",
+    cash: "1000",
+    revision: 1,
   });
-  const [plan] = await testDb
-    .insert(schema.exitPlans)
-    .values({ portfolioId: pid, assetId: "digest-xlm" })
-    .returning();
-  await testDb.insert(schema.exitLevels).values(
-    [1, 2].map((level) => ({
-      planId: plan.id,
-      level,
-      price: String(level),
-      percentage: "20",
-      reachedAt: new Date("2026-10-12T16:00:00Z"),
-      reachedPrice: "2.1",
-    })),
-  );
-  await testDb
-    .insert(schema.takeProfitDeliveries)
-    .values({
-      planId: plan.id,
-      generation: plan.alertGeneration,
-      connectionGeneration: connection.generation,
-      reachedAt: new Date("2026-10-12T16:00:00Z"),
-      price: "2.1",
-      levels: [1, 2].map((level) => ({
-        level,
-        price: String(level),
-        percentage: "20",
-        quantity: "10",
-      })),
-    });
+  await enqueueDailyDigests(db, now);
+  const [job] = await testDb.select().from(schema.telegramDigests);
+  const report = await collectDailyDigest(db, job, now);
+  expect(report.portfolios[0].change).toMatchObject({
+    amount: "0",
+    percent: "0",
+    from: "2026-10-11T20:00:00.000Z",
+  });
+  expect(report.portfolios[0].summary.value).toBe("1500");
   await processDailyDigests(db, now);
-  const payload = JSON.parse(fetcher.mock.calls[0][1].body);
-  expect(payload.text.match(/ვარდნა ↓/g)).toHaveLength(1);
-  expect(payload.text).not.toContain("ზრდა ↑");
-  expect(payload.text.match(/TP1/g)).toHaveLength(1);
-  expect(payload.text.match(/TP2/g)).toHaveLength(1);
-  expect(payload.text).toContain("სამიზნე $0,1 · დაფიქსირდა $0,09 · 00:00");
-  await testDb
-    .delete(schema.watchlistItems)
-    .where(eq(schema.watchlistItems.id, item.id));
-  await testDb.delete(schema.exitPlans).where(eq(schema.exitPlans.id, plan.id));
+  const text = JSON.parse(fetcher.mock.calls[0][1].body).text;
+  expect(text).toContain("დღის შედეგი · 00:00–21:01: <b>$0,00 · 0%</b>");
+  expect(text).toContain("პორტფელის ღირებულება: <b>$1 500,00</b>");
+  expect(text).not.toContain("ალერტი");
+  expect(text).not.toContain("P/L");
+});
+it("shows unavailable change when the midnight valuation is missing", async () => {
+  await enqueueDailyDigests(db, now);
+  const [job] = await testDb.select().from(schema.telegramDigests);
+  expect(
+    (await collectDailyDigest(db, job, now)).portfolios[0].change,
+  ).toMatchObject({ amount: null, reason: "დღის საწყისი შეფასება არ გვაქვს" });
 });

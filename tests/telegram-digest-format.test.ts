@@ -3,28 +3,59 @@ import { replayLedger } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
 import {
   formatDailyDigest,
+  isCurrentDigest,
   type DigestData,
 } from "@/server/telegram/digest-format";
-
 const empty = valuePortfolio(replayLedger([]), [], []);
 const base: DigestData = {
   day: "2026-10-12",
   preparedAt: new Date("2026-10-12T17:01:00Z"),
   portfolios: [
-    { id: "p", name: "ჩემი <პორტფელი> & მეგობრები", summary: empty },
+    {
+      id: "p",
+      name: "ჩემი <პორტფელი> & მეგობრები",
+      summary: empty,
+      change: {
+        amount: "125.4",
+        percent: "2.8",
+        from: "2026-10-11T20:00:00Z",
+        reason: null,
+      },
+    },
   ],
-  alerts: [],
 };
-it("formats an empty portfolio compactly and escapes HTML", () => {
+it("shows only daily result and value, escapes names and retains the exact period", () => {
   const body = formatDailyDigest(base);
   expect(body).toContain("დღიური ანგარიში · 12 ოქტომბერი");
   expect(body).toContain("&lt;პორტფელი&gt; &amp; მეგობრები");
-  expect(body).toContain("დღეს ალერტი არ ამოქმედებულა");
-  expect(body).toContain("00:00–21:01");
-  expect(body).not.toContain("რეალიზებული");
-  expect(body).not.toContain("ცვლილება");
+  expect(body).toContain("დღის შედეგი · 00:00–21:01: <b>+$125,40 · +2,8%</b>");
+  expect(body).toContain("პორტფელის ღირებულება: <b>$0,00</b>");
+  for (const term of ["ალერტი", "რეალიზებული", "სრული P/L", "Luna"])
+    expect(body).not.toContain(term);
+  expect(isCurrentDigest(body)).toBe(true);
+  expect(
+    isCurrentDigest("<b>დღიური ანგარიში · ძველი</b>\nსრული P/L: $10"),
+  ).toBe(false);
 });
-it("distinguishes incomplete, stale and unknown basis without inventing P/L", () => {
+it("shows loss and unknown percentage without claiming a return on zero capital", () => {
+  const body = formatDailyDigest({
+    ...base,
+    portfolios: [
+      {
+        ...base.portfolios[0],
+        change: {
+          amount: "-25",
+          percent: null,
+          from: base.portfolios[0].change.from,
+          reason: null,
+        },
+      },
+    ],
+  });
+  expect(body).toContain("<b>-$25,00</b>");
+  expect(body).not.toContain("%");
+});
+it("distinguishes missing baseline, incomplete and stale values", () => {
   const body = formatDailyDigest({
     ...base,
     portfolios: [
@@ -36,68 +67,31 @@ it("distinguishes incomplete, stale and unknown basis without inventing P/L", ()
           stale: true,
           value: null,
           knownValue: "23.5",
-          costBasis: null,
-          totalPnl: null,
+        },
+        change: {
+          amount: null,
+          percent: null,
+          from: null,
+          reason: "ფასები არასრულია",
         },
       },
     ],
   });
+  expect(body).toContain("დღის შედეგი: <b>—</b>");
   expect(body).toContain("ცნობილი ღირებულება: <b>$23,50</b>");
-  expect(body).toContain("სრული P/L: <b>—</b>");
-  expect(body).toContain(
-    "ფასები არასრულია · ფასები მოძველებულია · თვითღირებულება უცნობია",
-  );
+  expect(body).toContain("ფასები არასრულია · ფასები მოძველებულია");
+  expect(body.match(/ფასები არასრულია/g)).toHaveLength(1);
 });
-it("does not treat a closed position with realized profit as an empty portfolio", () => {
-  const body = formatDailyDigest({
-    ...base,
-    portfolios: [
-      {
-        ...base.portfolios[0],
-        summary: {
-          ...empty,
-          realizedPnl: "125",
-          totalPnl: "125",
-        },
-      },
-    ],
-  });
-  expect(body).toContain("რეალიზებული · მთელი ისტორია: $125,00");
-  expect(body).toContain("სრული P/L: <b>$125,00</b>");
-});
-it("shows five newest events, grouped by portfolio, with exact small prices and remaining count", () => {
-  const body = formatDailyDigest({
-    ...base,
-    alerts: Array.from({ length: 7 }, (_, i) => ({
-      portfolioId: "p",
-      symbol: "XLM",
-      kind: i % 2 ? "ზრდა ↑" : `TP${i + 1}`,
-      target: "0.0000000012",
-      price: "0.0000000013",
-      at: new Date(`2026-10-12T17:0${i}:00Z`),
-    })),
-  });
-  expect(body).toContain("TP7");
-  expect(body).not.toContain("TP1");
-  expect(body).toContain("კიდევ 2");
-  expect(body).toContain("სამიზნე $0,0000000012 · დაფიქსირდა $0,0000000013");
-});
-it("bounds long reports at complete HTML blocks", () => {
+it("keeps complete HTML blocks within Telegram limits", () => {
   const body = formatDailyDigest({
     ...base,
     portfolios: Array.from({ length: 10 }, (_, i) => ({
+      ...base.portfolios[0],
       id: String(i),
       name: "<&>".repeat(80),
-      summary: {
-        ...empty,
-        cash: "100000",
-        value: "100000",
-        realizedPnl: "-5000",
-        totalPnl: "-5000",
-      },
     })),
   });
   expect(body.length).toBeLessThan(3800);
   expect(body.match(/<b>/g)?.length).toBe(body.match(/<\/b>/g)?.length);
-  expect(body).toContain("დანარჩენი დეტალები იხილე აპში.");
+  expect(body).toContain("დანარჩენი პორტფელები იხილე აპში.");
 });

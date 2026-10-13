@@ -17,22 +17,15 @@ import {
   telegramDigests,
   portfolios,
   transactions,
-  watchlistItems,
-  exitPlans,
-  exitLevels,
-  telegramDeliveries,
-  takeProfitDeliveries,
+  snapshots,
 } from "@/server/db/schema";
 import { toLedger } from "@/server/services/portfolio";
 import { replayLedger } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
+import { dailyChange } from "@/domain/daily-change";
 import { decimal } from "@/domain/decimal";
 import { getQuotes } from "@/server/market";
-import {
-  DIGEST_PREFIX,
-  formatDailyDigest,
-  type DigestAlert,
-} from "./digest-format";
+import { isCurrentDigest, formatDailyDigest } from "./digest-format";
 import {
   sendTelegram,
   telegramConfigured,
@@ -136,7 +129,12 @@ export async function collectDailyDigest(db: Database, job: Job, now: Date) {
   const entries = await db
     .select()
     .from(transactions)
-    .where(inArray(transactions.portfolioId, job.portfolioIds))
+    .where(
+      and(
+        inArray(transactions.portfolioId, job.portfolioIds),
+        lte(transactions.occurredAt, now),
+      ),
+    )
     .orderBy(asc(transactions.occurredAt), asc(transactions.sequence));
   const ids = [
     ...new Set(entries.flatMap((e) => [e.assetId, e.settlementAssetId])),
@@ -157,138 +155,46 @@ export async function collectDailyDigest(db: Database, job: Job, now: Date) {
   );
   const quotes = await getQuotes(held, { mode: "blocking" });
   const start = new Date(`${job.day}T00:00:00+04:00`);
-  const watch = await db
+  const baselines = await db
     .select()
-    .from(watchlistItems)
-    .where(inArray(watchlistItems.portfolioId, job.portfolioIds));
-  const levels = await db
-    .select({ level: exitLevels, plan: exitPlans })
-    .from(exitLevels)
-    .innerJoin(exitPlans, eq(exitPlans.id, exitLevels.planId))
-    .where(inArray(exitPlans.portfolioId, job.portfolioIds));
-  const deliveries = await db
-    .select({ delivery: telegramDeliveries, item: watchlistItems })
-    .from(telegramDeliveries)
-    .innerJoin(
-      watchlistItems,
-      eq(watchlistItems.id, telegramDeliveries.watchlistId),
-    )
+    .from(snapshots)
     .where(
       and(
-        eq(telegramDeliveries.userId, job.userId),
-        inArray(watchlistItems.portfolioId, job.portfolioIds),
-        gte(telegramDeliveries.reachedAt, start),
-        lte(telegramDeliveries.reachedAt, now),
+        inArray(snapshots.portfolioId, job.portfolioIds),
+        gte(snapshots.capturedAt, start),
+        lte(
+          snapshots.capturedAt,
+          new Date(Math.min(now.getTime(), start.getTime() + 3600000)),
+        ),
       ),
     );
-  const tp = await db
-    .select({ delivery: takeProfitDeliveries, plan: exitPlans })
-    .from(takeProfitDeliveries)
-    .innerJoin(exitPlans, eq(exitPlans.id, takeProfitDeliveries.planId))
-    .where(
-      and(
-        inArray(exitPlans.portfolioId, job.portfolioIds),
-        gte(takeProfitDeliveries.reachedAt, start),
-        lte(takeProfitDeliveries.reachedAt, now),
-      ),
-    );
-  const alertAssetIds = [
-    ...new Set([
-      ...watch.map((w) => w.assetId),
-      ...levels.map((l) => l.plan.assetId),
-      ...tp.map((d) => d.plan.assetId),
-    ]),
-  ];
-  const alertAssets = alertAssetIds.length
-    ? await db.select().from(assets).where(inArray(assets.id, alertAssetIds))
-    : [];
-  const alerts = new Map<string, DigestAlert>();
-  const add = (
-    key: string,
-    portfolioId: string,
-    assetId: string,
-    kind: string,
-    target: string | null,
-    price: string | null,
-    at: Date | null,
-  ) => {
-    if (!at || at < start || at > now || alerts.has(key)) return;
-    alerts.set(key, {
-      portfolioId,
-      symbol: alertAssets.find((a) => a.id === assetId)?.symbol ?? assetId,
-      kind,
-      target,
-      price,
-      at,
-    });
-  };
-  // Durable payloads retain original targets after editing. Current states cover in-app-only alerts.
-  for (const { delivery: d, item: w } of deliveries)
-    add(
-      `w:${w.id}:${d.side}:${d.reachedAt.toISOString()}`,
-      w.portfolioId,
-      w.assetId,
-      d.side === "buy" ? "ვარდნა ↓" : "ზრდა ↑",
-      d.target,
-      d.price,
-      d.reachedAt,
-    );
-  for (const w of watch) {
-    if (w.targetReachedAt)
-      add(
-        `w:${w.id}:buy:${w.targetReachedAt.toISOString()}`,
-        w.portfolioId,
-        w.assetId,
-        "ვარდნა ↓",
-        w.entryPrice,
-        w.targetReachedPrice,
-        w.targetReachedAt,
-      );
-    if (w.sellTargetReachedAt)
-      add(
-        `w:${w.id}:sell:${w.sellTargetReachedAt.toISOString()}`,
-        w.portfolioId,
-        w.assetId,
-        "ზრდა ↑",
-        w.exitPrice,
-        w.sellTargetReachedPrice,
-        w.sellTargetReachedAt,
-      );
-  }
-  for (const { delivery: d, plan } of tp)
-    for (const l of d.levels)
-      add(
-        `tp:${plan.id}:${l.level}:${d.reachedAt.toISOString()}`,
-        plan.portfolioId,
-        plan.assetId,
-        `TP${l.level}`,
-        l.price,
-        d.price,
-        d.reachedAt,
-      );
-  for (const { level: l, plan } of levels)
-    if (l.reachedAt)
-      add(
-        `tp:${plan.id}:${l.level}:${l.reachedAt.toISOString()}`,
-        plan.portfolioId,
-        plan.assetId,
-        `TP${l.level}`,
-        l.price,
-        l.reachedPrice,
-        l.reachedAt,
-      );
   return {
     day: job.day,
     preparedAt: now,
-    portfolios: selected.map((p) => ({
-      id: p.id,
-      name: p.name,
-      summary: valuePortfolio(ledgerById.get(p.id)!, allAssets, quotes),
-    })),
-    alerts: [...alerts.values()],
+    portfolios: selected.map((p) => {
+      const summary = valuePortfolio(ledgerById.get(p.id)!, allAssets, quotes);
+      const baseline = baselines
+        .filter((s) => s.portfolioId === p.id)
+        .sort(
+          (a, b) =>
+            Math.abs(a.capturedAt.getTime() - start.getTime()) -
+            Math.abs(b.capturedAt.getTime() - start.getTime()),
+        )[0];
+      return {
+        id: p.id,
+        name: p.name,
+        summary,
+        change: dailyChange(
+          summary,
+          baseline,
+          entries.filter((e) => e.portfolioId === p.id).map(toLedger),
+          start,
+          now,
+        ),
+      };
+    }),
   };
 }
-
 export async function processDailyDigests(
   db: Database = getDb(),
   now = new Date(),
@@ -335,8 +241,8 @@ export async function processDailyDigests(
       continue;
     }
     try {
-      const body = job.body?.startsWith(DIGEST_PREFIX)
-        ? job.body
+      const body = isCurrentDigest(job.body)
+        ? job.body!
         : formatDailyDigest(await collectDailyDigest(db, job, now));
       const [latest] = await db
         .select()
