@@ -29,6 +29,12 @@ beforeAll(async () => {
     name: "Bitcoin",
     providerId: "bitcoin",
   });
+  await db.insert(s.assets).values({
+    id: "USD",
+    symbol: "USD",
+    name: "US Dollar",
+    providerId: "usd",
+  });
   vi.stubEnv("TELEGRAM_BOT_TOKEN", "test-only-token");
   vi.stubEnv("TELEGRAM_BOT_USERNAME", "CCXTRACKER_BOT");
   vi.stubEnv("TELEGRAM_WEBHOOK_SECRET", "x".repeat(40));
@@ -250,13 +256,11 @@ it("keeps blocked deliveries and reports the blocked connection without changing
 });
 it("uses a fresh cached enrollment baseline to catch the very next quote", async () => {
   const { input, service } = await setup();
-  await db
-    .insert(s.marketQuotes)
-    .values({
-      assetId: "btc",
-      price: "5",
-      quotedAt: new Date(Date.now() - 10000),
-    });
+  await db.insert(s.marketQuotes).values({
+    assetId: "btc",
+    price: "5",
+    quotedAt: new Date(Date.now() - 10000),
+  });
   await service.saveExit({
     ...input,
     levels: [{ price: "11", percentage: "25" }],
