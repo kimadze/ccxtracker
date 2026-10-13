@@ -19,14 +19,14 @@ export function Overview({
   summary: s,
   base,
   cryptoOnlyValue = false,
-  nextSteps,
+  history,
   action,
 }: {
   summary: PortfolioSummary;
   base: string;
   portfolioName: string;
   cryptoOnlyValue?: boolean;
-  nextSteps?: ReactNode;
+  history?: ReactNode;
   action?: ReactNode;
 }) {
   const positions = s.positions
@@ -205,7 +205,7 @@ export function Overview({
       <div className="grid min-w-0 grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)] lg:gap-4">
         <section
           className="card min-w-0 bg-base-200 lg:col-start-1 lg:row-start-1"
-          aria-label="პორტფელის ღირებულება"
+          aria-label="ღირებულება და ისტორია"
         >
           <div className="card-body gap-3 p-3! sm:p-4!">
             <div className="flex items-center justify-between gap-2">
@@ -240,16 +240,20 @@ export function Overview({
                   : "ფასები დაგვიანებულია"}
               </p>
             )}
+            <div className="min-w-0 border-t border-base-300 pt-3">
+              <h2 className="mb-1 text-xs text-base-content/60">
+                პორტფელის ისტორია · სრული ღირებულება
+              </h2>
+              {history ?? (
+                <p className="py-2 text-xs text-base-content/60">
+                  ისტორია ჯერ არ არის
+                </p>
+              )}
+            </div>
           </div>
         </section>
 
-        {nextSteps && (
-          <div className="card min-w-0 bg-base-200 lg:col-start-1 lg:row-start-2">
-            <div className="card-body gap-0 p-3! sm:p-4!">{nextSteps}</div>
-          </div>
-        )}
-
-        <div className="grid min-w-0 items-start gap-3 md:grid-cols-2 lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:flex lg:flex-col lg:items-stretch lg:gap-4">
+        <div className="grid min-w-0 items-start gap-3 md:grid-cols-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:items-stretch lg:gap-4">
           <section
             className="card bg-base-200"
             aria-label="USD ნაშთი და სტეიბლკოინები"
@@ -272,7 +276,7 @@ export function Overview({
           </section>
         </div>
 
-        <section className="card min-w-0 bg-base-200 lg:col-start-1 lg:row-start-3">
+        <section className="card min-w-0 bg-base-200 lg:col-start-1 lg:row-start-2">
           <div className="card-body gap-0 p-3! sm:p-4!">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold">აქტივები</h2>
