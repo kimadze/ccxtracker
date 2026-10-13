@@ -19,14 +19,14 @@ export function Overview({
   summary: s,
   base,
   cryptoOnlyValue = false,
-  history,
+  nextSteps,
   action,
 }: {
   summary: PortfolioSummary;
   base: string;
   portfolioName: string;
   cryptoOnlyValue?: boolean;
-  history?: ReactNode;
+  nextSteps?: ReactNode;
   action?: ReactNode;
 }) {
   const positions = s.positions
@@ -241,12 +241,9 @@ export function Overview({
               </p>
             )}
             <div className="min-w-0 border-t border-base-300 pt-3">
-              <h2 className="mb-1 text-xs text-base-content/60">
-                პორტფელის ისტორია · სრული ღირებულება
-              </h2>
-              {history ?? (
+              {nextSteps ?? (
                 <p className="py-2 text-xs text-base-content/60">
-                  ისტორია ჯერ არ არის
+                  გეგმები და ფასის ალერტები აქ გამოჩნდება
                 </p>
               )}
             </div>

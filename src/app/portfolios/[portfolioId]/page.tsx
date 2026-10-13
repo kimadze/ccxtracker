@@ -1,11 +1,10 @@
 import { loadWorkspace } from "@/server/workspace";
 import { Overview } from "@/components/overview";
 import { getDb } from "@/server/db";
-import { snapshots } from "@/server/db/schema";
-import { eq, asc } from "drizzle-orm";
-import { HistoryChart } from "@/components/history-chart";
+import { requireUser } from "@/server/auth";
+import { loadNextSteps } from "@/server/services/next-steps";
+import { NextSteps } from "@/components/next-steps";
 import { TransactionForm } from "@/components/transaction-form";
-import { CaptureInitialSnapshot } from "@/components/capture-initial-snapshot";
 export default async function Page({
   params,
 }: {
@@ -13,11 +12,8 @@ export default async function Page({
 }) {
   const { portfolioId } = await params;
   const w = await loadWorkspace(portfolioId);
-  const history = await getDb()
-    .select()
-    .from(snapshots)
-    .where(eq(snapshots.portfolioId, portfolioId))
-    .orderBy(asc(snapshots.capturedAt));
+  const user = await requireUser();
+  const steps = await loadNextSteps(getDb(), user.id, portfolioId, w.summary);
   return (
     <>
       <Overview
@@ -25,14 +21,14 @@ export default async function Page({
         portfolioName={w.portfolio.name}
         cryptoOnlyValue={w.settings.cryptoOnlyPortfolioValue}
         base={`/portfolios/${portfolioId}`}
-        action={<TransactionForm portfolioId={portfolioId} revision={w.portfolio.revision} assets={w.assets} />}
-        history={
-          <HistoryChart
-            compact
-            snapshots={history.map((s) => ({ ...s, capturedAt: s.capturedAt.toISOString() }))}
-            emptyAction={<CaptureInitialSnapshot portfolioId={portfolioId} />}
+        action={
+          <TransactionForm
+            portfolioId={portfolioId}
+            revision={w.portfolio.revision}
+            assets={w.assets}
           />
         }
+        nextSteps={<NextSteps {...steps} base={`/portfolios/${portfolioId}`} />}
       />
     </>
   );
