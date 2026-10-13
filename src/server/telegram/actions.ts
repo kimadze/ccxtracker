@@ -5,6 +5,18 @@ import { telegramService } from "./service";
 import { consumeRateLimit } from "@/server/rate-limit";
 import { userError } from "@/server/errors";
 import { idSchema } from "@/domain/validation";
+import { sendTestDailyDigest } from "./digest";
+export async function testTelegramDailyReport() {
+  const user = await requireUser();
+  try {
+    if (!(await consumeRateLimit(`telegram-test:${user.id}`, 3, 60000)))
+      throw new Error("TELEGRAM_RATE_LIMIT");
+    await sendTestDailyDigest(getDb(), user.id);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: userError(error) };
+  }
+}
 export async function loadTelegramSettings() {
   const user = await requireUser();
   try {

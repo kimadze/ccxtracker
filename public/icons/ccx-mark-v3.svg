@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254">
+  <defs><linearGradient id="ccx" x1="0" y1="130" x2="0" y2="1140" gradientUnits="userSpaceOnUse"><stop stop-color="#9600ff"/><stop offset=".36" stop-color="#eb00eb"/><stop offset=".62" stop-color="#ff368c"/><stop offset=".82" stop-color="#ff8a00"/><stop offset="1" stop-color="#ffd600"/></linearGradient></defs>
+  <g fill="none" stroke="url(#ccx)" stroke-width="74" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="627" cy="309" r="136"/>
+    <path d="M465 568C480 489 544 424 627 424S774 489 789 568"/>
+    <circle cx="304" cy="520" r="120"/>
+    <circle cx="949" cy="520" r="120"/>
+    <path d="M450 745C422 675 369 631 299 631C222 631 155 705 122 772C95 827 88 884 151 866C230 831 305 824 369 852"/>
+    <path d="M803 745C831 675 884 631 954 631C1031 631 1098 705 1131 772C1158 827 1165 884 1102 866C1023 831 948 824 884 852"/>
+    <circle cx="627" cy="710" r="107"/>
+    <path d="M810 881C760 824 697 789 627 789C522 789 450 853 414 943C376 1038 384 1135 496 1099C573 1069 626 1085 683 1100C777 1130 840 1090 901 1009L915 986"/>
+  </g>
+  <g fill="url(#ccx)">
+    <path d="M829 934L936 902Q945 899 946 909L950 1026Q949 1038 938 1030L892 987L832 952Q820 943 829 934Z"/>
+    <rect x="510" y="945" width="54" height="68" rx="6"/><rect x="529" y="910" width="16" height="136" rx="7"/>
+    <rect x="600" y="900" width="54" height="99" rx="6"/><rect x="619" y="863" width="16" height="166" rx="7"/>
+    <rect x="690" y="945" width="54" height="68" rx="6"/><rect x="709" y="910" width="16" height="136" rx="7"/>
+  </g>
+</svg>

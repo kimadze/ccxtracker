@@ -13,8 +13,36 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "ka",
     orientation: "portrait-primary",
     icons: [
-      { src: "/icons/ccx-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: "/icons/ccx-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      {
+        src: "/icons/ccx-192-v3.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/ccx-512-v3.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/ccx-1024-v3.png",
+        sizes: "1024x1024",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/ccx-maskable-192-v3.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/icons/ccx-maskable-512-v3.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
     ],
   };
 }

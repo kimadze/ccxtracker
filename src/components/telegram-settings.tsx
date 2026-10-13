@@ -8,6 +8,7 @@ import {
   loadTelegramSettings,
   saveTelegramPreferences,
   testTelegramConnection,
+  testTelegramDailyReport,
   retryFailedTelegramDeliveries,
 } from "@/server/telegram/actions";
 import { Message } from "./ui";
@@ -354,6 +355,18 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                 </button>
               </form>
               <div className="flex flex-wrap gap-2">
+                <button
+                  className="btn btn-ghost"
+                  disabled={pending || !status.portfolioIds.length}
+                  onClick={() =>
+                    void perform(
+                      testTelegramDailyReport,
+                      "სატესტო ანგარიში გაიგზავნა.",
+                    )
+                  }
+                >
+                  ანგარიშის ტესტი
+                </button>
                 <button
                   className="btn btn-ghost"
                   disabled={pending}

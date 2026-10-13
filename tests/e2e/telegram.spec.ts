@@ -115,6 +115,17 @@ test("Telegram private link, confirmation, choices and disconnect fit all sizes"
       .getByRole("button", { name: "სატესტო შეტყობინება", exact: true })
       .click();
     await expect(section).toContainText("სატესტო შეტყობინება გაიგზავნა.");
+    await section
+      .getByRole("button", { name: "ანგარიშის ტესტი", exact: true })
+      .click();
+    await expect(section).toContainText("სატესტო ანგარიში გაიგზავნა.");
+    expect(
+      (
+        await db.query("SELECT id FROM telegram_digests WHERE user_id=$1", [
+          user,
+        ])
+      ).rows,
+    ).toHaveLength(0);
     for (const width of [360, 390, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 844 });
       await section.scrollIntoViewIfNeeded();

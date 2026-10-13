@@ -11,6 +11,7 @@ import {
   enqueueDailyDigests,
   processDailyDigests,
   collectDailyDigest,
+  sendTestDailyDigest,
 } from "@/server/telegram/digest";
 import { telegramService } from "@/server/telegram/service";
 const client = new PGlite(),
@@ -74,6 +75,28 @@ it("uses the Tbilisi calendar boundary", () =>
     day: "2026-10-13",
     hour: 0,
   }));
+it("sends an explicit report test without consuming the scheduled daily job", async () => {
+  await sendTestDailyDigest(db, "owner");
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  const payload = JSON.parse(fetcher.mock.calls[0][1].body);
+  expect(payload.chat_id).toBe("123");
+  expect(payload.text).toContain("სატესტო ანგარიში");
+  expect(payload.text).toContain("დღის შედეგი");
+  expect(payload.parse_mode).toBe("HTML");
+  expect(await testDb.select().from(schema.telegramDigests)).toHaveLength(0);
+});
+it("does not send report tests for disconnected users or another owner's portfolio", async () => {
+  await expect(sendTestDailyDigest(db, "other")).rejects.toThrow(
+    "TELEGRAM_NOT_CONNECTED",
+  );
+  await testDb
+    .update(schema.telegramConnections)
+    .set({ portfolioIds: ["00000000-0000-0000-0000-000000000099"] });
+  await expect(sendTestDailyDigest(db, "owner")).rejects.toThrow(
+    "DIGEST_CANCELLED",
+  );
+  expect(fetcher).not.toHaveBeenCalled();
+});
 it("waits for the selected hour, sends once per day and permits the next day", async () => {
   await enqueueDailyDigests(db, new Date("2026-10-12T16:59:00Z"));
   expect(await testDb.select().from(schema.telegramDigests)).toHaveLength(0);

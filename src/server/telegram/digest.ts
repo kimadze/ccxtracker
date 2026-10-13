@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import {
   and,
   asc,
@@ -104,6 +105,53 @@ export async function enqueueDailyDigests(
 
 type Connection = typeof telegramConnections.$inferSelect;
 type Job = typeof telegramDigests.$inferSelect;
+/** Explicit user-requested test; never reserves or changes the scheduled daily job. */
+export async function sendTestDailyDigest(db: Database, userId: string) {
+  const [connection] = await db
+    .select()
+    .from(telegramConnections)
+    .where(eq(telegramConnections.userId, userId));
+  if (!connection?.chatId) throw new Error("TELEGRAM_NOT_CONNECTED");
+  if (connection.lastError === "BOT_BLOCKED")
+    throw new Error("TELEGRAM_BOT_BLOCKED");
+  if (!connection.portfolioIds.length || connection.portfolioIds.length > 10)
+    throw new Error("DIGEST_PORTFOLIOS_INVALID");
+  const now = new Date();
+  const job: Job = {
+    id: randomUUID(),
+    userId,
+    generation: connection.generation,
+    day: digestClock(now).day,
+    portfolioIds: connection.portfolioIds,
+    body: null,
+    attempts: 0,
+    nextAttemptAt: now,
+    sentAt: null,
+    lastError: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const body = formatDailyDigest(await collectDailyDigest(db, job, now));
+  const [latest] = await db
+    .select()
+    .from(telegramConnections)
+    .where(eq(telegramConnections.userId, userId));
+  if (
+    !latest ||
+    latest.chatId !== connection.chatId ||
+    latest.generation !== connection.generation ||
+    latest.lastError === "BOT_BLOCKED" ||
+    !job.portfolioIds.every((id) => latest.portfolioIds.includes(id))
+  )
+    throw new Error("DIGEST_CANCELLED");
+  await sendTelegram(
+    connection.chatId,
+    `სატესტო ანგარიში\n\n${body}`,
+    `${appOrigin()}/portfolios`,
+    "პორტფელების ნახვა",
+    { parseMode: "HTML" },
+  );
+}
 function consentMatches(connection: Connection | undefined, job: Job) {
   return Boolean(
     connection?.chatId &&

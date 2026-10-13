@@ -11,6 +11,18 @@ export const metadata: Metadata = {
     "თქვენი კრიპტოპორტფელი ერთ სივრცეში — მონიტორინგი, ანალიტიკა და სტრატეგიის დაგეგმვა.",
   applicationName: "Crypto Collective X",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icons/ccx-192-v3.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [
+      {
+        url: "/icons/ccx-apple-180-v3.png",
+        type: "image/png",
+        sizes: "180x180",
+      },
+    ],
+  },
   appleWebApp: {
     capable: true,
     title: "CCX Portfolio",
