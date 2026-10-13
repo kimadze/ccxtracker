@@ -46,16 +46,32 @@ test("overview next steps show real targets, privacy, empty state and working pl
       "INSERT INTO watchlist_items(portfolio_id,asset_id,entry_price,exit_price) VALUES($1,$2,0.08,0.15)",
       [pid, asset],
     );
-    await page
-      .context()
-      .addCookies([
-        {
-          name: "better-auth.session_token",
-          value: cookies[user],
-          domain: "localhost",
-          path: "/",
-        },
-      ]);
+    for (const [suffix, symbol, target, direction] of [
+      ["fall", "XLM", "0.08", "entry_price"],
+      ["rise", "ETH", "0.15", "exit_price"],
+    ]) {
+      const id = `${asset}-${suffix}`;
+      await db.query(
+        "INSERT INTO assets(id,symbol,name,provider_id) VALUES($1,$2,$2,$1)",
+        [id, symbol],
+      );
+      await db.query(
+        "INSERT INTO market_quotes(asset_id,price,quoted_at) VALUES($1,0.1,now())",
+        [id],
+      );
+      await db.query(
+        `INSERT INTO watchlist_items(portfolio_id,asset_id,${direction}) VALUES($1,$2,$3)`,
+        [pid, id, target],
+      );
+    }
+    await page.context().addCookies([
+      {
+        name: "better-auth.session_token",
+        value: cookies[user],
+        domain: "localhost",
+        path: "/",
+      },
+    ]);
     const base = `/portfolios/${pid}`;
     for (const width of [360, 390, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 844 });
@@ -64,7 +80,7 @@ test("overview next steps show real targets, privacy, empty state and working pl
         'section[aria-labelledby="next-steps-title"]',
       );
       await expect(
-        section.getByRole("heading", { name: "ჩემი შემდეგი ნაბიჯები" }),
+        section.getByRole("heading", { name: "უახლოესი სამიზნეები" }),
       ).toBeVisible();
       await expect(section.locator("li")).toHaveCount(3);
       await expect(
@@ -73,10 +89,7 @@ test("overview next steps show real targets, privacy, empty state and working pl
       await expect(
         section.getByText("მიღწევა დაფიქსირდა", { exact: true }),
       ).toHaveCount(0);
-      await expect(section.getByRole("progressbar")).toHaveAttribute(
-        "value",
-        "20",
-      );
+      await expect(section.getByRole("progressbar")).toHaveCount(0);
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
@@ -103,8 +116,8 @@ test("overview next steps show real targets, privacy, empty state and working pl
     await expect(page).toHaveURL(/tab=exit/);
     await expect(page.getByText("Take Profit", { exact: true })).toBeVisible();
     await db.query(
-      "UPDATE market_quotes SET quoted_at=now()-interval '20 minutes' WHERE asset_id=$1",
-      [asset],
+      "UPDATE market_quotes SET quoted_at=now()-interval '20 minutes' WHERE asset_id LIKE $1",
+      [asset + "%"],
     );
     await page.goto(base);
     await expect(
@@ -116,10 +129,7 @@ test("overview next steps show real targets, privacy, empty state and working pl
     await db.query("DELETE FROM watchlist_items WHERE portfolio_id=$1", [pid]);
     await page.reload();
     await expect(
-      page.getByText(
-        "დააყენე TP ან ფასის ალერტი — აქ უახლოესი სამიზნეები გამოჩნდება.",
-        { exact: true },
-      ),
+      page.getByText("სამიზნეები ჯერ არ გაქვს.", { exact: true }),
     ).toBeVisible();
   } finally {
     await db.end();

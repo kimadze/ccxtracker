@@ -93,9 +93,7 @@ export async function loadNextSteps(
   const quotes = [...held, ...(missing.length ? await getQuotes(missing) : [])];
   const ranked = rankNextSteps(rows, quotes, Date.now());
   const selected = ranked.filter(
-    (r, i, all) =>
-      all.findIndex((x) => x.asset.id === r.asset.id && x.kind === r.kind) ===
-      i,
+    (r, i, all) => all.findIndex((x) => x.asset.id === r.asset.id) === i,
   );
   return { rows: selected.slice(0, 3), total: rows.length };
 }
