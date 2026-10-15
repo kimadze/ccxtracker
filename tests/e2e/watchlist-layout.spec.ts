@@ -28,13 +28,17 @@ test("watchlist separates prices and alert states across layouts", async ({
       [id, `alice-${info.project.name}`],
     );
     await db.query(
-      "INSERT INTO assets (id,symbol,name,provider_id) VALUES ('bitcoin','BTC','Bitcoin','bitcoin'),('ethereum','ETH','Ethereum','ethereum'),('watchlist-long','LONG','განსაკუთრებით გრძელი ქართული აქტივის სრული დასახელება','watchlist-long') ON CONFLICT DO NOTHING",
+      "INSERT INTO assets (id,symbol,name,provider_id) VALUES ('bitcoin','BTC','Bitcoin','bitcoin'),('ethereum','ETH','Ethereum','ethereum'),('watchlist-long','LONG','განსაკუთრებით გრძელი ქართული აქტივის სრული დასახელება','watchlist-long'),('watchlist-done','DONE','Completed target','watchlist-done') ON CONFLICT DO NOTHING",
     );
     await db.query(
       "INSERT INTO market_quotes (asset_id,price,quoted_at) VALUES ('bitcoin',175,now()),('ethereum',0.00000012,now()) ON CONFLICT (asset_id) DO UPDATE SET price=excluded.price,quoted_at=now(),fetched_at=now()",
     );
     await db.query(
       "INSERT INTO watchlist_items (portfolio_id,asset_id,entry_price,exit_price,notes,sell_target_reached_at,sell_target_reached_price) VALUES ($1,'bitcoin',100,200,'სატესტო შენიშვნა',now(),210),($1,'ethereum',null,null,'',null,null),($1,'watchlist-long',0.00001,null,'',null,null)",
+      [id],
+    );
+    await db.query(
+      "INSERT INTO watchlist_items(portfolio_id,asset_id,entry_price,target_reached_at,target_reached_price) VALUES($1,'watchlist-done',10,now(),9)",
       [id],
     );
     await page.goto(`/portfolios/${id}/watchlist`);
@@ -49,7 +53,8 @@ test("watchlist separates prices and alert states across layouts", async ({
       await expect(content).toContainText("ფასის ვარდნა ↓");
       await expect(content).toContainText("ფასის ზრდა ↑");
       await expect(content).toContainText("ელოდება");
-      await expect(content).toContainText("მიღწეულია");
+      await expect(content).not.toContainText("$200");
+      await expect(content).not.toContainText("DONE");
       await expect(content).toContainText("ფასი მიუწვდომელია");
       expect(
         await page.evaluate(
@@ -60,6 +65,21 @@ test("watchlist separates prices and alert states across layouts", async ({
         path: `.local/watchlist-redesign-${width}.png`,
         fullPage: true,
       });
+      await page.getByRole("button", { name: "მიღწეული", exact: true }).click();
+      await expect(content).toContainText("$200");
+      await expect(content).not.toContainText("$100");
+      await expect(content).not.toContainText("Ethereum");
+      await expect(content).toContainText("DONE");
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `.local/watchlist-history-${width}.png`,
+        fullPage: true,
+      });
+      await page.getByRole("button", { name: "აქტიური", exact: true }).click();
       const row = (
         width >= 1024
           ? content.locator("tbody tr")
@@ -97,10 +117,10 @@ test("watchlist separates prices and alert states across layouts", async ({
       await page.keyboard.press("Escape");
     }
     const filter = page.getByLabel("დაკვირვების სიის ფილტრი");
-    await filter.selectOption("sent");
-    await expect(page.locator("table tbody tr")).toHaveCount(1);
-    await filter.selectOption("pending");
+    await page.getByRole("button", { name: "მიღწეული", exact: true }).click();
     await expect(page.locator("table tbody tr")).toHaveCount(2);
+    await page.getByRole("button", { name: "აქტიური", exact: true }).click();
+    await expect(page.locator("table tbody tr")).toHaveCount(3);
     await filter.selectOption("all");
     await page
       .locator("table")
@@ -150,8 +170,25 @@ test("watchlist separates prices and alert states across layouts", async ({
     ).toEqual({ below: true, above: true });
     await page.getByLabel("დაკვირვების სიის ძიება").fill("ვერ მოიძებნება");
     await expect(
-      page.getByRole("heading", { name: "აქტივი ვერ მოიძებნა" }),
+      page.getByRole("heading", { name: "აქტიური ჩანაწერი ვერ მოიძებნა" }),
     ).toBeVisible();
+    await page.getByLabel("დაკვირვების სიის ძიება").fill("");
+    await db.query(
+      "UPDATE watchlist_items SET target_reached_at=now(),target_reached_price=95 WHERE portfolio_id=$1 AND asset_id='bitcoin'",
+      [id],
+    );
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(
+      page.locator("table tbody tr").filter({ hasText: "Bitcoin" }),
+    ).toHaveCount(0, { timeout: 20000 });
+    await page.getByRole("button", { name: "მიღწეული", exact: true }).click();
+    await expect(
+      page.locator("table tbody tr").filter({ hasText: "Bitcoin" }),
+    ).toContainText("$100");
+    await page.goto(`/portfolios/${id}/watchlist?asset=bitcoin`);
+    await expect(
+      page.getByRole("button", { name: "მიღწეული", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
   } finally {
     await db.end();
   }

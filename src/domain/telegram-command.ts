@@ -5,6 +5,7 @@ export type TelegramCommand = {
     | "sales"
     | "portfolio"
     | "alerts"
+    | "history"
     | "next"
     | "transactions"
     | "choose"
@@ -17,7 +18,7 @@ export function parseTelegramCommand(text: string): TelegramCommand | null {
   const value = text.trim();
   if (/^\/(?:help|start)(?:@[\w]+)?$/i.test(value)) return { kind: "help" };
   const basic =
-    /^\/(portfolio|alerts|next|transactions|choose)(?:@[\w]+)?(?:\s+([1-9]\d?))?$/i.exec(
+    /^\/(portfolio|alerts|history|next|transactions|choose)(?:@[\w]+)?(?:\s+([1-9]\d?))?$/i.exec(
       value,
     );
   if (basic)

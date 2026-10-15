@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { decimal } from "@/domain/decimal";
+import { watchlistLifecycle } from "@/domain/watchlist-lifecycle";
 import {
   Eye,
   MoreHorizontal,
@@ -80,14 +81,53 @@ export function Watchlist({
       assets.find((a) => a.id !== "USD")?.id ?? "",
     ),
     [filterQuery, setFilterQuery] = useState(""),
-    [movement, setMovement] = useState<
-      "all" | "pending" | "sent" | "up" | "down" | "unpriced"
-    >("all"),
+    [movement, setMovement] = useState<"all" | "up" | "down" | "unpriced">(
+      "all",
+    ),
     [query, setQuery] = useState(""),
     [error, setError] = useState(""),
     [pending, setPending] = useState(false);
   const router = useRouter();
-  const focusedAsset = useSearchParams().get("asset");
+  const searchParams = useSearchParams();
+  const focusedAsset = searchParams.get("asset");
+  const focusedReached = items.some(
+    (item) =>
+      item.asset.id === focusedAsset && watchlistLifecycle(item).reached,
+  );
+  const lifecycle: "active" | "reached" =
+    searchParams.get("view") === "active"
+      ? "active"
+      : searchParams.get("view") === "reached" || focusedReached
+        ? "reached"
+        : "active";
+  function setLifecycle(view: "active" | "reached") {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", view);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }
+  useEffect(() => {
+    const update = (event: Event) => {
+      const { detail } = event as CustomEvent<{
+        portfolioId: string;
+        rows: { id: string; side: "buy" | "sell"; reachedAt: string }[];
+      }>;
+      if (detail?.portfolioId !== portfolioId) return;
+      if (
+        detail.rows.some((row) => {
+          const item = items.find((item) => item.id === row.id);
+          return (
+            item &&
+            (row.side === "buy"
+              ? item.targetReachedAt
+              : item.sellTargetReachedAt) !== row.reachedAt
+          );
+        })
+      )
+        router.refresh();
+    };
+    window.addEventListener("ccx-target-notifications", update);
+    return () => window.removeEventListener("ccx-target-notifications", update);
+  }, [items, portfolioId, router]);
   const filteredItems = items.filter((item) => {
     const quote = quotes.find((q) => q.assetId === item.asset.id);
     const matchesText = `${item.asset.name} ${item.asset.symbol}`
@@ -95,13 +135,7 @@ export function Watchlist({
       .includes(filterQuery.toLowerCase());
     if (!matchesText) return false;
     if (focusedAsset && item.asset.id !== focusedAsset) return false;
-    if (movement === "pending")
-      return Boolean(
-        (item.entryPrice && !item.targetReachedAt) ||
-        (item.exitPrice && !item.sellTargetReachedAt),
-      );
-    if (movement === "sent")
-      return Boolean(item.targetReachedAt || item.sellTargetReachedAt);
+    if (!watchlistLifecycle(item)[lifecycle]) return false;
     if (movement === "up") return Number(quote?.change24h ?? 0) > 0;
     if (movement === "down") return Number(quote?.change24h ?? 0) < 0;
     if (movement === "unpriced")
@@ -172,10 +206,17 @@ export function Watchlist({
     item: WatchItem,
     side: "buy" | "sell",
     quote: Quote | undefined,
+    showAll = false,
   ) {
     const value = side === "buy" ? item.entryPrice : item.exitPrice;
     const reached =
       side === "buy" ? item.targetReachedAt : item.sellTargetReachedAt;
+    if (
+      !showAll &&
+      ((lifecycle === "active" && reached) ||
+        (lifecycle === "reached" && !reached))
+    )
+      return <div className="text-right text-base-content/40">—</div>;
     if (!value)
       return preview ? (
         <span className="text-base-content/40">—</span>
@@ -197,9 +238,21 @@ export function Watchlist({
         <strong className="numeric whitespace-nowrap font-medium">
           <BalanceValue>{unitPrice(value)}</BalanceValue>
         </strong>
+        {!showAll && lifecycle === "reached" && reached && (
+          <p className="mt-0.5 text-xs text-base-content/65">
+            დაფიქსირდა{" "}
+            <BalanceValue>
+              {unitPrice(
+                side === "buy"
+                  ? item.targetReachedPrice
+                  : item.sellTargetReachedPrice,
+              )}
+            </BalanceValue>
+          </p>
+        )}
         <p className="mt-0.5 text-xs text-base-content/55">
           {reached
-            ? "მიღწეულია"
+            ? dateTime(reached)
             : quote?.price == null
               ? "ფასი მიუწვდომელია"
               : "ელოდება"}
@@ -298,6 +351,38 @@ export function Watchlist({
         />
       )}
       {!preview && (
+        <div role="group" className="join" aria-label="ალერტების მდგომარეობა">
+          <button
+            type="button"
+            className={
+              "btn btn-sm min-h-11 join-item " +
+              (lifecycle === "active" ? "btn-active" : "btn-ghost")
+            }
+            aria-pressed={lifecycle === "active"}
+            onClick={() => {
+              setLifecycle("active");
+              setMovement("all");
+            }}
+          >
+            აქტიური
+          </button>
+          <button
+            type="button"
+            className={
+              "btn btn-sm min-h-11 join-item " +
+              (lifecycle === "reached" ? "btn-active" : "btn-ghost")
+            }
+            aria-pressed={lifecycle === "reached"}
+            onClick={() => {
+              setLifecycle("reached");
+              setMovement("all");
+            }}
+          >
+            მიღწეული
+          </button>
+        </div>
+      )}
+      {!preview && (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
           <label className="input min-h-11 w-full min-w-0">
             <Search size={17} />
@@ -317,8 +402,6 @@ export function Watchlist({
             }
           >
             <option value="all">ყველა · {items.length}</option>
-            <option value="pending">მოლოდინში</option>
-            <option value="sent">მიღწეული</option>
             <option value="up">ფასი იზრდება</option>
             <option value="down">ფასი იკლებს</option>
             <option value="unpriced">ფასის გარეშე</option>
@@ -380,18 +463,24 @@ export function Watchlist({
                     {price(quote)}
                   </div>
                   <div className="mt-3 border-t border-base-300 pt-1">
-                    <div className="flex min-h-11 items-center justify-between gap-3">
-                      <span className="text-sm text-base-content/65">
-                        ფასის ვარდნა ↓
-                      </span>
-                      {target(item, "buy", quote)}
-                    </div>
-                    <div className="flex min-h-11 items-center justify-between gap-3">
-                      <span className="text-sm text-base-content/65">
-                        ფასის ზრდა ↑
-                      </span>
-                      {target(item, "sell", quote)}
-                    </div>
+                    {!(lifecycle === "reached" && !item.targetReachedAt) && (
+                      <div className="flex min-h-11 items-center justify-between gap-3">
+                        <span className="text-sm text-base-content/65">
+                          ფასის ვარდნა ↓
+                        </span>
+                        {target(item, "buy", quote)}
+                      </div>
+                    )}
+                    {!(
+                      lifecycle === "reached" && !item.sellTargetReachedAt
+                    ) && (
+                      <div className="flex min-h-11 items-center justify-between gap-3">
+                        <span className="text-sm text-base-content/65">
+                          ფასის ზრდა ↑
+                        </span>
+                        {target(item, "sell", quote)}
+                      </div>
+                    )}
                   </div>
                   {!preview && (
                     <div className="mt-1 flex items-center justify-between">
@@ -414,7 +503,9 @@ export function Watchlist({
           <Eye size={22} className="mx-auto text-base-content/40" />
           <h2 className="mt-2 font-semibold">
             {items.length
-              ? "აქტივი ვერ მოიძებნა"
+              ? lifecycle === "reached"
+                ? "მიღწეული ალერტები არ არის"
+                : "აქტიური ჩანაწერი ვერ მოიძებნა"
               : "დაკვირვების სია ჯერ ცარიელია"}
           </h2>
           <p className="mt-1 text-sm text-base-content/55">
@@ -467,7 +558,7 @@ export function Watchlist({
                     {side === "buy" ? "ფასის ვარდნა ↓" : "ფასის ზრდა ↑"}
                   </h3>
                   <div className="flex items-center justify-between">
-                    {target(detailsItem, side, quote)}
+                    {target(detailsItem, side, quote, true)}
                   </div>
                   {reachedAt ? (
                     <p className="mt-2 text-xs text-base-content/60">

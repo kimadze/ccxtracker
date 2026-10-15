@@ -45,6 +45,7 @@ export async function assistantReport(
   const keyboard = [
     [`/portfolio${suffix}`, `/alerts${suffix}`],
     [`/next${suffix}`, `/transactions${suffix}`],
+    [`/history${suffix}`],
     ["/choose", "/help"],
   ];
   if (command.kind === "choose")
@@ -175,7 +176,7 @@ export async function assistantReport(
           }`,
         });
     }
-    if (["plan", "alerts", "next"].includes(command.kind)) {
+    if (["plan", "alerts", "history", "next"].includes(command.kind)) {
       const plans = await db
         .select()
         .from(exitPlans)
@@ -198,6 +199,8 @@ export async function assistantReport(
           .where(eq(exitLevels.planId, plan.id))
           .orderBy(asc(exitLevels.level));
         for (const l of levels) {
+          if (command.kind === "alerts" && l.reachedAt) continue;
+          if (command.kind === "history" && !l.reachedAt) continue;
           const q = quotes.find((q) => q.assetId === plan.assetId);
           const status = l.reachedAt
             ? "მიღწეული"
@@ -214,7 +217,7 @@ export async function assistantReport(
                       : "გადაკვეთას ელოდება";
           if (command.kind !== "next")
             lines.push(
-              `${symbol} · TP${l.level} · ${unitPrice(l.price)} · ${quantity(l.percentage)}% · ${status}`,
+              `${symbol} · TP${l.level} · ${unitPrice(l.price)} · ${quantity(l.percentage)}% · ${status}${command.kind === "history" && l.reachedAt ? ` · დაფიქსირდა ${unitPrice(l.reachedPrice)} · ${dateTime(l.reachedAt)}` : ""}`,
             );
           else if (
             !l.reachedAt &&
@@ -245,6 +248,8 @@ export async function assistantReport(
             if (!price) continue;
             const reached =
               direction === "down" ? w.targetReachedAt : w.sellTargetReachedAt;
+            if (command.kind === "alerts" && reached) continue;
+            if (command.kind === "history" && !reached) continue;
             const armed =
               direction === "down" ? w.targetActive : w.sellTargetActive;
             const q = quotes.find((q) => q.assetId === w.assetId);
@@ -255,7 +260,11 @@ export async function assistantReport(
               direction === "down"
                 ? notificationPreferences.buyEnabled
                 : notificationPreferences.sellEnabled;
-            if (command.kind === "alerts")
+            if (command.kind === "history" && reached)
+              lines.push(
+                `${symbol} · ${label} · სამიზნე ${unitPrice(price)} · დაფიქსირდა ${unitPrice(direction === "down" ? w.targetReachedPrice : w.sellTargetReachedPrice)} · ${dateTime(reached)}`,
+              );
+            else if (command.kind === "alerts")
               lines.push(
                 `${symbol} · ${label} · ${unitPrice(price)} · ${reached ? "მიღწეული" : !enabled ? "Telegram შეტყობინება გამორთულია" : !usableAlertQuote(q) ? "ფასი არასრული/მოძველებულია" : armed ? "უკვე სამიზნის მხარესაა · ახალ გადაკვეთას ელოდება" : "ელოდება"}`,
               );
@@ -321,13 +330,17 @@ export async function assistantReport(
         ? "გაყიდვები არ არის."
         : command.kind === "next"
           ? "ახალი ფასით დადასტურებული მომლოდინე სამიზნე არ არის."
-          : "ჩანაწერები არ არის.";
+          : command.kind === "alerts"
+            ? "აქტიური ალერტები არ არის."
+            : command.kind === "history"
+              ? "მიღწეული ალერტები არ არის."
+              : "ჩანაწერები არ არის.";
   let body = `${asset ? `${asset.symbol}\n\n` : ""}${sections.length ? sections.join("\n\n") : empty}`;
   if (command.kind === "plan")
     body += "\n\nგეგმაა, არა ბირჟის ორდერი. ავტომატური გაყიდვა არ ხდება.";
   if (command.kind === "next")
     body += "\n\nფასამდე მანძილია, არა მიღწევის ალბათობა.";
-  if (command.kind === "alerts")
+  if (command.kind === "history")
     body += "\n\nმიღწევა არ ნიშნავს Telegram-ში წარმატებულ მიწოდებას.";
   if (command.kind === "portfolio" || command.kind === "next")
     body += "\nქეშირებული ფასები · ახლდება აპის არსებული გრაფიკით.";

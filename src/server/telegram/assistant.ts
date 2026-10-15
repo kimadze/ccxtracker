@@ -24,7 +24,7 @@ const update = z.object({
   }),
 });
 const help =
-  "პორტფელის ასისტენტი\n\n/position XLM — რაოდენობა\n/plan STRK — გაყიდვის გეგმა\n/sales XLM — გაყიდვების შედეგი\n/portfolio — ანგარიში\n/alerts — ალერტები\n/next — უახლოესი სამიზნეები\n/transactions — ბოლო ჩანაწერები\n/choose — პორტფელის არჩევა\n\nასევე: „რამდენი XLM მაქვს?“ ან „მაჩვენე STRK-ის გაყიდვის გეგმა“.\nმხოლოდ Telegram-ში არჩეული ხელით სამართავი პორტფელები. მონაცემები არ იცვლება.";
+  "პორტფელის ასისტენტი\n\n/position XLM — რაოდენობა\n/plan STRK — გაყიდვის გეგმა\n/sales XLM — გაყიდვების შედეგი\n/portfolio — ანგარიში\n/alerts — აქტიური ალერტები\n/history — მიღწეული ალერტები\n/next — უახლოესი სამიზნეები\n/transactions — ბოლო ჩანაწერები\n/choose — პორტფელის არჩევა\n\nასევე: „რამდენი XLM მაქვს?“ ან „მაჩვენე STRK-ის გაყიდვის გეგმა“.\nმხოლოდ Telegram-ში არჩეული ხელით სამართავი პორტფელები. მონაცემები არ იცვლება.";
 
 export async function replyTelegramAssistant(db: Database, input: unknown) {
   const parsed = update.safeParse(input);
@@ -75,6 +75,7 @@ export async function replyTelegramAssistant(db: Database, input: unknown) {
           keyboard: [
             ["/portfolio", "/choose"],
             ["/alerts", "/next"],
+            ["/history"],
             ["/transactions", "/help"],
           ],
         };

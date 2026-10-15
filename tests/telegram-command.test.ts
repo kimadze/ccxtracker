@@ -33,7 +33,7 @@ it("parses report commands and explicit portfolio scope without write commands",
     symbol: "XLM",
     portfolio: 1,
   });
-  for (const kind of ["alerts", "next", "transactions", "choose"])
+  for (const kind of ["alerts", "history", "next", "transactions", "choose"])
     expect(parseTelegramCommand(`/${kind}`)).toEqual({ kind });
   expect(parseTelegramCommand("/portfolio 0")).toBeNull();
   expect(parseTelegramCommand("/portfolio -1")).toBeNull();

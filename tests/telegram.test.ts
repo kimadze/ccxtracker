@@ -254,8 +254,28 @@ it("reports sale proceeds separately, values remaining holdings and ranks only f
   expect(disabledWatch.body).not.toContain("დარჩენილია 25%");
   expect(disabledWatch.body).toContain("დარჩენილია 50%");
   const alerts = await assistantReport(db, "alice", [p.id], { kind: "alerts" });
-  expect(alerts.body).toContain("TP2");
-  expect(alerts.body).toContain("მიღწეული");
+  expect(alerts.body).not.toContain("TP2");
+  expect(alerts.body).toContain("TP1");
+  const history = await assistantReport(db, "alice", [p.id], {
+    kind: "history",
+  });
+  expect(history.body).toContain("TP2");
+  expect(history.body).not.toContain("TP1");
+  expect(history.body).toContain("მიღწეული");
+  await testDb
+    .update(schema.watchlistItems)
+    .set({ targetReachedAt: new Date(), targetReachedPrice: "14" })
+    .where(eq(schema.watchlistItems.portfolioId, p.id));
+  const afterReached = await assistantReport(db, "alice", [p.id], {
+    kind: "alerts",
+  });
+  expect(afterReached.body).not.toContain("$15");
+  expect(afterReached.body).toContain("$25");
+  const watchHistory = await assistantReport(db, "alice", [p.id], {
+    kind: "history",
+  });
+  expect(watchHistory.body).toContain("დაფიქსირდა $14");
+  expect(watchHistory.body).not.toContain("$25");
   await testDb
     .update(schema.marketQuotes)
     .set({ quotedAt: new Date(Date.now() - 3600000) })

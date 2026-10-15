@@ -21,6 +21,11 @@ export function TargetNotifications({ portfolioId }: { portfolioId: string }) {
       const reply = await loadTargetNotifications(portfolioId);
       if (reply.ok) {
         setRows(reply.rows);
+        window.dispatchEvent(
+          new CustomEvent("ccx-target-notifications", {
+            detail: { portfolioId, rows: reply.rows },
+          }),
+        );
         setError("");
       } else setError(reply.error);
     } catch {
@@ -96,7 +101,7 @@ export function TargetNotifications({ portfolioId }: { portfolioId: string }) {
                         ),
                       );
                       router.push(
-                        `/portfolios/${portfolioId}/watchlist?asset=${encodeURIComponent(row.assetId)}`,
+                        `/portfolios/${portfolioId}/watchlist?asset=${encodeURIComponent(row.assetId)}&view=reached`,
                       );
                     } else setError(reply.error);
                   } catch {
