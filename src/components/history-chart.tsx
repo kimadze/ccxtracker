@@ -15,18 +15,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useBalancesHidden } from "./balance-privacy";
 import { BalanceValue } from "./ui";
+import { OverviewToolbar } from "./overview-toolbar";
 export function HistoryChart({
   snapshots,
   illustrative = false,
   showPeriodControls = true,
   emptyAction,
   compact = false,
+  dashboard = false,
 }: {
   snapshots: Pick<Snapshot, "capturedAt" | "value">[];
   illustrative?: boolean;
   showPeriodControls?: boolean;
   emptyAction?: ReactNode;
   compact?: boolean;
+  dashboard?: boolean;
 }) {
   const [period, setPeriod] = useState<
     "1D" | "7D" | "1M" | "3M" | "1Y" | "ALL"
@@ -80,19 +83,37 @@ export function HistoryChart({
         {emptyAction && <div className="mt-4">{emptyAction}</div>}
       </div>
     );
+  const controls = (
+    <FilterButtons
+      label="გრაფიკის პერიოდი"
+      value={period}
+      onChange={setPeriod}
+      className="w-fit"
+      appearance={dashboard ? "solid" : "soft"}
+      options={(["1D", "7D", "1M", "3M", "1Y", "ALL"] as const).map(
+        (value) => ({ value, label: value }),
+      )}
+    />
+  );
   return (
     <div>
-      {showPeriodControls && snapshots.length >= 2 && (
-        <FilterButtons
-          label="გრაფიკის პერიოდი"
-          value={period}
-          onChange={setPeriod}
-          className="mb-1 w-fit"
-          options={(["1D", "7D", "1M", "3M", "1Y", "ALL"] as const).map(
-            (value) => ({ value, label: value }),
-          )}
-        />
-      )}
+      {showPeriodControls &&
+        snapshots.length >= 2 &&
+        (dashboard ? (
+          <OverviewToolbar targetId="overview-period-controls">
+            {controls}
+          </OverviewToolbar>
+        ) : (
+          <FilterButtons
+            label="გრაფიკის პერიოდი"
+            value={period}
+            onChange={setPeriod}
+            className="mb-1 w-fit"
+            options={(["1D", "7D", "1M", "3M", "1Y", "ALL"] as const).map(
+              (value) => ({ value, label: value }),
+            )}
+          />
+        ))}
       {points.length < 2 && (
         <p role="status" className="mb-2 text-xs text-base-content/60">
           {points.length
@@ -105,9 +126,11 @@ export function HistoryChart({
         className={
           points.length < 2
             ? "hidden"
-            : compact
-              ? "h-[140px] w-full min-w-0 lg:h-[220px]"
-              : "h-56 w-full min-w-0"
+            : dashboard
+              ? "h-[140px] w-full min-w-0 overflow-hidden sm:h-[180px] lg:h-[240px]"
+              : compact
+                ? "h-[140px] w-full min-w-0 lg:h-[220px]"
+                : "h-56 w-full min-w-0"
         }
         role="img"
         aria-label={
@@ -151,14 +174,14 @@ export function HistoryChart({
                 dy={8}
               />
               <YAxis
-                orientation="right"
+                orientation={dashboard ? "left" : "right"}
                 tickFormatter={(v) =>
                   balancesHidden ? "••••" : money(String(v), true)
                 }
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "var(--color-base-content)", fontSize: 11 }}
-                width={80}
+                width={dashboard ? 62 : 80}
                 domain={["auto", "auto"]}
               />
               <Tooltip

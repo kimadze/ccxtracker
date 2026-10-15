@@ -127,7 +127,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
       ),
     ).toBe(true);
     await expect(
-      page.locator('a[href$="/positions/bitcoin"]:visible'),
+      page.locator('a[href$="/positions/bitcoin"]:visible').first(),
     ).toBeVisible();
     await page.screenshot({
       path: ".local/compact-" + info.project.name + "-" + width + ".png",
@@ -162,7 +162,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await expect(page.locator(".balance-value").first()).not.toContainText(
     "••••••",
   );
-  await page.locator('a[href$="/positions/bitcoin"]:visible').click();
+  await page.locator('a[href$="/positions/bitcoin"]:visible').first().click();
   await expect(page).toHaveURL(/positions\/bitcoin$/);
   await page.goto(base);
   await page.setViewportSize({ width: 390, height: 844 });

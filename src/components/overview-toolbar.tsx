@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 const subscribe = (notify: () => void) => {
@@ -8,10 +8,19 @@ const subscribe = (notify: () => void) => {
   observer.observe(document.body, { childList: true, subtree: true });
   return () => observer.disconnect();
 };
-const getTarget = () => document.getElementById("overview-toolbar");
 const getServerTarget = () => null;
 
-export function OverviewToolbar({ children }: { children: ReactNode }) {
+export function OverviewToolbar({
+  children,
+  targetId = "overview-toolbar",
+}: {
+  children: ReactNode;
+  targetId?: string;
+}) {
+  const getTarget = useCallback(
+    () => document.getElementById(targetId),
+    [targetId],
+  );
   const target = useSyncExternalStore(subscribe, getTarget, getServerTarget);
   return target ? createPortal(children, target) : null;
 }

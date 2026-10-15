@@ -35,6 +35,7 @@ export default async function Page({
         history={
           <HistoryChart
             compact
+            dashboard
             snapshots={history.map((s) => ({
               ...s,
               capturedAt: s.capturedAt.toISOString(),

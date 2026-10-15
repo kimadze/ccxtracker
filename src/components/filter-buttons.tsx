@@ -8,12 +8,14 @@ export function FilterButtons<T extends string>({
   onChange,
   label,
   className,
+  appearance = "soft",
 }: {
   value: T;
   options: readonly { value: T; label: string; count?: number }[];
   onChange: (value: T) => void;
   label: string;
   className?: string;
+  appearance?: "soft" | "solid";
 }) {
   return (
     <div
@@ -33,7 +35,9 @@ export function FilterButtons<T extends string>({
           className={clsx(
             "btn btn-sm min-h-11 shrink-0 gap-2 rounded-field px-3 text-sm",
             value === option.value
-              ? "btn-ghost bg-primary/15 text-secondary"
+              ? appearance === "solid"
+                ? "btn-primary"
+                : "btn-ghost bg-primary/15 text-secondary"
               : "btn-ghost text-base-content/60",
           )}
         >

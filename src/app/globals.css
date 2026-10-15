@@ -1297,7 +1297,7 @@ body {
   font-size: 14px;
 }
 
-:focus-visible {
+:focus-visible:not(.input input) {
   outline: 2px solid var(--color-primary);
   outline-offset: 3px;
 }

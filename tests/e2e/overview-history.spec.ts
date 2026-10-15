@@ -81,9 +81,22 @@ test("restored overview history supports periods, privacy and compact empty stat
       pid,
     ]);
     await page.reload();
+    // An empty history automatically captures today's valuation and refreshes.
+    // Assert the settled state rather than the transient zero-point message.
     await expect(
-      page.getByText("ისტორია ჯერ არ არის საკმარისი", { exact: true }),
+      page.getByText("ხაზი გამოჩნდება მეორე შეფასების შენახვის შემდეგ.", {
+        exact: true,
+      }),
     ).toBeVisible();
+    await expect
+      .poll(async () => {
+        const result = await db.query(
+          "SELECT count(*)::int AS count FROM portfolio_snapshots WHERE portfolio_id=$1",
+          [pid],
+        );
+        return result.rows[0].count;
+      })
+      .toBe(1);
   } finally {
     await db.end();
   }
