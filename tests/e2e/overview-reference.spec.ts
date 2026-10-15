@@ -111,6 +111,37 @@ test("reference overview keeps responsive financial hierarchy, search, privacy a
       await expect(section.locator("table")).toContainText("XLM");
       await search.fill("");
       await expect(section.locator("table tbody tr")).toHaveCount(6);
+      const tabs = page.getByRole("tablist", { name: "პორტფელის სექციები" });
+      await tabs.getByRole("tab", { name: "პოზიციები", exact: true }).click();
+      await expect(page.getByRole("tabpanel")).toContainText("შედეგი");
+      await expect(
+        page.getByRole("textbox", { name: "პოზიციების ძიება", exact: true }),
+      ).toBeVisible();
+      await expect(page).toHaveURL(new RegExp(`${base}$`));
+      await expect(page.locator(".recharts-area")).toBeVisible();
+      await tabs
+        .getByRole("tab", { name: "პოზიციები", exact: true })
+        .press("ArrowRight");
+      await expect(
+        tabs.getByRole("tab", { name: "ტრანზაქციები", exact: true }),
+      ).toHaveAttribute("aria-selected", "true");
+      await expect(page).toHaveURL(new RegExp(`${base}$`));
+      await expect(page.getByRole("tabpanel")).toContainText("BTC");
+      await expect(
+        page.getByRole("textbox", { name: "ტრანზაქციების ძიება", exact: true }),
+      ).toBeVisible();
+      if ([390, 1440].includes(width))
+        await page.screenshot({
+          path: `.local/overview-transactions-${info.project.name}-${width}.png`,
+          fullPage: true,
+        });
+      await tabs
+        .getByRole("tab", { name: "ტრანზაქციები", exact: true })
+        .press("Home");
+      await expect(
+        tabs.getByRole("tab", { name: "აქტივები", exact: true }),
+      ).toHaveAttribute("aria-selected", "true");
+      await expect(section.locator("table tbody tr")).toHaveCount(6);
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth + 1,

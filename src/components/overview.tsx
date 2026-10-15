@@ -21,6 +21,8 @@ export function Overview({
   cryptoOnlyValue = false,
   history,
   action,
+  positionsPanel,
+  transactionsPanel,
 }: {
   summary: PortfolioSummary;
   base: string;
@@ -28,6 +30,8 @@ export function Overview({
   cryptoOnlyValue?: boolean;
   history?: ReactNode;
   action?: ReactNode;
+  positionsPanel: ReactNode;
+  transactionsPanel: ReactNode;
 }) {
   const positions = [...s.positions].sort((a, b) =>
     decimal(b.value ?? 0).cmp(a.value ?? 0),
@@ -345,7 +349,12 @@ export function Overview({
             </div>
           </section>
         </aside>
-        <OverviewAssets positions={positions} base={base} />
+        <OverviewAssets
+          positions={positions}
+          base={base}
+          positionsPanel={positionsPanel}
+          transactionsPanel={transactionsPanel}
+        />
         <details className="collapse collapse-arrow border border-base-300 bg-base-200 md:hidden">
           <summary className="collapse-title min-h-11 py-3 text-sm">
             კრიპტო განაწილება

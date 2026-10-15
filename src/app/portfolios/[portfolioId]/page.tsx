@@ -6,6 +6,9 @@ import { eq, asc } from "drizzle-orm";
 import { HistoryChart } from "@/components/history-chart";
 import { TransactionForm } from "@/components/transaction-form";
 import { CaptureInitialSnapshot } from "@/components/capture-initial-snapshot";
+import { PositionsWorkspace } from "@/components/positions-workspace";
+import { TransactionList } from "@/components/transaction-list";
+import { saleResults } from "@/domain/ledger";
 export default async function Page({
   params,
 }: {
@@ -25,6 +28,23 @@ export default async function Page({
         portfolioName={w.portfolio.name}
         cryptoOnlyValue={w.settings.cryptoOnlyPortfolioValue}
         base={`/portfolios/${portfolioId}`}
+        positionsPanel={
+          <PositionsWorkspace
+            positions={w.summary.positions}
+            base={`/portfolios/${portfolioId}`}
+            assets={w.assets}
+            revision={w.portfolio.revision}
+          />
+        }
+        transactionsPanel={
+          <TransactionList
+            entries={w.entries}
+            sales={saleResults(w.entries)}
+            assets={w.assets}
+            portfolioId={portfolioId}
+            revision={w.portfolio.revision}
+          />
+        }
         action={
           <TransactionForm
             portfolioId={portfolioId}
