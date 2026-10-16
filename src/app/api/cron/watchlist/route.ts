@@ -92,6 +92,8 @@ export async function GET(request: Request) {
       .where(
         and(
           eq(exitPlans.telegramEnabled, true),
+          eq(telegramConnections.sellEnabled, true),
+          sql`${telegramConnections.portfolioIds} @> jsonb_build_array(${exitPlans.portfolioId}::text)`,
           isNull(exitLevels.reachedAt),
           isNotNull(telegramConnections.chatId),
         ),

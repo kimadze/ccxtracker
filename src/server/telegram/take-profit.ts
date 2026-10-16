@@ -53,7 +53,13 @@ export async function evaluateTakeProfits(db: Database, quotes: Quote[]) {
           .from(telegramConnections)
           .where(eq(telegramConnections.userId, item.userId))
       )[0];
-      if (!connection?.chatId || connection.lastError === "BOT_BLOCKED") return;
+      if (
+        !connection?.chatId ||
+        connection.lastError === "BOT_BLOCKED" ||
+        !connection.portfolioIds.includes(plan.portfolioId) ||
+        !connection.sellEnabled
+      )
+        return;
       const holding = replayLedger(
         await portfolioService(tx as unknown as Database, item.userId).entries(
           plan.portfolioId,
@@ -182,6 +188,8 @@ export async function processTakeProfitDeliveries(
     if (
       !row?.connection.chatId ||
       row.connection.lastError === "BOT_BLOCKED" ||
+      !row.connection.portfolioIds.includes(row.plan.portfolioId) ||
+      !row.connection.sellEnabled ||
       !row.plan.telegramEnabled ||
       row.plan.alertGeneration !== job.generation ||
       row.connection.generation !== job.connectionGeneration ||
@@ -205,7 +213,7 @@ export async function processTakeProfitDeliveries(
             decimal(current.percentage).eq(l.percentage) &&
             current.reachedAt?.getTime() === job.reachedAt.getTime(),
         );
-        return current ? [{...l,level:current.level}] : [];
+        return current ? [{ ...l, level: current.level }] : [];
       });
       if (!activeLevels.length) {
         await db

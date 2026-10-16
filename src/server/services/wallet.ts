@@ -107,7 +107,7 @@ export function walletService(
       if (!claim) throw Error("WALLET_REFRESH_LIMIT");
       try {
         const snapshot = await load(p.network, p.config.addresses);
-        await db
+        const [saved] = await db
           .update(walletPortfolios)
           .set({ snapshot, lastError: null })
           .where(
@@ -117,7 +117,9 @@ export function walletService(
               sql`date_trunc('milliseconds', ${walletPortfolios.updatedAt}) = ${p.updatedAt.toISOString()}::timestamptz`,
               eq(walletPortfolios.lastAttemptAt, now),
             ),
-          );
+          )
+          .returning({ id: walletPortfolios.id });
+        if (!saved) throw Error("WALLET_CHANGED");
         return snapshot;
       } catch (error) {
         await db

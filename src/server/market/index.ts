@@ -1,5 +1,5 @@
 import "server-only";
-import { inArray, and, eq, lt } from "drizzle-orm";
+import { inArray, and, eq, lt, like, asc } from "drizzle-orm";
 import { after } from "next/server";
 import { getDb } from "@/server/db";
 import {
@@ -91,7 +91,20 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
   if (!expired.length || !process.env.COINGECKO_DEMO_API_KEY) return [];
   const db = getDb();
   let leased = false;
+  const leaseUntil = new Date(Date.now() + 60000);
   try {
+    // Persist requests before claiming the shared provider slot. A competing
+    // worker can drain them; provider failures leave them available for retry.
+    await db
+      .insert(jobState)
+      .values(
+        expired.map((asset) => ({
+          key: `market-pending:${asset.id}`,
+          cursor: JSON.stringify(asset),
+          leaseUntil: new Date(0),
+        })),
+      )
+      .onConflictDoNothing();
     await db
       .insert(jobState)
       .values({ key: "market-refresh", leaseUntil: new Date(0) })
@@ -99,7 +112,7 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
     const now = new Date();
     const [lease] = await db
       .update(jobState)
-      .set({ leaseUntil: new Date(now.getTime() + 60000), updatedAt: now })
+      .set({ leaseUntil, updatedAt: now })
       .where(
         and(eq(jobState.key, "market-refresh"), lt(jobState.leaseUntil, now)),
       )
@@ -109,26 +122,61 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
 
     const provider = new CoinGeckoProvider();
     const fresh: Quote[] = [];
-    for (let i = 0; i < Math.min(expired.length, 200); i += 100)
-      fresh.push(...(await provider.quotes(expired.slice(i, i + 100))));
-    for (const quote of fresh)
-      await db
-        .insert(marketQuotes)
-        .values({
-          assetId: quote.assetId,
-          price: quote.price,
-          change24h: quote.change24h,
-          quotedAt: new Date(quote.updatedAt),
-        })
-        .onConflictDoUpdate({
-          target: marketQuotes.assetId,
-          set: {
+    for (let i = 0; i < 2; i++) {
+      const pending = await db
+        .select()
+        .from(jobState)
+        .where(like(jobState.key, "market-pending:%"))
+        .orderBy(asc(jobState.updatedAt))
+        .limit(100);
+      if (!pending.length) break;
+      const batch = pending.map((row) => JSON.parse(row.cursor!) as Asset);
+      const cached = await db
+        .select()
+        .from(marketQuotes)
+        .where(
+          inArray(
+            marketQuotes.assetId,
+            batch.map((a) => a.id),
+          ),
+        );
+      const needed = batch.filter(
+        (a) =>
+          !cached.some(
+            (q) =>
+              q.assetId === a.id &&
+              Date.now() - q.fetchedAt.getTime() <= 5 * 60000,
+          ),
+      );
+      const received = needed.length ? await provider.quotes(needed) : [];
+      fresh.push(...received);
+      // An empty provider response is a completed attempt, not a fabricated price.
+      // Save before acknowledging so a crash cannot lose fetched quotes.
+      for (const quote of received)
+        await db
+          .insert(marketQuotes)
+          .values({
+            assetId: quote.assetId,
             price: quote.price,
             change24h: quote.change24h,
             quotedAt: new Date(quote.updatedAt),
-            fetchedAt: new Date(),
-          },
-        });
+          })
+          .onConflictDoUpdate({
+            target: marketQuotes.assetId,
+            set: {
+              price: quote.price,
+              change24h: quote.change24h,
+              quotedAt: new Date(quote.updatedAt),
+              fetchedAt: new Date(),
+            },
+          });
+      await db.delete(jobState).where(
+        inArray(
+          jobState.key,
+          pending.map((r) => r.key),
+        ),
+      );
+    }
     try {
       await evaluateWatchlistTargets(db, fresh);
       await evaluateTakeProfits(db, fresh);
@@ -148,7 +196,12 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
         await db
           .update(jobState)
           .set({ leaseUntil: new Date(0), updatedAt: new Date() })
-          .where(eq(jobState.key, "market-refresh"));
+          .where(
+            and(
+              eq(jobState.key, "market-refresh"),
+              eq(jobState.leaseUntil, leaseUntil),
+            ),
+          );
       } catch {
         console.error("Market refresh lease release failed", {
           retryable: true,
@@ -160,12 +213,12 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
 
 export async function getQuotes(
   assets: Asset[],
-  options: { mode?: "background" | "blocking" } = {},
+  options: { mode?: "background" | "blocking" } = { mode: "blocking" },
 ): Promise<Quote[]> {
   const requested = assets.filter((a) => a.id !== "USD");
   if (!requested.length) return [];
   const db = getDb();
-  const cached = await db
+  let cached = await db
     .select()
     .from(marketQuotes)
     .where(
@@ -178,15 +231,20 @@ export async function getQuotes(
     const hit = cached.find((q) => q.assetId === a.id);
     return !hit || Date.now() - hit.fetchedAt.getTime() > 5 * 60000;
   });
-  const fresh =
-    expired.length && options.mode === "blocking"
-      ? await refreshExpired(expired)
-      : [];
-  if (
-    expired.length &&
-    options.mode !== "blocking" &&
-    process.env.COINGECKO_DEMO_API_KEY
-  )
+  const blocking = options.mode !== "background";
+  if (expired.length && blocking) {
+    await refreshExpired(expired);
+    cached = await db
+      .select()
+      .from(marketQuotes)
+      .where(
+        inArray(
+          marketQuotes.assetId,
+          requested.map((a) => a.id),
+        ),
+      );
+  }
+  if (expired.length && !blocking && process.env.COINGECKO_DEMO_API_KEY)
     after(async () => {
       await refreshExpired(expired);
       try {
@@ -197,15 +255,12 @@ export async function getQuotes(
       }
     });
   return [
-    ...fresh,
-    ...cached
-      .filter((q) => !fresh.some((f) => f.assetId === q.assetId))
-      .map((q) => ({
-        assetId: q.assetId,
-        price: q.price,
-        change24h: q.change24h,
-        updatedAt: q.quotedAt.toISOString(),
-        stale: Date.now() - q.quotedAt.getTime() > 15 * 60000,
-      })),
+    ...cached.map((q) => ({
+      assetId: q.assetId,
+      price: q.price,
+      change24h: q.change24h,
+      updatedAt: q.quotedAt.toISOString(),
+      stale: Date.now() - q.quotedAt.getTime() > 15 * 60000,
+    })),
   ];
 }

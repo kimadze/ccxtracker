@@ -91,7 +91,7 @@ it("cannot let a refresh overwrite settings edited during the provider request",
     await service.update(p.id, { ...input, name: "edited" });
     return snapshot;
   });
-  await race.refresh(p.id);
+  await expect(race.refresh(p.id)).rejects.toThrow("WALLET_CHANGED");
   const saved = await service.owned(p.id);
   expect(saved.name).toBe("edited");
   expect(saved.snapshot).toBeNull();

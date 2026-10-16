@@ -8,6 +8,8 @@ import { userError, type ActionResult } from "./errors";
 
 function walletError(e: unknown) {
   if (e instanceof Error) {
+    if (e.message === "WALLET_CHANGED")
+      return "საფულის პარამეტრები შეიცვალა. განაახლე ხელახლა.";
     if (e.message === "WALLET_REFRESH_LIMIT")
       return "განახლება შესაძლებელია წუთში ერთხელ.";
     if (e.message === "WALLET_RATE_LIMIT")

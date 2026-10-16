@@ -101,6 +101,43 @@ async function quote(price: string, offset = 0, stale = false) {
     },
   ]);
 }
+it.each(["portfolio", "sell"])(
+  "does not evaluate TP alerts when %s notifications are disabled",
+  async (setting) => {
+    await setup();
+    await db
+      .update(s.telegramConnections)
+      .set(
+        setting === "portfolio" ? { portfolioIds: [] } : { sellEnabled: false },
+      );
+    await quote("5");
+    await quote("21", 1000);
+    expect(await db.select().from(s.takeProfitDeliveries)).toHaveLength(0);
+    expect(
+      (await db.select().from(s.exitLevels)).every((l) => !l.reachedAt),
+    ).toBe(true);
+  },
+);
+it.each(["portfolio", "sell"])(
+  "cancels queued TP delivery when %s notifications are disabled",
+  async (setting) => {
+    await setup();
+    await quote("5");
+    await quote("21", 1000);
+    expect(await db.select().from(s.takeProfitDeliveries)).toHaveLength(1);
+    await db
+      .update(s.telegramConnections)
+      .set(
+        setting === "portfolio" ? { portfolioIds: [] } : { sellEnabled: false },
+      );
+    expect(await processTakeProfitDeliveries(db)).toEqual({
+      sent: 0,
+      failed: 0,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(await db.select().from(s.takeProfitDeliveries)).toHaveLength(0);
+  },
+);
 it("supports unknown basis, groups reached levels and sends once without financial changes", async () => {
   const { p } = await setup();
   await quote("5");

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, count, desc, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, isNull, sql, notLike } from "drizzle-orm";
 import { z } from "zod";
 import type { Database } from "./db";
 import {
@@ -39,7 +39,8 @@ export function adminService(db: Database, actor: AdminActor) {
               updatedAt: jobState.updatedAt,
               leaseUntil: jobState.leaseUntil,
             })
-            .from(jobState),
+            .from(jobState)
+            .where(notLike(jobState.key, "market-pending:%")),
           db
             .select({
               total: count(),

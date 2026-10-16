@@ -10,6 +10,7 @@ import {
   assets,
   telegramConnections,
   marketQuotes,
+  portfolios as portfolioTable,
 } from "@/server/db/schema";
 import { portfolioService } from "./portfolio";
 import { exitPlanSchema, journalSchema } from "@/domain/strategy-validation";
@@ -89,18 +90,32 @@ export function strategyService(db: Database, userId: string) {
           .where(eq(telegramConnections.userId, userId));
         if (!connection?.chatId) throw new Error("TELEGRAM_NOT_CONNECTED");
       }
-      const holding = replayLedger(
-        await portfolios.entries(data.portfolioId),
-      ).holdings.find((h) => h.assetId === data.assetId);
-      if (!holding || decimal(holding.quantity).lte(0))
-        throw new Error("INSUFFICIENT_HOLDINGS");
-      calculateExit({
-        quantity: holding.quantity,
-        costBasis: holding.costBasis ?? "0",
-        feePercent: data.feePercent,
-        levels: data.levels,
-      });
       await db.transaction(async (tx) => {
+        // Use the same lock as ledger mutations before reading the position.
+        const [locked] = await tx
+          .select()
+          .from(portfolioTable)
+          .where(
+            and(
+              eq(portfolioTable.id, data.portfolioId),
+              eq(portfolioTable.userId, userId),
+            ),
+          )
+          .for("update");
+        if (!locked) throw new Error("RESOURCE_NOT_FOUND");
+        const holding = replayLedger(
+          await portfolioService(tx as unknown as Database, userId).entries(
+            data.portfolioId,
+          ),
+        ).holdings.find((h) => h.assetId === data.assetId);
+        if (!holding || decimal(holding.quantity).lte(0))
+          throw new Error("INSUFFICIENT_HOLDINGS");
+        calculateExit({
+          quantity: holding.quantity,
+          costBasis: holding.costBasis ?? "0",
+          feePercent: data.feePercent,
+          levels: data.levels,
+        });
         // Serializes concurrent edits and preserves one-shot state on an unchanged save.
         await tx.execute(
           sql`select pg_advisory_xact_lock(hashtext(${data.portfolioId + ":" + data.assetId}))`,
@@ -113,7 +128,8 @@ export function strategyService(db: Database, userId: string) {
               eq(exitPlans.portfolioId, data.portfolioId),
               eq(exitPlans.assetId, data.assetId),
             ),
-          ).for("update");
+          )
+          .for("update");
         const oldLevels = existing
           ? await tx
               .select()

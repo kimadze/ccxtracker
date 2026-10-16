@@ -33,6 +33,7 @@ import { LogoutButton } from "./auth-buttons";
 import { PortfolioCreate } from "./portfolio-create";
 import { TransactionUndo } from "./transaction-undo";
 import { TargetNotifications } from "./target-notifications";
+import { useMarketRefresh } from "./use-market-refresh";
 import {
   privacyEvent,
   readPrivacy,
@@ -166,6 +167,7 @@ export function Shell({
   adminEnabled?: boolean;
 }) {
   const path = usePathname();
+  useMarketRefresh(path);
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
