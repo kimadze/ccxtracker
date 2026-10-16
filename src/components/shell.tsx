@@ -239,12 +239,6 @@ export function Shell({
           >
             <Menu size={18} />
           </button>
-          {isOverview && (
-            <div
-              id="overview-search"
-              className="hidden min-w-0 flex-1 xl:block xl:max-w-64"
-            />
-          )}
           <select
             className="select select-ghost w-full min-w-0 flex-1 pl-3 pr-9 text-base lg:max-w-64 lg:flex-none lg:text-sm"
             aria-label="პორტფელის არჩევა"

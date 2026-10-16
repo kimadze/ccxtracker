@@ -52,12 +52,14 @@ export function TransactionList({
   assets,
   portfolioId,
   revision,
+  embedded = false,
 }: {
   entries: LedgerEntry[];
   sales: Record<string, SaleResult>;
   assets: Asset[];
   portfolioId: string;
   revision: number;
+  embedded?: boolean;
 }) {
   const [search, setSearch] = useState(""),
     [kind, setKind] = useState(""),
@@ -96,8 +98,15 @@ export function TransactionList({
   };
   return (
     <div className="space-y-3 lg:space-y-4">
-      <section className="card bg-base-200">
-        <div className="card-body gap-4 p-4">
+      <section
+        className={embedded ? "min-w-0" : "card bg-base-200"}
+        aria-label="ტრანზაქციების ფილტრები"
+      >
+        <div
+          className={
+            embedded ? "flex min-w-0 flex-col gap-2" : "card-body gap-4 p-4"
+          }
+        >
           <FilterButtons
             label="სწრაფი ფილტრი"
             value={kind}
@@ -123,7 +132,7 @@ export function TransactionList({
               })),
             ]}
           />
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap items-end gap-2">
             <label className="input min-w-0 flex-1 md:max-w-sm">
               <Search size={16} aria-hidden="true" />
               <span className="sr-only">ტრანზაქციების ძიება</span>
@@ -137,7 +146,7 @@ export function TransactionList({
                 }}
               />
             </label>
-            <fieldset className="fieldset hidden max-w-44 md:block">
+            <fieldset className="fieldset hidden max-w-44 lg:block">
               <legend className="fieldset-legend">თარიღიდან</legend>
               <input
                 className="input"
@@ -149,7 +158,7 @@ export function TransactionList({
                 }}
               />
             </fieldset>
-            <fieldset className="fieldset hidden max-w-44 md:block">
+            <fieldset className="fieldset hidden max-w-44 lg:block">
               <legend className="fieldset-legend">თარიღამდე</legend>
               <input
                 className="input"
@@ -238,7 +247,13 @@ export function TransactionList({
         </div>
       </section>
       <section className="card bg-base-200">
-        <div className="flex items-center justify-between border-b border-base-300 px-5 py-4">
+        <div
+          className={
+            embedded
+              ? "sr-only"
+              : "flex items-center justify-between border-b border-base-300 px-5 py-4"
+          }
+        >
           <div>
             <h2 className="card-title text-base">ტრანზაქციების ისტორია</h2>
             <p className="mt-1 text-xs text-base-content/60">

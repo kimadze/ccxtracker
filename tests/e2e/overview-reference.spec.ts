@@ -34,6 +34,7 @@ test("reference overview keeps responsive financial hierarchy, search, privacy a
       ["stellar", "XLM", "Stellar", "1000", "0.1", "0.12", false],
       ["starknet", "STRK", "Starknet", "200", "0.5", "0.75", false],
       ["tether", "USDT", "Tether", "500", "1", "1", true],
+      ["overview-extra", "EXTRA", "მეშვიდე აქტივი", "1", "1", "2", false],
       [
         "overview-tiny",
         "TINY",
@@ -107,16 +108,30 @@ test("reference overview keeps responsive financial hierarchy, search, privacy a
       });
       await search.fill("XLM");
       const section = page.getByRole("region", { name: "პორტფელის აქტივები" });
-      await expect(section.locator("table tbody tr")).toHaveCount(1);
-      await expect(section.locator("table")).toContainText("XLM");
+      const assetList = section.getByTestId("overview-assets-list");
+      await expect(assetList.locator("table tbody tr")).toHaveCount(1);
+      await expect(assetList.locator("table")).toContainText("XLM");
       await search.fill("");
-      await expect(section.locator("table tbody tr")).toHaveCount(6);
+      await expect(assetList.locator("table tbody tr")).toHaveCount(6);
       const tabs = page.getByRole("tablist", { name: "პორტფელის სექციები" });
-      await tabs.getByRole("tab", { name: "პოზიციები", exact: true }).click();
+      expect(
+        await tabs.evaluate(
+          (element) => element.scrollWidth <= element.clientWidth + 1,
+        ),
+      ).toBe(true);
+      await page
+        .getByRole("button", { name: "ყველა 7 პოზიციის ნახვა", exact: true })
+        .click();
+      await expect(
+        tabs.getByRole("tab", { name: "პოზიციები", exact: true }),
+      ).toHaveAttribute("aria-selected", "true");
       await expect(page.getByRole("tabpanel")).toContainText("შედეგი");
       await expect(
         page.getByRole("textbox", { name: "პოზიციების ძიება", exact: true }),
       ).toBeVisible();
+      await page
+        .getByRole("textbox", { name: "პოზიციების ძიება", exact: true })
+        .fill("XLM");
       await expect(page).toHaveURL(new RegExp(`${base}$`));
       await expect(page.locator(".recharts-area")).toBeVisible();
       await tabs
@@ -130,18 +145,31 @@ test("reference overview keeps responsive financial hierarchy, search, privacy a
       await expect(
         page.getByRole("textbox", { name: "ტრანზაქციების ძიება", exact: true }),
       ).toBeVisible();
+      await page
+        .getByRole("textbox", { name: "ტრანზაქციების ძიება", exact: true })
+        .fill("BTC");
       if ([390, 1440].includes(width))
         await page.screenshot({
           path: `.local/overview-transactions-${info.project.name}-${width}.png`,
           fullPage: true,
         });
+      await tabs.getByRole("tab", { name: "პოზიციები", exact: true }).click();
+      await expect(
+        page.getByRole("textbox", { name: "პოზიციების ძიება", exact: true }),
+      ).toHaveValue("XLM");
+      await tabs
+        .getByRole("tab", { name: "ტრანზაქციები", exact: true })
+        .click();
+      await expect(
+        page.getByRole("textbox", { name: "ტრანზაქციების ძიება", exact: true }),
+      ).toHaveValue("BTC");
       await tabs
         .getByRole("tab", { name: "ტრანზაქციები", exact: true })
         .press("Home");
       await expect(
         tabs.getByRole("tab", { name: "აქტივები", exact: true }),
       ).toHaveAttribute("aria-selected", "true");
-      await expect(section.locator("table tbody tr")).toHaveCount(6);
+      await expect(assetList.locator("table tbody tr")).toHaveCount(6);
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth + 1,

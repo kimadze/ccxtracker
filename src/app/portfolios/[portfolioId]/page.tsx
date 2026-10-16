@@ -38,6 +38,7 @@ export default async function Page({
         }
         transactionsPanel={
           <TransactionList
+            embedded
             entries={w.entries}
             sales={saleResults(w.entries)}
             assets={w.assets}
