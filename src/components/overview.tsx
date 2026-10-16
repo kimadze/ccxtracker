@@ -21,7 +21,6 @@ export function Overview({
   cryptoOnlyValue = false,
   history,
   action,
-  positionsPanel,
   transactionsPanel,
 }: {
   summary: PortfolioSummary;
@@ -30,7 +29,6 @@ export function Overview({
   cryptoOnlyValue?: boolean;
   history?: ReactNode;
   action?: ReactNode;
-  positionsPanel: ReactNode;
   transactionsPanel: ReactNode;
 }) {
   const positions = [...s.positions].sort((a, b) =>
@@ -227,7 +225,7 @@ export function Overview({
         className="card card-border min-w-0 border-base-300 bg-base-200"
         aria-label="პორტფელის ღირებულება და შედეგი"
       >
-        <div className="grid min-w-0 gap-2 p-3 sm:grid-cols-2 sm:gap-3 sm:p-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:items-center">
+        <div className="grid min-w-0 gap-2 p-3 sm:grid-cols-2 sm:gap-3 sm:p-4 sm:items-center">
           <div className="relative min-w-0 pr-10 lg:pr-0">
             <h2 className="text-xs text-base-content/60">
               {cryptoOnlyValue
@@ -250,15 +248,8 @@ export function Overview({
               <BalanceValue>{money(s.totalPnl)}</BalanceValue>
             </p>
           </div>
-          <div
-            id="overview-period-controls"
-            className="min-w-0 max-w-full empty:hidden sm:col-span-2 xl:col-span-1"
-          />
           {(!s.complete || s.stale) && (
-            <p
-              role="status"
-              className="text-xs text-warning sm:col-span-2 xl:col-span-3"
-            >
+            <p role="status" className="text-xs text-warning sm:col-span-2">
               {!s.complete
                 ? "ზოგი აქტივის ფასი მიუწვდომელია · ჯამი არასრულია"
                 : "ფასები დაგვიანებულია"}
@@ -275,6 +266,10 @@ export function Overview({
             <h2 className="text-xs font-medium text-base-content/70">
               პორტფელის ისტორია · სრული ღირებულება
             </h2>
+            <div
+              id="overview-period-controls"
+              className="min-w-0 max-w-full empty:hidden"
+            />
             {history ?? (
               <p className="py-2 text-xs text-base-content/55">
                 ისტორია ჯერ არ არის
@@ -352,7 +347,6 @@ export function Overview({
         <OverviewAssets
           positions={positions}
           base={base}
-          positionsPanel={positionsPanel}
           transactionsPanel={transactionsPanel}
         />
         <details className="collapse collapse-arrow border border-base-300 bg-base-200 md:hidden">
