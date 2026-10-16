@@ -1,3 +1,4 @@
+import { accountIsActive } from "@/server/account-access";
 import "server-only";
 import { randomUUID } from "node:crypto";
 import {
@@ -72,6 +73,7 @@ export async function enqueueDailyDigests(
       ),
     );
   for (const connection of connections) {
+    if (!(await accountIsActive(db, connection.userId))) continue;
     if (
       connection.lastError === "BOT_BLOCKED" ||
       !connection.portfolioIds.length ||
@@ -144,6 +146,7 @@ export async function sendTestDailyDigest(db: Database, userId: string) {
     !job.portfolioIds.every((id) => latest.portfolioIds.includes(id))
   )
     throw new Error("DIGEST_CANCELLED");
+  if (!(await accountIsActive(db, userId))) throw new Error("DIGEST_CANCELLED");
   await sendTelegram(
     connection.chatId,
     `სატესტო ანგარიში\n\n${body}`,
@@ -320,6 +323,8 @@ export async function processDailyDigests(
         )
         .returning({ id: telegramDigests.id });
       if (!ready.length) continue;
+      if (!(await accountIsActive(db, job.userId)))
+        throw new Error("DIGEST_CANCELLED");
       await sendTelegram(
         latest.chatId!,
         body,

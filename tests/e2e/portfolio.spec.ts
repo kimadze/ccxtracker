@@ -102,6 +102,9 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await dialog.getByLabel("ტრანზაქციის ტიპი").selectOption("buy");
   await dialog.getByLabel("აქტივი", { exact: true }).selectOption("bitcoin");
   await dialog.getByLabel("რაოდენობა", { exact: true }).fill("0,1");
+  await dialog
+    .getByLabel("ანგარიშსწორების ვალუტა", { exact: true })
+    .selectOption("USD");
   await dialog.getByLabel("ერთეულის ფასი (USD)", { exact: true }).fill("50000");
   await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
   await expect(dialog).not.toBeVisible();
@@ -164,6 +167,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   ).toBeVisible();
   await page.getByRole("tab", { name: "ჟურნალი", exact: true }).click();
   if (testInfo.project.name === "desktop") {
+    await page.getByText("შესვლა და მოლოდინი", { exact: true }).click();
     await expect(
       page.getByLabel("რატომ გავხსენი პოზიცია", { exact: true }),
     ).toBeVisible();

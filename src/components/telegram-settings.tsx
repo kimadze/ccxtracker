@@ -105,7 +105,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
   }
   return (
     <section
-      className="card bg-base-200 p-4"
+      className="card min-w-0 bg-base-200 p-4"
       aria-labelledby="settings-telegram"
     >
       <div className="flex items-center justify-between gap-3">
@@ -258,7 +258,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
             <>
               <form
                 key={`${status.summaryEnabled}:${status.summaryHour}:${status.buyEnabled}:${status.sellEnabled}:${status.portfolioIds.join(",")}`}
-                className="space-y-3"
+                className="min-w-0 space-y-3"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const data = new FormData(e.currentTarget);
@@ -294,7 +294,7 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                     </label>
                   ))}
                 </div>
-                <fieldset className="fieldset border-t border-base-300 pt-2">
+                <fieldset className="fieldset min-w-0 border-t border-base-300 pt-2">
                   <legend className="fieldset-legend">დღიური შეჯამება</legend>
                   <label className="label min-h-11 justify-start gap-3 whitespace-normal">
                     <input
@@ -327,13 +327,13 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                     რამდენიმე წუთით დაგვიანდეს.
                   </p>
                 </fieldset>
-                <fieldset className="fieldset">
+                <fieldset className="fieldset min-w-0">
                   <legend className="fieldset-legend">პორტფელები</legend>
                   <div className="grid gap-1 sm:grid-cols-2">
                     {status.portfolios.map((p) => (
                       <label
                         key={p.id}
-                        className="label min-h-11 justify-start gap-3 whitespace-normal"
+                        className="label min-h-11 min-w-0 justify-start gap-3 whitespace-normal"
                       >
                         <input
                           type="checkbox"
@@ -343,7 +343,10 @@ export function TelegramSettings({ portfolioId }: { portfolioId: string }) {
                           defaultChecked={status.portfolioIds.includes(p.id)}
                           disabled={pending}
                         />
-                        <span className="min-w-0 truncate" title={p.name}>
+                        <span
+                          className="min-w-0 flex-1 truncate"
+                          title={p.name}
+                        >
                           {p.name}
                         </span>
                       </label>

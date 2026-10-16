@@ -94,6 +94,15 @@ test("admin sections fit responsive sizes, preserve AI controls and deny other u
       exact: true,
     }),
   ).toHaveValue("5");
+  await enabled.check();
+  await page
+    .getByRole("spinbutton", {
+      name: "მოთხოვნები / მომხმარებელი / 24სთ",
+      exact: true,
+    })
+    .fill("20");
+  await page.getByRole("button", { name: "შენახვა", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("პარამეტრები შენახულია");
   await page.context().clearCookies();
   await page.context().addCookies([
     {

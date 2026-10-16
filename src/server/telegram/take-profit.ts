@@ -1,3 +1,4 @@
+import { accountIsActive } from "@/server/account-access";
 import "server-only";
 import { and, asc, eq, inArray, isNull, lte, lt } from "drizzle-orm";
 import type { Database } from "@/server/db";
@@ -46,7 +47,11 @@ export async function evaluateTakeProfits(db: Database, quotes: Quote[]) {
         .from(exitPlans)
         .where(eq(exitPlans.id, item.plan.id))
         .for("update");
-      if (!plan?.telegramEnabled) return;
+      if (
+        !plan?.telegramEnabled ||
+        !(await accountIsActive(tx as unknown as Database, item.userId))
+      )
+        return;
       const connection = (
         await tx
           .select()
@@ -227,6 +232,13 @@ export async function processTakeProfitDeliveries(
             `TP${l.level} · სამიზნე ${unitPrice(l.price)}\nგეგმა: ${l.percentage}% — ${quantity(l.quantity)} ${row.asset.symbol}\nსავარაუდო გაყიდვის თანხა: ${money(amount(decimal(l.quantity).mul(job.price)))}`,
         )
         .join("\n\n");
+      if (!(await accountIsActive(db, row.connection.userId))) {
+        await db
+          .update(takeProfitDeliveries)
+          .set({ attempts: 8, updatedAt: new Date() })
+          .where(eq(takeProfitDeliveries.id, job.id));
+        continue;
+      }
       await sendTelegram(
         row.connection.chatId,
         `${row.asset.symbol.slice(0, 40)} · Take Profit მიღწეულია\nდაფიქსირებული ფასი: ${unitPrice(job.price)}\nწყარო: CoinGecko · USD\n\n${details}\n\n${job.reachedAt.toISOString()}\nგაყიდვა ავტომატურად არ შესრულებულა.`,

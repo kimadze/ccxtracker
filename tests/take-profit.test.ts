@@ -42,6 +42,7 @@ beforeAll(async () => {
   vi.stubGlobal("fetch", fetchMock);
 }, 60000);
 beforeEach(async () => {
+  await db.delete(s.suspendedUsers);
   await db.delete(s.portfolios);
   await db.delete(s.telegramConnections);
   await db.delete(s.takeProfitDeliveries);
@@ -101,6 +102,24 @@ async function quote(price: string, offset = 0, stale = false) {
     },
   ]);
 }
+it("blocks both evaluation and queued delivery for a suspended account", async () => {
+  await setup();
+  await quote("5");
+  await quote("21", 1000);
+  expect(await db.select().from(s.takeProfitDeliveries)).toHaveLength(1);
+  await db.insert(s.suspendedUsers).values({ userId: "alice" });
+  await processTakeProfitDeliveries(db);
+  expect(fetchMock).not.toHaveBeenCalled();
+  await db.delete(s.suspendedUsers);
+  await processTakeProfitDeliveries(db);
+  expect(fetchMock).not.toHaveBeenCalled();
+  await db.insert(s.suspendedUsers).values({ userId: "alice" });
+  await db.delete(s.takeProfitDeliveries);
+  await quote("5", 2000);
+  await quote("21", 3000);
+  expect(await db.select().from(s.takeProfitDeliveries)).toHaveLength(0);
+});
+
 it.each(["portfolio", "sell"])(
   "does not evaluate TP alerts when %s notifications are disabled",
   async (setting) => {

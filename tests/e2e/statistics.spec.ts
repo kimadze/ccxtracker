@@ -129,8 +129,14 @@ test("portfolio price impact, macro trends and responsive layouts", async ({
       .filter({ visible: true }),
   ).toHaveCount(1);
   await expect(
-    results.getByText("-$3 000,00", { exact: true }).filter({ visible: true }),
-  ).toBeVisible();
+    results
+      .getByRole("row")
+      .filter({ has: page.getByRole("link").filter({ hasText: "BTC" }) })
+      .filter({ visible: true })
+      .getByRole("cell")
+      .nth(3)
+      .locator(":scope > .balance-value"),
+  ).toHaveText("-$3 000,00");
   await panel.getByRole("button", { name: "ყველა", exact: true }).click();
   await panel.getByLabel("სტატისტიკის აქტივის ძიება").fill("UNCOVERED");
   await expect(

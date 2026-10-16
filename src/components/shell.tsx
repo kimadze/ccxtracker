@@ -35,7 +35,7 @@ import { TransactionUndo } from "./transaction-undo";
 import { TargetNotifications } from "./target-notifications";
 import { useMarketRefresh } from "./use-market-refresh";
 import {
-  privacyEvent,
+  writePrivacy,
   readPrivacy,
   serverPrivacy,
   subscribePrivacy,
@@ -147,8 +147,7 @@ export function BalancePrivacyToggle() {
       aria-label={hidden ? "თანხების ჩვენება" : "თანხების დამალვა"}
       title={hidden ? "თანხების ჩვენება" : "თანხების დამალვა"}
       onClick={() => {
-        window.localStorage.setItem("ccx-hide-balances", String(!hidden));
-        window.dispatchEvent(new Event(privacyEvent));
+        writePrivacy(!hidden);
       }}
     >
       {hidden ? <EyeOff size={17} /> : <Eye size={17} />}

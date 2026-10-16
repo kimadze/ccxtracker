@@ -60,6 +60,7 @@ beforeEach(async () => {
       }),
   );
   await testDb.delete(schema.telegramConnections);
+  await testDb.delete(schema.suspendedUsers);
 });
 afterAll(async () => {
   vi.unstubAllEnvs();
@@ -90,6 +91,22 @@ async function link(userId: string, pid: string, id = 123) {
   await svc.confirm();
   return svc;
 }
+
+it("suspended accounts cannot use the assistant even with a retained connection", async () => {
+  const p = await portfolio();
+  await link("alice", p.id);
+  await testDb.insert(schema.suspendedUsers).values({ userId: "alice" });
+  await replyTelegramAssistant(db, {
+    update_id: 98764,
+    message: {
+      date: Math.floor(Date.now() / 1000),
+      text: "/portfolio",
+      chat: { id: 123, type: "private" },
+      from: { id: 123, is_bot: false },
+    },
+  });
+  expect(fetchMock).not.toHaveBeenCalled();
+});
 
 it("assistant only serves a confirmed private chat and suppresses provider retries", async () => {
   const p = await portfolio();
@@ -499,6 +516,20 @@ describe("private Telegram connections and durable deliveries", () => {
     expect(payload.text).toMatch(/^BTC\n/);
     expect(payload.text).not.toContain("CCX ·");
     expect(payload.reply_markup.inline_keyboard[0][0].url).toContain(p.id);
+  });
+  it("does not deliver a queued watchlist alert after account suspension", async () => {
+    const p = await portfolio();
+    await link("alice", p.id);
+    await crossing(p.id);
+    expect(await testDb.select().from(schema.telegramDeliveries)).toHaveLength(
+      1,
+    );
+    await testDb.insert(schema.suspendedUsers).values({ userId: "alice" });
+    await processTelegramDeliveries(db);
+    expect(fetchMock).not.toHaveBeenCalled();
+    await testDb.delete(schema.suspendedUsers);
+    await processTelegramDeliveries(db);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
   it("sends each buy and sell target once across days and only resets the changed target", async () => {
     const p = await portfolio();

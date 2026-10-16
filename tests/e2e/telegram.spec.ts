@@ -26,6 +26,13 @@ test("Telegram private link, confirmation, choices and disconnect fit all sizes"
   });
   await db.connect();
   try {
+    await db.query("DELETE FROM telegram_digests WHERE user_id=$1", [user]);
+    await db.query("DELETE FROM telegram_connections WHERE user_id=$1", [user]);
+    // Keep the portfolio selector representative of an established account.
+    await db.query(
+      "INSERT INTO portfolios(id,user_id,name) SELECT gen_random_uuid(),$1,'დამატებითი პორტფელი ძალიან გრძელი ქართული სახელით ' || n FROM generate_series(1,12) n",
+      [user],
+    );
     await db.query("INSERT INTO portfolios(id,user_id,name) VALUES($1,$2,$3)", [
       pid,
       user,

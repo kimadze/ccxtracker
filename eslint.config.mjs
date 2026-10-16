@@ -5,6 +5,7 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   globalIgnores([
+    ".local/**",
     ".next/**",
     "free-nextjs-admin-dashboard-main/**",
     "next-env.d.ts",

@@ -1,4 +1,5 @@
 import { assistantReport } from "./assistant-report";
+import { accountIsActive } from "@/server/account-access";
 import "server-only";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -41,6 +42,7 @@ export async function replyTelegramAssistant(db: Database, input: unknown) {
   // An ambiguous/shared chat must never disclose either user's financial data.
   if (rows.length !== 1 || rows[0].lastError === "BOT_BLOCKED") return;
   const connection = rows[0];
+  if (!(await accountIsActive(db, connection.userId))) return;
   if (
     !(await consumeRateLimit(
       `telegram-assistant:${connection.userId}`,
@@ -84,6 +86,7 @@ export async function replyTelegramAssistant(db: Database, input: unknown) {
     .from(telegramConnections)
     .where(eq(telegramConnections.userId, connection.userId));
   if (
+    !(await accountIsActive(db, connection.userId)) ||
     !current ||
     current.chatId !== connection.chatId ||
     current.generation !== connection.generation ||

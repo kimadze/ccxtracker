@@ -36,7 +36,7 @@ test("private image draft previews, applies and waits for manual save", async ({
       [asset],
     );
     await db.query(
-      "INSERT INTO transactions(id,portfolio_id,asset_id,kind,quantity,price,fee,occurred_at,sequence) VALUES($1,$2,$3,'deposit',1000,0.1,0,now()-interval '1 day',1)",
+      "INSERT INTO transactions(id,portfolio_id,asset_id,kind,quantity,price,fee,occurred_at,sequence) VALUES($1,$2,$3,'deposit',1000,0.1,0,'2026-10-01T00:00:00Z',1)",
       [randomUUID(), pid, asset],
     );
     await page.goto(`/portfolios/${pid}/transactions?new=1`);

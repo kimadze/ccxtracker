@@ -48,6 +48,7 @@ beforeAll(async () => {
   vi.stubGlobal("fetch", fetcher);
 }, 60000);
 beforeEach(async () => {
+  await testDb.delete(schema.suspendedUsers);
   await testDb.delete(schema.telegramDigests);
   await testDb.delete(schema.transactions);
   await testDb.delete(schema.snapshots);
@@ -75,6 +76,18 @@ it("uses the Tbilisi calendar boundary", () =>
     day: "2026-10-13",
     hour: 0,
   }));
+it("does not enqueue or deliver reports for a suspended account", async () => {
+  await enqueueDailyDigests(db, now);
+  await testDb.insert(schema.suspendedUsers).values({ userId: "owner" });
+  await processDailyDigests(db, now);
+  await expect(sendTestDailyDigest(db, "owner")).rejects.toThrow(
+    "DIGEST_CANCELLED",
+  );
+  expect(fetcher).not.toHaveBeenCalled();
+  await testDb.delete(schema.telegramDigests);
+  await enqueueDailyDigests(db, now);
+  expect(await testDb.select().from(schema.telegramDigests)).toHaveLength(0);
+});
 it("sends an explicit report test without consuming the scheduled daily job", async () => {
   await sendTestDailyDigest(db, "owner");
   expect(fetcher).toHaveBeenCalledTimes(1);

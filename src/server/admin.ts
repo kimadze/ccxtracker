@@ -15,6 +15,7 @@ import {
   telegramDeliveries,
   telegramDigests,
   takeProfitDeliveries,
+  telegramConnections,
 } from "./db/schema";
 import { isAdmin } from "./admin-access";
 
@@ -195,6 +196,19 @@ export function adminService(db: Database, actor: AdminActor) {
             .values({ userId })
             .onConflictDoNothing();
           await tx.delete(sessions).where(eq(sessions.userId, userId));
+          // Reconnection is explicit after restoration; never replay old jobs.
+          await tx
+            .delete(telegramConnections)
+            .where(eq(telegramConnections.userId, userId));
+          await tx
+            .update(telegramDigests)
+            .set({ attempts: 5, lastError: "CANCELLED", body: null })
+            .where(
+              and(
+                eq(telegramDigests.userId, userId),
+                isNull(telegramDigests.sentAt),
+              ),
+            );
         } else
           await tx
             .delete(suspendedUsers)

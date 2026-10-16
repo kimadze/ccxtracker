@@ -8,6 +8,7 @@ import { adminService } from "@/server/admin";
 import { isAdmin } from "@/server/admin-access";
 import { aiPolicy } from "@/server/ai/policy";
 import { lunaJson } from "@/server/ai/client";
+import { accountIsActive } from "@/server/account-access";
 const client = new PGlite(),
   testDb = drizzle(client, { schema }),
   db = testDb as unknown as Database;
@@ -36,6 +37,8 @@ beforeEach(async () => {
   await testDb.delete(schema.suspendedUsers);
   await testDb.delete(schema.aiUsage);
   await testDb.delete(schema.sessions);
+  await testDb.delete(schema.telegramDigests);
+  await testDb.delete(schema.telegramConnections);
 });
 afterAll(async () => {
   vi.unstubAllEnvs();
@@ -77,6 +80,16 @@ it("applies bounded AI controls atomically with an administrative event", async 
   expect(await testDb.select().from(schema.adminEvents)).toHaveLength(1);
 });
 it("suspends a member, removes sessions, restores access and protects admins", async () => {
+  await testDb
+    .insert(schema.telegramConnections)
+    .values({ userId: "member", chatId: "12345" });
+  await testDb.insert(schema.telegramDigests).values({
+    userId: "member",
+    generation: crypto.randomUUID(),
+    day: "2026-10-16",
+    portfolioIds: [],
+    body: "private",
+  });
   await testDb.insert(schema.sessions).values({
     id: "session",
     token: "dummy",
@@ -87,8 +100,24 @@ it("suspends a member, removes sessions, restores access and protects admins", a
   await service.suspend({ userId: "member", suspended: true });
   expect(await testDb.select().from(schema.sessions)).toHaveLength(0);
   expect(await testDb.select().from(schema.suspendedUsers)).toHaveLength(1);
+  expect(await accountIsActive(db, "member")).toBe(false);
+  expect(await testDb.select().from(schema.telegramConnections)).toHaveLength(
+    0,
+  );
+  expect(await testDb.select().from(schema.telegramDigests)).toEqual([
+    expect.objectContaining({
+      attempts: 5,
+      lastError: "CANCELLED",
+      body: null,
+    }),
+  ]);
   await service.suspend({ userId: "member", suspended: false });
   expect(await testDb.select().from(schema.suspendedUsers)).toHaveLength(0);
+  expect(await accountIsActive(db, "member")).toBe(true);
+  expect(await accountIsActive(db, "missing")).toBe(false);
+  expect(await testDb.select().from(schema.telegramConnections)).toHaveLength(
+    0,
+  );
   await expect(
     service.suspend({ userId: "admin", suspended: true }),
   ).rejects.toThrow();

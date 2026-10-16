@@ -10,7 +10,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,6 +21,11 @@ jobs:
       - run: npm run check
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+        env:
+          CCX_E2E_TELEGRAM_FIXTURES: "1"
+          CCX_E2E_WALLET_FIXTURES: "1"
+          CCX_E2E_STATISTICS_FIXTURES: "1"
+          CCX_E2E_AI_FIXTURES: "1"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -1,3 +1,4 @@
+import { accountIsActive } from "@/server/account-access";
 import "server-only";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, isNull, inArray } from "drizzle-orm";
@@ -57,6 +58,8 @@ export function telegramService(db: Database, userId: string) {
       };
     },
     async begin(portfolioId: string) {
+      if (!(await accountIsActive(db, userId)))
+        throw new Error("TELEGRAM_NOT_CONNECTED");
       if (!telegramConfigured()) throw new Error("TELEGRAM_NOT_CONFIGURED");
       const [owned] = await db
         .select()
@@ -86,6 +89,8 @@ export function telegramService(db: Database, userId: string) {
     },
     async confirm() {
       await db.transaction(async (tx) => {
+        if (!(await accountIsActive(tx as unknown as Database, userId)))
+          throw new Error("TELEGRAM_NOT_CONNECTED");
         const [row] = await tx
           .select()
           .from(telegramConnections)
@@ -245,6 +250,8 @@ export function telegramService(db: Database, userId: string) {
         .from(telegramConnections)
         .where(eq(telegramConnections.userId, userId));
       if (!row?.chatId) throw new Error("TELEGRAM_NOT_CONNECTED");
+      if (!(await accountIsActive(db, userId)))
+        throw new Error("TELEGRAM_NOT_CONNECTED");
       await sendTelegram(
         row.chatId,
         "სატესტო შეტყობინება\nTelegram-ის კავშირი მუშაობს.",
@@ -291,6 +298,12 @@ export async function acceptTelegramLink(db: Database, input: unknown) {
   const start = parseTelegramStart(input);
   if (!start) return false;
   const { message, token } = start;
+  const [candidate] = await db
+    .select({ userId: telegramConnections.userId })
+    .from(telegramConnections)
+    .where(eq(telegramConnections.linkHash, hashLink(token)));
+  if (!candidate || !(await accountIsActive(db, candidate.userId)))
+    return false;
   const rows = await db
     .update(telegramConnections)
     .set({
@@ -325,7 +338,7 @@ export async function replyTelegramLinkReturn(db: Database, input: unknown) {
         gt(telegramConnections.linkExpiresAt, new Date()),
       ),
     );
-  if (!connection) return;
+  if (!connection || !(await accountIsActive(db, connection.userId))) return;
   const owned = await db
     .select({ id: portfolios.id })
     .from(portfolios)

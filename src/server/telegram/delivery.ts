@@ -1,3 +1,4 @@
+import { accountIsActive } from "@/server/account-access";
 import "server-only";
 import { and, asc, eq, isNull, lte, lt } from "drizzle-orm";
 import { getDb, type Database } from "@/server/db";
@@ -26,7 +27,7 @@ export async function enqueueTelegramTarget(
     .select({ userId: portfolios.userId })
     .from(portfolios)
     .where(eq(portfolios.id, item.portfolioId));
-  if (!owner) return;
+  if (!owner || !(await accountIsActive(db, owner.userId))) return;
   const [connection] = await db
     .select()
     .from(telegramConnections)
@@ -132,6 +133,12 @@ export async function processTelegramDeliveries(
     try {
       const direction = job.side === "buy" ? "ფასის ვარდნის" : "ფასის ზრდის";
       const url = `${appOrigin()}/portfolios/${row.portfolio.id}/watchlist?asset=${encodeURIComponent(row.asset.id)}&view=reached`;
+      if (!(await accountIsActive(db, job.userId))) {
+        await db
+          .delete(telegramDeliveries)
+          .where(eq(telegramDeliveries.id, job.id));
+        continue;
+      }
       await sendTelegram(
         row.connection.chatId,
         `${row.asset.symbol.slice(0, 40)}\n${direction} ალერტი\nსამიზნე ${job.side === "buy" ? "≤" : "≥"} ${unitPrice(job.target)}\nდაფიქსირებული ფასი: ${unitPrice(job.price)}\n${job.reachedAt.toISOString()}`,

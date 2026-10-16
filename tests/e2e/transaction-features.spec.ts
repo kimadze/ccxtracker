@@ -168,7 +168,12 @@ test("opening batch, previews, undo, planning and target notices work at all bre
     await panel
       .getByRole("button", { name: /BTC · ფასის ვარდნის ალერტი/ })
       .click();
-    await expect(page).toHaveURL(new RegExp(`/watchlist\\?asset=bitcoin$`));
+    await expect(page).toHaveURL(
+      (url) =>
+        url.pathname.endsWith("/watchlist") &&
+        url.searchParams.get("asset") === "bitcoin" &&
+        url.searchParams.get("view") === "reached",
+    );
     await expect(
       page.getByRole("button", { name: "შეტყობინებები", exact: true }),
     ).toBeVisible();

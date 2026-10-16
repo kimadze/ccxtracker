@@ -63,6 +63,8 @@ await socket.start();
 const child = spawn(
   process.execPath,
   [
+    "--import",
+    pathToFileURL(resolve("tests/e2e/fixtures/network-boundary.mjs")).href,
     ...(walletFixtures
       ? [
           "--import",

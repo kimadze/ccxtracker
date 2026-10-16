@@ -99,7 +99,7 @@ test("USDT trades, actual-currency history and separate balances work at every b
     const balances = page.getByRole("region", {
       name: "USD ნაშთი და სტეიბლკოინები",
     });
-    await expect(balances).toContainText("USD ნაშთი");
+    await expect(balances).toContainText("ნაღდი ფული");
     await expect(balances).toContainText("60 USDT");
     await expect(balances).toContainText("59,40");
     for (const width of [360, 390, 430, 768, 1024, 1440]) {

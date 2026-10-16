@@ -41,7 +41,9 @@ test("deleting USD updates total value, liquidity and portfolio cards without a 
     );
     const base = `/portfolios/${id}`;
     await page.goto(base);
-    const summary = page.getByRole("region", { name: "ღირებულება და ისტორია" });
+    const summary = page.getByRole("region", {
+      name: "პორტფელის ღირებულება და შედეგი",
+    });
     await expect(summary).toContainText("$1 300,00");
     await expect(summary).toContainText("$100,00");
     if (info.project.name === "mobile")
