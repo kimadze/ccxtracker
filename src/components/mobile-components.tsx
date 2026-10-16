@@ -24,10 +24,16 @@ export function MobileMetricCard({
   tone?: string;
 }) {
   return (
-    <article className="mobile-metric-card">
-      <span>{label}</span>
-      <strong className={`numeric ${tone}`}>{value}</strong>
-      {hint && <small>{hint}</small>}
+    <article className="stat min-w-0 p-3">
+      <span className="stat-title text-xs">{label}</span>
+      <strong
+        className={`stat-value overflow-x-auto whitespace-nowrap text-lg tabular-nums ${tone}`}
+      >
+        {value}
+      </strong>
+      {hint && (
+        <small className="stat-desc whitespace-normal text-xs">{hint}</small>
+      )}
     </article>
   );
 }

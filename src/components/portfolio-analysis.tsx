@@ -2,6 +2,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import type { PortfolioAttribution } from "@/domain/attribution";
 import { analyzeHealth, type analyzePerformance } from "@/domain/analytics";
@@ -256,10 +257,12 @@ export function PortfolioAnalysis({
               სად არის მთავარი რისკი
             </h2>
             <Link
-              className="btn btn-ghost text-xs"
+              className="btn btn-ghost btn-square min-h-11 min-w-11 shrink-0"
               href={`/portfolios/${portfolioId}/allocation`}
+              aria-label="განაწილების გახსნა"
+              title="განაწილების გახსნა"
             >
-              განაწილება ↗
+              <ArrowUpRight size={16} />
             </Link>
           </div>
           {health ? (

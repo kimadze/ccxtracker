@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { saveJournal } from "@/server/strategy-actions";
 import { useRouter } from "next/navigation";
-import { ResponsiveDisclosure } from "./responsive-disclosure";
 import { Field, Message } from "./ui";
 export interface JournalData {
   thesis: string;
@@ -31,7 +30,7 @@ export function JournalForm({
   const router = useRouter();
   return (
     <form
-      className="w-full max-w-5xl grid gap-3 lg:grid-cols-2 lg:gap-4"
+      className="grid w-full min-w-0 items-start gap-3 lg:grid-cols-2 lg:gap-4"
       onSubmit={async (e) => {
         e.preventDefault();
         if (preview) return;
@@ -59,7 +58,7 @@ export function JournalForm({
           <textarea
             className="textarea"
             name="thesis"
-            rows={6}
+            rows={4}
             maxLength={10000}
             defaultValue={initial?.thesis ?? ""}
             placeholder="რა არის მთავარი არგუმენტი ამ პოზიციისთვის?"
@@ -69,7 +68,7 @@ export function JournalForm({
           <textarea
             className="textarea"
             name="notes"
-            rows={6}
+            rows={4}
             maxLength={10000}
             defaultValue={initial?.notes ?? ""}
             placeholder="გადახედვის შედეგი, პირადი შენიშვნა ან ბმული…"
@@ -77,7 +76,7 @@ export function JournalForm({
         </Field>
       </div>
       <div className="min-w-0 space-y-3">
-        <ResponsiveDisclosure className="collapse collapse-arrow border border-base-300 bg-base-200 ">
+        <details className="collapse collapse-arrow border border-base-300 bg-base-200 ">
           <summary className="collapse-title min-h-11 text-sm font-semibold">
             შესვლა და მოლოდინი
           </summary>
@@ -125,8 +124,8 @@ export function JournalForm({
               </Field>
             </div>
           </div>
-        </ResponsiveDisclosure>
-        <ResponsiveDisclosure className="collapse collapse-arrow border border-base-300 bg-base-200 ">
+        </details>
+        <details className="collapse collapse-arrow border border-base-300 bg-base-200 ">
           <summary className="collapse-title min-h-11 text-sm font-semibold">
             რწმენა და დრო
           </summary>
@@ -154,7 +153,7 @@ export function JournalForm({
               </Field>
             </div>
           </div>
-        </ResponsiveDisclosure>
+        </details>
       </div>
       {message && <Message error={error}>{message}</Message>}
       {!preview && (

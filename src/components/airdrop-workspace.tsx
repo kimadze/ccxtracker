@@ -78,7 +78,7 @@ export function AirdropWorkspace({
 
   return (
     <div className="space-y-3 lg:space-y-4">
-      <div className="grid grid-cols-1 gap-px rounded-box border border-base-300 bg-base-200 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-px rounded-box border border-base-300 bg-base-200 xl:grid-cols-4">
         <Metric
           label="მიღებული Airdrop-ები"
           value={String(rows.length)}
@@ -109,7 +109,7 @@ export function AirdropWorkspace({
         />
       </div>
       <section className="card overflow-hidden bg-base-200">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-base-300 px-5 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-base-300 p-3 sm:p-4">
           <div>
             <h2 className="text-base font-semibold">Airdrop ისტორია</h2>
             <p className="mt-1 text-xs leading-5 text-base-content/60">
@@ -120,7 +120,7 @@ export function AirdropWorkspace({
           <span className="badge">{rows.length} ჩანაწერი</span>
         </div>
         {!rows.length ? (
-          <div className="px-5 py-9 text-center">
+          <div className="px-4 py-5 text-center">
             <p className="text-sm font-medium">
               Airdrop ჯერ არ გაქვთ დამატებული.
             </p>
@@ -238,10 +238,15 @@ function Metric({
   sensitive?: boolean;
 }) {
   return (
-    <div className="stat min-w-0 p-3">
+    <div className="stat min-w-0 grid-cols-[minmax(0,1fr)] p-3 [container-type:inline-size]">
       <p className="stat-title whitespace-normal text-xs">{label}</p>
       <p
-        className={`stat-value numeric mt-1 whitespace-nowrap text-xl ${tone}`}
+        className={`stat-value numeric mt-1 min-w-0 max-w-full overflow-x-auto whitespace-nowrap text-xl ${tone}`}
+        style={
+          value.length > 12
+            ? { fontSize: `clamp(0.75rem, ${120 / value.length}cqi, 1.25rem)` }
+            : undefined
+        }
       >
         {sensitive ? <BalanceValue>{value}</BalanceValue> : value}
       </p>

@@ -51,7 +51,7 @@ export function StrategyWorkspace({
     return (
       <div
         role="alert"
-        className="alert alert-info alert-soft justify-center p-10 text-sm"
+        className="alert alert-info alert-soft justify-center px-4 py-5 text-sm"
       >
         ჯერ დაამატეთ პოზიცია.
       </div>

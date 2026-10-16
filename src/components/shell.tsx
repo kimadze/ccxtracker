@@ -223,7 +223,7 @@ export function Shell({
         onChange={(event) => setDrawerOpen(event.target.checked)}
       />
       <div className="drawer-content flex min-w-0 flex-1 flex-col bg-base-100">
-        <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-16 lg:px-5">
+        <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-14 lg:px-5">
           <button
             type="button"
             className="btn btn-ghost btn-square hidden min-h-11 lg:flex"
@@ -276,14 +276,14 @@ export function Shell({
           id="main"
           className={
             isOverview
-              ? "mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-3 pb-[calc(80px+env(safe-area-inset-bottom))] lg:px-5 lg:py-4"
-              : "mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-3 pb-[calc(80px+env(safe-area-inset-bottom))] text-sm lg:px-5 lg:py-4"
+              ? "mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-3 pb-[calc(68px+env(safe-area-inset-bottom))] md:pb-[calc(76px+env(safe-area-inset-bottom))] lg:px-5 lg:py-4"
+              : "mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-3 pb-[calc(68px+env(safe-area-inset-bottom))] md:pb-[calc(76px+env(safe-area-inset-bottom))] text-sm lg:px-5 lg:py-4"
           }
         >
           {children}
         </main>
         <nav
-          className="dock dock-sm md:dock-md mobile-bottom-nav"
+          className="dock dock-sm md:dock-md z-30 border-t border-base-300 bg-base-100 px-2 py-1! pb-[max(4px,env(safe-area-inset-bottom))]! lg:hidden"
           aria-label="მობილური ნავიგაცია"
         >
           {mobileLinks.map(([segment, label, Icon]) => {
@@ -301,12 +301,11 @@ export function Shell({
                 aria-current={active ? "page" : undefined}
                 aria-label={String(label)}
                 className={clsx(
-                  "mobile-bottom-link",
+                  "mb-0! min-h-11 min-w-0",
                   active && "dock-active",
-                  segment === "transactions" && "mobile-bottom-primary",
                 )}
               >
-                <span className="mobile-bottom-icon">
+                <span className="grid size-6 shrink-0 place-items-center">
                   <Icon size={segment === "transactions" ? 24 : 19} />
                 </span>
                 <span className="dock-label max-md:hidden">{label}</span>
@@ -315,11 +314,14 @@ export function Shell({
           })}
           <button
             type="button"
-            className={clsx("mobile-bottom-link", moreOpen && "dock-active")}
+            className={clsx(
+              "mb-0! min-h-11 min-w-0",
+              moreOpen && "dock-active",
+            )}
             aria-label="მეტი გვერდი"
             onClick={() => setMoreOpen(true)}
           >
-            <span className="mobile-bottom-icon">
+            <span className="grid size-6 shrink-0 place-items-center">
               <Menu size={19} />
             </span>
             <span className="dock-label max-md:hidden">მეტი</span>
@@ -400,7 +402,7 @@ export function Shell({
         />
         <aside
           className={clsx(
-            "flex h-dvh w-60 max-w-[85vw] flex-col overflow-hidden border-r border-base-300 bg-base-200 px-3 py-3 text-base-content transition-[width,padding] duration-200 motion-reduce:transition-none",
+            "flex h-dvh w-60 max-w-[85vw] flex-col overflow-hidden border-r border-base-300 bg-base-200 px-3 py-2 text-base-content",
             "lg:is-drawer-close:w-16 lg:is-drawer-close:px-2 lg:is-drawer-open:w-56",
           )}
           aria-label="გვერდითი მენიუ"

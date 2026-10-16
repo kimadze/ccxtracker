@@ -204,9 +204,9 @@ export function AllocationWorkspace({
         </div>
       </section>
 
-      <div className="grid gap-3 lg:gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
+      <div className="grid items-start gap-3 lg:gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
         <section className="card overflow-hidden bg-base-200">
-          <header className="flex items-center justify-between border-b border-base-300 p-5">
+          <header className="flex items-center justify-between border-b border-base-300 p-3 sm:p-4">
             <div>
               <p className="flex items-center gap-2 text-xs uppercase tracking-wider text-primary">
                 <SlidersHorizontal size={13} /> სამიზნეები

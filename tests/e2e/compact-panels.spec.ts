@@ -64,6 +64,16 @@ test("populated airdrop and scenario panels preserve names and complete amounts"
           expect(
             await value.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
           ).toBe(true);
+          expect(
+            await value.evaluate((el) => {
+              const cell = el.closest(".stat")!;
+              const rect = el.getBoundingClientRect();
+              const parent = cell.getBoundingClientRect();
+              return (
+                rect.left >= parent.left - 1 && rect.right <= parent.right + 1
+              );
+            }),
+          ).toBe(true);
         }
       }
       await page.screenshot({

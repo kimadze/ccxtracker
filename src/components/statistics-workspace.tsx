@@ -75,6 +75,16 @@ function PriceImpact({
 }) {
   const data = portfolioPriceImpact(summary);
   if (!data.total) return null;
+  if (!data.covered)
+    return (
+      <p
+        role="status"
+        className="rounded-box border border-base-300 px-3 py-3 text-xs text-base-content/60"
+      >
+        ფასის გავლენა · 24სთ — აქტივების დღიური ცვლილების მონაცემები
+        მიუწვდომელია.
+      </p>
+    );
   return (
     <section
       className="card min-w-0 bg-base-200"

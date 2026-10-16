@@ -245,7 +245,7 @@ export function ScenarioLab({
                 </details>
               )}
               {!cryptoPositions.length && (
-                <p className="py-10 text-center text-xs text-base-content/60">
+                <p className="py-5 text-center text-xs text-base-content/60">
                   სცენარისთვის ჯერ დაამატეთ პოზიცია.
                 </p>
               )}

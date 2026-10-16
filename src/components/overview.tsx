@@ -390,16 +390,16 @@ export function Metric({
 }) {
   return (
     <div
-      className={`stat min-w-0 [container-type:inline-size] ${compact ? "px-0 py-1" : "p-3"}`}
+      className={`stat min-w-0 grid-cols-[minmax(0,1fr)] [container-type:inline-size] ${compact ? "px-0 py-1" : "p-3"}`}
     >
       <div className="stat-title whitespace-normal text-xs" title={hint}>
         {label}
       </div>
       <div
-        className={`stat-value min-w-0 whitespace-nowrap text-lg tabular-nums ${tone}`}
+        className={`stat-value min-w-0 max-w-full overflow-x-auto whitespace-nowrap text-lg tabular-nums ${tone}`}
         style={
           value.length > 12
-            ? { fontSize: `clamp(0.75rem, ${165 / value.length}cqi, 1.125rem)` }
+            ? { fontSize: `clamp(0.75rem, ${120 / value.length}cqi, 1.125rem)` }
             : undefined
         }
       >

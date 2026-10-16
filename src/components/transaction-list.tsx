@@ -1,5 +1,4 @@
 "use client";
-import { FilterButtons } from "./filter-buttons";
 import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -104,34 +103,11 @@ export function TransactionList({
       >
         <div
           className={
-            embedded ? "flex min-w-0 flex-col gap-2" : "card-body gap-4 p-4"
+            embedded
+              ? "flex min-w-0 flex-col gap-2"
+              : "card-body gap-2 p-3 sm:p-4"
           }
         >
-          <FilterButtons
-            label="სწრაფი ფილტრი"
-            value={kind}
-            onChange={(value) => {
-              setKind(value);
-              setPage(0);
-            }}
-            options={[
-              { value: "", label: "ყველა", count: entries.length },
-              ...(
-                [
-                  "buy",
-                  "sell",
-                  "deposit",
-                  "withdrawal",
-                  "fee",
-                  "airdrop",
-                ] as const
-              ).map((value) => ({
-                value,
-                label: kindLabels[value],
-                count: entries.filter((entry) => entry.kind === value).length,
-              })),
-            ]}
-          />
           <div className="flex flex-wrap items-end gap-2">
             <label className="input min-w-0 flex-1 md:max-w-sm">
               <Search size={16} aria-hidden="true" />
@@ -146,36 +122,17 @@ export function TransactionList({
                 }}
               />
             </label>
-            <fieldset className="fieldset hidden max-w-44 lg:block">
-              <legend className="fieldset-legend">თარიღიდან</legend>
-              <input
-                className="input"
-                type="date"
-                value={from}
-                onChange={(e) => {
-                  setFrom(e.target.value);
-                  setPage(0);
-                }}
-              />
-            </fieldset>
-            <fieldset className="fieldset hidden max-w-44 lg:block">
-              <legend className="fieldset-legend">თარიღამდე</legend>
-              <input
-                className="input"
-                type="date"
-                value={to}
-                onChange={(e) => {
-                  setTo(e.target.value);
-                  setPage(0);
-                }}
-              />
-            </fieldset>
-            <div className="lg:hidden">
+            <div className="shrink-0">
               <MobileBottomSheet
                 title="ტრანზაქციების ფილტრი"
                 trigger={
                   <button type="button" className="btn btn-neutral">
                     <SlidersHorizontal size={16} /> ფილტრი
+                    {(kind || from || to) && (
+                      <span className="badge badge-sm">
+                        {[kind, from, to].filter(Boolean).length}
+                      </span>
+                    )}
                   </button>
                 }
               >
@@ -183,6 +140,7 @@ export function TransactionList({
                   <legend className="fieldset-legend">ტრანზაქციის ტიპი</legend>
                   <select
                     className="select w-full"
+                    aria-label="ტრანზაქციის ტიპის ფილტრი"
                     value={kind}
                     onChange={(event) => {
                       setKind(event.target.value);
@@ -203,6 +161,7 @@ export function TransactionList({
                     <input
                       className="input w-full"
                       type="date"
+                      aria-label="თარიღიდან"
                       value={from}
                       onChange={(event) => {
                         setFrom(event.target.value);
@@ -215,6 +174,7 @@ export function TransactionList({
                     <input
                       className="input w-full"
                       type="date"
+                      aria-label="თარიღამდე"
                       value={to}
                       onChange={(event) => {
                         setTo(event.target.value);
@@ -247,13 +207,7 @@ export function TransactionList({
         </div>
       </section>
       <section className="card bg-base-200">
-        <div
-          className={
-            embedded
-              ? "sr-only"
-              : "flex items-center justify-between border-b border-base-300 px-5 py-4"
-          }
-        >
+        <div className="sr-only">
           <div>
             <h2 className="card-title text-base">ტრანზაქციების ისტორია</h2>
             <p className="mt-1 text-xs text-base-content/60">
@@ -384,10 +338,13 @@ export function TransactionList({
                 )}
                 <li
                   key={e.id}
-                  className="list-row grid-cols-[minmax(0,1fr)_auto] border-b border-base-300 p-3 last:border-0"
+                  className="list-row grid-cols-[minmax(0,1fr)_auto] gap-y-1 rounded-none border-b border-base-300 px-3 py-2 last:border-0"
                 >
                   <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-2">
-                    <span className="btn btn-square pointer-events-none">
+                    <span
+                      className="grid size-7 shrink-0 place-items-center text-base-content/60"
+                      aria-hidden="true"
+                    >
                       <TransactionKindIcon kind={e.kind} />
                     </span>
                     <div className="min-w-0">
@@ -510,7 +467,7 @@ export function TransactionList({
               </Fragment>
             ))}
           {!filtered.length && (
-            <li className="p-10 text-center text-sm text-base-content/60">
+            <li className="px-4 py-5 text-center text-sm text-base-content/60">
               ტრანზაქციები ვერ მოიძებნა.
             </li>
           )}
@@ -518,25 +475,27 @@ export function TransactionList({
       </section>
       <div className="flex items-center justify-between text-xs text-base-content/60">
         <span>{filtered.length} ტრანზაქცია</span>
-        <div className="join">
-          <button
-            className="btn join-item"
-            disabled={currentPage === 0}
-            onClick={() => setPage(currentPage - 1)}
-          >
-            წინა
-          </button>
-          <span className="btn join-item pointer-events-none">
-            {currentPage + 1} / {pages}
-          </span>
-          <button
-            className="btn join-item"
-            disabled={currentPage + 1 >= pages}
-            onClick={() => setPage(currentPage + 1)}
-          >
-            შემდეგი
-          </button>
-        </div>
+        {pages > 1 && (
+          <div className="join">
+            <button
+              className="btn join-item"
+              disabled={currentPage === 0}
+              onClick={() => setPage(currentPage - 1)}
+            >
+              წინა
+            </button>
+            <span className="btn join-item pointer-events-none">
+              {currentPage + 1} / {pages}
+            </span>
+            <button
+              className="btn join-item"
+              disabled={currentPage + 1 >= pages}
+              onClick={() => setPage(currentPage + 1)}
+            >
+              შემდეგი
+            </button>
+          </div>
+        )}
       </div>
       <Modal
         open={selected !== null}

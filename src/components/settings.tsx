@@ -59,8 +59,8 @@ export function Settings({
           {[
             ["profile", "პროფილი"],
             ["portfolio", "პორტფელი"],
-            ["source", "მონაცემები"],
             ["telegram", "Telegram"],
+            ["source", "მონაცემები"],
             ["security", "უსაფრთხოება"],
             ["danger", "წაშლა"],
           ].map(([id, label]) => (
@@ -72,9 +72,9 @@ export function Settings({
           ))}
         </ul>
       </nav>
-      <div className="min-w-0 max-w-4xl space-y-3">
+      <div className="min-w-0 space-y-3">
         {message && <Message error={error}>{message}</Message>}
-        <div className="grid gap-3 lg:gap-4">
+        <div className="grid items-start gap-3 xl:grid-cols-2 lg:gap-4">
           <form
             className="card bg-base-200 p-4"
             onSubmit={async (e) => {
@@ -145,7 +145,6 @@ export function Settings({
               </button>
             )}
           </form>
-          {!preview && <TelegramSettings portfolioId={portfolioId} />}
           <form
             className="card bg-base-200 p-4"
             onSubmit={async (e) => {
@@ -197,6 +196,7 @@ export function Settings({
             )}
           </form>
         </div>
+        {!preview && <TelegramSettings portfolioId={portfolioId} />}
         <section className="card bg-base-200">
           <div className="card-body min-w-0 gap-3 p-4">
             <h2

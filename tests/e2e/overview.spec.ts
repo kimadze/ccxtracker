@@ -53,10 +53,14 @@ test("compact overview supports funded positions, privacy and responsive layouts
         exact: true,
       })
       .fill(kind === "შეტანა" ? "10000" : "0.1");
-    if (kind === "შესყიდვა")
+    if (kind === "შესყიდვა") {
+      await dialog
+        .getByLabel("ანგარიშსწორების ვალუტა", { exact: true })
+        .selectOption("USD");
       await dialog
         .getByLabel("ერთეულის ფასი (USD)", { exact: true })
         .fill("50000");
+    }
     await dialog.getByRole("button", { name: "შენახვა", exact: true }).click();
     await expect(dialog).toHaveCount(0);
   }
@@ -162,6 +166,23 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await expect(page.locator(".balance-value").first()).not.toContainText(
     "••••••",
   );
+  await page.goto(base + "/transactions");
+  await page.getByRole("button", { name: "ფილტრი", exact: true }).click();
+  const transactionFilters = page.getByRole("dialog", {
+    name: "ტრანზაქციების ფილტრი",
+  });
+  await expect(transactionFilters).toBeVisible();
+  await transactionFilters
+    .getByLabel("ტრანზაქციის ტიპის ფილტრი")
+    .selectOption("buy");
+  await expect(transactionFilters.getByLabel("თარიღიდან")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(transactionFilters).toBeHidden();
+  await expect(page.locator("main table tbody tr")).toHaveCount(6);
+  await expect(
+    page.getByRole("button", { name: "შემდეგი", exact: true }),
+  ).toHaveCount(0);
+  await page.goto(base);
   await page.locator('a[href$="/positions/bitcoin"]:visible').first().click();
   await expect(page).toHaveURL(/positions\/bitcoin$/);
   await page.goto(base);
@@ -206,6 +227,10 @@ test("compact overview supports funded positions, privacy and responsive layouts
       await page.goto(base + "/" + route);
       await expect(page.locator("main#main")).toBeVisible();
       await expect(page.getByRole("heading", { level: 1 })).toBeAttached();
+      if (width >= 1024)
+        await expect(
+          page.getByRole("complementary", { name: "გვერდითი მენიუ" }),
+        ).toHaveCSS("width", "224px");
       if (route === "positions" && width === 1024) {
         await expect(
           page.getByRole("columnheader", { name: "ღირებულება", exact: true }),
@@ -266,12 +291,20 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await page
     .getByLabel("საინვესტიციო თეზისი", { exact: true })
     .fill("მობილურიდან შენახული სატესტო თეზისი");
+  await page.getByText("შესვლა და მოლოდინი", { exact: true }).click();
+  await page
+    .getByLabel("რატომ გავხსენი პოზიცია", { exact: true })
+    .fill("შესვლის სატესტო მიზეზი");
+  await page.getByText("შესვლა და მოლოდინი", { exact: true }).click();
   await page.getByRole("button", { name: "ჟურნალის შენახვა" }).click();
   await expect(page.getByRole("status")).toContainText("ჟურნალი შენახულია");
   await page.reload();
   await expect(
     page.getByLabel("საინვესტიციო თეზისი", { exact: true }),
   ).toHaveValue("მობილურიდან შენახული სატესტო თეზისი");
+  await expect(
+    page.getByLabel("რატომ გავხსენი პოზიცია", { exact: true }),
+  ).toHaveValue("შესვლის სატესტო მიზეზი");
   await page.goto(base + "/statistics?tab=macro");
   await page
     .getByRole("tab", { name: "მაკრო", exact: true })
