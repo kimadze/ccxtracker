@@ -346,3 +346,4 @@ A13-ის production/staging წარმადობის შეფასე�
 - ამ გაგრძელებაში backup-ის რეალური dump/Blob restore და ფიზიკური ტელეფონის/რეალური Google ავტორიზაციის მიღება დამოუკიდებლად არ განმეორებულა: ამ სამუშაო გარემოში production DB და Blob credential-ები, `pg_dump`/`pg_restore` ხელსაწყოები და ფიზიკური მოწყობილობა ხელმისაწვდომი არ არის. ეს მიღების ბოლო გარე ნაბიჯებად რჩება.
 
 - საბოლოო გადამოწმება: 45 unit test ფაილი და 286 ტესტი წარმატებულია; TypeScript და lint წარმატებულია; PWA desktop browser test-ები 2/2 წარმატებულია. npm audit --omit=dev აჩვენებს 0 vulnerability-ს; სრულ audit-ში 5 High მხოლოდ development dependency-ებში რჩება, რადგან ავტომატური გასწორება Next lint კონფიგის შეუთავსებელ major downgrade-ს მოითხოვს.
+- Browser keyboard/mobile acceptance after the push: 5 Playwright scenarios passed and 1 was skipped (desktop/mobile). This exercises simulated keyboard navigation and responsive UI; it does not replace physical-device verification.
