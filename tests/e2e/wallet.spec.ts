@@ -108,6 +108,9 @@ test("create read-only BTC and Stellar, privacy, refresh failure, edit and remov
   await page.getByText("დეტალები", { exact: true }).click();
   await expect(page.getByText(/რეზერვი:/)).toContainText("1,5 XLM");
   await expect(page.getByText("SPAM", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText(/არაავტორიზებული აქტივი დამალულია/),
+  ).toBeVisible();
   await page.getByText("დეტალები", { exact: true }).click();
   const stellarUrl = page.url();
   for (const width of [360, 390, 430, 768, 1024, 1440]) {

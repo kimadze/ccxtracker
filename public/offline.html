@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ka" data-theme="ccx">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0e0f12" />
+    <title>კავშირი არ არის · CCX</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, "Noto Sans Georgian", system-ui, sans-serif;
+        background: #0e0f12;
+        color: #f4f4f5;
+      }
+      body {
+        min-height: 100dvh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        box-sizing: border-box;
+      }
+      main {
+        width: min(100%, 420px);
+        border: 1px solid #34353a;
+        border-radius: 12px;
+        background: #17181c;
+        padding: 24px;
+        box-sizing: border-box;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 20px;
+      }
+      p {
+        color: #b2b2bc;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .btn {
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        padding: 0 16px;
+        background: #7546ed;
+        color: white;
+        font: inherit;
+        cursor: pointer;
+      }
+      .alert {
+        margin-top: 16px;
+        border: 1px solid #34353a;
+        border-radius: 8px;
+        padding: 12px;
+        background: #1e1f24;
+        font-size: 12px;
+        color: #b2b2bc;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card bg-base-200 text-base-content">
+      <h1>კავშირი არ არის</h1>
+      <p>
+        CCX-ის მონაცემების სანახავად საჭიროა ინტერნეტი. კავშირის აღდგენის შემდეგ
+        სცადე თავიდან.
+      </p>
+      <button class="btn btn-primary" onclick="window.location.reload()">
+        ხელახლა ცდა
+      </button>
+      <div class="alert alert-info alert-soft">
+        ფინანსური მონაცემები ამ მოწყობილობაზე offline რეჟიმისთვის არ ინახება.
+      </div>
+    </main>
+  </body>
+</html>

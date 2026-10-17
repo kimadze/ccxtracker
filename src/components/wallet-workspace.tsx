@@ -200,6 +200,10 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
       </section>
       {wallet.addresses.map((address) => {
         const account = snapshot?.accounts.find((a) => a.address === address);
+        const hiddenUnauthorizedCount =
+          account?.assets.filter(
+            (asset) => !asset.authorized && decimal(asset.quantity).gt(0),
+          ).length ?? 0;
         return (
           <section key={address} className="card min-w-0 bg-base-200">
             <div className="card-body gap-3 p-4">
@@ -230,6 +234,15 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                 </p>
               ) : (
                 <>
+                  {hiddenUnauthorizedCount > 0 && (
+                    <p
+                      role="status"
+                      className="alert alert-warning alert-soft py-2 text-xs"
+                    >
+                      {hiddenUnauthorizedCount} არაავტორიზებული აქტივი
+                      დამალულია.
+                    </p>
+                  )}
                   <ul className="list">
                     {account.assets
                       .filter(
@@ -272,11 +285,6 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                                 {quantity(a.quantity)}
                               </BalanceValue>
                             </p>
-                            {!a.authorized && (
-                              <p className="text-xs text-warning">
-                                არ არის ავტორიზებული
-                              </p>
-                            )}
                           </div>
                           <div className="min-w-0 max-w-[45vw] text-right">
                             <p className="overflow-x-auto whitespace-nowrap text-sm tabular-nums">
@@ -320,6 +328,10 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                         .map((a) => (
                           <div key={a.id}>
                             <p className="font-semibold">{a.symbol}</p>
+                            <p>
+                              Stellar-ის ავტორიზაცია ·{" "}
+                              {a.authorized ? "აქტიურია" : "გაუქმებულია"}
+                            </p>
                             <p>
                               <BalanceValue>{money(a.price)}</BalanceValue> /{" "}
                               {a.symbol}
@@ -371,7 +383,7 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
                       <p>
                         {wallet.network === "bitcoin"
                           ? "ნაჩვენებია მხოლოდ ჩამოთვლილი მისამართები. სხვა receiving/change მისამართები ავტომატურად არ იძებნება. ჯამში დადასტურებული ბალანსია; მოლოდინში ცვლილება ცალკეა."
-                          : "ნაჩვენებია XLM, კლასიკური trustline აქტივები და liquidity pool shares-ის რაოდენობა. Soroban/DeFi და claimable balances არ შედის. ტოკენი განისაზღვრება კოდითა და issuer-ით; უცნობი ფასი არ ითვლება ნულად."}
+                          : "ნაჩვენებია XLM და ავტორიზებული კლასიკური trustline აქტივები. Soroban/DeFi და claimable balances არ შედის. Stellar-ის ავტორიზაცია არ ნიშნავს, რომ CCX-მა ტოკენი ოფიციალურად გადაამოწმა; ტოკენი განისაზღვრება კოდითა და issuer-ით. უცნობი ფასი ნულად არ ითვლება."}
                       </p>
                       <p>
                         შესყიდვის ისტორიის გარეშე მოგება/ზარალს არ ვითვლით.

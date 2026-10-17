@@ -8,7 +8,7 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
-import type { Asset, ValuedPosition } from "@/domain/types";
+import type { ValuedPosition } from "@/domain/types";
 import { decimal } from "@/domain/decimal";
 import { PositionsTable } from "./positions";
 import { MobileBottomSheet } from "./mobile-components";
@@ -19,17 +19,12 @@ export function PositionsWorkspace({
 }: {
   positions: ValuedPosition[];
   base: string;
-  assets: Asset[];
-  revision: number;
   preview?: boolean;
 }) {
   const [search, setSearch] = useState(""),
     [filter, setFilter] = useState("all"),
     [sort, setSort] = useState("value"),
     [view, setView] = useState<"table" | "cards">("table"),
-    [selectedAssetId, setSelectedAssetId] = useState(
-      positions[0]?.assetId ?? "",
-    ),
     [page, setPage] = useState(0);
   const filtered = positions
     .filter(
@@ -71,10 +66,6 @@ export function PositionsWorkspace({
     setSort("value");
     setPage(0);
   };
-  const selected =
-    filtered.find((position) => position.assetId === selectedAssetId) ??
-    filtered[0] ??
-    positions[0];
   return (
     <div className="space-y-3 lg:space-y-4">
       <FilterButtons
@@ -219,8 +210,6 @@ export function PositionsWorkspace({
             base={base}
             preview={preview}
             view={view === "cards" ? "cards" : "auto"}
-            selectedAssetId={selected?.assetId}
-            onSelect={setSelectedAssetId}
           />
         </section>
       </div>

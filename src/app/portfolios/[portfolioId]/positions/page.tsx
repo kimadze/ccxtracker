@@ -34,8 +34,6 @@ export default async function Page({
       <PositionsWorkspace
         positions={w.summary.positions}
         base={`/portfolios/${portfolioId}`}
-        assets={w.assets}
-        revision={w.portfolio.revision}
       />
     </>
   );

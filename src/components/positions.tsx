@@ -65,14 +65,11 @@ export function PositionsTable({
   base,
   preview = false,
   view = "auto",
-  onSelect,
 }: {
   positions: ValuedPosition[];
   base: string;
   preview?: boolean;
   view?: "auto" | "cards";
-  selectedAssetId?: string;
-  onSelect?: (assetId: string) => void;
 }) {
   if (!positions.length)
     return (
@@ -129,11 +126,7 @@ export function PositionsTable({
           </thead>
           <tbody>
             {positions.map((position, index) => (
-              <tr
-                key={position.assetId}
-                className="hover:bg-base-300/40"
-                onClick={() => onSelect?.(position.assetId)}
-              >
+              <tr key={position.assetId} className="hover:bg-base-300/40">
                 <td>
                   <div className="flex items-center gap-3">
                     <AssetIcon
@@ -251,11 +244,7 @@ export function PositionsTable({
         }
       >
         {positions.map((position, index) => (
-          <article
-            key={position.assetId}
-            onClick={() => onSelect?.(position.assetId)}
-            className="card min-w-0 bg-base-200"
-          >
+          <article key={position.assetId} className="card min-w-0 bg-base-200">
             <div className="card-body min-w-0 gap-3 p-4">
               <Link
                 href={`${base}/positions/${position.assetId}`}

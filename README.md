@@ -81,7 +81,7 @@ Each deleted transaction offers a 30-second undo using its existing audit copy. 
 
 Watchlist supports separate buy-at-or-below and sell-at-or-above targets. The first fresh quote establishes a baseline without alerting; subsequent crossings generate independent notices. Rearming requires returning outside the target zone first. Read state persists per target; changing one target resets only its episode. Stale quotes never trigger alerts. Optional Telegram alerts use a separately confirmed private chat and selected portfolios; background checks require an authenticated scheduler. See [Telegram setup](docs/telegram.md). Undo notices retain their original deadline across refreshes.
 
-Position exit plans support one-shot, grouped [Take Profit Telegram alerts](docs/take-profit.md). A saved position quantity anchors the plan; quantity changes pause alerts until review. The protected GitHub Actions scheduler checks Watchlist and Take Profit prices approximately every five minutes, including while the app is closed.
+Position exit plans support one-shot, grouped [Take Profit Telegram alerts](docs/take-profit.md). A saved position quantity anchors the plan; quantity changes pause alerts until review. The external cron-job.org scheduler checks Watchlist and Take Profit prices approximately every five minutes, including while the app is closed. GitHub Actions is a protected manual fallback; Vercel Hobby does not run a five-minute cron.
 
 ### Read-only wallet portfolios
 

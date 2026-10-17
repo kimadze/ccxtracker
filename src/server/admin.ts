@@ -38,6 +38,7 @@ export function adminService(db: Database, actor: AdminActor) {
           db
             .select({
               key: jobState.key,
+              cursor: jobState.cursor,
               updatedAt: jobState.updatedAt,
               leaseUntil: jobState.leaseUntil,
             })

@@ -184,11 +184,43 @@ export async function GET(request: Request) {
       { status: batch.length && !usable.length ? 503 : 200 },
     );
   } catch (error) {
+    const failedAt = new Date();
     console.error("WATCHLIST_CRON_FAILED", {
       runId,
       operation,
       reason: error instanceof Error ? error.name : "UNKNOWN",
     });
+    try {
+      await db
+        .insert(jobState)
+        .values({
+          key: "watchlist-health",
+          cursor: JSON.stringify({
+            status: "error",
+            runId,
+            operation,
+            failedAt,
+          }),
+          leaseUntil: new Date(0),
+          updatedAt: failedAt,
+        })
+        .onConflictDoUpdate({
+          target: jobState.key,
+          set: {
+            cursor: JSON.stringify({
+              status: "error",
+              runId,
+              operation,
+              failedAt,
+            }),
+            leaseUntil: new Date(0),
+            updatedAt: failedAt,
+          },
+        });
+    } catch {
+      console.error("WATCHLIST_HEALTH_WRITE_FAILED", { runId, operation });
+    }
+    await sendJobAlert("PRICE_ALERT_CRON_FAILED", 1);
     return Response.json({ error: "შემოწმება ვერ შესრულდა." }, { status: 500 });
   } finally {
     await db

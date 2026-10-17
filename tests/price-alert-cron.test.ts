@@ -7,6 +7,7 @@ import * as schema from "@/server/db/schema";
 import type { Database } from "@/server/db";
 import { targetTransition } from "@/domain/watchlist-target";
 import { POST } from "@/app/api/cron/watchlist/route";
+import { sendJobAlert } from "@/server/job-alerts";
 const client = new PGlite(),
   db = drizzle(client, { schema }) as unknown as Database;
 vi.mock("@/server/db", () => ({ getDb: () => db }));
@@ -126,6 +127,24 @@ it("reports successful usable observation and persists heartbeat", async () => {
     (r) => r.key === "watchlist-health",
   )!;
   expect(health.leaseUntil.getTime()).toBeGreaterThan(Date.now() - 10000);
+});
+it("records a failed heartbeat and sends a sanitized operational alert", async () => {
+  quotesMock.mockRejectedValueOnce(new Error("provider failure"));
+  const response = await POST(
+    new Request("https://example.test/api/cron/watchlist", {
+      method: "POST",
+      headers: { authorization: `Bearer ${"x".repeat(40)}` },
+    }),
+  );
+  expect(response.status).toBe(500);
+  expect(sendJobAlert).toHaveBeenCalledWith("PRICE_ALERT_CRON_FAILED", 1);
+  const health = (await db.select().from(schema.jobState)).find(
+    (r) => r.key === "watchlist-health",
+  )!;
+  expect(JSON.parse(health.cursor!)).toMatchObject({
+    status: "error",
+    operation: "refresh-quotes",
+  });
 });
 it("refuses unauthenticated scheduler calls", async () => {
   expect(

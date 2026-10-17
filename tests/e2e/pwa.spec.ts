@@ -60,3 +60,25 @@ test("PWA icons are available at declared sizes with Apple support and maskable 
   expect(favicon.ok()).toBe(true);
   expect(await favicon.text()).not.toContain("<image");
 });
+
+test("offline navigation shows a safe fallback without caching private pages", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  await page.waitForFunction(
+    () => Boolean(navigator.serviceWorker?.controller),
+    undefined,
+    { timeout: 15000 },
+  );
+  await page.context().setOffline(true);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "კავშირი არ არის" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      /მონაცემები ამ მოწყობილობაზე offline რეჟიმისთვის არ ინახება/,
+    ),
+  ).toBeVisible();
+  await page.context().setOffline(false);
+});

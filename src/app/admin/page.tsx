@@ -70,8 +70,21 @@ export default async function AdminPage({
   const service = adminService(getDb(), user),
     data = await service.dashboard();
   const health = data.jobs.find((j) => j.key === "watchlist-health"),
+    healthDetails = (() => {
+      try {
+        return health?.cursor
+          ? (JSON.parse(health.cursor) as {
+              status?: string;
+              operation?: string;
+            })
+          : null;
+      } catch {
+        return null;
+      }
+    })(),
     alertOk = Boolean(
       health &&
+      healthDetails?.status !== "error" &&
       health.leaseUntil.getTime() > data.preparedAt.getTime() - 15 * 60000,
     );
   return (
@@ -118,12 +131,22 @@ export default async function AdminPage({
                   [
                     {
                       name: "ფასის ალერტები",
-                      label: alertOk ? "ახლახან შემოწმდა" : "შემოწმება საჭიროა",
-                      tone: alertOk ? "success" : "warning",
+                      label: alertOk
+                        ? "ახლახან შემოწმდა"
+                        : healthDetails?.status === "error"
+                          ? "ბოლო შემოწმება ჩავარდა"
+                          : "შემოწმება საჭიროა",
+                      tone: alertOk
+                        ? "success"
+                        : healthDetails?.status === "error"
+                          ? "error"
+                          : "warning",
                       pending: !alertOk,
                       detail: alertOk
                         ? undefined
-                        : "ბოლო 15 წუთში სრული შემოწმება არ დაფიქსირებულა. გადაამოწმე გარე scheduler-ის გაშვებები.",
+                        : healthDetails?.status === "error"
+                          ? `შეცდომა ეტაპზე: ${healthDetails.operation ?? "უცნობი"}. გადაამოწმე cron-ის გაშვება და server log.`
+                          : "ბოლო 15 წუთში სრული შემოწმება არ დაფიქსირებულა. გადაამოწმე გარე scheduler-ის გაშვებები.",
                     },
                     {
                       name: "Telegram",

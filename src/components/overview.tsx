@@ -1,6 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  TrendingDown,
+  TrendingUp,
+  TriangleAlert,
+} from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
 import {
@@ -197,12 +203,25 @@ export function Overview({
   const status = (
     <details className="dropdown dropdown-end">
       <summary
-        className="btn btn-ghost btn-square min-h-11 min-w-11"
+        className="btn btn-ghost min-h-11 gap-2 px-2 text-xs"
         aria-label="ფასების განახლების სტატუსი"
       >
-        <span
-          className={`status status-xs ${s.complete && !s.stale ? "status-success" : "status-warning"}`}
-        />
+        {s.complete && !s.stale ? (
+          <CheckCircle2 size={16} className="text-success" aria-hidden="true" />
+        ) : (
+          <TriangleAlert
+            size={16}
+            className="text-warning"
+            aria-hidden="true"
+          />
+        )}
+        <span>
+          {s.stale
+            ? "ფასები მოძველდა"
+            : s.complete
+              ? "ფასები ახალია"
+              : "ფასები არასრულია"}
+        </span>
       </summary>
       <div className="dropdown-content z-30 w-56 rounded-box border border-base-300 bg-base-200 p-3 text-xs shadow-lg">
         {freshness}
