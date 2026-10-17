@@ -15,14 +15,16 @@ export function FilterButtons<T extends string>({
   onChange: (value: T) => void;
   label: string;
   className?: string;
-  appearance?: "soft" | "solid";
+  appearance?: "soft" | "solid" | "period";
 }) {
   return (
     <div
       role="group"
       aria-label={label}
       className={clsx(
-        "flex max-w-full min-w-0 gap-1 overflow-x-auto rounded-box bg-base-200 p-1 [scrollbar-width:none]",
+        appearance === "period"
+          ? "join grid max-w-full min-w-0 grid-cols-6 rounded-field border border-base-300 bg-base-100 p-0.5"
+          : "flex max-w-full min-w-0 gap-1 overflow-x-auto rounded-box bg-base-200 p-1 [scrollbar-width:none]",
         className,
       )}
     >
@@ -33,12 +35,18 @@ export function FilterButtons<T extends string>({
           aria-pressed={value === option.value}
           onClick={() => onChange(option.value)}
           className={clsx(
-            "btn btn-sm min-h-11 shrink-0 gap-2 rounded-field px-3 text-sm",
-            value === option.value
-              ? appearance === "solid"
-                ? "btn-primary"
-                : "btn-ghost bg-primary/15 text-secondary"
-              : "btn-ghost text-base-content/60",
+            appearance === "period"
+              ? "btn btn-ghost join-item min-h-11 min-w-0 border-0 px-2 text-xs font-medium shadow-none"
+              : "btn btn-sm min-h-11 shrink-0 gap-2 rounded-field px-3 text-sm",
+            appearance === "period"
+              ? value === option.value
+                ? "bg-primary/15 text-secondary"
+                : "text-base-content/60"
+              : value === option.value
+                ? appearance === "solid"
+                  ? "btn-primary"
+                  : "btn-ghost bg-primary/15 text-secondary"
+                : "btn-ghost text-base-content/60",
           )}
         >
           <span>{option.label}</span>

@@ -1,3 +1,4 @@
+import { chooseAsset } from "./asset-picker-helper";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { Client } from "pg";
@@ -74,7 +75,7 @@ test("existing holdings need no USD funding and compact forms retain visible act
       });
     }
     await page.setViewportSize({ width: 390, height: 420 });
-    await form.getByLabel("აქტივი", { exact: true }).selectOption("bitcoin");
+    await chooseAsset(form, "bitcoin");
     await form.getByLabel("რაოდენობა", { exact: true }).fill("2");
     await expect(
       form.getByRole("button", { name: "შენახვა", exact: true }),

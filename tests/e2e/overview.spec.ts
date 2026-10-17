@@ -1,3 +1,4 @@
+import { chooseAsset } from "./asset-picker-helper";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { Client } from "pg";
@@ -45,9 +46,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
     await dialog
       .getByLabel("ტრანზაქციის ტიპი")
       .selectOption(kind === "შეტანა" ? "cash-deposit" : "buy");
-    await dialog
-      .getByLabel("აქტივი", { exact: true })
-      .selectOption(kind === "შეტანა" ? "USD" : "bitcoin");
+    await chooseAsset(dialog, kind === "შეტანა" ? "USD" : "bitcoin");
     await dialog
       .getByLabel(kind === "შეტანა" ? "თანხა (USD)" : "რაოდენობა", {
         exact: true,

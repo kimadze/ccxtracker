@@ -86,8 +86,8 @@ export function HistoryChart({
       label="გრაფიკის პერიოდი"
       value={period}
       onChange={setPeriod}
-      className="w-fit"
-      appearance={dashboard ? "solid" : "soft"}
+      className="w-full max-w-xs lg:w-72"
+      appearance="period"
       options={(["1D", "7D", "1M", "3M", "1Y", "ALL"] as const).map(
         (value) => ({ value, label: value }),
       )}
@@ -117,7 +117,8 @@ export function HistoryChart({
             label="გრაფიკის პერიოდი"
             value={period}
             onChange={setPeriod}
-            className="mb-1 w-fit"
+            className="mb-2 w-full max-w-xs"
+            appearance="period"
             options={(["1D", "7D", "1M", "3M", "1Y", "ALL"] as const).map(
               (value) => ({ value, label: value }),
             )}

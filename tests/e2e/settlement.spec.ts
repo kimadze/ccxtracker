@@ -1,3 +1,4 @@
+import { chooseAsset } from "./asset-picker-helper";
 import { test, expect } from "@playwright/test";
 import { readFile, mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -48,7 +49,7 @@ test("USDT trades, actual-currency history and separate balances work at every b
       exact: true,
     });
     await dialog.getByLabel("ტრანზაქციის ტიპი").selectOption("sell");
-    await dialog.getByLabel("აქტივი", { exact: true }).selectOption(asset);
+    await chooseAsset(dialog, asset);
     await expect(dialog.getByLabel("ანგარიშსწორების ვალუტა")).toHaveValue(
       "tether",
     );

@@ -20,6 +20,9 @@ export default async function Page({
             portfolioId={portfolioId}
             revision={w.portfolio.revision}
             assets={w.assets}
+            preferredAssetIds={w.summary.positions.map(
+              (position) => position.asset.id,
+            )}
           />
         }
       />

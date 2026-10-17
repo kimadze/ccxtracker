@@ -1,3 +1,4 @@
+import { chooseAsset } from "./asset-picker-helper";
 import { expect, test, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { Client } from "pg";
@@ -68,7 +69,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   ).toHaveCount(0);
   await openTransactionForm();
   await dialog.getByLabel("ტრანზაქციის ტიპი").selectOption("cash-deposit");
-  await dialog.getByLabel("აქტივი", { exact: true }).selectOption("USD");
+  await chooseAsset(dialog, "USD");
   await dialog.getByLabel("თანხა (USD)", { exact: true }).fill("10000");
   if (testInfo.project.name === "mobile") {
     // Short visible viewport approximates keyboard-reduced space; physical-device
@@ -100,7 +101,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await expect(dialog).not.toBeVisible();
   await openTransactionForm();
   await dialog.getByLabel("ტრანზაქციის ტიპი").selectOption("buy");
-  await dialog.getByLabel("აქტივი", { exact: true }).selectOption("bitcoin");
+  await chooseAsset(dialog, "bitcoin");
   await dialog.getByLabel("რაოდენობა", { exact: true }).fill("0,1");
   await dialog
     .getByLabel("ანგარიშსწორების ვალუტა", { exact: true })
@@ -231,7 +232,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await page
     .getByRole("button", { name: "აქტივის დამატება", exact: true })
     .click();
-  await dialog.getByLabel("აქტივი", { exact: true }).selectOption("ethereum");
+  await chooseAsset(dialog, "ethereum");
   await dialog
     .getByRole("button", { name: "ალერტის დამატება", exact: true })
     .click();

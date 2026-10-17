@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { transactionSchema } from "@/domain/validation";
 import { ImpactPreview } from "./transaction-impact";
 import { useRouter } from "next/navigation";
-import { Search, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { Asset, LedgerEntry, TransactionKind } from "@/domain/types";
-import { saveTransaction, searchAssets } from "@/server/actions";
+import { saveTransaction } from "@/server/actions";
 import { Field, Message, Modal } from "./ui";
+import { AssetPicker } from "./asset-picker";
 import { useBalancesHidden } from "./balance-privacy";
 import {
   AiTransactionDraft,
@@ -26,10 +27,12 @@ export function TransactionForm({
   triggerClassName,
   initialKind,
   defaultOpen = false,
+  preferredAssetIds = [],
 }: {
   portfolioId: string;
   revision: number;
   assets: Asset[];
+  preferredAssetIds?: string[];
   entry?: LedgerEntry;
   initialAsset?: string;
   opening?: boolean;
@@ -60,10 +63,8 @@ export function TransactionForm({
         ? "USDT"
         : "USDC";
   const [options, setOptions] = useState(assets),
-    [query, setQuery] = useState(""),
     [error, setError] = useState(""),
-    [pending, setPending] = useState(false),
-    [searching, setSearching] = useState(false);
+    [pending, setPending] = useState(false);
   const [currentRevision, setCurrentRevision] = useState(revision);
   const [submissionId, setSubmissionId] = useState(
     () => entry?.id ?? (defaultOpen ? crypto.randomUUID() : ""),
@@ -304,78 +305,31 @@ export function TransactionForm({
                 <option value="airdrop">Airdrop მიღება</option>
               </select>
             </Field>
-            <div>
+            {kind === "deposit" && isCash ? (
               <Field label="აქტივი">
-                <select
-                  className="select"
-                  value={assetId}
-                  onChange={(e) => setAssetId(e.target.value)}
-                >
-                  {options
-                    .filter((a) =>
-                      kind === "deposit"
-                        ? isCash
-                          ? a.id === "USD"
-                          : a.id !== "USD"
-                        : ["buy", "sell", "airdrop"].includes(kind)
-                          ? a.id !== "USD"
-                          : true,
-                    )
-                    .map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.symbol} · {a.name}
-                      </option>
-                    ))}
+                <select className="select" value="USD" onChange={() => {}}>
+                  <option value="USD">USD · US Dollar</option>
                 </select>
               </Field>
-            </div>
-            {!(kind === "deposit" && isCash) && (
-              <details className="collapse collapse-arrow bg-base-100">
-                <summary className="collapse-title min-h-11 py-3 text-xs">
-                  სხვა აქტივის ძიება
-                </summary>
-                <div className="collapse-content">
-                  <div className="join flex w-full">
-                    <input
-                      className="input join-item min-w-0 flex-1"
-                      aria-label="სხვა აქტივის ძიება"
-                      placeholder="სხვა აქტივის ძიება…"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="btn join-item shrink-0"
-                      disabled={searching || query.trim().length < 2}
-                      onClick={async () => {
-                        setSearching(true);
-                        try {
-                          const result = await searchAssets(query);
-                          if (result.ok) {
-                            setOptions((current) => [
-                              ...current,
-                              ...result.assets.filter(
-                                (a) => !current.some((c) => c.id === a.id),
-                              ),
-                            ]);
-                            if (result.assets[0]) {
-                              setAssetId(result.assets[0].id);
-                              setQuery("");
-                            } else setError("აქტივი ვერ მოიძებნა.");
-                          } else setError(result.error);
-                        } catch {
-                          setError("ძიება ვერ მოხერხდა.");
-                        } finally {
-                          setSearching(false);
-                        }
-                      }}
-                    >
-                      <Search size={15} />
-                      {searching ? "ძიება…" : "ძიება"}
-                    </button>
-                  </div>
-                </div>
-              </details>
+            ) : (
+              <AssetPicker
+                assets={options.filter((asset) =>
+                  ["buy", "sell", "airdrop", "deposit"].includes(kind)
+                    ? asset.id !== "USD"
+                    : true,
+                )}
+                value={assetId}
+                preferredIds={preferredAssetIds}
+                onChange={setAssetId}
+                onDiscover={(found) =>
+                  setOptions((current) => [
+                    ...current,
+                    ...found.filter(
+                      (asset) => !current.some((item) => item.id === asset.id),
+                    ),
+                  ])
+                }
+              />
             )}
             {trade && (
               <div className="grid gap-2 sm:grid-cols-2">

@@ -1,10 +1,10 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import type { Asset } from "@/domain/types";
 import { transactionSchema } from "@/domain/validation";
-import { searchAssets } from "@/server/actions";
+import { AssetPicker } from "./asset-picker";
 import { saveOpeningAssets } from "@/server/transaction-features";
 import { Field, Message, Modal } from "./ui";
 import { TransactionForm } from "./transaction-form";
@@ -15,19 +15,19 @@ export function OpeningAssets({
   portfolioId,
   revision,
   assets,
+  preferredAssetIds = [],
 }: {
   portfolioId: string;
   revision: number;
   assets: Asset[];
+  preferredAssetIds?: string[];
 }) {
   const [open, setOpen] = useState(false),
     [rows, setRows] = useState<Row[]>([]),
     [options, setOptions] = useState(assets);
   const [date, setDate] = useState(""),
-    [query, setQuery] = useState(""),
     [error, setError] = useState(""),
     [pending, setPending] = useState(false),
-    [searching, setSearching] = useState(false),
     [ready, setReady] = useState(false);
   const hidden = useBalancesHidden(),
     router = useRouter();
@@ -37,10 +37,7 @@ export function OpeningAssets({
       ...old,
       {
         id: crypto.randomUUID(),
-        assetId:
-          options.find(
-            (a) => a.id !== "USD" && !old.some((r) => r.assetId === a.id),
-          )?.id ?? "",
+        assetId: "",
         quantity: "",
         price: "",
       },
@@ -62,8 +59,8 @@ export function OpeningAssets({
       airdropStatus: null,
     }),
   );
-  const duplicate =
-    new Set(rows.map((row) => row.assetId)).size !== rows.length;
+  const chosenIds = rows.map((row) => row.assetId).filter(Boolean);
+  const duplicate = new Set(chosenIds).size !== chosenIds.length;
   const input =
     !duplicate && parsed.length > 0 && parsed.every((p) => p.success)
       ? parsed.map((p) => p.data!)
@@ -81,6 +78,7 @@ export function OpeningAssets({
           portfolioId={portfolioId}
           revision={revision}
           assets={assets}
+          preferredAssetIds={preferredAssetIds}
           opening
           triggerClassName="join-item"
         />
@@ -116,7 +114,7 @@ export function OpeningAssets({
                   setRows([
                     {
                       id: crypto.randomUUID(),
-                      assetId: options.find((a) => a.id !== "USD")?.id ?? "",
+                      assetId: "",
                       quantity: "",
                       price: "",
                     },
@@ -179,66 +177,31 @@ export function OpeningAssets({
                 }}
               />
             </Field>
-            <div className="join flex">
-              <input
-                className="input join-item min-w-0 flex-1"
-                aria-label="აქტივის ძიება"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="სხვა აქტივის ძიება"
-              />
-              <button
-                type="button"
-                aria-label="ძიება"
-                className="btn join-item"
-                disabled={searching || query.trim().length < 2}
-                onClick={async () => {
-                  setSearching(true);
-                  try {
-                    const reply = await searchAssets(query);
-                    if (reply.ok) {
-                      setOptions((old) => [
-                        ...old,
-                        ...reply.assets.filter(
-                          (a) => !old.some((o) => o.id === a.id),
-                        ),
-                      ]);
-                      if (!reply.assets.length)
-                        setError("აქტივი ვერ მოიძებნა.");
-                    } else setError(reply.error);
-                  } catch {
-                    setError("ძიება ვერ მოხერხდა.");
-                  } finally {
-                    setSearching(false);
-                  }
-                }}
-              >
-                <Search size={16} />
-              </button>
-            </div>
             {rows.map((row, index) => (
               <fieldset
                 key={row.id}
                 className="fieldset rounded-box border border-base-300 p-3"
               >
-                <legend className="fieldset-legend">აქტივი {index + 1}</legend>
                 <div className="flex gap-2">
-                  <select
-                    aria-label={`აქტივი ${index + 1}`}
-                    className="select min-w-0 flex-1"
-                    value={row.assetId}
-                    onChange={(e) =>
-                      changeRow(row.id, "assetId", e.target.value)
-                    }
-                  >
-                    {options
-                      .filter((a) => a.id !== "USD")
-                      .map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.symbol} · {a.name}
-                        </option>
-                      ))}
-                  </select>
+                  <div className="min-w-0 flex-1">
+                    <AssetPicker
+                      label={`აქტივი ${index + 1}`}
+                      assets={options.filter((asset) => asset.id !== "USD")}
+                      value={row.assetId}
+                      preferredIds={preferredAssetIds}
+                      disabled={pending}
+                      onChange={(id) => changeRow(row.id, "assetId", id)}
+                      onDiscover={(found) =>
+                        setOptions((current) => [
+                          ...current,
+                          ...found.filter(
+                            (asset) =>
+                              !current.some((item) => item.id === asset.id),
+                          ),
+                        ])
+                      }
+                    />
+                  </div>
                   <button
                     type="button"
                     className="btn btn-ghost btn-square"

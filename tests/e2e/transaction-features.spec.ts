@@ -1,3 +1,4 @@
+import { chooseAsset } from "./asset-picker-helper";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -53,18 +54,18 @@ test("opening batch, previews, undo, planning and target notices work at all bre
       name: "არსებული აქტივების დამატება",
       exact: true,
     });
-    await form.getByLabel("აქტივი 1", { exact: true }).selectOption("bitcoin");
+    await chooseAsset(form, "bitcoin", "აქტივი 1");
     await form.getByLabel("რაოდენობა", { exact: true }).fill("2");
     await form
       .getByLabel("საშუალო ფასი (არასავალდებულო)", { exact: true })
       .fill("0");
     await form.getByRole("button", { name: /რიგის დამატება/ }).click();
-    await form.getByLabel("აქტივი 2", { exact: true }).selectOption("bitcoin");
+    await chooseAsset(form, "bitcoin", "აქტივი 2");
     await expect(form).toContainText("ერთი აქტივი მხოლოდ ერთხელ აირჩიეთ.");
     await expect(
       form.getByRole("button", { name: "ყველას შენახვა", exact: true }),
     ).toBeDisabled();
-    await form.getByLabel("აქტივი 2", { exact: true }).selectOption("ethereum");
+    await chooseAsset(form, "ethereum", "აქტივი 2");
     await form.getByLabel("რაოდენობა", { exact: true }).nth(1).fill("3");
     await expect(form).toContainText("ცვლილების შედეგი");
     await expect(
