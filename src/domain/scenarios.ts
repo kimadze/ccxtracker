@@ -1,6 +1,29 @@
 import { D, amount, decimal, percent } from "./decimal";
 import type { PortfolioSummary } from "./types";
-import { investableCostBasis, investablePositions, investableValue } from "./portfolio-segments";
+import {
+  investableCostBasis,
+  investablePositions,
+  investableValue,
+} from "./portfolio-segments";
+export function scenarioPercentagePrices(
+  summary: PortfolioSummary,
+  change: string,
+) {
+  if (!/^[+-]?\d+(?:[.,]\d+)?$/.test(change.trim()))
+    throw new Error("INVALID_PLAN");
+  const factor = decimal(change).div(100).plus(1);
+  if (factor.lt(0)) throw new Error("INVALID_PLAN");
+  return Object.fromEntries(
+    investablePositions(summary).flatMap((position) => {
+      if (!position.quote) return [];
+      const target = decimal(position.quote.price).mul(factor);
+      const canonical = amount(target);
+      if (target.gt(0) && decimal(canonical).isZero())
+        throw new Error("INVALID_PLAN");
+      return [[position.assetId, canonical]];
+    }),
+  );
+}
 export function calculateScenario(
   summary: PortfolioSummary,
   prices: Record<string, string>,

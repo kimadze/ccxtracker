@@ -1,5 +1,33 @@
 import { D, amount, decimal, percent } from "./decimal";
-import type { Asset, LedgerResult, PortfolioSummary, Quote } from "./types";
+import { classifyAsset } from "./asset-classification";
+import type {
+  Asset,
+  LedgerResult,
+  PortfolioSummary,
+  Quote,
+  ValuedPosition,
+} from "./types";
+
+export function closedPosition(
+  ledger: LedgerResult,
+  assets: Asset[],
+  assetId: string,
+): ValuedPosition | null {
+  const holding = ledger.holdings.find(
+    (h) => h.assetId === assetId && decimal(h.quantity).isZero(),
+  );
+  const asset = assets.find((a) => a.id === assetId);
+  if (!holding || !asset || asset.category === "cash") return null;
+  return {
+    ...holding,
+    asset,
+    quote: null,
+    value: "0",
+    unrealizedPnl: "0",
+    returnPercent: null,
+    allocation: "0",
+  };
+}
 
 export function valuePortfolio(
   ledger: LedgerResult,
@@ -9,8 +37,9 @@ export function valuePortfolio(
   const positions = ledger.holdings
     .filter((h) => decimal(h.quantity).gt(0))
     .map((h) => {
-      const asset = assets.find((a) => a.id === h.assetId);
-      if (!asset) throw new Error("UNKNOWN_ASSET");
+      const storedAsset = assets.find((a) => a.id === h.assetId);
+      if (!storedAsset) throw new Error("UNKNOWN_ASSET");
+      const asset = classifyAsset(storedAsset);
       const quote = quotes.find((q) => q.assetId === h.assetId) ?? null;
       const value = quote ? amount(decimal(h.quantity).mul(quote.price)) : null;
       const unrealizedPnl =

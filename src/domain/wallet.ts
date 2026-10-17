@@ -1,3 +1,4 @@
+import { decimal } from "./decimal";
 export type WalletNetwork = "stellar" | "bitcoin";
 export interface WalletAsset {
   id: string;
@@ -26,6 +27,22 @@ export interface WalletSnapshot {
 export interface WalletConfig {
   addresses: string[];
 }
-export function walletSnapshotStale(fetchedAt: string, now = Date.now()) {
-  return now - Date.parse(fetchedAt) > 15 * 60000;
+export function walletSnapshotStale(
+  snapshot: WalletSnapshot,
+  now = Date.now(),
+) {
+  const expired = (timestamp: string | null) => {
+    const time = timestamp ? Date.parse(timestamp) : NaN;
+    return (
+      !Number.isFinite(time) || now - time > 15 * 60000 || time > now + 60000
+    );
+  };
+  const pricedBalance = snapshot.accounts.some((account) =>
+    account.assets.some(
+      (asset) => asset.price !== null && decimal(asset.quantity).gt(0),
+    ),
+  );
+  return (
+    expired(snapshot.fetchedAt) || (pricedBalance && expired(snapshot.priceAt))
+  );
 }

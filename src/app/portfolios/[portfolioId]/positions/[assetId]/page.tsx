@@ -10,7 +10,8 @@ import { DeletePosition } from "@/components/delete-position";
 import { AssetIcon } from "@/components/positions";
 import { PositionShare } from "@/components/position-share";
 import { MoreHorizontal } from "lucide-react";
-import { saleResults } from "@/domain/ledger";
+import { saleResults, replayLedger } from "@/domain/ledger";
+import { closedPosition } from "@/domain/valuation";
 export default async function Page({
   params,
 }: {
@@ -18,8 +19,11 @@ export default async function Page({
 }) {
   const { portfolioId, assetId } = await params;
   const w = await loadWorkspace(portfolioId);
-  const p = w.summary.positions.find((p) => p.assetId === assetId);
+  const p =
+    w.summary.positions.find((p) => p.assetId === assetId) ??
+    closedPosition(replayLedger(w.entries), w.assets, assetId);
   if (!p) notFound();
+  const closed = p.quantity === "0";
   const user = await requireUser();
   const data = await strategyService(getDb(), user.id).load(
     portfolioId,
@@ -37,10 +41,14 @@ export default async function Page({
         }
         eyebrow={`${w.portfolio.name} / ${p.asset.symbol}`}
         title={p.asset.name}
-        description="პოზიციის შედეგები, გეგმა და საინვესტიციო თეზისი."
+        description={
+          closed
+            ? "დახურული პოზიცია · გაყიდვების შედეგები და ისტორია"
+            : "პოზიციის შედეგები, გეგმა და საინვესტიციო თეზისი."
+        }
         action={
           <div className="flex flex-wrap gap-2">
-            <PositionShare position={p} />
+            {!closed && <PositionShare position={p} />}
             <details className="dropdown dropdown-end">
               <summary
                 className="btn btn-ghost btn-square min-h-11 min-w-11"
@@ -68,7 +76,7 @@ export default async function Page({
           </div>
         }
       />
-      {(!p.quote || p.quote.stale) && (
+      {!closed && (!p.quote || p.quote.stale) && (
         <div
           role="status"
           className="alert alert-warning alert-soft mb-3 text-xs"

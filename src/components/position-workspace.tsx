@@ -72,6 +72,9 @@ export function PositionWorkspace({
         <div className="space-y-3">
           <div className="card border border-base-300 bg-base-200">
             <div className="card-body gap-2 p-4 lg:p-5">
+              {p.quantity === "0" && (
+                <span className="badge badge-neutral">დახურული პოზიცია</span>
+              )}
               <p className="text-xs text-base-content/60">
                 მიმდინარე ღირებულება
               </p>
@@ -137,7 +140,12 @@ export function PositionWorkspace({
           revision={revision}
         />
       )}
-      {tab === "plan" && (
+      {tab === "plan" && p.quantity === "0" && (
+        <p className="alert alert-soft text-sm">
+          პოზიცია დახურულია. ახალი გეგმისთვის ჯერ დაამატეთ აქტივი.
+        </p>
+      )}
+      {tab === "plan" && p.quantity !== "0" && (
         <div className="grid items-start gap-3 lg:grid-cols-2">
           <ResponsiveDisclosure
             key={requested}

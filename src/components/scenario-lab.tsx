@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Copy, Percent, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
-import { calculateScenario, goalProgress } from "@/domain/scenarios";
+import {
+  calculateScenario,
+  goalProgress,
+  scenarioPercentagePrices,
+} from "@/domain/scenarios";
 import {
   money,
   percentage,
@@ -74,20 +78,15 @@ export function ScenarioLab({
     setMessage("");
   }
   function applyPercentageChange() {
-    window.dispatchEvent(new Event("ccx-planning-changed"));
-    const change = Number(bulkChange);
-    if (!Number.isFinite(change)) return;
-    setPrices(
-      Object.fromEntries(
-        cryptoPositions.flatMap((position) => {
-          const price = Number(position.quote?.price ?? 0);
-          return Number.isFinite(price) && price >= 0
-            ? [[position.assetId, String(price * (1 + change / 100))]]
-            : [];
-        }),
-      ),
-    );
-    setMessage("");
+    try {
+      setPrices(scenarioPercentagePrices(summary, bulkChange));
+      window.dispatchEvent(new Event("ccx-planning-changed"));
+      setError(false);
+      setMessage("");
+    } catch {
+      setError(true);
+      setMessage("შეიყვანეთ პროცენტი −100%-დან დასაშვებ ზღვრამდე.");
+    }
   }
   const priceRow = (p: (typeof cryptoPositions)[number], i: number) => (
     <div

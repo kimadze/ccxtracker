@@ -10,6 +10,7 @@ import { portfolioService, AccessError } from "./services/portfolio";
 import { getQuotes } from "./market";
 import { replayLedger } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
+import { classifyAsset } from "@/domain/asset-classification";
 
 export const loadWorkspace = cache(async (id: string) => {
   const user = await requireUser();
@@ -21,7 +22,11 @@ export const loadWorkspace = cache(async (id: string) => {
   const [entries, allAssets, settings] = await Promise.all([
     service.entries(id),
     getDb().select().from(assets),
-    getDb().select().from(userSettings).where(eq(userSettings.userId, user.id)).limit(1),
+    getDb()
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, user.id))
+      .limit(1),
   ]);
   const ledger = replayLedger(entries);
   const quotes = await getQuotes(
@@ -32,7 +37,7 @@ export const loadWorkspace = cache(async (id: string) => {
   return {
     portfolio,
     entries,
-    assets: allAssets,
+    assets: allAssets.map(classifyAsset),
     summary: valuePortfolio(ledger, allAssets, quotes),
     settings: {
       cryptoOnlyPortfolioValue: settings[0]?.cryptoOnlyPortfolioValue ?? false,

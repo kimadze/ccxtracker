@@ -14,6 +14,26 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("market provider boundary", () => {
+  it("classifies verified stablecoin identities without trusting a reused symbol", async () => {
+    vi.stubEnv("COINGECKO_DEMO_API_KEY", "test-only");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          coins: [
+            { id: "dai", symbol: "DAI", name: "Dai" },
+            { id: "fake-dai", symbol: "DAI", name: "Fake Dai" },
+          ],
+        }),
+      ),
+    );
+    const result = await new CoinGeckoProvider().search("DAI");
+    expect(result[0]).toMatchObject({
+      isStablecoin: true,
+      category: "stablecoin",
+    });
+    expect(result[1]).toMatchObject({ isStablecoin: false, category: "other" });
+  });
   it("does not invent quotes when no provider is configured", async () => {
     vi.stubEnv("COINGECKO_DEMO_API_KEY", "");
     await expect(new CoinGeckoProvider().quotes(assets)).rejects.toThrow(

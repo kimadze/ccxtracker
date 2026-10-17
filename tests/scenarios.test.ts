@@ -1,8 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { calculateScenario, goalProgress } from "@/domain/scenarios";
+import {
+  calculateScenario,
+  goalProgress,
+  scenarioPercentagePrices,
+} from "@/domain/scenarios";
+import { amountSchema } from "@/domain/validation";
 import { demoSummary } from "@/domain/demo";
 import { investableValue } from "@/domain/portfolio-segments";
 describe("shared scenario engine", () => {
+  it("applies decimal percentage changes without scientific notation or invented prices", () => {
+    const tiny = {
+      ...demoSummary,
+      positions: demoSummary.positions.map((p, i) => ({
+        ...p,
+        quote: i === 0 ? { ...p.quote!, price: "0.000000000123" } : null,
+      })),
+    };
+    const prices = scenarioPercentagePrices(tiny, "10,5");
+    expect(prices).toEqual({ bitcoin: "0.000000000135915" });
+    expect(amountSchema.parse(prices.bitcoin)).toBe(prices.bitcoin);
+    expect(scenarioPercentagePrices(tiny, "-100")).toEqual({ bitcoin: "0" });
+    for (const invalid of ["", "abc", "-100.01", "Infinity"])
+      expect(() => scenarioPercentagePrices(tiny, invalid)).toThrow();
+    expect(calculateScenario(tiny, prices).positions[1].targetPrice).toBeNull();
+  });
   it("uses only market-risk holdings and explicit current-price fallback", () => {
     const base = calculateScenario(demoSummary, {});
     expect(base.value).toBe(investableValue(demoSummary));

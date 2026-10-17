@@ -148,10 +148,19 @@ export async function searchAssets(query: string) {
         .where(eq(assets.id, asset.id));
       if (!existing)
         await getDb().insert(assets).values(asset).onConflictDoNothing();
-      else if (asset.logoUrl && existing.logoUrl !== asset.logoUrl)
+      else if (
+        (asset.logoUrl && existing.logoUrl !== asset.logoUrl) ||
+        (asset.isStablecoin && !existing.isStablecoin)
+      )
         await getDb()
           .update(assets)
-          .set({ logoUrl: asset.logoUrl, updatedAt: new Date() })
+          .set({
+            ...(asset.logoUrl ? { logoUrl: asset.logoUrl } : {}),
+            ...(asset.isStablecoin
+              ? { isStablecoin: true, category: "stablecoin" }
+              : {}),
+            updatedAt: new Date(),
+          })
           .where(eq(assets.id, asset.id));
     }
     return { ok: true as const, assets: matches };

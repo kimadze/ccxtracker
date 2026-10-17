@@ -1,7 +1,8 @@
+"use client";
 import Link from "next/link";
 import { ArrowUpRight, Wallet } from "lucide-react";
 import type { WalletSnapshot, WalletNetwork } from "@/domain/wallet";
-import { walletSnapshotStale } from "@/domain/wallet";
+import { useWalletFreshness } from "./use-wallet-freshness";
 import { money, quantity } from "@/lib/formatters";
 import { decimal } from "@/domain/decimal";
 import { BalanceValue } from "./ui";
@@ -19,7 +20,7 @@ export function WalletPortfolioCard({
   snapshot: WalletSnapshot | null;
   lastError: string | null;
 }) {
-  const stale = snapshot && walletSnapshotStale(snapshot.fetchedAt);
+  const stale = useWalletFreshness(snapshot);
   const native = snapshot
     ? quantity(
         snapshot.accounts

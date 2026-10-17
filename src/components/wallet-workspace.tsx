@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Settings2, ArrowLeft, ExternalLink } from "lucide-react";
 import type { WalletNetwork, WalletSnapshot } from "@/domain/wallet";
-import { walletSnapshotStale } from "@/domain/wallet";
+import { useWalletFreshness } from "./use-wallet-freshness";
 import { decimal } from "@/domain/decimal";
 import { money, quantity, dateTime } from "@/lib/formatters";
 import { BalancePrivacyToggle } from "./shell";
@@ -51,10 +51,9 @@ export function WalletWorkspace({ wallet }: { wallet: WalletProps }) {
       void refresh();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const snapshot = wallet.snapshot,
-    stale =
-      !!snapshot &&
-      (!!wallet.lastError || walletSnapshotStale(snapshot.fetchedAt));
+  const snapshot = wallet.snapshot;
+  const snapshotStale = useWalletFreshness(snapshot);
+  const stale = !!snapshot && (!!wallet.lastError || snapshotStale);
   const nativeSymbol = wallet.network === "stellar" ? "XLM" : "BTC";
   const nativeQuantity = snapshot
     ? quantity(
