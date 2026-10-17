@@ -62,8 +62,8 @@ test("reference overview keeps responsive financial hierarchy, search, privacy a
         [pid, id, q, price, i + 2],
       );
       await db.query(
-        "INSERT INTO market_quotes(asset_id,price,quoted_at) VALUES($1,$2,now()) ON CONFLICT(asset_id) DO UPDATE SET price=excluded.price,quoted_at=now(),fetched_at=now()",
-        [id, current],
+        "INSERT INTO market_quotes(asset_id,price,change_24h,quoted_at) VALUES($1,$2,$3,now()) ON CONFLICT(asset_id) DO UPDATE SET price=excluded.price,change_24h=excluded.change_24h,quoted_at=now(),fetched_at=now()",
+        [id, current, i === 0 ? "5.5" : i === 1 ? "-4.25" : "1"],
       );
     }
     for (let i = 0; i < 30; i++)
@@ -183,6 +183,67 @@ test("reference overview keeps responsive financial hierarchy, search, privacy a
           .getByText("ლიკვიდობა", { exact: true })
           .filter({ visible: true })
           .click();
+      }
+      await page.evaluate(() => window.scrollTo(0, 0));
+      const leaders = page.getByRole("region", {
+        name: "დღის ლიდერები",
+        exact: true,
+      });
+      await expect(leaders).toContainText("+5,5%");
+      await expect(leaders).toContainText("-4,25%");
+      for (const link of await leaders.getByRole("link").all()) {
+        expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      }
+      const result = page.getByRole("region", {
+        name: "პორტფელის ღირებულება და შედეგი",
+        exact: true,
+      });
+      if (width < 1024) {
+        const title = await result.getByRole("heading").first().boundingBox();
+        const status = await result.locator("summary").boundingBox();
+        expect(status!.y).toBeGreaterThanOrEqual(title!.y + title!.height);
+      } else {
+        const headings = await result.getByRole("heading").all();
+        expect(
+          Math.abs(
+            (await headings[0].boundingBox())!.y -
+              (await headings[1].boundingBox())!.y,
+          ),
+        ).toBeLessThanOrEqual(1);
+        const chart = await page
+          .getByRole("region", { name: "ღირებულება და ისტორია", exact: true })
+          .boundingBox();
+        const side = await page
+          .getByRole("complementary", {
+            name: "პორტფელის სტრუქტურა",
+            exact: true,
+          })
+          .boundingBox();
+        expect(
+          Math.abs(chart!.y + chart!.height - side!.y - side!.height),
+        ).toBeLessThanOrEqual(1);
+      }
+      if (width < 768) {
+        expect((await leaders.boundingBox())!.height).toBeLessThan(130);
+        const firstAsset = await assetList
+          .locator("li a")
+          .first()
+          .boundingBox();
+        const dock = await page
+          .getByRole("navigation", { name: "მობილური ნავიგაცია", exact: true })
+          .boundingBox();
+        expect(firstAsset!.y).toBeLessThan(dock!.y);
+      } else if (width < 1024) {
+        const liquidity = await page
+          .getByRole("region", {
+            name: "USD ნაშთი და სტეიბლკოინები",
+            exact: true,
+          })
+          .boundingBox();
+        const daily = await leaders.boundingBox();
+        expect(Math.abs(liquidity!.height - daily!.height)).toBeLessThanOrEqual(
+          1,
+        );
       }
       await page.screenshot({
         path: `.local/reference-overview-${info.project.name}-${width}.png`,

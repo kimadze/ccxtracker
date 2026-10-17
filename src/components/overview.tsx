@@ -77,54 +77,52 @@ export function Overview({
     const Icon = isUp ? TrendingUp : TrendingDown;
     const label = isUp ? "დღის ზრდა" : "დღის კლება";
     const tone = isUp ? "text-success" : "text-error";
-    return position ? (
-      <li
-        key={direction}
-        className="list-row min-h-12 min-w-0 items-center gap-2 px-0 py-1.5"
-      >
-        <Icon size={16} className={`shrink-0 ${tone}`} aria-hidden="true" />
-        <span className="min-w-0 flex-1">
-          <span className="block text-[11px] leading-4 text-base-content/55">
-            {label}
-          </span>
-          <Link
-            href={`${base}/positions/${encodeURIComponent(position.assetId)}`}
-            className="flex min-h-8 min-w-0 items-center gap-2 font-medium hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
-          >
-            <AssetIcon
-              symbol={position.asset.symbol}
-              logoUrl={position.asset.logoUrl}
-              size={22}
-            />
-            <span className="truncate">{position.asset.symbol}</span>
-          </Link>
-        </span>
-        <span
-          className={`shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums ${tone}`}
-        >
-          {percentage(position.quote?.change24h, true)}
-        </span>
-      </li>
-    ) : (
-      <li
-        key={direction}
-        className="list-row min-h-12 min-w-0 items-center gap-2 px-0 py-1.5"
-      >
-        <Icon
-          size={16}
-          className="shrink-0 text-base-content/40"
-          aria-hidden="true"
-        />
-        <span className="min-w-0 flex-1 text-xs text-base-content/60">
+    const content = (
+      <>
+        <span className="col-span-2 flex items-center gap-1.5 text-xs text-base-content/60">
+          <Icon size={14} className={position ? tone : ""} aria-hidden="true" />
           {label}
         </span>
-        <span className="text-right text-xs text-base-content/50">
-          {movers.hasFreshQuotes
-            ? isUp
-              ? "ზრდა არ არის"
-              : "კლება არ არის"
-            : "—"}
-        </span>
+        {position ? (
+          <>
+            <span className="flex min-w-0 items-center gap-1.5 font-medium">
+              <AssetIcon
+                symbol={position.asset.symbol}
+                logoUrl={position.asset.logoUrl}
+                size={28}
+              />
+              <span className="truncate">{position.asset.symbol}</span>
+            </span>
+            <span
+              className={`whitespace-nowrap text-right text-sm font-semibold tabular-nums ${tone}`}
+            >
+              {percentage(position.quote?.change24h, true)}
+            </span>
+          </>
+        ) : (
+          <span className="col-span-2 py-1 text-xs text-base-content/55">
+            {isUp ? "ზრდა არ არის" : "კლება არ არის"}
+          </span>
+        )}
+      </>
+    );
+    const rowClass =
+      "grid min-h-11 min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-1 gap-y-1 py-1 md:py-2";
+    return (
+      <li
+        key={direction}
+        className="list-row block min-w-0 rounded-none border-base-300 p-0 after:hidden first:border-r first:pr-3 last:pl-3 md:first:border-r-0 md:first:border-b md:first:pr-0 md:last:pl-0"
+      >
+        {position ? (
+          <Link
+            href={`${base}/positions/${encodeURIComponent(position.assetId)}`}
+            className={`${rowClass} rounded-field hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary`}
+          >
+            {content}
+          </Link>
+        ) : (
+          <div className={rowClass}>{content}</div>
+        )}
       </li>
     );
   };
@@ -141,36 +139,34 @@ export function Overview({
         <h2 className="text-xs font-medium text-base-content/65">
           დღის ლიდერები
         </h2>
-        <span className="flex items-center gap-1.5">
-          {movers.hasIncompleteCoverage && (
-            <span
-              className="badge badge-warning badge-outline badge-sm text-[10px]"
-              title={`ფასი ხელმისაწვდომია ${movers.coveredAssets}/${movers.totalAssets} აქტივისთვის`}
+        <span className="flex shrink-0 items-center gap-1 text-xs text-base-content/55">
+          <span>24 სთ</span>
+          {updatedTime && (
+            <time
+              dateTime={movers.latestQuoteAt ?? undefined}
+              title={dateTime(movers.latestQuoteAt!)}
             >
-              ნაწილობრივი
-            </span>
+              · {updatedTime}
+            </time>
           )}
-          <span className="badge badge-ghost badge-sm text-[10px] text-base-content/55">
-            24 სთ
-          </span>
         </span>
       </div>
+      {movers.hasIncompleteCoverage && (
+        <span
+          className="badge badge-warning badge-outline badge-sm text-xs"
+          title={`ფასი ხელმისაწვდომია ${movers.coveredAssets}/${movers.totalAssets} აქტივისთვის`}
+        >
+          ნაწილობრივი
+        </span>
+      )}
       {movers.hasFreshQuotes ? (
-        <ul className="list mt-1 divide-y divide-base-300">
+        <ul className="list grid min-w-0 grid-cols-2 md:grid-cols-1">
           {moverRow(movers.gainer, "up")}
           {moverRow(movers.loser, "down")}
         </ul>
       ) : (
         <p className="py-2 text-xs text-base-content/55">
           განახლებული 24-საათიანი ფასები მიუწვდომელია
-        </p>
-      )}
-      {updatedTime && (
-        <p
-          className="mt-1 text-[10px] text-base-content/45"
-          title={movers.latestQuoteAt ?? undefined}
-        >
-          განახლდა {updatedTime}
         </p>
       )}
     </>
@@ -210,7 +206,7 @@ export function Overview({
         .map((p) => (
           <div
             key={p.assetId}
-            className="flex min-h-9 items-center justify-between gap-2 border-t border-base-300 lg:hidden"
+            className="flex min-h-9 items-center justify-between gap-2 border-t border-base-300 md:hidden"
           >
             <dt className="flex min-w-0 items-center gap-2 text-base-content/60">
               <AssetIcon
@@ -254,10 +250,10 @@ export function Overview({
       ))}
     </dl>
   );
-  const status = (
+  const renderStatus = (compact = false) => (
     <details className="dropdown dropdown-end">
       <summary
-        className="btn btn-ghost min-h-11 gap-2 px-2 text-xs"
+        className={`btn btn-ghost min-h-11 shrink-0 gap-2 text-xs ${compact ? "btn-square min-w-11" : "px-2"}`}
         aria-label="ფასების განახლების სტატუსი"
       >
         {s.complete && !s.stale ? (
@@ -269,7 +265,9 @@ export function Overview({
             aria-hidden="true"
           />
         )}
-        <span>
+        <span
+          className={compact ? "sr-only" : "hidden whitespace-nowrap xl:inline"}
+        >
           {s.stale
             ? "ფასები მოძველდა"
             : s.complete
@@ -291,29 +289,36 @@ export function Overview({
     <div className="overview-dashboard w-full min-w-0 space-y-3 lg:space-y-4">
       <h1 className="sr-only">პორტფელის მიმოხილვა</h1>
       <OverviewToolbar>
-        {status}
+        {renderStatus()}
         {action}
       </OverviewToolbar>
       <section
         className="card card-border min-w-0 border-base-300 bg-base-200"
         aria-label="პორტფელის ღირებულება და შედეგი"
       >
-        <div className="grid min-w-0 gap-2 p-3 sm:grid-cols-2 sm:gap-3 sm:p-4 sm:items-center">
-          <div className="relative min-w-0 pr-10 lg:pr-0">
-            <h2 className="text-xs text-base-content/60">
+        <div className="grid min-w-0 items-start gap-2 p-3 sm:grid-cols-2 sm:gap-3 sm:p-4">
+          <div className="min-w-0">
+            <h2 className="min-h-5 text-xs text-base-content/60">
               {cryptoOnlyValue
                 ? "კრიპტოაქტივების ღირებულება"
                 : !s.complete
                   ? "ცნობილი ღირებულება"
                   : "პორტფელის ღირებულება"}
             </h2>
-            <p className="mt-1 overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums lg:text-4xl">
-              <BalanceValue>{money(displayedValue)}</BalanceValue>
-            </p>
-            <div className="absolute top-0 right-0 lg:hidden">{status}</div>
+            <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
+              <p className="min-w-0 overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums lg:text-4xl">
+                <BalanceValue>{money(displayedValue)}</BalanceValue>
+              </p>
+              <div className="shrink-0 lg:hidden">{renderStatus(true)}</div>
+            </div>
           </div>
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1 sm:block">
-            <h2 className="text-xs text-base-content/60">სრული P/L</h2>
+            <h2
+              className="text-xs text-base-content/60 sm:flex sm:min-h-5 sm:items-center"
+              title="რეალიზებული და არარეალიზებული შედეგი მთელ პორტფელზე"
+            >
+              სრული P/L
+            </h2>
             <p
               className={`flex min-w-0 items-center gap-1.5 overflow-x-auto whitespace-nowrap text-lg font-semibold tabular-nums sm:mt-1 lg:text-xl ${pnlClass(s.totalPnl)}`}
             >
@@ -332,16 +337,19 @@ export function Overview({
       </section>
       <div className="grid min-w-0 grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(235px,3fr)] lg:gap-4">
         <section
-          className="card card-border min-w-0 border-base-300 bg-base-200"
+          className="card card-border min-w-0 border-base-300 bg-base-200 lg:has-[[data-history-chart-ready]]:self-stretch"
           aria-label="ღირებულება და ისტორია"
         >
-          <div className="card-body gap-2 p-3! sm:p-4!">
-            <h2 className="text-xs font-medium text-base-content/70">
-              პორტფელის ისტორია · სრული ღირებულება
-            </h2>
+          <div className="card-body gap-2 p-3! sm:p-4! lg:h-full">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h2 className="text-sm font-medium">ისტორია</h2>
+              <span className="badge badge-ghost badge-sm text-xs text-base-content/65">
+                სრული პორტფელი
+              </span>
+            </div>
             <div
               id="overview-period-controls"
-              className="min-w-0 max-w-full empty:hidden"
+              className="min-w-0 max-w-full empty:hidden [&_[role=group]]:p-0"
             />
             {history ?? (
               <p className="py-2 text-xs text-base-content/55">
@@ -351,14 +359,14 @@ export function Overview({
           </div>
         </section>
         <aside
-          className="grid min-w-0 items-start gap-3 md:grid-cols-2 lg:grid-cols-1 lg:gap-4"
+          className="grid min-w-0 items-stretch gap-3 md:grid-cols-2 lg:grid-cols-1 lg:gap-4"
           aria-label="პორტფელის სტრუქტურა"
         >
           <section
             className="card card-border min-w-0 border-base-300 bg-base-200"
             aria-label="USD ნაშთი და სტეიბლკოინები"
           >
-            <details className="collapse collapse-arrow lg:hidden">
+            <details className="collapse collapse-arrow md:hidden">
               <summary className="collapse-title flex min-h-14 min-w-0 flex-wrap items-baseline gap-2 py-3 pr-10 text-xs">
                 <span className="mr-auto text-base-content/65">ლიკვიდობა</span>
                 <span className="overflow-x-auto whitespace-nowrap text-base font-semibold tabular-nums">
@@ -370,7 +378,7 @@ export function Overview({
               </summary>
               <div className="collapse-content">{liquidityDetails}</div>
             </details>
-            <div className="card-body hidden gap-2 p-3! lg:flex">
+            <div className="card-body hidden gap-2 p-3! md:flex">
               <div className="flex items-baseline justify-between gap-2">
                 <h2 className="text-xs text-base-content/65">ლიკვიდობა</h2>
                 <span className="text-xs tabular-nums text-base-content/50">
@@ -399,11 +407,8 @@ export function Overview({
               {liquidityDetails}
             </div>
           </section>
-          <section className="card card-border hidden min-w-0 border-base-300 bg-base-200 md:block">
-            <div className="card-body gap-2 p-3!">{dailyMoversContent}</div>
-          </section>
           <section
-            className="card card-border min-w-0 border-base-300 bg-base-200 md:hidden"
+            className="card card-border min-w-0 border-base-300 bg-base-200"
             aria-label="დღის ლიდერები"
           >
             <div className="card-body gap-2 p-3!">{dailyMoversContent}</div>

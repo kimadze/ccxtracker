@@ -94,7 +94,12 @@ export function HistoryChart({
     />
   );
   return (
-    <div>
+    <div
+      className={dashboard ? "flex min-h-0 flex-1 flex-col" : undefined}
+      data-history-chart-ready={
+        dashboard && points.length >= 2 ? "" : undefined
+      }
+    >
       {history.stale && history.latest && (
         <p role="status" className="mb-2 text-xs text-warning">
           ისტორია მოძველებულია · ბოლო შეფასება:{" "}
@@ -131,7 +136,7 @@ export function HistoryChart({
           points.length < 2
             ? "hidden"
             : dashboard
-              ? "h-[140px] w-full min-w-0 overflow-hidden sm:h-[180px] lg:h-[240px]"
+              ? "h-[128px] w-full min-w-0 overflow-hidden sm:h-[160px] lg:h-auto lg:min-h-[180px] lg:flex-1"
               : compact
                 ? "h-[140px] w-full min-w-0 lg:h-[220px]"
                 : "h-56 w-full min-w-0"

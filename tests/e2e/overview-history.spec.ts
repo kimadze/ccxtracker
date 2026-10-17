@@ -77,6 +77,11 @@ test("restored overview history supports periods, privacy and compact empty stat
         exact: true,
       }),
     ).toBeHidden();
+    expect(
+      (await page
+        .getByRole("region", { name: "ღირებულება და ისტორია", exact: true })
+        .boundingBox())!.height,
+    ).toBeLessThan(200);
     await db.query("DELETE FROM portfolio_snapshots WHERE portfolio_id=$1", [
       pid,
     ]);
