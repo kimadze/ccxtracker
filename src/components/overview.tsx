@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  ArrowUpRight,
   CheckCircle2,
   TrendingDown,
   TrendingUp,
@@ -9,6 +8,7 @@ import {
 } from "lucide-react";
 import type { PortfolioSummary } from "@/domain/types";
 import { decimal, percent } from "@/domain/decimal";
+import { dailyMovers } from "@/domain/daily-movers";
 import {
   dateTime,
   money,
@@ -47,6 +47,7 @@ export function Overview({
     (sum, p) => sum.plus(p.value ?? 0),
     decimal(0),
   );
+  const movers = dailyMovers(positions);
   const displayedValue = cryptoOnlyValue
     ? cryptoTotal.toFixed()
     : (s.value ?? s.knownValue);
@@ -66,69 +67,106 @@ export function Overview({
       : s.complete
         ? "ფასები განახლებულია"
         : "ფასები არასრულია";
-  const palette = [
-    { className: "bg-primary", color: "var(--color-primary)" },
-    { className: "bg-info", color: "var(--color-info)" },
-    { className: "bg-accent", color: "var(--color-accent)" },
-    { className: "bg-warning", color: "var(--color-warning)" },
-    { className: "bg-secondary", color: "var(--color-secondary)" },
-  ];
-  const segments = crypto.slice(0, 4).map((p, i) => ({
-    label: p.asset.symbol,
-    ...palette[i],
-    share: cryptoTotal.gt(0)
-      ? Number(percent(p.value ?? "0", cryptoTotal.toFixed()) ?? 0)
-      : 0,
-  }));
-  if (crypto.length > 4)
-    segments.push({
-      label: "სხვა",
-      ...palette[4],
-      share: Math.max(0, 100 - segments.reduce((sum, p) => sum + p.share, 0)),
-    });
-  const gradient = segments
-    .map((p, index) => {
-      const start = segments
-        .slice(0, index)
-        .reduce((sum, segment) => sum + segment.share, 0);
-      return `${p.color} ${start}% ${Math.min(100, start + p.share)}%`;
-    })
-    .join(", ");
-  const allocation = (
-    <>
-      {segments.length ? (
-        <div className="flex min-w-0 items-center gap-3">
-          <div
-            role="img"
-            aria-label="კრიპტოაქტივების განაწილება"
-            className="relative grid size-24 shrink-0 place-items-center rounded-full"
-            style={{ background: `conic-gradient(${gradient})` }}
+  const moverRow = (
+    position: (typeof positions)[number] | undefined,
+    direction: "up" | "down",
+  ) => {
+    const isUp = direction === "up";
+    const Icon = isUp ? TrendingUp : TrendingDown;
+    const label = isUp ? "დღის ზრდა" : "დღის კლება";
+    const tone = isUp ? "text-success" : "text-error";
+    return position ? (
+      <li
+        key={direction}
+        className="list-row min-w-0 items-center gap-2 px-0 py-2"
+      >
+        <Icon size={16} className={`shrink-0 ${tone}`} aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-[11px] leading-4 text-base-content/55">
+            {label}
+          </span>
+          <Link
+            href={`${base}/positions/${encodeURIComponent(position.assetId)}`}
+            className="flex min-h-8 min-w-0 items-center gap-2 font-medium hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
           >
-            <div className="absolute inset-[14px] rounded-full bg-base-200" />
-            <span className="relative max-w-20 overflow-x-auto whitespace-nowrap text-center text-[11px] font-semibold tabular-nums">
-              <BalanceValue>{money(cryptoTotal.toFixed(), true)}</BalanceValue>
+            <AssetIcon
+              symbol={position.asset.symbol}
+              logoUrl={position.asset.logoUrl}
+              size={22}
+            />
+            <span className="truncate">{position.asset.symbol}</span>
+          </Link>
+        </span>
+        <span
+          className={`shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums ${tone}`}
+        >
+          {percentage(position.quote?.change24h, true)}
+        </span>
+      </li>
+    ) : (
+      <li
+        key={direction}
+        className="list-row min-h-12 min-w-0 items-center gap-2 px-0 py-2"
+      >
+        <Icon
+          size={16}
+          className="shrink-0 text-base-content/40"
+          aria-hidden="true"
+        />
+        <span className="min-w-0 flex-1 text-xs text-base-content/60">
+          {label}
+        </span>
+        <span className="text-right text-xs text-base-content/50">
+          {movers.hasFreshQuotes
+            ? isUp
+              ? "ზრდა არ არის"
+              : "კლება არ არის"
+            : "—"}
+        </span>
+      </li>
+    );
+  };
+  const updatedTime = movers.latestQuoteAt
+    ? new Intl.DateTimeFormat("ka-GE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Tbilisi",
+      }).format(new Date(movers.latestQuoteAt))
+    : null;
+  const dailyMoversContent = (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold">დღის ლიდერები</h2>
+        <span className="flex items-center gap-1.5">
+          {movers.hasIncompleteCoverage && (
+            <span
+              className="badge badge-warning badge-outline badge-sm text-[10px]"
+              title={`ფასი ხელმისაწვდომია ${movers.coveredAssets}/${movers.totalAssets} აქტივისთვის`}
+            >
+              ნაწილობრივი
             </span>
-          </div>
-          <ul className="list min-w-0 flex-1 space-y-1.5 text-xs">
-            {segments.map((p) => (
-              <li
-                key={p.label}
-                className="list-row flex min-w-0 items-center gap-1.5 p-0"
-              >
-                <span
-                  className={`size-2 shrink-0 rounded-full ${p.className}`}
-                />
-                <span className="min-w-0 flex-1 truncate">{p.label}</span>
-                <span className="shrink-0 tabular-nums text-base-content/60">
-                  <BalanceValue>{percentage(String(p.share))}</BalanceValue>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          )}
+          <span className="badge badge-ghost badge-sm text-[10px] text-base-content/55">
+            24 სთ
+          </span>
+        </span>
+      </div>
+      {movers.hasFreshQuotes ? (
+        <ul className="list mt-1 divide-y divide-base-300">
+          {moverRow(movers.gainer, "up")}
+          {moverRow(movers.loser, "down")}
+        </ul>
       ) : (
         <p className="py-2 text-xs text-base-content/55">
-          აქტივები ჯერ არ არის
+          განახლებული 24-საათიანი ფასები მიუწვდომელია
+        </p>
+      )}
+      {updatedTime && (
+        <p
+          className="mt-1 text-[10px] text-base-content/45"
+          title={movers.latestQuoteAt ?? undefined}
+        >
+          განახლდა {updatedTime}
         </p>
       )}
     </>
@@ -346,21 +384,13 @@ export function Overview({
             </div>
           </section>
           <section className="card card-border hidden min-w-0 border-base-300 bg-base-200 md:block">
-            <div className="card-body gap-2 p-3!">
-              <div className="flex items-center justify-between gap-1">
-                <h2 className="text-xs font-medium text-base-content/70">
-                  კრიპტო განაწილება
-                </h2>
-                <Link
-                  className="btn btn-ghost btn-square btn-sm min-h-11 min-w-11 text-base-content/50"
-                  href={base + "/planning?tab=allocation"}
-                  aria-label="განაწილების გახსნა"
-                >
-                  <ArrowUpRight size={15} />
-                </Link>
-              </div>
-              {allocation}
-            </div>
+            <div className="card-body gap-1 p-3!">{dailyMoversContent}</div>
+          </section>
+          <section
+            className="card card-border min-w-0 border-base-300 bg-base-200 md:hidden"
+            aria-label="დღის ლიდერები"
+          >
+            <div className="card-body gap-1 p-3!">{dailyMoversContent}</div>
           </section>
         </aside>
         <OverviewAssets
@@ -368,20 +398,6 @@ export function Overview({
           base={base}
           transactionsPanel={transactionsPanel}
         />
-        <details className="collapse collapse-arrow border border-base-300 bg-base-200 md:hidden">
-          <summary className="collapse-title min-h-11 py-3 text-sm">
-            კრიპტო განაწილება
-          </summary>
-          <div className="collapse-content">
-            {allocation}
-            <Link
-              href={base + "/planning?tab=allocation"}
-              className="btn btn-ghost btn-sm mt-2 min-h-11 px-0 text-xs"
-            >
-              განაწილების გახსნა <ArrowUpRight size={14} />
-            </Link>
-          </div>
-        </details>
         <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:col-span-2">
           <summary className="collapse-title min-h-11 py-3 text-xs text-base-content/60">
             დამატებითი მაჩვენებლები
