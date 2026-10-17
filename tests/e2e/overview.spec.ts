@@ -224,7 +224,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
   for (const width of [1024, 360, 390, 430, 768, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     for (const route of routes) {
-      await page.goto(base + "/" + route);
+      await page.goto(base + "/" + route, { waitUntil: "domcontentloaded" });
       await expect(page.locator("main#main")).toBeVisible();
       await expect(page.getByRole("heading", { level: 1 })).toBeAttached();
       if (width >= 1024)

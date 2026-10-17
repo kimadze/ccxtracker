@@ -20,6 +20,7 @@ import { transactionImpact } from "@/domain/transaction-impact";
 import type { LedgerEntry, Quote } from "@/domain/types";
 import { userError } from "./errors";
 import { revalidatePath } from "next/cache";
+import { consumeRateLimit } from "./rate-limit";
 
 const batchSchema = z
   .array(transactionSchema)
@@ -88,7 +89,9 @@ export async function previewTransactionChange(
     z.enum(["create", "update", "delete", "batch"]).parse(operation);
     z.number().int().nonnegative().parse(revision);
     await portfolioService(getDb(), user.id).owned(portfolioId);
-    const impact = await getDb().transaction(async (tx) => {
+    if (!(await consumeRateLimit(`transaction-preview:${user.id}`, 180, 60000)))
+      throw new Error("PREVIEW_RATE_LIMIT");
+    const { before, after, changed } = await getDb().transaction(async (tx) => {
       const [portfolio] = await tx
         .select()
         .from(portfolios)
@@ -142,17 +145,33 @@ export async function previewTransactionChange(
             .flatMap((t) => [t.assetId, t.settlementAssetId ?? "USD"]),
         ];
       }
-      const allAssets = await tx.select().from(assets);
-      const cached = await tx.select().from(marketQuotes);
-      const quotes: Quote[] = cached.map((q) => ({
-        assetId: q.assetId,
-        price: q.price,
-        change24h: q.change24h,
-        updatedAt: q.quotedAt.toISOString(),
-        stale: Date.now() - q.quotedAt.getTime() > 900000,
-      }));
-      return transactionImpact(before, after, allAssets, quotes, changed);
+      return { before, after, changed };
     });
+    // The immutable ledger revision is captured above; pricing and replay must
+    // not hold the portfolio's share lock while a user is trying to save.
+    const ids = [
+      ...new Set([
+        "USD",
+        ...before
+          .concat(after)
+          .flatMap((row) => [row.assetId, row.settlementAssetId ?? "USD"]),
+      ]),
+    ];
+    const [allAssets, cached] = await Promise.all([
+      getDb().select().from(assets).where(inArray(assets.id, ids)),
+      getDb()
+        .select()
+        .from(marketQuotes)
+        .where(inArray(marketQuotes.assetId, ids)),
+    ]);
+    const quotes: Quote[] = cached.map((q) => ({
+      assetId: q.assetId,
+      price: q.price,
+      change24h: q.change24h,
+      updatedAt: q.quotedAt.toISOString(),
+      stale: Date.now() - q.quotedAt.getTime() > 900000,
+    }));
+    const impact = transactionImpact(before, after, allAssets, quotes, changed);
     return { ok: true as const, impact };
   } catch (error) {
     return { ok: false as const, error: userError(error) };

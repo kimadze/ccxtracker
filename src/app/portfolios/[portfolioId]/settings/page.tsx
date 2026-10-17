@@ -8,7 +8,7 @@ export default async function Page({
   params: Promise<{ portfolioId: string }>;
 }) {
   const { portfolioId } = await params;
-  const w = await loadWorkspace(portfolioId);
+  const w = await loadWorkspace(portfolioId, false);
   const user = await requireUser();
   const dates = w.summary.positions
     .flatMap((p) => (p.quote ? [p.quote.updatedAt] : []))

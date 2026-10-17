@@ -35,6 +35,8 @@ export async function captureInitialSnapshot(
 export async function createPortfolio(input: unknown): Promise<ActionResult> {
   const user = await requireUser();
   try {
+    if (!(await consumeRateLimit(`portfolio-create:${user.id}`, 10, 3600000)))
+      throw new Error("PORTFOLIO_CREATE_RATE_LIMIT");
     await seedAssets();
     const p = await portfolioService(getDb(), user.id).create(input);
     revalidatePath("/portfolios");

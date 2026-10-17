@@ -23,7 +23,7 @@ export default async function Page({
     query.tab === "scenarios" || query.tab === "allocation"
       ? query.tab
       : "strategy";
-  const w = await loadWorkspace(portfolioId),
+  const w = await loadWorkspace(portfolioId, tab === "allocation"),
     user = await requireUser(),
     db = getDb();
   let content;

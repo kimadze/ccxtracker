@@ -165,6 +165,7 @@ test("real session, portfolio creation, funded acquisition and persisted journal
   await expect(
     page.getByText("ახალი საშუალო ფასი", { exact: true }),
   ).toBeVisible();
+  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("tab", { name: "ჟურნალი", exact: true }).click();
   if (testInfo.project.name === "desktop") {
     await page.getByText("შესვლა და მოლოდინი", { exact: true }).click();

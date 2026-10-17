@@ -10,7 +10,7 @@ export default async function Page({
   params: Promise<{ portfolioId: string }>;
 }) {
   const { portfolioId } = await params;
-  const w = await loadWorkspace(portfolioId);
+  const w = await loadWorkspace(portfolioId, false);
   const user = await requireUser();
   const journalAssets = await strategyService(getDb(), user.id).journalAssets(
     portfolioId,

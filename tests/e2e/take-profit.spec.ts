@@ -49,7 +49,9 @@ test("Take Profit alerts save, warn, rearm and fit mobile and desktop", async ({
         JSON.stringify([pid]),
       ],
     );
-    await page.goto(`/portfolios/${pid}/positions/bitcoin?tab=exit`);
+    await page.goto(`/portfolios/${pid}/positions/bitcoin?tab=exit`, {
+      waitUntil: "networkidle",
+    });
     const section = page.locator(".collapse").filter({
       has: page.getByRole("heading", { name: "Take Profit", exact: true }),
     });

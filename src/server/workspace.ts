@@ -5,23 +5,22 @@ import { ZodError } from "zod";
 import { requireUser } from "./auth";
 import { getDb } from "./db";
 import { assets, userSettings } from "./db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { portfolioService, AccessError } from "./services/portfolio";
 import { getQuotes } from "./market";
 import { replayLedger } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
 import { classifyAsset } from "@/domain/asset-classification";
 
-export const loadWorkspace = cache(async (id: string) => {
+const loadPortfolio = cache(async (id: string, fullCatalog: boolean) => {
   const user = await requireUser();
   const service = portfolioService(getDb(), user.id);
   const portfolio = await service.owned(id).catch((error) => {
     if (error instanceof AccessError || error instanceof ZodError) notFound();
     throw error;
   });
-  const [entries, allAssets, settings] = await Promise.all([
+  const [entries, settings] = await Promise.all([
     service.entries(id),
-    getDb().select().from(assets),
     getDb()
       .select()
       .from(userSettings)
@@ -29,11 +28,15 @@ export const loadWorkspace = cache(async (id: string) => {
       .limit(1),
   ]);
   const ledger = replayLedger(entries);
-  const quotes = await getQuotes(
-    allAssets.filter((a) =>
-      ledger.holdings.some((h) => h.assetId === a.id && h.quantity !== "0"),
-    ),
+  const ids = [...new Set(["USD", ...ledger.holdings.map((h) => h.assetId)])];
+  const allAssets = await getDb()
+    .select()
+    .from(assets)
+    .where(fullCatalog ? undefined : inArray(assets.id, ids));
+  const held = new Set(
+    ledger.holdings.filter((h) => h.quantity !== "0").map((h) => h.assetId),
   );
+  const quotes = await getQuotes(allAssets.filter((a) => held.has(a.id)));
   return {
     portfolio,
     entries,
@@ -44,3 +47,9 @@ export const loadWorkspace = cache(async (id: string) => {
     },
   };
 });
+export const loadWorkspace = cache((id: string, fullCatalog = true) =>
+  loadPortfolio(id, fullCatalog),
+);
+export const loadPortfolioCard = cache((id: string) =>
+  loadPortfolio(id, false),
+);

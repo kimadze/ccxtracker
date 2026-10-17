@@ -1,7 +1,7 @@
 import { requireUser } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { portfolioService } from "@/server/services/portfolio";
-import { loadWorkspace } from "@/server/workspace";
+import { loadPortfolioCard } from "@/server/workspace";
 import { PortfolioCreate } from "@/components/portfolio-create";
 import { BalancePrivacyToggle } from "@/components/shell";
 import { Brand } from "@/components/brand";
@@ -15,7 +15,7 @@ export default async function Portfolios() {
   const portfolios = await portfolioService(getDb(), user.id).list();
   const wallets = await walletService(getDb(), user.id).list();
   const workspaces = await Promise.all(
-    portfolios.map((p) => loadWorkspace(p.id)),
+    portfolios.map((p) => loadPortfolioCard(p.id)),
   );
   return (
     <main

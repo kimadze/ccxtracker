@@ -26,7 +26,7 @@ export default async function Page({
     ? requestedTab
     : "portfolio";
   const [workspace, macro] = await Promise.all([
-    loadWorkspace(portfolioId),
+    loadWorkspace(portfolioId, false),
     tab === "macro" ? getMacroStatistics() : Promise.resolve(null),
   ]);
   const history =

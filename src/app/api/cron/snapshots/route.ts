@@ -5,6 +5,7 @@ import { processBlobCleanupJobs } from "@/server/blob-cleanup";
 import { sendJobAlert } from "@/server/job-alerts";
 import { processTelegramDeliveries } from "@/server/telegram/delivery";
 import { processTakeProfitDeliveries } from "@/server/telegram/take-profit";
+import { cleanupRateLimits } from "@/server/rate-limit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
@@ -64,6 +65,14 @@ export async function GET(request: Request) {
           reason: error instanceof Error ? error.message : "UNKNOWN",
         });
         alerts.push("SNAPSHOT_JOB_CONTINUATION_FAILED");
+      }
+      try {
+        if (Date.now() - startedAt < 48000)
+          await cleanupRateLimits(undefined, 1000);
+      } catch (error) {
+        console.error("RATE_LIMIT_CLEANUP_FAILED", {
+          reason: error instanceof Error ? error.message : "UNKNOWN",
+        });
       }
       try {
         const cleanup = await processBlobCleanupJobs(undefined, 10);

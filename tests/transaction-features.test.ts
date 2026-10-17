@@ -10,7 +10,7 @@ import {
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { readdir, readFile } from "node:fs/promises";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as schema from "@/server/db/schema";
 import type { Database } from "@/server/db";
 import { portfolioService } from "@/server/services/portfolio";
@@ -80,6 +80,126 @@ async function ledger(id: string) {
     .where(eq(schema.transactions.portfolioId, id));
 }
 describe("authorized transaction previews, atomic opening assets and quick undo", () => {
+  it("queries only relevant metadata and releases the portfolio lock before pricing", async () => {
+    const p = await portfolio("Scoped preview");
+    await portfolioService(db, "alice").mutateTransaction(
+      entry(p.id),
+      "create",
+      0,
+    );
+    const logs: { query: string; params: unknown[] }[] = [];
+    const originalDb = db;
+    db = drizzle(client, {
+      schema,
+      logger: {
+        logQuery(query, params) {
+          logs.push({ query, params });
+        },
+      },
+    }) as unknown as Database;
+    try {
+      const result = await previewTransactionChange(
+        p.id,
+        1,
+        "create",
+        entry(p.id, {
+          kind: "sell",
+          quantity: "1",
+          price: "150",
+          occurredAt: "2026-02-01T00:00:00Z",
+        }),
+      );
+      expect(result.ok).toBe(true);
+      const metadata = logs.findIndex((row) =>
+        row.query.includes('from "assets"'),
+      );
+      const quotes = logs.findIndex((row) =>
+        row.query.includes('from "market_quotes"'),
+      );
+      expect(metadata).toBeGreaterThan(
+        logs.findIndex((row) => row.query === "commit"),
+      );
+      for (const index of [metadata, quotes]) {
+        expect(logs[index].query).toContain(" in ");
+        expect(new Set(logs[index].params)).toEqual(new Set(["USD", "btc"]));
+      }
+    } finally {
+      db = originalDb;
+    }
+  });
+  it("limits preview bursts without modifying the ledger", async () => {
+    const p = await portfolio("Limited previews");
+    await db
+      .insert(schema.rateLimits)
+      .values({
+        id: crypto.randomUUID(),
+        key: "transaction-preview:alice",
+        count: 180,
+        lastRequest: Date.now(),
+      })
+      .onConflictDoUpdate({
+        target: schema.rateLimits.key,
+        set: { count: 180, lastRequest: Date.now() },
+      });
+    try {
+      expect(
+        await previewTransactionChange(p.id, 0, "create", entry(p.id)),
+      ).toMatchObject({
+        ok: false,
+        error: expect.stringContaining("გახშირდა"),
+      });
+      expect(await ledger(p.id)).toHaveLength(0);
+    } finally {
+      await db
+        .delete(schema.rateLimits)
+        .where(eq(schema.rateLimits.key, "transaction-preview:alice"));
+    }
+  });
+  it("keeps the preview accurate with 10,000 entries and 1,000 unrelated catalog assets", async () => {
+    const p = await portfolio("Preview load fixture");
+    await db.insert(schema.assets).values(
+      Array.from({ length: 1000 }, (_, index) => ({
+        id: `load-${index}`,
+        providerId: `load-${index}`,
+        symbol: `L${index}`,
+        name: `Unrelated asset ${index}`,
+      })),
+    );
+    await db.execute(sql`INSERT INTO transactions(id, portfolio_id, asset_id, kind, quantity, price, fee, occurred_at, sequence)
+      SELECT gen_random_uuid(), ${p.id}::uuid, 'btc', 'deposit', 1, 1, 0, '2026-01-01'::timestamptz, i FROM generate_series(1, 10000) AS i`);
+    await db
+      .insert(schema.marketQuotes)
+      .values({ assetId: "btc", price: "175", quotedAt: new Date() })
+      .onConflictDoUpdate({
+        target: schema.marketQuotes.assetId,
+        set: { price: "175", quotedAt: new Date() },
+      });
+    const started = performance.now();
+    const result = await previewTransactionChange(
+      p.id,
+      0,
+      "create",
+      entry(p.id, {
+        kind: "sell",
+        quantity: "1",
+        price: "200",
+        occurredAt: "2026-02-01T00:00:00Z",
+      }),
+    );
+    console.info("Isolated preview load check", {
+      entries: 10000,
+      unrelatedAssets: 1000,
+      elapsedMs: Math.round(performance.now() - started),
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      impact: {
+        cash: { before: "0", after: "200" },
+        pnl: { before: "1740000", after: "1740025" },
+      },
+    });
+    expect((await ledger(p.id)).length).toBe(10000);
+  }, 60000);
   it("persists both settlement legs through preview, edit, delete and idempotent undo", async () => {
     const p = await portfolio("Stablecoin settlement"),
       service = portfolioService(db, "alice");

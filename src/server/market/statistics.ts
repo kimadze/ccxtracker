@@ -6,6 +6,8 @@ import type {
   MarketStatistics,
 } from "@/domain/statistics";
 import { highResLogoUrl } from "@/lib/asset-logo";
+import { unstable_cache } from "next/cache";
+import { coinGeckoRequest } from "./request";
 
 const nullableNumber = z.number().finite().nullable();
 const marketAssetSchema = z.object({
@@ -38,17 +40,10 @@ function value(input: number | null | undefined) {
   return input == null ? null : String(input);
 }
 
-async function request(path: string) {
-  const key = process.env.COINGECKO_DEMO_API_KEY;
-  if (!key) throw new Error("MARKET_NOT_CONFIGURED");
-  const response = await fetch(`https://api.coingecko.com/api/v3${path}`, {
-    headers: { "x-cg-demo-api-key": key },
-    signal: AbortSignal.timeout(12000),
-    next: { revalidate: 300 },
-  });
-  if (!response.ok) throw new Error(`MARKET_REQUEST_FAILED_${response.status}`);
-  return response.json() as Promise<unknown>;
-}
+// Charge admission only on a cache miss, not for each reader of public data.
+const request = unstable_cache(coinGeckoRequest, ["market-public-json-v1"], {
+  revalidate: 300,
+});
 
 function mapAsset(
   asset: z.infer<typeof marketAssetSchema>,

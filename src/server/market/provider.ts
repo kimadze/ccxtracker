@@ -4,6 +4,7 @@ import type { Asset, Quote } from "@/domain/types";
 import { amount } from "@/domain/decimal";
 import { highResLogoUrl } from "@/lib/asset-logo";
 import { isKnownUsdStablecoin } from "@/domain/asset-classification";
+import { coinGeckoRequest } from "./request";
 
 export interface MarketPriceProvider {
   search(query: string): Promise<Asset[]>;
@@ -26,16 +27,7 @@ const quoteSchema = z.record(
 
 export class CoinGeckoProvider implements MarketPriceProvider {
   private async request(path: string) {
-    const key = process.env.COINGECKO_DEMO_API_KEY;
-    if (!key) throw new Error("MARKET_NOT_CONFIGURED");
-    const response = await fetch(`https://api.coingecko.com/api/v3${path}`, {
-      headers: { "x-cg-demo-api-key": key },
-      signal: AbortSignal.timeout(10000),
-      cache: "no-store",
-    });
-    if (!response.ok)
-      throw new Error(`MARKET_REQUEST_FAILED_${response.status}`);
-    return response.json() as Promise<unknown>;
+    return coinGeckoRequest(path);
   }
   async search(query: string): Promise<Asset[]> {
     const data = z

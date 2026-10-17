@@ -18,6 +18,7 @@ import { sendJobAlert } from "@/server/job-alerts";
 import { evaluateWatchlistTargets } from "@/server/services/watchlist-notifications";
 import { secretMatches, telegramConfigured } from "@/server/telegram/api";
 import { evaluateTakeProfits } from "@/server/telegram/take-profit";
+import { cleanupRateLimits } from "@/server/rate-limit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
@@ -127,6 +128,16 @@ export async function GET(request: Request) {
         ? await retrySkippedSnapshots({ db, limit: 3, timeBudgetMs: 8000 })
         : null;
     const degraded = usable.length < batch.length;
+    let expiredLimitsRemoved: number | null = null;
+    if (Date.now() - now.getTime() < 40000) {
+      try {
+        expiredLimitsRemoved = await cleanupRateLimits(db);
+      } catch (error) {
+        console.error("RATE_LIMIT_CLEANUP_FAILED", {
+          reason: error instanceof Error ? error.message : "UNKNOWN",
+        });
+      }
+    }
     const health = {
       requested: batch.length,
       evaluated: usable.length,
@@ -135,6 +146,7 @@ export async function GET(request: Request) {
       queue,
       runId,
       snapshotRetry,
+      expiredLimitsRemoved,
     };
     await db
       .insert(jobState)

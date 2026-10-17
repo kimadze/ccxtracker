@@ -129,12 +129,16 @@ export const verifications = pgTable(
   },
   (t) => [index("verification_identifier_idx").on(t.identifier)],
 );
-export const rateLimits = pgTable("rate_limits", {
-  id: text("id").primaryKey(),
-  key: text("key").notNull().unique(),
-  count: integer("count").notNull(),
-  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
-});
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    id: text("id").primaryKey(),
+    key: text("key").notNull().unique(),
+    count: integer("count").notNull(),
+    lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+  },
+  (t) => [index("rate_limits_last_request_idx").on(t.lastRequest)],
+);
 
 export const portfolios = pgTable(
   "portfolios",
