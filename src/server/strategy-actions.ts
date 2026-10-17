@@ -39,9 +39,9 @@ export async function saveExitPlan(input: unknown): Promise<ActionResult> {
 export async function saveJournal(input: unknown): Promise<ActionResult> {
   const user = await requireUser();
   try {
-    const id = await strategyService(getDb(), user.id).saveJournal(input);
+    const result = await strategyService(getDb(), user.id).saveJournal(input);
     revalidatePath("/portfolios", "layout");
-    return { ok: true, id };
+    return { ok: true, ...result };
   } catch (e) {
     return { ok: false, error: userError(e) };
   }

@@ -1,5 +1,7 @@
 import { ZodError } from "zod";
 const errors: Record<string, string> = {
+  EDIT_CONFLICT:
+    "ეს ჩანაწერი სხვა მოქმედებით შეიცვალა. თქვენი მონახაზი შენარჩუნებულია. განახლებულ ჩანაწერს ახალ ჩანართში გადახედეთ და ცვლილებები შეადარეთ.",
   AI_NOT_CONFIGURED: "AI ჯერ არ არის ჩართული სერვერზე.",
   DIGEST_PORTFOLIOS_INVALID: "დღიური შეჯამებისთვის აირჩიე 1–10 პორტფელი.",
   DIGEST_CANCELLED:
@@ -51,4 +53,5 @@ export function userError(error: unknown) {
   return "მოქმედება ვერ შესრულდა. სცადეთ ხელახლა.";
 }
 export type ActionResult =
-  { ok: true; id?: string; revision?: number } | { ok: false; error: string };
+  | { ok: true; id?: string; revision?: number; updatedAt?: string }
+  | { ok: false; error: string };

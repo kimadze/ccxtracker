@@ -6,6 +6,7 @@ import {
   scenarioPrices,
   portfolioTargets,
   assets,
+  portfolios,
 } from "@/server/db/schema";
 import { portfolioService, AccessError } from "./portfolio";
 import { scenarioSchema, goalSchema } from "@/domain/scenario-validation";
@@ -40,6 +41,7 @@ export function scenarioService(db: Database, userId: string) {
         scenarios: rows.map((s) => ({
           id: s.id,
           name: s.name,
+          updatedAt: s.updatedAt.toISOString(),
           prices: Object.fromEntries(
             prices
               .filter((p) => p.scenarioId === s.id)
@@ -58,7 +60,15 @@ export function scenarioService(db: Database, userId: string) {
         throw new AccessError();
       const known = data.prices.length
         ? await db
-            .select({ id: assets.id, isStablecoin: assets.isStablecoin, category: assets.category, symbol: assets.symbol, name: assets.name, providerId: assets.providerId, logoUrl: assets.logoUrl })
+            .select({
+              id: assets.id,
+              isStablecoin: assets.isStablecoin,
+              category: assets.category,
+              symbol: assets.symbol,
+              name: assets.name,
+              providerId: assets.providerId,
+              logoUrl: assets.logoUrl,
+            })
             .from(assets)
             .where(
               inArray(
@@ -70,17 +80,42 @@ export function scenarioService(db: Database, userId: string) {
       if (known.length !== data.prices.length) throw new Error("UNKNOWN_ASSET");
       if (known.some((asset) => !isInvestableCrypto(asset)))
         throw new Error("INVALID_PLAN");
-      await db.transaction(async (tx) => {
+      return db.transaction(async (tx) => {
+        await tx
+          .select({ id: portfolios.id })
+          .from(portfolios)
+          .where(eq(portfolios.id, data.portfolioId))
+          .for("update");
+        const [current] = await tx
+          .select()
+          .from(scenarios)
+          .where(
+            and(
+              eq(scenarios.id, data.id),
+              eq(scenarios.portfolioId, data.portfolioId),
+            ),
+          );
+        if (operation === "update" && !current) throw new AccessError();
+        if (
+          operation === "update" &&
+          current!.updatedAt.toISOString() !== data.expectedUpdatedAt
+        )
+          throw new Error("EDIT_CONFLICT");
+        if (operation === "create" && current) throw new Error("EDIT_CONFLICT");
+        const updatedAt = new Date(
+          Math.max(Date.now(), (current?.updatedAt.getTime() ?? 0) + 1),
+        );
         if (operation === "create")
           await tx.insert(scenarios).values({
             id: data.id,
             portfolioId: data.portfolioId,
             name: data.name,
+            updatedAt,
           });
         else {
           const changed = await tx
             .update(scenarios)
-            .set({ name: data.name, updatedAt: new Date() })
+            .set({ name: data.name, updatedAt })
             .where(
               and(
                 eq(scenarios.id, data.id),
@@ -97,6 +132,7 @@ export function scenarioService(db: Database, userId: string) {
           await tx
             .insert(scenarioPrices)
             .values(data.prices.map((p) => ({ ...p, scenarioId: data.id })));
+        return { updatedAt: updatedAt.toISOString() };
       });
     },
     async remove(portfolioId: string, id: string) {

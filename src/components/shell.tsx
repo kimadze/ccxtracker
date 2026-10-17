@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { confirmDiscardChanges } from "./unsaved-changes";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
@@ -244,9 +245,10 @@ export function Shell({
             className="select select-ghost w-full min-w-0 flex-1 pl-3 pr-9 text-base lg:max-w-64 lg:flex-none lg:text-sm"
             aria-label="პორტფელის არჩევა"
             value={activeId ?? ""}
-            onChange={(event) =>
-              router.push("/portfolios/" + event.target.value)
-            }
+            onChange={(event) => {
+              if (confirmDiscardChanges())
+                router.push("/portfolios/" + event.target.value);
+            }}
           >
             {portfolios.map((portfolio) => (
               <option key={portfolio.id} value={portfolio.id}>

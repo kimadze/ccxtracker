@@ -281,22 +281,46 @@ export function strategyService(db: Database, userId: string) {
       });
     },
     async saveJournal(input: unknown) {
-      const data = journalSchema.parse(input);
+      const { expectedUpdatedAt, ...data } = journalSchema.parse(input);
       await portfolios.owned(data.portfolioId);
       const [asset] = await db
         .select()
         .from(assets)
         .where(eq(assets.id, data.assetId));
       if (!asset) throw new Error("UNKNOWN_ASSET");
-      const [journal] = await db
-        .insert(journals)
-        .values(data)
-        .onConflictDoUpdate({
-          target: [journals.portfolioId, journals.assetId],
-          set: { ...data, updatedAt: new Date() },
-        })
-        .returning();
-      return journal.id;
+      return db.transaction(async (tx) => {
+        // Serialize even the first insert; two empty editors must not overwrite.
+        await tx
+          .select({ id: portfolioTable.id })
+          .from(portfolioTable)
+          .where(eq(portfolioTable.id, data.portfolioId))
+          .for("update");
+        const [current] = await tx
+          .select()
+          .from(journals)
+          .where(
+            and(
+              eq(journals.portfolioId, data.portfolioId),
+              eq(journals.assetId, data.assetId),
+            ),
+          );
+        if ((current?.updatedAt.toISOString() ?? null) !== expectedUpdatedAt)
+          throw new Error("EDIT_CONFLICT");
+        const updatedAt = new Date(
+          Math.max(Date.now(), (current?.updatedAt.getTime() ?? 0) + 1),
+        );
+        const [journal] = current
+          ? await tx
+              .update(journals)
+              .set({ ...data, updatedAt })
+              .where(eq(journals.id, current.id))
+              .returning()
+          : await tx
+              .insert(journals)
+              .values({ ...data, updatedAt })
+              .returning();
+        return { id: journal.id, updatedAt: journal.updatedAt.toISOString() };
+      });
     },
   };
 }

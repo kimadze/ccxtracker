@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, ArrowRight } from "lucide-react";
 import { Message } from "./ui";
+import { confirmDiscardChanges } from "./unsaved-changes";
 const auth = createAuthClient();
 export function LoginButton({ enabled }: { enabled: boolean }) {
   const [pending, setPending] = useState(false),
@@ -45,6 +46,7 @@ export function LogoutButton() {
       <button
         className="btn btn-ghost min-h-11 w-full justify-start gap-3 text-xs"
         onClick={async () => {
+          if (!confirmDiscardChanges()) return;
           try {
             const result = await auth.signOut();
             if (result.error) setError(true);

@@ -174,7 +174,7 @@ describe("protected portfolio service against real PostgreSQL semantics", () => 
       name: "Growth",
       prices: [{ assetId: "btc", price: "150" }],
     };
-    await own.save(input, "create");
+    const created = await own.save(input, "create");
     expect((await own.list(p.id)).scenarios[0].prices.btc).toMatch(/^150/);
     await expect(other.list(p.id)).rejects.toThrow("RESOURCE_NOT_FOUND");
     await expect(other.save(input, "update")).rejects.toThrow(
@@ -186,11 +186,94 @@ describe("protected portfolio service against real PostgreSQL semantics", () => 
     await expect(
       other.save({ ...input, portfolioId: bobPortfolio.id }, "update"),
     ).rejects.toThrow("RESOURCE_NOT_FOUND");
-    await own.save({ ...input, name: "Updated" }, "update");
+    const updated = await own.save(
+      { ...input, name: "Updated", expectedUpdatedAt: created.updatedAt },
+      "update",
+    );
+    await expect(
+      own.save(
+        {
+          ...input,
+          name: "Stale",
+          prices: [{ assetId: "btc", price: "999" }],
+          expectedUpdatedAt: created.updatedAt,
+        },
+        "update",
+      ),
+    ).rejects.toThrow("EDIT_CONFLICT");
+    await expect(
+      own.save({ ...input, name: "No token" }, "update"),
+    ).rejects.toThrow("EDIT_CONFLICT");
+    expect(updated.updatedAt).not.toBe(created.updatedAt);
+    expect((await own.list(p.id)).scenarios[0].name).toBe("Updated");
+    expect((await own.list(p.id)).scenarios[0].prices.btc).toMatch(/^150/);
     await own.goal({ portfolioId: p.id, target: "1000", milestones: ["500"] });
     expect((await own.list(p.id)).goal?.milestones).toEqual(["500"]);
     await own.remove(p.id, input.id);
     expect((await own.list(p.id)).scenarios).toHaveLength(0);
+  });
+  it("rejects stale journal editors including competing first saves", async () => {
+    const p = await portfolioService(db, "alice").create({
+      name: "Journal conflicts",
+    });
+    const service = strategyService(db, "alice");
+    const input = {
+      portfolioId: p.id,
+      assetId: "btc",
+      thesis: "Original",
+      entryReason: "",
+      catalysts: "",
+      invalidation: "",
+      targets: "",
+      conviction: "medium",
+      horizon: "",
+      notes: "",
+    };
+    const first = await service.saveJournal(input);
+    await expect(
+      service.saveJournal({ ...input, thesis: "Second empty editor" }),
+    ).rejects.toThrow("EDIT_CONFLICT");
+    const next = await service.saveJournal({
+      ...input,
+      thesis: "Saved revision",
+      expectedUpdatedAt: first.updatedAt,
+    });
+    await expect(
+      service.saveJournal({
+        ...input,
+        thesis: "Stale revision",
+        expectedUpdatedAt: first.updatedAt,
+      }),
+    ).rejects.toThrow("EDIT_CONFLICT");
+    expect(next.updatedAt).not.toBe(first.updatedAt);
+    expect((await service.load(p.id, "btc")).journal?.thesis).toBe(
+      "Saved revision",
+    );
+    const competing = await Promise.allSettled([
+      service.saveJournal({
+        ...input,
+        thesis: "Writer A",
+        expectedUpdatedAt: next.updatedAt,
+      }),
+      service.saveJournal({
+        ...input,
+        thesis: "Writer B",
+        expectedUpdatedAt: next.updatedAt,
+      }),
+    ]);
+    expect(
+      competing.filter((result) => result.status === "fulfilled"),
+    ).toHaveLength(1);
+    const rejected = competing.find(
+      (result) => result.status === "rejected",
+    ) as PromiseRejectedResult;
+    expect(rejected.reason.message).toBe("EDIT_CONFLICT");
+    await expect(
+      strategyService(db, "bob").saveJournal({
+        ...input,
+        expectedUpdatedAt: next.updatedAt,
+      }),
+    ).rejects.toThrow("RESOURCE_NOT_FOUND");
   });
   it("keeps watchlist independent of holdings and protects plans and journals", async () => {
     const service = portfolioService(db, "alice"),
@@ -241,9 +324,7 @@ describe("protected portfolio service against real PostgreSQL semantics", () => 
     );
     await allocationService(db, "alice").save({
       portfolioId: p.id,
-      rows: [
-        { assetId: "btc", weight: "100" },
-      ],
+      rows: [{ assetId: "btc", weight: "100" }],
     });
     await expect(allocationService(db, "bob").list(p.id)).rejects.toThrow(
       "RESOURCE_NOT_FOUND",

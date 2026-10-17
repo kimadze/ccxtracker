@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useUnsavedChanges } from "./unsaved-changes";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Copy, Percent, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
@@ -31,6 +32,7 @@ import {
 } from "@/domain/portfolio-segments";
 
 export interface SavedScenario {
+  updatedAt?: string;
   id: string;
   name: string;
   prices: Record<string, string>;
@@ -61,6 +63,8 @@ export function ScenarioLab({
     [deleting, setDeleting] = useState(false),
     [bulkChange, setBulkChange] = useState("");
   const router = useRouter();
+  const draft = useUnsavedChanges(!preview);
+  const version = useRef<string | null>(null);
   const balancesHidden = useBalancesHidden();
   const cryptoPositions = investablePositions(summary);
   const cryptoValue = investableValue(summary);
@@ -71,7 +75,9 @@ export function ScenarioLab({
     /* Incomplete price drafts remain unvalued. */
   }
   function choose(id: string) {
+    if (!draft.confirmDiscard()) return;
     const scenario = saved.find((s) => s.id === id);
+    version.current = scenario?.updatedAt ?? null;
     setActive(id);
     setName(scenario?.name ?? "");
     setPrices(scenario?.prices ?? {});
@@ -80,7 +86,7 @@ export function ScenarioLab({
   function applyPercentageChange() {
     try {
       setPrices(scenarioPercentagePrices(summary, bulkChange));
-      window.dispatchEvent(new Event("ccx-planning-changed"));
+      draft.markDirty();
       setError(false);
       setMessage("");
     } catch {
@@ -129,7 +135,8 @@ export function ScenarioLab({
     </div>
   );
   async function save(copy = false) {
-    if (preview) return;
+    if (preview || pending) return;
+    const checkpoint = draft.checkpoint();
     setPending(true);
     setMessage("");
     try {
@@ -140,6 +147,7 @@ export function ScenarioLab({
           id,
           portfolioId,
           name: title,
+          expectedUpdatedAt: active && !copy ? version.current : null,
           prices: Object.entries(prices)
             .filter(([, price]) => price.trim() !== "")
             .map(([assetId, price]) => ({ assetId, price })),
@@ -149,9 +157,10 @@ export function ScenarioLab({
       setError(!response.ok);
       setMessage(response.ok ? "სცენარი შენახულია." : response.error);
       if (response.ok) {
-        window.dispatchEvent(new Event("ccx-planning-saved"));
+        version.current = response.updatedAt ?? null;
+        draft.clear(checkpoint);
         setActive(id);
-        setName(title);
+        if (draft.checkpoint() === checkpoint) setName(title);
         router.refresh();
       }
     } catch {
@@ -162,7 +171,22 @@ export function ScenarioLab({
     }
   }
   return (
-    <div className="space-y-3 lg:space-y-2">
+    <div
+      data-draft-scope
+      className="space-y-3 lg:space-y-2"
+      onChangeCapture={(event) => {
+        if (
+          (event.target as HTMLElement).closest("[data-draft-scope]") !==
+          event.currentTarget
+        )
+          return;
+        if (
+          (event.target as HTMLElement).getAttribute("aria-label") !==
+          "შენახული სცენარი"
+        )
+          draft.markDirty();
+      }}
+    >
       <div className="flex flex-wrap items-center gap-2">
         <select
           aria-label="შენახული სცენარი"
@@ -218,7 +242,7 @@ export function ScenarioLab({
                   className="btn btn-outline"
                   onClick={() => {
                     setPrices({});
-                    window.dispatchEvent(new Event("ccx-planning-changed"));
+                    draft.markDirty();
                     setBulkChange("");
                     setMessage("");
                   }}
@@ -413,6 +437,7 @@ export function ScenarioLab({
             try {
               const response = await deleteScenario(portfolioId, active);
               if (response.ok) {
+                draft.clear();
                 choose("");
                 setDeleting(false);
                 router.refresh();
@@ -447,6 +472,7 @@ function GoalPlanner({
   initial: Goal | null;
   preview: boolean;
 }) {
+  const draft = useUnsavedChanges(!preview);
   const [target, setTarget] = useState(initial?.target ?? ""),
     [milestones, setMilestones] = useState(
       initial?.milestones.join("; ") ?? "",
@@ -464,7 +490,11 @@ function GoalPlanner({
     /* A goal is optional until entered. */
   }
   return (
-    <details className="collapse collapse-arrow border border-base-300 bg-base-200">
+    <details
+      data-draft-scope
+      onChangeCapture={draft.markDirty}
+      className="collapse collapse-arrow border border-base-300 bg-base-200"
+    >
       <summary className="collapse-title min-h-11 text-sm font-semibold">
         პორტფელის მიზანი
       </summary>
@@ -508,6 +538,8 @@ function GoalPlanner({
                 className="btn btn-outline"
                 disabled={!progress || pending}
                 onClick={async () => {
+                  if (pending) return;
+                  const checkpoint = draft.checkpoint();
                   setPending(true);
                   try {
                     const response = await saveGoal({
@@ -519,8 +551,7 @@ function GoalPlanner({
                         .filter(Boolean),
                     });
                     setError(!response.ok);
-                    if (response.ok)
-                      window.dispatchEvent(new Event("ccx-planning-saved"));
+                    if (response.ok) draft.clear(checkpoint);
                     setMessage(
                       response.ok ? "მიზანი შენახულია." : response.error,
                     );

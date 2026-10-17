@@ -24,6 +24,7 @@ import { BalanceValue } from "./ui";
 import { Metric } from "./overview";
 import { TransactionForm } from "./transaction-form";
 import { useBalancesHidden } from "./balance-privacy";
+import { useUnsavedChanges } from "./unsaved-changes";
 import { loadTelegramSettings } from "@/server/telegram/actions";
 import {
   takeProfitDeliveryReadiness,
@@ -39,6 +40,7 @@ export function DcaPlanner({
   portfolioValue: string | null;
   execution?: { portfolioId: string; revision: number; assets: Asset[] };
 }) {
+  const draft = useUnsavedChanges();
   const balancesHidden = useBalancesHidden();
   const [capital, setCapital] = useState("1000"),
     [price, setPrice] = useState(
@@ -61,7 +63,7 @@ export function DcaPlanner({
     /* Incomplete drafts have no result. */
   }
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-3" onChangeCapture={draft.markDirty}>
       <section className="space-y-3">
         <h2 className="text-base font-medium">დამატებითი შესყიდვა</h2>
         <div className="grid grid-cols-2 items-end gap-x-3 gap-y-1">
@@ -196,6 +198,7 @@ export function ExitPlanner({
   initial?: SavedExitPlan | null;
   preview?: boolean;
 }) {
+  const draft = useUnsavedChanges(!preview);
   const balancesHidden = useBalancesHidden();
   const router = useRouter();
   const [telegramEnabled, setTelegramEnabled] = useState(
@@ -280,7 +283,7 @@ export function ExitPlanner({
     setMessage("");
   }
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" onChangeCapture={draft.markDirty}>
       <section className="min-w-0">
         <div className="flex min-w-0 flex-col gap-2">
           <div className="grid grid-cols-[minmax(0,1fr)_110px] items-start gap-3">
@@ -383,6 +386,7 @@ export function ExitPlanner({
                   disabled={levels.length <= 1}
                   onClick={() => {
                     setLevels((l) => l.filter((_, n) => n !== i));
+                    draft.markDirty();
                     setMessage("");
                   }}
                 >
@@ -610,9 +614,10 @@ export function ExitPlanner({
         <button
           className="btn btn-outline"
           disabled={levels.length >= 12}
-          onClick={() =>
-            setLevels((l) => [...l, { price: "", percentage: "10" }])
-          }
+          onClick={() => {
+            setLevels((l) => [...l, { price: "", percentage: "10" }]);
+            draft.markDirty();
+          }}
         >
           <Plus size={15} />
           ეტაპის დამატება
@@ -622,6 +627,8 @@ export function ExitPlanner({
             className="btn btn-primary"
             disabled={!result || pending}
             onClick={async () => {
+              if (pending) return;
+              const checkpoint = draft.checkpoint();
               setPending(true);
               try {
                 const response = await saveExitPlan({
@@ -633,7 +640,7 @@ export function ExitPlanner({
                 });
                 setError(!response.ok);
                 if (response.ok) {
-                  window.dispatchEvent(new Event("ccx-planning-saved"));
+                  draft.clear(checkpoint);
                   router.refresh();
                 }
                 setMessage(

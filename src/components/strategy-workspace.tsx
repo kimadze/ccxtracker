@@ -2,6 +2,7 @@
 import { ResponsiveDisclosure } from "./responsive-disclosure";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { confirmDiscardChanges } from "./unsaved-changes";
 import type { Asset, PortfolioSummary } from "@/domain/types";
 import type { SavedExitPlan } from "@/domain/planning";
 import { DcaPlanner, ExitPlanner } from "./position-planners";
@@ -63,7 +64,9 @@ export function StrategyWorkspace({
           className="select min-h-11 w-full sm:max-w-xs"
           aria-label="პოზიციის არჩევა"
           value={assetId}
-          onChange={(e) => setAssetId(e.target.value)}
+          onChange={(e) => {
+            if (confirmDiscardChanges()) setAssetId(e.target.value);
+          }}
         >
           {options.map((asset) => (
             <option key={asset.id} value={asset.id}>

@@ -10,9 +10,12 @@ export async function saveScenario(
 ): Promise<ActionResult> {
   const user = await requireUser();
   try {
-    await scenarioService(getDb(), user.id).save(input, operation);
+    const result = await scenarioService(getDb(), user.id).save(
+      input,
+      operation,
+    );
     revalidatePath("/portfolios", "layout");
-    return { ok: true };
+    return { ok: true, ...result };
   } catch (e) {
     return { ok: false, error: userError(e) };
   }

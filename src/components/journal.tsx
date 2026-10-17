@@ -1,9 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useUnsavedChanges } from "./unsaved-changes";
 import { saveJournal } from "@/server/strategy-actions";
 import { useRouter } from "next/navigation";
 import { Field, Message } from "./ui";
 export interface JournalData {
+  updatedAt?: Date | string;
   thesis: string;
   entryReason: string;
   catalysts: string;
@@ -28,23 +30,35 @@ export function JournalForm({
     [error, setError] = useState(false),
     [pending, setPending] = useState(false);
   const router = useRouter();
+  const draft = useUnsavedChanges(!preview);
+  const version = useRef(
+    initial?.updatedAt ? new Date(initial.updatedAt).toISOString() : null,
+  );
   return (
     <form
       className="grid w-full min-w-0 items-start gap-3 lg:grid-cols-2 lg:gap-4"
+      onChangeCapture={draft.markDirty}
       onSubmit={async (e) => {
         e.preventDefault();
         if (preview) return;
+        if (pending) return;
         const form = new FormData(e.currentTarget);
+        const checkpoint = draft.checkpoint();
         setPending(true);
         try {
           const response = await saveJournal({
             portfolioId,
             assetId,
+            expectedUpdatedAt: version.current,
             ...Object.fromEntries(form),
           });
           setError(!response.ok);
           setMessage(response.ok ? "ჟურნალი შენახულია." : response.error);
-          if (response.ok) router.refresh();
+          if (response.ok) {
+            version.current = response.updatedAt ?? null;
+            draft.clear(checkpoint);
+            router.refresh();
+          }
         } catch {
           setError(true);
           setMessage("შენახვა ვერ მოხერხდა.");

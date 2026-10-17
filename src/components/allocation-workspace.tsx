@@ -18,6 +18,7 @@ import { AssetIcon } from "./positions";
 import { BalanceValue, Message } from "./ui";
 import { TransactionForm } from "./transaction-form";
 import { useBalancesHidden } from "./balance-privacy";
+import { useUnsavedChanges } from "./unsaved-changes";
 
 const allocationBarColors = [
   "bg-primary",
@@ -53,6 +54,7 @@ export function AllocationWorkspace({
   initial: { assetId: string; weight: string }[];
   preview?: boolean;
 }) {
+  const draft = useUnsavedChanges(!preview);
   const cryptoAssets = useMemo(
     () => assets.filter(isInvestableCrypto),
     [assets],
@@ -116,6 +118,8 @@ export function AllocationWorkspace({
       cryptoValue,
     );
   const save = async () => {
+    if (pending) return;
+    const checkpoint = draft.checkpoint();
     setPending(true);
     try {
       const response = await saveAllocation({
@@ -123,7 +127,7 @@ export function AllocationWorkspace({
         rows: rows.map(({ assetId, weight }) => ({ assetId, weight })),
       });
       setError(!response.ok);
-      if (response.ok) window.dispatchEvent(new Event("ccx-planning-saved"));
+      if (response.ok) draft.clear(checkpoint);
       setMessage(response.ok ? "განაწილება შენახულია." : response.error);
     } catch {
       setError(true);
@@ -134,7 +138,7 @@ export function AllocationWorkspace({
   };
 
   return (
-    <div className="space-y-3 lg:space-y-4">
+    <div className="space-y-3 lg:space-y-4" onChangeCapture={draft.markDirty}>
       <section className="card bg-base-200" aria-label="მიზნობრივი განაწილება">
         <div className="card-body gap-3 p-4">
           <div>

@@ -1,6 +1,7 @@
 "use client";
 import { useId } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { confirmDiscardChanges } from "./unsaved-changes";
 
 export function useWorkspaceTab(allowed: readonly string[], fallback: string) {
   const query = useSearchParams();
@@ -9,9 +10,11 @@ export function useWorkspaceTab(allowed: readonly string[], fallback: string) {
   const requested = query.get("tab");
   const tab = requested && allowed.includes(requested) ? requested : fallback;
   const choose = (value: string) => {
+    if (value === tab || !confirmDiscardChanges()) return false;
     const next = new URLSearchParams(query.toString());
     next.set("tab", value);
     router.replace(`${pathname}?${next}`, { scroll: false });
+    return true;
   };
   return [tab, choose] as const;
 }
@@ -26,7 +29,7 @@ export function WorkspaceTabs({
 }: {
   items: readonly (readonly [string, string])[];
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string) => void | boolean;
   label: string;
   children: React.ReactNode;
   integrated?: boolean;
@@ -63,8 +66,8 @@ export function WorkspaceTabs({
                 else if (event.key === "End") next = items.length - 1;
                 else return;
                 event.preventDefault();
-                onChange(items[next][0]);
-                document.getElementById(`${id}-${items[next][0]}`)?.focus();
+                if (onChange(items[next][0]) !== false)
+                  document.getElementById(`${id}-${items[next][0]}`)?.focus();
               }}
             >
               {title}

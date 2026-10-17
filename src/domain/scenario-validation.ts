@@ -3,6 +3,7 @@ import { amountSchema, idSchema, positiveAmount } from "./validation";
 export const scenarioSchema = z
   .object({
     id: idSchema,
+    expectedUpdatedAt: z.iso.datetime().nullable().default(null),
     portfolioId: idSchema,
     name: z
       .string()

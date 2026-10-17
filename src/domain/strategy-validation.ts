@@ -23,6 +23,7 @@ export const exitPlanSchema = z.object({
     .max(12),
 });
 export const journalSchema = z.object({
+  expectedUpdatedAt: z.iso.datetime().nullable().default(null),
   portfolioId: idSchema,
   assetId: z.string().min(1).max(120),
   thesis: z
