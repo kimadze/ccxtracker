@@ -178,9 +178,19 @@ export function Overview({
   const liquidityDetails = (
     <dl className="text-xs">
       {[
-        { label: "ნაღდი ფული", value: s.cash, Icon: Banknote },
-        { label: "სტეიბლკოინები", value: s.stablecoinValue, Icon: Coins },
-      ].map(({ label, value, Icon }) => (
+        {
+          label: "ნაღდი ფული",
+          value: s.cash,
+          Icon: Banknote,
+          tone: "bg-success/12 text-success",
+        },
+        {
+          label: "სტეიბლკოინები",
+          value: s.stablecoinValue,
+          Icon: Coins,
+          tone: "bg-info/12 text-info",
+        },
+      ].map(({ label, value, Icon, tone }) => (
         <div
           key={label}
           className="flex min-h-9 items-center gap-2 border-t border-base-300 first:border-0"
@@ -189,7 +199,9 @@ export function Overview({
             className="avatar avatar-placeholder shrink-0"
             aria-hidden="true"
           >
-            <span className="grid size-7 place-items-center rounded-full bg-base-300 text-base-content/65">
+            <span
+              className={`grid size-7 place-items-center rounded-full ${tone}`}
+            >
               <Icon size={15} strokeWidth={1.8} />
             </span>
           </span>

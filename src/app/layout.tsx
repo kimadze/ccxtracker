@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+
+export const viewport: Viewport = { themeColor: "#0e0f12" };
 
 export const metadata: Metadata = {
   title: {

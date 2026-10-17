@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/portfolios",
     scope: "/",
     display: "standalone",
-    background_color: "#0c0d12",
-    theme_color: "#0c0d12",
+    background_color: "#0e0f12",
+    theme_color: "#0e0f12",
     lang: "ka",
     orientation: "portrait-primary",
     icons: [
