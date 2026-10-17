@@ -1,6 +1,7 @@
 import { and, eq, isNotNull, isNull, or, asc, lte, sql } from "drizzle-orm";
-import { after } from "next/server";
-import { processDailyDigests } from "@/server/telegram/digest";
+import { randomUUID } from "node:crypto";
+import { drainTelegramQueues } from "@/server/telegram/queue";
+import { retrySkippedSnapshots } from "@/server/snapshots";
 import { getDb } from "@/server/db";
 import {
   assets,
@@ -15,12 +16,8 @@ import { getQuotes } from "@/server/market";
 import { usableAlertQuote } from "@/domain/alert-quote";
 import { sendJobAlert } from "@/server/job-alerts";
 import { evaluateWatchlistTargets } from "@/server/services/watchlist-notifications";
-import { processTelegramDeliveries } from "@/server/telegram/delivery";
-import { secretMatches } from "@/server/telegram/api";
-import {
-  evaluateTakeProfits,
-  processTakeProfitDeliveries,
-} from "@/server/telegram/take-profit";
+import { secretMatches, telegramConfigured } from "@/server/telegram/api";
+import { evaluateTakeProfits } from "@/server/telegram/take-profit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
@@ -43,14 +40,18 @@ export async function GET(request: Request) {
     .insert(jobState)
     .values({ key, leaseUntil: new Date(0) })
     .onConflictDoNothing();
-  const now = new Date();
+  const now = new Date(),
+    runId = randomUUID();
+  const leaseUntil = new Date(now.getTime() + 65000);
+  let operation = "claim";
   const [lease] = await db
     .update(jobState)
-    .set({ leaseUntil: new Date(now.getTime() + 65000), updatedAt: now })
+    .set({ leaseUntil, updatedAt: now })
     .where(and(eq(jobState.key, key), lteLease(now)))
     .returning();
   if (!lease) return Response.json({ busy: true });
   try {
+    operation = "load-tracked-assets";
     const watchTracked = await db
       .selectDistinct({ asset: assets })
       .from(watchlistItems)
@@ -107,29 +108,33 @@ export async function GET(request: Request) {
     const cursor = typeof lease.cursor === "string" ? lease.cursor : "";
     const afterCursor = tracked.filter((r) => r.asset.id > cursor);
     const batch = (afterCursor.length ? afterCursor : tracked).slice(0, 100);
+    operation = "refresh-quotes";
     const quotes = await getQuotes(
       batch.map((r) => r.asset),
       { mode: "blocking" },
     );
     const usable = quotes.filter((q) => usableAlertQuote(q));
+    operation = "evaluate-targets";
     await evaluateWatchlistTargets(db, usable);
     await evaluateTakeProfits(db, usable);
-    const tpDelivery = await processTakeProfitDeliveries(db, 3);
-    const delivery = await processTelegramDeliveries(db, 3);
-    after(async () => {
-      if (Date.now() - now.getTime() > 25000) return;
-      try {
-        await processDailyDigests(db);
-      } catch {
-        console.warn("TELEGRAM_DIGEST_PENDING");
-      }
+    operation = "deliver-queues";
+    const queue = await drainTelegramQueues(db, {
+      deadline: now.getTime() + 40000,
     });
+    operation = "retry-current-day-snapshots";
+    const snapshotRetry =
+      Date.now() - now.getTime() < 25000
+        ? await retrySkippedSnapshots({ db, limit: 3, timeBudgetMs: 8000 })
+        : null;
     const degraded = usable.length < batch.length;
     const health = {
       requested: batch.length,
       evaluated: usable.length,
       missing: batch.length - usable.length,
       degraded,
+      queue,
+      runId,
+      snapshotRetry,
     };
     await db
       .insert(jobState)
@@ -149,27 +154,35 @@ export async function GET(request: Request) {
       });
     if (degraded)
       await sendJobAlert("PRICE_ALERT_QUOTES_INCOMPLETE", health.missing);
+    if (queue.pending && queue.oldestAgeSeconds > 900)
+      await sendJobAlert("TELEGRAM_QUEUE_DELAYED", queue.pending);
     await db
       .update(jobState)
       .set({ cursor: batch.at(-1)?.asset.id ?? null })
-      .where(eq(jobState.key, key));
+      .where(and(eq(jobState.key, key), eq(jobState.leaseUntil, leaseUntil)));
     return Response.json(
       {
         checked: usable.length,
         ...health,
-        ...delivery,
-        takeProfit: tpDelivery,
+        ...queue.watchlist,
+        configured: telegramConfigured(),
+        takeProfit: queue.takeProfit,
+        digest: queue.digest,
       },
       { status: batch.length && !usable.length ? 503 : 200 },
     );
-  } catch {
-    console.error("WATCHLIST_CRON_FAILED");
+  } catch (error) {
+    console.error("WATCHLIST_CRON_FAILED", {
+      runId,
+      operation,
+      reason: error instanceof Error ? error.name : "UNKNOWN",
+    });
     return Response.json({ error: "შემოწმება ვერ შესრულდა." }, { status: 500 });
   } finally {
     await db
       .update(jobState)
       .set({ leaseUntil: new Date(0), updatedAt: new Date() })
-      .where(eq(jobState.key, key));
+      .where(and(eq(jobState.key, key), eq(jobState.leaseUntil, leaseUntil)));
   }
 }
 function lteLease(now: Date) {

@@ -16,6 +16,8 @@ import type { ReactNode } from "react";
 import { useBalancesHidden } from "./balance-privacy";
 import { BalanceValue } from "./ui";
 import { OverviewToolbar } from "./overview-toolbar";
+import { historyWindow } from "@/domain/history-window";
+import { useCurrentTime } from "./use-current-time";
 export function HistoryChart({
   snapshots,
   illustrative = false,
@@ -35,6 +37,17 @@ export function HistoryChart({
     "1D" | "7D" | "1M" | "3M" | "1Y" | "ALL"
   >("1M");
   const balancesHidden = useBalancesHidden();
+  const now = useCurrentTime();
+  const history = useMemo(
+    () =>
+      historyWindow(
+        snapshots,
+        showPeriodControls ? period : "ALL",
+        now,
+        illustrative,
+      ),
+    [snapshots, showPeriodControls, period, now, illustrative],
+  );
   const chartRef = useRef<HTMLDivElement>(null);
   const [hasChartWidth, setHasChartWidth] = useState(false);
   useEffect(() => {
@@ -48,26 +61,11 @@ export function HistoryChart({
     return () => observer.disconnect();
   }, [snapshots.length, period]);
   const points = useMemo(() => {
-    const days = showPeriodControls
-      ? { "1D": 1, "7D": 7, "1M": 30, "3M": 90, "1Y": 365, ALL: Infinity }[
-          period
-        ]
-      : Infinity;
-    const last = Math.max(
-      0,
-      ...snapshots.map((item) => Date.parse(item.capturedAt)),
-    );
-    return snapshots
-      .filter(
-        (item) =>
-          days === Infinity ||
-          Date.parse(item.capturedAt) >= last - days * 86400000,
-      )
-      .map((s) => ({
-        time: Date.parse(s.capturedAt),
-        value: Number(s.value),
-      }));
-  }, [snapshots, period, showPeriodControls]);
+    return history.snapshots.map((s) => ({
+      time: Date.parse(s.capturedAt),
+      value: Number(s.value),
+    }));
+  }, [history]);
   if (!snapshots.length)
     return (
       <div className={compact ? "py-2 text-left" : "py-4 text-left"}>
@@ -97,6 +95,12 @@ export function HistoryChart({
   );
   return (
     <div>
+      {history.stale && history.latest && (
+        <p role="status" className="mb-2 text-xs text-warning">
+          ისტორია მოძველებულია · ბოლო შეფასება:{" "}
+          {dateTime(new Date(history.latest).toISOString())}
+        </p>
+      )}
       {showPeriodControls &&
         snapshots.length >= 2 &&
         (dashboard ? (

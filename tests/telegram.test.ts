@@ -1,3 +1,8 @@
+// Pacing has its own fake-clock tests; service tests exercise delivery state.
+const pacing = vi.hoisted(() => vi.fn(async () => {}));
+vi.mock("@/server/telegram/send-pacing", () => ({
+  waitForTelegramSlot: pacing,
+}));
 import {
   beforeAll,
   afterAll,
@@ -53,6 +58,7 @@ beforeAll(async () => {
 }, 60000);
 beforeEach(async () => {
   fetchMock.mockReset();
+  pacing.mockReset();
   fetchMock.mockImplementation(
     async () =>
       new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), {
@@ -60,6 +66,7 @@ beforeEach(async () => {
       }),
   );
   await testDb.delete(schema.telegramConnections);
+  await testDb.delete(schema.marketQuotes);
   await testDb.delete(schema.suspendedUsers);
 });
 afterAll(async () => {
@@ -269,7 +276,15 @@ it("reports sale proceeds separately, values remaining holdings and ranks only f
     { buyEnabled: false, sellEnabled: false },
   );
   expect(disabledWatch.body).not.toContain("დარჩენილია 25%");
-  expect(disabledWatch.body).toContain("დარჩენილია 50%");
+  expect(disabledWatch.body).not.toContain("დარჩენილია 50%");
+  const disabledTp = await assistantReport(
+    db,
+    "alice",
+    [p.id],
+    { kind: "alerts" },
+    { buyEnabled: false, sellEnabled: false },
+  );
+  expect(disabledTp.body).toContain("გაყიდვის შეტყობინებები გამორთულია");
   const alerts = await assistantReport(db, "alice", [p.id], { kind: "alerts" });
   expect(alerts.body).not.toContain("TP2");
   expect(alerts.body).toContain("TP1");
@@ -497,6 +512,16 @@ describe("private Telegram connections and durable deliveries", () => {
     await svc.confirm();
     await POST(request());
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+  it("rechecks consent after a pacing wait instead of sending to a disconnected chat", async () => {
+    const p = await portfolio();
+    await link("alice", p.id);
+    await crossing(p.id);
+    pacing.mockImplementationOnce(async () => {
+      await telegramService(db, "alice").disconnect();
+    });
+    await processTelegramDeliveries(db);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
   it("sends a crossing to its owner's chat only and deduplicates processing", async () => {
     const p = await portfolio(),

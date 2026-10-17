@@ -1,3 +1,7 @@
+// Pacing has its own fake-clock tests; service tests exercise delivery state.
+vi.mock("@/server/telegram/send-pacing", () => ({
+  waitForTelegramSlot: async () => {},
+}));
 import { beforeAll, afterAll, beforeEach, it, expect, vi } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";

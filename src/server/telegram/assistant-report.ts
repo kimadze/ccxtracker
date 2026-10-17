@@ -23,6 +23,10 @@ import {
   unitPrice,
 } from "@/lib/formatters";
 import { appOrigin } from "./api";
+import {
+  takeProfitDeliveryReadiness,
+  telegramReadinessLabels,
+} from "@/domain/telegram-readiness";
 
 export async function assistantReport(
   db: Database,
@@ -182,6 +186,14 @@ export async function assistantReport(
         .from(exitPlans)
         .where(eq(exitPlans.portfolioId, p.id));
       for (const plan of plans) {
+        const readiness = takeProfitDeliveryReadiness(
+          {
+            connected: true,
+            portfolioIds: ids,
+            sellEnabled: notificationPreferences.sellEnabled,
+          },
+          p.id,
+        );
         if (asset && plan.assetId !== asset.id) continue;
         const symbol =
           catalog.find((a) => a.id === plan.assetId)?.symbol ?? plan.assetId;
@@ -210,11 +222,13 @@ export async function assistantReport(
                 ? "გეგმა გადასახედია"
                 : !plan.telegramEnabled
                   ? "შეტყობინება გამორთულია"
-                  : !usableAlertQuote(q)
-                    ? "ფასი არასრული/მოძველებულია"
-                    : l.alertArmed
-                      ? "ელოდება"
-                      : "გადაკვეთას ელოდება";
+                  : readiness !== "ready"
+                    ? telegramReadinessLabels[readiness]
+                    : !usableAlertQuote(q)
+                      ? "ფასი არასრული/მოძველებულია"
+                      : l.alertArmed
+                        ? "ელოდება"
+                        : "გადაკვეთას ელოდება";
           if (command.kind !== "next")
             lines.push(
               `${symbol} · TP${l.level} · ${unitPrice(l.price)} · ${quantity(l.percentage)}% · ${status}${command.kind === "history" && l.reachedAt ? ` · დაფიქსირდა ${unitPrice(l.reachedPrice)} · ${dateTime(l.reachedAt)}` : ""}`,
@@ -224,6 +238,7 @@ export async function assistantReport(
             validPosition &&
             !changed &&
             plan.telegramEnabled &&
+            readiness === "ready" &&
             usableAlertQuote(q) &&
             decimal(q.price).lt(l.price)
           )

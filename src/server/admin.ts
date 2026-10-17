@@ -18,6 +18,7 @@ import {
   telegramConnections,
 } from "./db/schema";
 import { isAdmin } from "./admin-access";
+import { telegramQueueHealth } from "./telegram/queue";
 
 export type AdminActor = { id: string; email: string; emailVerified: boolean };
 const controlsSchema = z.object({
@@ -32,7 +33,7 @@ export function adminService(db: Database, actor: AdminActor) {
     async dashboard() {
       const now = new Date(),
         since = new Date(now.getTime() - 86400000);
-      const [jobs, quotes, blobs, settings, usage, totals, events] =
+      const [jobs, quotes, blobs, settings, usage, totals, events, queue] =
         await Promise.all([
           db
             .select({
@@ -41,7 +42,12 @@ export function adminService(db: Database, actor: AdminActor) {
               leaseUntil: jobState.leaseUntil,
             })
             .from(jobState)
-            .where(notLike(jobState.key, "market-pending:%")),
+            .where(
+              and(
+                notLike(jobState.key, "market-pending:%"),
+                notLike(jobState.key, "snapshot-retry:%"),
+              ),
+            ),
           db
             .select({
               total: count(),
@@ -80,10 +86,12 @@ export function adminService(db: Database, actor: AdminActor) {
             .from(adminEvents)
             .orderBy(desc(adminEvents.createdAt))
             .limit(30),
+          telegramQueueHealth(db),
         ]);
       return {
         preparedAt: now,
         jobs,
+        queue,
         quotes: quotes[0],
         blobs: blobs[0],
         controls: settings[0] ?? {

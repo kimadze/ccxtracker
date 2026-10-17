@@ -1,4 +1,6 @@
 import { accountIsActive } from "@/server/account-access";
+import { waitForTelegramSlot } from "./send-pacing";
+import { takeProfitDeliveryReadiness } from "@/domain/telegram-readiness";
 import "server-only";
 import { and, asc, eq, inArray, isNull, lte, lt } from "drizzle-orm";
 import type { Database } from "@/server/db";
@@ -58,12 +60,7 @@ export async function evaluateTakeProfits(db: Database, quotes: Quote[]) {
           .from(telegramConnections)
           .where(eq(telegramConnections.userId, item.userId))
       )[0];
-      if (
-        !connection?.chatId ||
-        connection.lastError === "BOT_BLOCKED" ||
-        !connection.portfolioIds.includes(plan.portfolioId) ||
-        !connection.sellEnabled
-      )
+      if (takeProfitDeliveryReadiness(connection, plan.portfolioId) !== "ready")
         return;
       const holding = replayLedger(
         await portfolioService(tx as unknown as Database, item.userId).entries(
@@ -193,8 +190,8 @@ export async function processTakeProfitDeliveries(
     if (
       !row?.connection.chatId ||
       row.connection.lastError === "BOT_BLOCKED" ||
-      !row.connection.portfolioIds.includes(row.plan.portfolioId) ||
-      !row.connection.sellEnabled ||
+      takeProfitDeliveryReadiness(row.connection, row.plan.portfolioId) !==
+        "ready" ||
       !row.plan.telegramEnabled ||
       row.plan.alertGeneration !== job.generation ||
       row.connection.generation !== job.connectionGeneration ||
@@ -232,7 +229,19 @@ export async function processTakeProfitDeliveries(
             `TP${l.level} · სამიზნე ${unitPrice(l.price)}\nგეგმა: ${l.percentage}% — ${quantity(l.quantity)} ${row.asset.symbol}\nსავარაუდო გაყიდვის თანხა: ${money(amount(decimal(l.quantity).mul(job.price)))}`,
         )
         .join("\n\n");
-      if (!(await accountIsActive(db, row.connection.userId))) {
+      await waitForTelegramSlot(row.connection.chatId);
+      const [current] = await db
+        .select()
+        .from(telegramConnections)
+        .where(eq(telegramConnections.userId, row.connection.userId));
+      if (
+        !current ||
+        current.generation !== job.connectionGeneration ||
+        current.chatId !== row.connection.chatId ||
+        takeProfitDeliveryReadiness(current, row.plan.portfolioId) !==
+          "ready" ||
+        !(await accountIsActive(db, row.connection.userId))
+      ) {
         await db
           .update(takeProfitDeliveries)
           .set({ attempts: 8, updatedAt: new Date() })

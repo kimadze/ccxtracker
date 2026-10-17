@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { Asset, ValuedPosition } from "@/domain/types";
 import {
@@ -24,6 +24,11 @@ import { BalanceValue } from "./ui";
 import { Metric } from "./overview";
 import { TransactionForm } from "./transaction-form";
 import { useBalancesHidden } from "./balance-privacy";
+import { loadTelegramSettings } from "@/server/telegram/actions";
+import {
+  takeProfitDeliveryReadiness,
+  telegramReadinessLabels,
+} from "@/domain/telegram-readiness";
 
 export function DcaPlanner({
   position,
@@ -197,6 +202,37 @@ export function ExitPlanner({
     initial?.telegramEnabled ?? false,
   );
   const [rearmed, setRearmed] = useState<string[]>([]);
+  const [telegramStatus, setTelegramStatus] = useState<Awaited<
+    ReturnType<typeof loadTelegramSettings>
+  > | null>(null);
+  useEffect(() => {
+    if (preview || !telegramEnabled) return;
+    let active = true,
+      generation = 0;
+    const check = () => {
+      const current = ++generation;
+      void loadTelegramSettings()
+        .then((status) => {
+          if (active && current === generation) setTelegramStatus(status);
+        })
+        .catch(() => {
+          if (active && current === generation)
+            setTelegramStatus({
+              ok: false,
+              error: "კავშირის შემოწმება ვერ მოხერხდა",
+            });
+        });
+    };
+    check();
+    window.addEventListener("focus", check);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", check);
+    };
+  }, [preview, telegramEnabled, portfolioId]);
+  const readiness = telegramStatus?.ok
+    ? takeProfitDeliveryReadiness(telegramStatus, portfolioId)
+    : null;
   const [levels, setLevels] = useState<ExitLevel[]>(
       initial?.levels.map((level) => ({
         price: inputNumber(level.price),
@@ -218,6 +254,12 @@ export function ExitPlanner({
   } catch {
     /* Validate drafts without inventing outputs. */
   }
+  const planQuantityChanged = Boolean(
+    initial &&
+    telegramEnabled &&
+    (!initial.alertQuantity ||
+      !decimal(initial.alertQuantity).eq(position.quantity)),
+  );
   const levelsChanged =
     !initial ||
     initial.levels.length !== levels.length ||
@@ -285,16 +327,26 @@ export function ExitPlanner({
               >
                 მართვა
               </Link>
+              {telegramEnabled && (
+                <span
+                  role="status"
+                  className={`text-xs ${readiness === "ready" ? "text-success" : "text-warning"}`}
+                >
+                  {readiness
+                    ? telegramReadinessLabels[readiness]
+                    : telegramStatus
+                      ? "კავშირი ვერ შემოწმდა"
+                      : "კავშირი მოწმდება…"}
+                </span>
+              )}
             </div>
           )}
-          {initial?.telegramEnabled &&
-            initial.alertQuantity &&
-            !decimal(initial.alertQuantity).eq(position.quantity) && (
-              <Message error>
-                რაოდენობა შეიცვალა. ალერტები შეჩერებულია — გადაამოწმე და შეინახე
-                გეგმა.
-              </Message>
-            )}
+          {planQuantityChanged && (
+            <Message error>
+              რაოდენობა შეიცვალა. ალერტები შეჩერებულია — გადაამოწმე და შეინახე
+              გეგმა.
+            </Message>
+          )}
           <div
             className="divide-y divide-base-300"
             role="table"
@@ -316,7 +368,12 @@ export function ExitPlanner({
                         : initial.levels[i].reachedAt &&
                             !rearmed.includes(initial.levels[i].id ?? "")
                           ? "მიღწეულია"
-                          : "ელოდება"}
+                          : readiness === "ready" &&
+                              !planQuantityChanged &&
+                              position.quote &&
+                              !position.quote.stale
+                            ? "ელოდება"
+                            : "შეჩერებულია"}
                     </span>
                   )}
                 </div>

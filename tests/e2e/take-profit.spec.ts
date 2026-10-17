@@ -42,7 +42,7 @@ test("Take Profit alerts save, warn, rearm and fit mobile and desktop", async ({
       "INSERT INTO market_quotes(asset_id,price,quoted_at) VALUES('bitcoin',15,now()) ON CONFLICT(asset_id) DO UPDATE SET price=15,quoted_at=now(),fetched_at=now()",
     );
     await db.query(
-      "INSERT INTO telegram_connections(user_id,chat_id,portfolio_ids) VALUES($1,$2,$3) ON CONFLICT(user_id) DO UPDATE SET chat_id=excluded.chat_id",
+      "INSERT INTO telegram_connections(user_id,chat_id,portfolio_ids) VALUES($1,$2,$3) ON CONFLICT(user_id) DO UPDATE SET chat_id=excluded.chat_id,portfolio_ids=excluded.portfolio_ids,sell_enabled=true,last_error=null",
       [
         user,
         info.project.name === "desktop" ? "123456" : "234567",
@@ -73,6 +73,33 @@ test("Take Profit alerts save, warn, rearm and fit mobile and desktop", async ({
     expect(Number(plan.alert_quantity)).toBe(10);
     await page.reload();
     await expect(section.getByLabel("Telegram ალერტები")).toBeChecked();
+    await expect(
+      section.getByText("Telegram მზადაა", { exact: true }),
+    ).toBeVisible();
+    await db.query(
+      "UPDATE telegram_connections SET sell_enabled=false WHERE user_id=$1",
+      [user],
+    );
+    await page.reload();
+    await expect(
+      section.getByText("გაყიდვის შეტყობინებები გამორთულია", { exact: true }),
+    ).toBeVisible();
+    await db.query(
+      "UPDATE telegram_connections SET sell_enabled=true,portfolio_ids='[]' WHERE user_id=$1",
+      [user],
+    );
+    await page.reload();
+    await expect(
+      section.getByText("პორტფელი არ არის არჩეული", { exact: true }),
+    ).toBeVisible();
+    await db.query(
+      "UPDATE telegram_connections SET portfolio_ids=$2 WHERE user_id=$1",
+      [user, JSON.stringify([pid])],
+    );
+    await page.reload();
+    await expect(
+      section.getByText("Telegram მზადაა", { exact: true }),
+    ).toBeVisible();
     await expect(section).toContainText("თვითღირებულება უცნობია");
     const recovery = section.getByLabel("გასვლის შედეგი").locator("details");
     await expect(recovery).not.toHaveAttribute("open", "");

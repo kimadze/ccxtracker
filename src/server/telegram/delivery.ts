@@ -1,4 +1,5 @@
 import { accountIsActive } from "@/server/account-access";
+import { waitForTelegramSlot } from "./send-pacing";
 import "server-only";
 import { and, asc, eq, isNull, lte, lt } from "drizzle-orm";
 import { getDb, type Database } from "@/server/db";
@@ -133,7 +134,20 @@ export async function processTelegramDeliveries(
     try {
       const direction = job.side === "buy" ? "ფასის ვარდნის" : "ფასის ზრდის";
       const url = `${appOrigin()}/portfolios/${row.portfolio.id}/watchlist?asset=${encodeURIComponent(row.asset.id)}&view=reached`;
-      if (!(await accountIsActive(db, job.userId))) {
+      await waitForTelegramSlot(row.connection.chatId);
+      const [current] = await db
+        .select()
+        .from(telegramConnections)
+        .where(eq(telegramConnections.userId, job.userId));
+      if (
+        !current ||
+        current.generation !== job.generation ||
+        current.chatId !== row.connection.chatId ||
+        current.lastError === "BOT_BLOCKED" ||
+        !current.portfolioIds.includes(row.portfolio.id) ||
+        !(job.side === "buy" ? current.buyEnabled : current.sellEnabled) ||
+        !(await accountIsActive(db, job.userId))
+      ) {
         await db
           .delete(telegramDeliveries)
           .where(eq(telegramDeliveries.id, job.id));

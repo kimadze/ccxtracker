@@ -179,6 +179,12 @@ export default async function AdminPage({
                 <Stat label="ქეშირებული ფასები" value={data.quotes.total} />
                 <Stat label="15 წუთზე ძველი ფასები" value={data.quotes.stale} />
                 <Stat label="Blob წაშლის რიგი" value={data.blobs.total} />
+                <Stat label="Telegram-ის რიგი" value={data.queue.pending} />
+                <Stat label="გასაგზავნად მზადაა" value={data.queue.ready} />
+                <Stat
+                  label="უძველესის ლოდინი · წუთი"
+                  value={Math.ceil(data.queue.oldestAgeSeconds / 60)}
+                />
               </div>
               <p className="mt-3 text-xs text-base-content/60">
                 წაშლის შეცდომები: {data.blobs.failed} · ქეშის ბოლო განახლება:{" "}

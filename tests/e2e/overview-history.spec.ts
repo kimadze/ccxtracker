@@ -97,6 +97,30 @@ test("restored overview history supports periods, privacy and compact empty stat
         return result.rows[0].count;
       })
       .toBe(1);
+    await db.query("DELETE FROM portfolio_snapshots WHERE portfolio_id=$1", [
+      pid,
+    ]);
+    await db.query(
+      "INSERT INTO portfolio_snapshots(portfolio_id,day,captured_at,value,cash,revision) VALUES($1,current_date-10,now()-interval '10 days',100,100,0),($1,current_date-5,now()-interval '5 days',120,120,0)",
+      [pid],
+    );
+    await page.reload();
+    await expect(
+      page.getByText(/ისტორია მოძველებულია · ბოლო შეფასება:/),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "1D", exact: true }).click();
+    await expect(
+      page.getByText("ამ პერიოდისთვის შეფასებები არ მოიძებნა.", {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "ALL", exact: true }).click();
+    await expect(
+      page.getByRole("img", {
+        name: "პორტფელის ღირებულების ისტორია",
+        exact: true,
+      }),
+    ).toBeVisible();
   } finally {
     await db.end();
   }

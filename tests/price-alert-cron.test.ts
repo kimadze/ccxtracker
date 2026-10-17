@@ -33,6 +33,10 @@ beforeAll(async () => {
     .sort())
     await client.exec(await readFile(`drizzle/${file}`, "utf8"));
   vi.stubEnv("CRON_SECRET", "x".repeat(40));
+  vi.stubEnv("TELEGRAM_BOT_TOKEN", "test-only");
+  vi.stubEnv("TELEGRAM_BOT_USERNAME", "CCXTRACKER_BOT");
+  vi.stubEnv("TELEGRAM_WEBHOOK_SECRET", "x".repeat(40));
+  vi.stubEnv("BETTER_AUTH_URL", "https://ccxtracker.example.test");
   await db
     .insert(schema.users)
     .values({ id: "audit", name: "Audit", email: "audit@example.test" });

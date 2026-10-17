@@ -1,4 +1,5 @@
 import { accountIsActive } from "@/server/account-access";
+import { waitForTelegramSlot } from "./send-pacing";
 import "server-only";
 import { randomUUID } from "node:crypto";
 import {
@@ -249,9 +250,10 @@ export async function collectDailyDigest(db: Database, job: Job, now: Date) {
 export async function processDailyDigests(
   db: Database = getDb(),
   now = new Date(),
+  options: { enqueue?: boolean } = {},
 ) {
   if (!telegramConfigured()) return { sent: 0, failed: 0 };
-  await enqueueDailyDigests(db, now);
+  if (options.enqueue !== false) await enqueueDailyDigests(db, now);
   const jobs = await db.transaction(async (tx) => {
     const rows = await tx
       .select()
@@ -323,7 +325,15 @@ export async function processDailyDigests(
         )
         .returning({ id: telegramDigests.id });
       if (!ready.length) continue;
-      if (!(await accountIsActive(db, job.userId)))
+      await waitForTelegramSlot(latest.chatId!);
+      const [current] = await db
+        .select()
+        .from(telegramConnections)
+        .where(eq(telegramConnections.userId, job.userId));
+      if (
+        !consentMatches(current, job) ||
+        !(await accountIsActive(db, job.userId))
+      )
         throw new Error("DIGEST_CANCELLED");
       await sendTelegram(
         latest.chatId!,
