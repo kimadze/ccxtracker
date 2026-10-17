@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
+  Banknote,
+  Coins,
   CheckCircle2,
   TrendingDown,
   TrendingUp,
@@ -78,7 +80,7 @@ export function Overview({
     return position ? (
       <li
         key={direction}
-        className="list-row min-w-0 items-center gap-2 px-0 py-2"
+        className="list-row min-h-12 min-w-0 items-center gap-2 px-0 py-1.5"
       >
         <Icon size={16} className={`shrink-0 ${tone}`} aria-hidden="true" />
         <span className="min-w-0 flex-1">
@@ -106,7 +108,7 @@ export function Overview({
     ) : (
       <li
         key={direction}
-        className="list-row min-h-12 min-w-0 items-center gap-2 px-0 py-2"
+        className="list-row min-h-12 min-w-0 items-center gap-2 px-0 py-1.5"
       >
         <Icon
           size={16}
@@ -136,7 +138,9 @@ export function Overview({
   const dailyMoversContent = (
     <>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">დღის ლიდერები</h2>
+        <h2 className="text-xs font-medium text-base-content/65">
+          დღის ლიდერები
+        </h2>
         <span className="flex items-center gap-1.5">
           {movers.hasIncompleteCoverage && (
             <span
@@ -176,27 +180,39 @@ export function Overview({
       ? percent(s.liquidity, s.value)
       : null;
   const liquidityDetails = (
-    <dl className="space-y-2 text-xs">
-      <div className="flex items-baseline justify-between gap-2">
-        <dt className="text-base-content/60">ნაღდი ფული</dt>
-        <dd className="whitespace-nowrap tabular-nums">
-          <BalanceValue>{money(s.cash)}</BalanceValue>
-        </dd>
-      </div>
-      <div className="flex items-baseline justify-between gap-2">
-        <dt className="text-base-content/60">სტეიბლკოინები</dt>
-        <dd className="whitespace-nowrap tabular-nums">
-          <BalanceValue>{money(s.stablecoinValue)}</BalanceValue>
-        </dd>
-      </div>
+    <dl className="text-xs">
+      {[
+        { label: "ნაღდი ფული", value: s.cash, Icon: Banknote },
+        { label: "სტეიბლკოინები", value: s.stablecoinValue, Icon: Coins },
+      ].map(({ label, value, Icon }) => (
+        <div
+          key={label}
+          className="flex min-h-9 items-center gap-2 border-t border-base-300 first:border-0"
+        >
+          <span
+            className="avatar avatar-placeholder shrink-0"
+            aria-hidden="true"
+          >
+            <span className="grid size-7 place-items-center rounded-full bg-base-300 text-base-content/65">
+              <Icon size={15} strokeWidth={1.8} />
+            </span>
+          </span>
+          <dt className="min-w-0 flex-1 truncate text-base-content/60">
+            {label}
+          </dt>
+          <dd className="shrink-0 whitespace-nowrap text-right tabular-nums">
+            <BalanceValue>{money(value)}</BalanceValue>
+          </dd>
+        </div>
+      ))}
       {positions
         .filter((p) => p.asset.isStablecoin)
         .map((p) => (
           <div
             key={p.assetId}
-            className="flex items-center justify-between gap-2 border-t border-base-300 pt-2 lg:hidden"
+            className="flex min-h-9 items-center justify-between gap-2 border-t border-base-300 lg:hidden"
           >
-            <dt className="flex min-w-0 items-center gap-2">
+            <dt className="flex min-w-0 items-center gap-2 text-base-content/60">
               <AssetIcon
                 symbol={p.asset.symbol}
                 logoUrl={p.asset.logoUrl}
@@ -384,13 +400,13 @@ export function Overview({
             </div>
           </section>
           <section className="card card-border hidden min-w-0 border-base-300 bg-base-200 md:block">
-            <div className="card-body gap-1 p-3!">{dailyMoversContent}</div>
+            <div className="card-body gap-2 p-3!">{dailyMoversContent}</div>
           </section>
           <section
             className="card card-border min-w-0 border-base-300 bg-base-200 md:hidden"
             aria-label="დღის ლიდერები"
           >
-            <div className="card-body gap-1 p-3!">{dailyMoversContent}</div>
+            <div className="card-body gap-2 p-3!">{dailyMoversContent}</div>
           </section>
         </aside>
         <OverviewAssets
