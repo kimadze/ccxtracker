@@ -23,7 +23,7 @@ export function FilterButtons<T extends string>({
       aria-label={label}
       className={clsx(
         appearance === "period"
-          ? "join grid max-w-full min-w-0 grid-cols-6 rounded-field border border-base-300 bg-base-100 p-0.5"
+          ? "inline-flex max-w-full min-w-0 items-center"
           : "flex max-w-full min-w-0 gap-1 overflow-x-auto rounded-box bg-base-200 p-1 [scrollbar-width:none]",
         className,
       )}
@@ -36,11 +36,11 @@ export function FilterButtons<T extends string>({
           onClick={() => onChange(option.value)}
           className={clsx(
             appearance === "period"
-              ? "btn btn-ghost join-item min-h-11 min-w-0 border-0 px-2 text-xs font-medium shadow-none"
+              ? "btn btn-ghost btn-xs h-11 min-h-11 w-11 min-w-0 rounded-none border-0 p-0 text-xs font-medium shadow-none lg:h-8 lg:min-h-8 lg:w-9"
               : "btn btn-sm min-h-11 shrink-0 gap-2 rounded-field px-3 text-sm",
             appearance === "period"
               ? value === option.value
-                ? "bg-primary/15 text-secondary"
+                ? "text-secondary"
                 : "text-base-content/60"
               : value === option.value
                 ? appearance === "solid"
@@ -49,7 +49,20 @@ export function FilterButtons<T extends string>({
                 : "btn-ghost text-base-content/60",
           )}
         >
-          <span>{option.label}</span>
+          <span
+            className={
+              appearance === "period"
+                ? clsx(
+                    "border-b-2 py-1",
+                    value === option.value
+                      ? "border-primary"
+                      : "border-transparent",
+                  )
+                : undefined
+            }
+          >
+            {option.label}
+          </span>
           {option.count !== undefined && (
             <span className="badge badge-ghost badge-sm min-w-5 border-0 font-normal tabular-nums">
               {option.count}

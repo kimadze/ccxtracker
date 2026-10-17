@@ -9,16 +9,14 @@ test("asset selection stays short, explicit and usable at all widths; history pe
 }, info) => {
   test.setTimeout(180000);
   const cookies = JSON.parse(await readFile(".local/e2e-cookies.json", "utf8"));
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "better-auth.session_token",
-        value: cookies[`alice-${info.project.name}`],
-        domain: "localhost",
-        path: "/",
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "better-auth.session_token",
+      value: cookies[`alice-${info.project.name}`],
+      domain: "localhost",
+      path: "/",
+    },
+  ]);
   const db = new Client({
     connectionString: "postgresql://postgres:postgres@127.0.0.1:55439/postgres",
   });
@@ -156,8 +154,15 @@ test("asset selection stays short, explicit and usable at all widths; history pe
         Math.min(...boxes.map((b) => b.width)),
     ).toBeLessThan(2);
     expect(
-      boxes.every((b) => b.height >= 44 && Math.abs(b.top - boxes[0].top) < 1),
+      boxes.every(
+        (b) =>
+          b.height >= (width < 1024 ? 44 : 32) &&
+          Math.abs(b.top - boxes[0].top) < 1,
+      ),
     ).toBe(true);
+    expect((await periods.boundingBox())!.width).toBeLessThanOrEqual(
+      width < 1024 ? 264 : 216,
+    );
     await periods.getByRole("button", { name: "7D", exact: true }).click();
     await expect(
       periods.getByRole("button", { name: "7D", exact: true }),
