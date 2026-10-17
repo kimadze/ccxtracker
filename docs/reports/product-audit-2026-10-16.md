@@ -347,3 +347,4 @@ A13-ის production/staging წარმადობის შეფასე�
 
 - საბოლოო გადამოწმება: 45 unit test ფაილი და 286 ტესტი წარმატებულია; TypeScript და lint წარმატებულია; PWA desktop browser test-ები 2/2 წარმატებულია. npm audit --omit=dev აჩვენებს 0 vulnerability-ს; სრულ audit-ში 5 High მხოლოდ development dependency-ებში რჩება, რადგან ავტომატური გასწორება Next lint კონფიგის შეუთავსებელ major downgrade-ს მოითხოვს.
 - Browser keyboard/mobile acceptance after the push: 5 Playwright scenarios passed and 1 was skipped (desktop/mobile). This exercises simulated keyboard navigation and responsive UI; it does not replace physical-device verification.
+- Lockfile install-მა 555 პაკეტი აღადგინა; საბოლოო TypeScript, lint და production build წარმატებულია Next.js 16.3.8-ზე. სრული unit suite 45 ფაილი/286 ტესტი გაიარა; PWA browser ტესტերը desktop/mobile 4/4, Stellar wallet fixture ტესტերը desktop/mobile 2/2, keyboard/mobile menu სიმულაცია 5 წარმატებული და 1 გამოტოვებული.
