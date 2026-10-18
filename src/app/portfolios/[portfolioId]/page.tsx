@@ -7,6 +7,7 @@ import { HistoryChart } from "@/components/history-chart";
 import { TransactionForm } from "@/components/transaction-form";
 import { CaptureInitialSnapshot } from "@/components/capture-initial-snapshot";
 import { OverviewTransactions } from "@/components/overview-transactions";
+import { testPortfolioHistory } from "@/domain/test-portfolio-history";
 export default async function Page({
   params,
 }: {
@@ -14,6 +15,10 @@ export default async function Page({
 }) {
   const { portfolioId } = await params;
   const w = await loadWorkspace(portfolioId);
+  const demoHistory = testPortfolioHistory(
+    portfolioId,
+    w.summary.knownValue,
+  );
   const history = await getDb()
     .select()
     .from(snapshots)
@@ -43,10 +48,14 @@ export default async function Page({
           <HistoryChart
             compact
             dashboard
-            snapshots={history.map((s) => ({
-              ...s,
-              capturedAt: s.capturedAt.toISOString(),
-            }))}
+            illustrative={demoHistory !== null}
+            snapshots={
+              demoHistory ??
+              history.map((s) => ({
+                ...s,
+                capturedAt: s.capturedAt.toISOString(),
+              }))
+            }
             emptyAction={<CaptureInitialSnapshot portfolioId={portfolioId} />}
           />
         }

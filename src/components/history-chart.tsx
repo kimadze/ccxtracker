@@ -100,6 +100,11 @@ export function HistoryChart({
         dashboard && points.length >= 2 ? "" : undefined
       }
     >
+      {illustrative && (
+        <p className="mb-1 text-xs text-base-content/60">
+          დემო ისტორია · სატესტო მონაცემები
+        </p>
+      )}
       {history.stale && history.latest && (
         <p role="status" className="mb-2 text-xs text-warning">
           ისტორია მოძველებულია · ბოლო შეფასება:{" "}
