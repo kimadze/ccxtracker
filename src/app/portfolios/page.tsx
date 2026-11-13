@@ -40,7 +40,7 @@ export default async function Portfolios() {
             {portfolios.length + wallets.length} პორტფელი
           </p>
         </div>
-        <PortfolioCreate firstPortfolio={portfolios.length + wallets.length === 0} />
+        <PortfolioCreate />
       </header>
       {workspaces.length + wallets.length ? (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
