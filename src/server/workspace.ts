@@ -12,7 +12,7 @@ import { replayLedger } from "@/domain/ledger";
 import { valuePortfolio } from "@/domain/valuation";
 import { classifyAsset } from "@/domain/asset-classification";
 
-const loadPortfolio = cache(async (id: string, fullCatalog: boolean) => {
+const loadPortfolio = cache(async (id: string, fullCatalog: boolean, retryStale = false) => {
   const user = await requireUser();
   const service = portfolioService(getDb(), user.id);
   const portfolio = await service.owned(id).catch((error) => {
@@ -36,7 +36,7 @@ const loadPortfolio = cache(async (id: string, fullCatalog: boolean) => {
   const held = new Set(
     ledger.holdings.filter((h) => h.quantity !== "0").map((h) => h.assetId),
   );
-  const quotes = await getQuotes(allAssets.filter((a) => held.has(a.id)));
+  const quotes = await getQuotes(allAssets.filter((a) => held.has(a.id)), { retryStale });
   return {
     portfolio,
     entries,
@@ -53,3 +53,4 @@ export const loadWorkspace = cache((id: string, fullCatalog = true) =>
 export const loadPortfolioCard = cache((id: string) =>
   loadPortfolio(id, false),
 );
+export const refreshWorkspaceQuotes = (id: string) => loadPortfolio(id, false, true);
