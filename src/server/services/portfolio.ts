@@ -13,6 +13,7 @@ import {
 } from "@/server/db/schema";
 import {
   idSchema,
+  portfolioCreateSchema,
   portfolioSchema,
   transactionSchema,
 } from "@/domain/validation";
@@ -50,12 +51,31 @@ export function portfolioService(db: Database, userId: string) {
         .where(eq(portfolios.userId, userId))
         .orderBy(asc(portfolios.createdAt)),
     async create(input: unknown) {
-      const data = portfolioSchema.parse(input);
-      const [portfolio] = await db
-        .insert(portfolios)
-        .values({ userId, ...data })
-        .returning();
-      return portfolio;
+      const { name, requestId, initialCapital } = portfolioCreateSchema.parse(input);
+      const created = await db.transaction(async (tx) => {
+        const [portfolio] = await tx
+          .insert(portfolios)
+          .values({ id: requestId, userId, name, revision: initialCapital ? 1 : 0 })
+          .onConflictDoNothing({ target: portfolios.id })
+          .returning();
+        if (!portfolio) return undefined;
+        if (initialCapital) {
+          await tx.insert(transactions).values({
+            id: crypto.randomUUID(),
+            portfolioId: portfolio.id,
+            assetId: "USD",
+            kind: "deposit",
+            quantity: initialCapital,
+            occurredAt: portfolio.createdAt,
+            sequence: 1,
+            notes: "საწყისი კაპიტალი",
+          });
+        }
+        return portfolio;
+      });
+      if (created) return created;
+      if (!requestId) throw new Error("PORTFOLIO_CREATE_FAILED");
+      return owned(requestId);
     },
     async rename(id: string, input: unknown) {
       const data = portfolioSchema.parse(input);

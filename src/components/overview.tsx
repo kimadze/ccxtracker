@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   Banknote,
@@ -22,6 +21,7 @@ import { AssetIcon } from "./positions";
 import { BalanceValue } from "./ui";
 import { OverviewToolbar } from "./overview-toolbar";
 import { OverviewAssets } from "./overview-assets";
+import { OverviewAssetTrigger } from "./overview-asset-result";
 
 export function Overview({
   summary: s,
@@ -114,12 +114,13 @@ export function Overview({
         className="list-row block min-w-0 rounded-none border-base-300 p-0 after:hidden first:border-r first:pr-3 last:pl-3 md:first:border-r-0 md:first:border-b md:first:pr-0 md:last:pl-0"
       >
         {position ? (
-          <Link
-            href={`${base}/positions/${encodeURIComponent(position.assetId)}`}
-            className={`${rowClass} rounded-field hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary`}
+          <OverviewAssetTrigger
+            position={position}
+            base={base}
+            className={`${rowClass} w-full rounded-field text-left hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary`}
           >
             {content}
-          </Link>
+          </OverviewAssetTrigger>
         ) : (
           <div className={rowClass}>{content}</div>
         )}

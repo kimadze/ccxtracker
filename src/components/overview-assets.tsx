@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowUpRight, ChartNoAxesCombined } from "lucide-react";
 import type { ValuedPosition } from "@/domain/types";
 import {
@@ -15,6 +14,7 @@ import {
 import { AssetIcon } from "./positions";
 import { BalanceValue } from "./ui";
 import { WorkspaceTabs } from "./workspace-tabs";
+import { OverviewAssetResult } from "./overview-asset-result";
 
 export function OverviewAssets({
   positions,
@@ -26,7 +26,12 @@ export function OverviewAssets({
   transactionsPanel: ReactNode;
 }) {
   const [tab, setTab] = useState("positions");
-  const router = useRouter();
+  const [selected, setSelected] = useState<ValuedPosition>();
+  const [resultOpen, setResultOpen] = useState(false);
+  function showResult(position: ValuedPosition) {
+    setSelected(position);
+    setResultOpen(true);
+  }
   const filtered = positions.slice(0, 6);
   return (
     <section className="min-w-0 lg:col-span-2" aria-label="პორტფელის აქტივები">
@@ -52,9 +57,12 @@ export function OverviewAssets({
                     key={p.assetId}
                     className="list-row block rounded-none border-b border-base-300 p-0 last:border-0"
                   >
-                    <Link
-                      href={`${base}/positions/${encodeURIComponent(p.assetId)}`}
-                      className="flex min-h-[68px] min-w-0 items-center gap-2.5 px-3 py-2.5 hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary"
+                    <button
+                      type="button"
+                      aria-haspopup="dialog"
+                      aria-label={p.asset.symbol + " შედეგები"}
+                      onClick={() => showResult(p)}
+                      className="flex min-h-[68px] w-full min-w-0 items-center gap-2.5 px-3 py-2.5 text-left hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary"
                     >
                       <AssetIcon
                         symbol={p.asset.symbol}
@@ -86,7 +94,7 @@ export function OverviewAssets({
                           </BalanceValue>
                         </span>
                       </span>
-                    </Link>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -127,13 +135,16 @@ export function OverviewAssets({
                                 "a,button,summary",
                               )
                             )
-                              router.push(href);
+                              showResult(p);
                           }}
                         >
                           <td>
-                            <Link
-                              href={href}
-                              className="flex min-h-11 items-center gap-2.5"
+                            <button
+                              type="button"
+                              aria-haspopup="dialog"
+                              aria-label={p.asset.symbol + " შედეგები"}
+                              onClick={() => showResult(p)}
+                              className="flex min-h-11 w-full items-center gap-2.5 text-left"
                             >
                               <AssetIcon
                                 symbol={p.asset.symbol}
@@ -152,7 +163,7 @@ export function OverviewAssets({
                                   {p.asset.name}
                                 </span>
                               </span>
-                            </Link>
+                            </button>
                           </td>
                           <td className="hidden whitespace-nowrap text-right tabular-nums xl:table-cell">
                             <BalanceValue>{quantity(p.quantity)}</BalanceValue>
@@ -231,6 +242,14 @@ export function OverviewAssets({
           <ArrowUpRight size={14} />
         </Link>
       </WorkspaceTabs>
+      {selected && (
+        <OverviewAssetResult
+          position={selected}
+          base={base}
+          open={resultOpen}
+          onOpenChange={setResultOpen}
+        />
+      )}
     </section>
   );
 }

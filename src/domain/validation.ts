@@ -33,6 +33,10 @@ export const portfolioSchema = z.object({
     .max(60, "სახელი არ უნდა აღემატებოდეს 60 სიმბოლოს."),
 });
 export const idSchema = z.string().uuid("მონაცემების მისამართი არასწორია.");
+export const portfolioCreateSchema = portfolioSchema.extend({
+  requestId: idSchema.optional(),
+  initialCapital: positiveAmount.optional(),
+});
 export const transactionSchema = z
   .object({
     id: idSchema,
