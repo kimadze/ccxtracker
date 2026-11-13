@@ -67,7 +67,7 @@ export function OverviewAssetResult({
       description={position.asset.name}
       className="max-w-sm"
     >
-      <dl className="divide-y divide-base-content/10 rounded-xl bg-base-200/60 px-3 text-sm">
+      <dl className="portfolio-create-reveal divide-y divide-base-content/10 rounded-xl bg-base-200/60 px-3 text-sm">
         {metrics.map(({ label, value, tone, public: isPublic }) => (
           <div key={label} className="flex flex-wrap justify-between gap-x-3 gap-y-1 py-2.5">
             <dt className="text-base-content/75">{label}</dt>

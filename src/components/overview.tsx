@@ -22,9 +22,11 @@ import { BalanceValue } from "./ui";
 import { OverviewToolbar } from "./overview-toolbar";
 import { OverviewAssets } from "./overview-assets";
 import { OverviewAssetTrigger } from "./overview-asset-result";
+import { PortfolioPriceRefresh } from "./portfolio-price-refresh";
 
 export function Overview({
   summary: s,
+  portfolioId,
   base,
   cryptoOnlyValue = false,
   history,
@@ -32,6 +34,7 @@ export function Overview({
   transactionsPanel,
 }: {
   summary: PortfolioSummary;
+  portfolioId?: string;
   base: string;
   portfolioName: string;
   cryptoOnlyValue?: boolean;
@@ -345,13 +348,16 @@ export function Overview({
               <BalanceValue>{money(s.totalPnl)}</BalanceValue>
             </p>
           </div>
-          {(!s.complete || s.stale) && (
-            <p role="status" className="text-xs text-warning sm:col-span-2">
-              {!s.complete
+          {portfolioId && <PortfolioPriceRefresh
+            portfolioId={portfolioId}
+            warning={
+              !s.complete
                 ? "ზოგი აქტივის ფასი მიუწვდომელია · ჯამი არასრულია"
-                : "ფასები დაგვიანებულია"}
-            </p>
-          )}
+                : s.stale
+                  ? "ფასები მოძველდა"
+                  : undefined
+            }
+          />}
         </div>
       </section>
       <div className="grid min-w-0 grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(235px,3fr)] lg:gap-4">
