@@ -27,6 +27,7 @@ export default async function Page({
   return (
     <>
       <Overview
+        portfolioId={portfolioId}
         summary={w.summary}
         portfolioName={w.portfolio.name}
         cryptoOnlyValue={w.settings.cryptoOnlyPortfolioValue}
