@@ -208,14 +208,16 @@ export function OverviewAssets({
                               >
                                 <ChartNoAxesCombined size={16} />
                               </Link>
-                              <Link
-                                href={href}
+                              <button
+                                type="button"
+                                aria-haspopup="dialog"
+                                onClick={() => showResult(p)}
                                 className="btn btn-ghost btn-square btn-sm min-h-11 min-w-11 text-base-content/55"
                                 aria-label={p.asset.symbol + " დეტალები"}
                                 title="დეტალები"
                               >
                                 <ArrowUpRight size={16} />
-                              </Link>
+                              </button>
                             </div>
                           </td>
                         </tr>

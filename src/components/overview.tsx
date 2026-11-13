@@ -221,14 +221,20 @@ export function Overview({
             key={p.assetId}
             className="flex min-h-9 items-center justify-between gap-2 border-t border-base-300 md:hidden"
           >
-            <dt className="flex min-w-0 items-center gap-2 text-base-content/60">
-              <AssetIcon
-                symbol={p.asset.symbol}
-                logoUrl={p.asset.logoUrl}
-                size={20}
-                index={0}
-              />
-              {p.asset.symbol}
+            <dt className="min-w-0 text-base-content/60">
+              <OverviewAssetTrigger
+                position={p}
+                base={base}
+                className="flex min-h-11 min-w-11 items-center gap-2 rounded-field hover:bg-base-300/40"
+              >
+                <AssetIcon
+                  symbol={p.asset.symbol}
+                  logoUrl={p.asset.logoUrl}
+                  size={20}
+                  index={0}
+                />
+                {p.asset.symbol}
+              </OverviewAssetTrigger>
             </dt>
             <dd className="min-w-0 overflow-x-auto whitespace-nowrap text-right tabular-nums">
               <BalanceValue>
