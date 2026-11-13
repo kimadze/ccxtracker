@@ -44,6 +44,11 @@ test("real session, portfolio creation, funded acquisition and persisted journal
     .click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("პორტფელის სახელი").fill(`სატესტო ${Date.now()}`);
+  const continueButton = dialog.getByRole("button", { name: "გაგრძელება", exact: true });
+  if (await continueButton.isVisible()) {
+    await continueButton.click();
+    await dialog.getByRole("button", { name: "გამოტოვება", exact: true }).click();
+  }
   await dialog
     .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
     .click();

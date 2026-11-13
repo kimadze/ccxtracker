@@ -33,6 +33,11 @@ test("existing holdings need no USD funding and compact forms retain visible act
     await create
       .getByLabel("პორტფელის სახელი")
       .fill(`არსებული აქტივები ${info.project.name}`);
+    const continueButton = create.getByRole("button", { name: "გაგრძელება", exact: true });
+    if (await continueButton.isVisible()) {
+      await continueButton.click();
+      await create.getByRole("button", { name: "გამოტოვება", exact: true }).click();
+    }
     await create
       .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
       .click();

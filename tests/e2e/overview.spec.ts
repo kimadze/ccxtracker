@@ -27,6 +27,11 @@ test("compact overview supports funded positions, privacy and responsive layouts
   await dialog
     .getByLabel("პორტფელის სახელი")
     .fill("მიმოხილვის სატესტო პორტფელი");
+  const continueButton = dialog.getByRole("button", { name: "გაგრძელება", exact: true });
+  if (await continueButton.isVisible()) {
+    await continueButton.click();
+    await dialog.getByRole("button", { name: "გამოტოვება", exact: true }).click();
+  }
   await dialog
     .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
     .click();
@@ -130,7 +135,7 @@ test("compact overview supports funded positions, privacy and responsive layouts
       ),
     ).toBe(true);
     await expect(
-      page.locator('a[href$="/positions/bitcoin"]:visible').first(),
+      page.getByTestId("overview-assets-list").getByRole("button", { name: "BTC შედეგები" }),
     ).toBeVisible();
     await page.screenshot({
       path: ".local/compact-" + info.project.name + "-" + width + ".png",
@@ -182,7 +187,11 @@ test("compact overview supports funded positions, privacy and responsive layouts
     page.getByRole("button", { name: "შემდეგი", exact: true }),
   ).toHaveCount(0);
   await page.goto(base);
-  await page.locator('a[href$="/positions/bitcoin"]:visible').first().click();
+  await page.getByTestId("overview-assets-list").getByRole("button", { name: "BTC შედეგები" }).click();
+  const result = page.getByRole("dialog", { name: "BTC", exact: true });
+  await expect(result.getByText("არარეალიზებული P/L")).toBeVisible();
+  await expect(page).toHaveURL(base);
+  await result.getByRole("link", { name: "სრული დეტალები" }).click();
   await expect(page).toHaveURL(/positions\/bitcoin$/);
   await page.goto(base);
   await page.setViewportSize({ width: 390, height: 844 });

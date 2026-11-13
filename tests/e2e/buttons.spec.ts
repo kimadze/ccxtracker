@@ -22,6 +22,11 @@ test("button hierarchy preserves selection, touch targets and form actions", asy
     .click();
   const create = page.locator("dialog[open]");
   await create.getByLabel("პორტფელის სახელი").fill("ღილაკების შემოწმება");
+  const continueButton = create.getByRole("button", { name: "გაგრძელება", exact: true });
+  if (await continueButton.isVisible()) {
+    await continueButton.click();
+    await create.getByRole("button", { name: "გამოტოვება", exact: true }).click();
+  }
   await create
     .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
     .click();

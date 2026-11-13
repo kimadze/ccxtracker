@@ -48,6 +48,22 @@ function transaction(portfolioId: string, fields = {}) {
   };
 }
 describe("protected portfolio service against real PostgreSQL semantics", () => {
+  it("records one opening deposit even when creation is retried", async () => {
+    const service = portfolioService(db, "alice");
+    const input = {
+      name: "Opening capital",
+      requestId: crypto.randomUUID(),
+      initialCapital: "500,25",
+    };
+    const portfolio = await service.create(input);
+    expect((await service.create(input)).id).toBe(portfolio.id);
+    expect(portfolio.revision).toBe(1);
+    const entries = await service.entries(portfolio.id);
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({ assetId: "USD", kind: "deposit", sequence: 1 });
+    expect(Number(entries[0].quantity)).toBe(500.25);
+    await expect(portfolioService(db, "bob").create(input)).rejects.toThrow();
+  });
   it("captures an on-demand baseline snapshot once per day", async () => {
     const service = portfolioService(db, "alice"),
       p = await service.create({ name: "Manual snapshot test" });

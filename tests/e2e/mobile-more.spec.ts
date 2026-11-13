@@ -28,6 +28,11 @@ test("More sheet has readable touch rows outside the dock at narrow and short vi
   await create
     .getByLabel("პორტფელის სახელი")
     .fill("მობილურის მენიუს შემოწმება");
+  const continueButton = create.getByRole("button", { name: "გაგრძელება", exact: true });
+  if (await continueButton.isVisible()) {
+    await continueButton.click();
+    await create.getByRole("button", { name: "გამოტოვება", exact: true }).click();
+  }
   await create
     .getByRole("button", { name: "პორტფელის შექმნა", exact: true })
     .tap();
