@@ -8,11 +8,9 @@ import { portfolioSchema, positiveAmount } from "@/domain/validation";
 import { Field, Message, Modal } from "./ui";
 export function PortfolioCreate({
   compact = false,
-  firstPortfolio = false,
   onCreated,
 }: {
   compact?: boolean;
-  firstPortfolio?: boolean;
   onCreated?: () => void;
 }) {
   const [open, setOpen] = useState(false),
@@ -25,7 +23,7 @@ export function PortfolioCreate({
   const [capital, setCapital] = useState("");
   const [requestId, setRequestId] = useState<string>();
   const stepHeading = useRef<HTMLHeadingElement>(null);
-  const guided = firstPortfolio && kind === "manual";
+  const guided = kind === "manual";
 
   useEffect(() => {
     if (open && step > 1) stepHeading.current?.focus();

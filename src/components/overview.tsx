@@ -22,9 +22,11 @@ import { BalanceValue } from "./ui";
 import { OverviewToolbar } from "./overview-toolbar";
 import { OverviewAssets } from "./overview-assets";
 import { OverviewAssetTrigger } from "./overview-asset-result";
+import { PortfolioPriceRefresh } from "./portfolio-price-refresh";
 
 export function Overview({
   summary: s,
+  portfolioId,
   base,
   cryptoOnlyValue = false,
   history,
@@ -32,6 +34,7 @@ export function Overview({
   transactionsPanel,
 }: {
   summary: PortfolioSummary;
+  portfolioId?: string;
   base: string;
   portfolioName: string;
   cryptoOnlyValue?: boolean;
@@ -221,14 +224,20 @@ export function Overview({
             key={p.assetId}
             className="flex min-h-9 items-center justify-between gap-2 border-t border-base-300 md:hidden"
           >
-            <dt className="flex min-w-0 items-center gap-2 text-base-content/60">
-              <AssetIcon
-                symbol={p.asset.symbol}
-                logoUrl={p.asset.logoUrl}
-                size={20}
-                index={0}
-              />
-              {p.asset.symbol}
+            <dt className="min-w-0 text-base-content/60">
+              <OverviewAssetTrigger
+                position={p}
+                base={base}
+                className="flex min-h-11 min-w-11 items-center gap-2 rounded-field hover:bg-base-300/40"
+              >
+                <AssetIcon
+                  symbol={p.asset.symbol}
+                  logoUrl={p.asset.logoUrl}
+                  size={20}
+                  index={0}
+                />
+                {p.asset.symbol}
+              </OverviewAssetTrigger>
             </dt>
             <dd className="min-w-0 overflow-x-auto whitespace-nowrap text-right tabular-nums">
               <BalanceValue>
@@ -339,13 +348,16 @@ export function Overview({
               <BalanceValue>{money(s.totalPnl)}</BalanceValue>
             </p>
           </div>
-          {(!s.complete || s.stale) && (
-            <p role="status" className="text-xs text-warning sm:col-span-2">
-              {!s.complete
+          {portfolioId && <PortfolioPriceRefresh
+            portfolioId={portfolioId}
+            warning={
+              !s.complete
                 ? "ზოგი აქტივის ფასი მიუწვდომელია · ჯამი არასრულია"
-                : "ფასები დაგვიანებულია"}
-            </p>
-          )}
+                : s.stale
+                  ? "ფასები მოძველდა"
+                  : undefined
+            }
+          />}
         </div>
       </section>
       <div className="grid min-w-0 grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(235px,3fr)] lg:gap-4">

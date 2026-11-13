@@ -11,6 +11,21 @@ import { userError, type ActionResult } from "./errors";
 import { consumeRateLimit } from "./rate-limit";
 import { capturePortfolioSnapshot } from "./snapshots";
 import { processBlobCleanupJobs } from "./blob-cleanup";
+import { refreshWorkspaceQuotes } from "./workspace";
+
+export async function refreshPortfolioPrices(portfolioId: string) {
+  const user = await requireUser();
+  if (!(await consumeRateLimit(`portfolio-prices:${user.id}`, 4, 60000))) {
+    return { refreshed: false, message: "მოიცადეთ ერთი წუთი და სცადეთ ხელახლა." };
+  }
+  const { summary } = await refreshWorkspaceQuotes(portfolioId);
+  return {
+    refreshed: summary.complete && !summary.stale,
+    message: summary.complete && !summary.stale
+      ? "ფასები განახლებულია."
+      : "ზოგი ფასი ჯერ მიუწვდომელია ან დაგვიანებულია. სცადეთ მოგვიანებით.",
+  };
+}
 
 export async function captureInitialSnapshot(
   portfolioId: string,
