@@ -213,7 +213,7 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
 
 export async function getQuotes(
   assets: Asset[],
-  options: { mode?: "background" | "blocking" } = { mode: "blocking" },
+  options: { mode?: "background" | "blocking"; retryStale?: boolean } = {},
 ): Promise<Quote[]> {
   const requested = assets.filter((a) => a.id !== "USD");
   if (!requested.length) return [];
@@ -229,7 +229,13 @@ export async function getQuotes(
     );
   const expired = requested.filter((a) => {
     const hit = cached.find((q) => q.assetId === a.id);
-    return !hit || Date.now() - hit.fetchedAt.getTime() > 5 * 60000;
+    return (
+      !hit ||
+      Date.now() - hit.fetchedAt.getTime() > 5 * 60000 ||
+      (options.retryStale &&
+        Date.now() - hit.fetchedAt.getTime() > 60000 &&
+        Date.now() - hit.quotedAt.getTime() > 15 * 60000)
+    );
   });
   const blocking = options.mode !== "background";
   if (expired.length && blocking) {
