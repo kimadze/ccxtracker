@@ -7,22 +7,22 @@ import { refreshPortfolioPrices } from "@/server/actions";
 
 export function PortfolioPriceRefresh({
   portfolioId,
-  warning,
+  canRefresh,
 }: {
   portfolioId: string;
-  warning?: string;
+  canRefresh: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<{ refreshed: boolean; message: string }>();
-  if (!warning && !result && !pending) return null;
+  if (!canRefresh && !result && !pending) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-3 sm:col-span-2">
-      <p role="status" className={`text-xs ${result?.refreshed ? "text-success" : "text-warning"}`}>
-        {pending ? "ფასები ახლდება…" : result?.message ?? warning}
+    <div className="flex min-w-0 flex-wrap items-center gap-x-2">
+      <p role="status" className="sr-only">
+        {pending ? "ფასები ახლდება…" : result?.message}
       </p>
-      {warning && (
+      {(canRefresh || pending) && (
         <button
           type="button"
           disabled={pending}
@@ -41,8 +41,13 @@ export function PortfolioPriceRefresh({
           }}
         >
           <RefreshCw size={16} aria-hidden="true" className={pending ? "motion-safe:animate-spin" : ""} />
-          ფასების განახლება
+          {pending ? "ფასები ახლდება…" : "ფასების განახლება"}
         </button>
+      )}
+      {result && !pending && (
+        <p aria-hidden="true" className={`max-w-44 text-xs ${result.refreshed ? "text-success" : "text-warning"}`}>
+          {result.message}
+        </p>
       )}
     </div>
   );

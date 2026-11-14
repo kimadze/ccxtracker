@@ -225,7 +225,7 @@ export function Shell({
         onChange={(event) => setDrawerOpen(event.target.checked)}
       />
       <div className="drawer-content flex min-w-0 flex-1 flex-col bg-base-100">
-        <header className="navbar sticky top-0 z-20 h-[52px] min-h-[52px] gap-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:h-14 lg:px-5">
+        <header className="navbar sticky top-0 z-20 min-h-[52px] flex-wrap gap-x-2 border-b border-base-300 bg-base-100 px-4 py-1 lg:min-h-14 lg:flex-nowrap lg:px-5">
           <button
             type="button"
             className="btn btn-ghost btn-square hidden min-h-11 lg:flex"
@@ -272,7 +272,7 @@ export function Shell({
           </div>
           <div
             id="overview-toolbar"
-            className="hidden items-center gap-2 lg:flex"
+            className="flex w-full min-w-0 flex-wrap items-center gap-x-2 empty:hidden lg:w-auto lg:shrink-0 lg:flex-nowrap"
           />
         </header>
         <main

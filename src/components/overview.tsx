@@ -272,10 +272,10 @@ export function Overview({
       ))}
     </dl>
   );
-  const renderStatus = (compact = false) => (
-    <details className="dropdown dropdown-end">
+  const priceStatus = (
+    <details className="dropdown lg:dropdown-end">
       <summary
-        className={`btn btn-ghost min-h-11 shrink-0 gap-2 text-xs ${compact ? "btn-square min-w-11" : "px-2"}`}
+        className="btn btn-ghost min-h-11 shrink-0 gap-2 px-2 text-xs"
         aria-label="ფასების განახლების სტატუსი"
       >
         {s.complete && !s.stale ? (
@@ -288,7 +288,7 @@ export function Overview({
           />
         )}
         <span
-          className={compact ? "sr-only" : "hidden whitespace-nowrap xl:inline"}
+          className="whitespace-nowrap lg:hidden xl:inline"
         >
           {s.stale
             ? "ფასები მოძველდა"
@@ -311,8 +311,15 @@ export function Overview({
     <div className="overview-dashboard w-full min-w-0 space-y-3 lg:space-y-4">
       <h1 className="sr-only">პორტფელის მიმოხილვა</h1>
       <OverviewToolbar>
-        {renderStatus()}
-        {action}
+        {priceStatus}
+        {portfolioId && (
+          <PortfolioPriceRefresh
+            key={portfolioId}
+            portfolioId={portfolioId}
+            canRefresh={!s.complete || s.stale}
+          />
+        )}
+        <div className="hidden lg:block">{action}</div>
       </OverviewToolbar>
       <section
         className="card card-border min-w-0 border-base-300 bg-base-200"
@@ -331,7 +338,6 @@ export function Overview({
               <p className="min-w-0 overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums lg:text-4xl">
                 <BalanceValue>{money(displayedValue)}</BalanceValue>
               </p>
-              <div className="shrink-0 lg:hidden">{renderStatus(true)}</div>
             </div>
           </div>
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1 sm:block">
@@ -348,16 +354,6 @@ export function Overview({
               <BalanceValue>{money(s.totalPnl)}</BalanceValue>
             </p>
           </div>
-          {portfolioId && <PortfolioPriceRefresh
-            portfolioId={portfolioId}
-            warning={
-              !s.complete
-                ? "ზოგი აქტივის ფასი მიუწვდომელია · ჯამი არასრულია"
-                : s.stale
-                  ? "ფასები მოძველდა"
-                  : undefined
-            }
-          />}
         </div>
       </section>
       <div className="grid min-w-0 grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(235px,3fr)] lg:gap-4">
