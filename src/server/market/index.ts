@@ -87,6 +87,25 @@ export async function seedAssets() {
       });
 }
 
+const QUOTE_CACHE_MS = 5 * 60000;
+const QUOTE_STALE_MS = 15 * 60000;
+const STALE_RETRY_MS = 60000;
+
+function needsQuote(
+  hit: Pick<typeof marketQuotes.$inferSelect, "fetchedAt" | "quotedAt"> | undefined,
+  now: number,
+  retryStale = false,
+) {
+  if (!hit) return true;
+  const fetchedAge = now - hit.fetchedAt.getTime();
+  return (
+    fetchedAge > QUOTE_CACHE_MS ||
+    (retryStale &&
+      fetchedAge > STALE_RETRY_MS &&
+      now - hit.quotedAt.getTime() > QUOTE_STALE_MS)
+  );
+}
+
 async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
   if (!expired.length || !process.env.COINGECKO_DEMO_API_KEY) return [];
   const db = getDb();
@@ -140,13 +159,9 @@ async function refreshExpired(expired: Asset[]): Promise<Quote[]> {
             batch.map((a) => a.id),
           ),
         );
-      const needed = batch.filter(
-        (a) =>
-          !cached.some(
-            (q) =>
-              q.assetId === a.id &&
-              Date.now() - q.fetchedAt.getTime() <= 5 * 60000,
-          ),
+      const batchTime = Date.now();
+      const needed = batch.filter((asset) =>
+        needsQuote(cached.find((quote) => quote.assetId === asset.id), batchTime, true),
       );
       const received = needed.length ? await provider.quotes(needed) : [];
       fresh.push(...received);
@@ -227,16 +242,14 @@ export async function getQuotes(
         requested.map((a) => a.id),
       ),
     );
-  const expired = requested.filter((a) => {
-    const hit = cached.find((q) => q.assetId === a.id);
-    return (
-      !hit ||
-      Date.now() - hit.fetchedAt.getTime() > 5 * 60000 ||
-      (options.retryStale &&
-        Date.now() - hit.fetchedAt.getTime() > 60000 &&
-        Date.now() - hit.quotedAt.getTime() > 15 * 60000)
-    );
-  });
+  const now = Date.now();
+  const expired = requested.filter((asset) =>
+    needsQuote(
+      cached.find((quote) => quote.assetId === asset.id),
+      now,
+      options.retryStale,
+    ),
+  );
   const blocking = options.mode !== "background";
   if (expired.length && blocking) {
     await refreshExpired(expired);
@@ -266,7 +279,7 @@ export async function getQuotes(
       price: q.price,
       change24h: q.change24h,
       updatedAt: q.quotedAt.toISOString(),
-      stale: Date.now() - q.quotedAt.getTime() > 15 * 60000,
+      stale: Date.now() - q.quotedAt.getTime() > QUOTE_STALE_MS,
     })),
   ];
 }

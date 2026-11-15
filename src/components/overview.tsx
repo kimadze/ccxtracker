@@ -311,14 +311,16 @@ export function Overview({
     <div className="overview-dashboard w-full min-w-0 space-y-3 lg:space-y-4">
       <h1 className="sr-only">პორტფელის მიმოხილვა</h1>
       <OverviewToolbar>
-        {priceStatus}
-        {portfolioId && (
-          <PortfolioPriceRefresh
-            key={portfolioId}
-            portfolioId={portfolioId}
-            canRefresh={!s.complete || s.stale}
-          />
-        )}
+        <div className="relative flex min-w-0 items-center gap-1">
+          {priceStatus}
+          {portfolioId && (
+            <PortfolioPriceRefresh
+              key={portfolioId}
+              portfolioId={portfolioId}
+              canRefresh={!s.complete || s.stale}
+            />
+          )}
+        </div>
         <div className="hidden lg:block">{action}</div>
       </OverviewToolbar>
       <section
