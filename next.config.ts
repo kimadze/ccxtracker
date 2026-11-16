@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   agentRules: false,
+  distDir: process.env.CCX_BUILD_DIRECTORY || ".next",
   poweredByHeader: false,
   turbopack: { root: process.cwd() },
   outputFileTracingRoot: process.cwd(),

@@ -26,6 +26,7 @@ export function WorkspaceTabs({
   label,
   children,
   integrated = false,
+  action,
 }: {
   items: readonly (readonly [string, string])[];
   value: string;
@@ -33,15 +34,16 @@ export function WorkspaceTabs({
   label: string;
   children: React.ReactNode;
   integrated?: boolean;
+  action?: React.ReactNode;
 }) {
   const id = useId();
   return (
     <div className="min-w-0 space-y-3 lg:space-y-4">
       <div
-        className={`flex min-w-0 items-center gap-2 ${integrated ? "border-b border-base-300" : ""}`}
+        className={`flex min-w-0 flex-wrap items-center gap-2 sm:flex-nowrap ${integrated ? "border-b border-base-300" : ""}`}
       >
         <div
-          className="tabs tabs-border flex min-w-0 flex-1 flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="tabs tabs-border flex min-w-0 flex-1 basis-auto flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="tablist"
           aria-label={label}
         >
@@ -74,6 +76,7 @@ export function WorkspaceTabs({
             </button>
           ))}
         </div>
+        {action}
       </div>
       <div
         id={`${id}-panel`}

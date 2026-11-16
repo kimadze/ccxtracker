@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./portfolio-overview.css";
+@import "./mobile-portfolio.css";
 @plugin "daisyui" {
   themes: false;
   logs: false;

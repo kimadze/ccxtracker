@@ -9,7 +9,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { money, dateTime } from "@/lib/formatters";
+import { decimal, percent } from "@/domain/decimal";
+import { money, dateTime, percentage, pnlClass } from "@/lib/formatters";
 import type { Snapshot } from "@/domain/analytics";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -81,6 +82,16 @@ export function HistoryChart({
         {emptyAction && <div className="mt-4">{emptyAction}</div>}
       </div>
     );
+  const first = history.snapshots[0];
+  const last = history.snapshots.at(-1);
+  const change =
+    first && last && history.snapshots.length > 1
+      ? decimal(last.value).minus(first.value).toFixed()
+      : null;
+  const changePercent =
+    change !== null && first && decimal(first.value).gt(0)
+      ? percent(change, first.value)
+      : null;
   const controls = (
     <FilterButtons
       label="გრაფიკის პერიოდი"
@@ -100,6 +111,22 @@ export function HistoryChart({
         dashboard && points.length >= 2 ? "" : undefined
       }
     >
+      {dashboard && change !== null && (
+        <p className="mb-2 flex flex-wrap items-baseline gap-2 text-xs text-base-content/80">
+          <span>პერიოდის ცვლილება</span>
+          <span className={pnlClass(change)}>
+            <BalanceValue>
+              {decimal(change).gt(0) ? "+" : ""}
+              {money(change)}
+            </BalanceValue>
+          </span>
+          {changePercent !== null && (
+            <span className={pnlClass(change)}>
+              <BalanceValue>{percentage(changePercent, true)}</BalanceValue>
+            </span>
+          )}
+        </p>
+      )}
       {illustrative && (
         <p className="mb-1 text-xs text-base-content/60">
           დემო ისტორია · სატესტო მონაცემები
@@ -132,7 +159,7 @@ export function HistoryChart({
       {points.length < 2 && (
         <p role="status" className="mb-2 text-xs text-base-content/60">
           {points.length
-            ? "ხაზი გამოჩნდება მეორე შეფასების შენახვის შემდეგ."
+            ? "გრაფიკს ორი დღის ჩანაწერი სჭირდება."
             : "ამ პერიოდისთვის შეფასებები არ მოიძებნა."}
         </p>
       )}
@@ -142,7 +169,7 @@ export function HistoryChart({
           points.length < 2
             ? "hidden"
             : dashboard
-              ? "h-[128px] w-full min-w-0 overflow-hidden sm:h-[160px] lg:h-auto lg:min-h-[180px] lg:flex-1"
+              ? "h-44 w-full min-w-0 overflow-hidden sm:h-52 lg:h-60"
               : compact
                 ? "h-[140px] w-full min-w-0 lg:h-[220px]"
                 : "h-56 w-full min-w-0"
@@ -164,12 +191,12 @@ export function HistoryChart({
                 <linearGradient id="historyFill" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
-                    stopColor="var(--color-primary)"
+                    stopColor="var(--ccx-chart-accent, var(--color-primary))"
                     stopOpacity={0.23}
                   />
                   <stop
                     offset="100%"
-                    stopColor="var(--color-primary)"
+                    stopColor="var(--ccx-chart-accent, var(--color-primary))"
                     stopOpacity={0}
                   />
                 </linearGradient>
@@ -215,7 +242,7 @@ export function HistoryChart({
               <Area
                 dataKey="value"
                 type="linear"
-                stroke="var(--color-primary)"
+                stroke="var(--ccx-chart-accent, var(--color-primary))"
                 strokeWidth={2}
                 fill="url(#historyFill)"
                 isAnimationActive={false}
