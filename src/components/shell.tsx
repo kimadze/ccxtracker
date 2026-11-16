@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
   BookOpen,
-  ChartNoAxesCombined,
   Eye,
   EyeOff,
   Gift,
@@ -176,10 +175,9 @@ export function Shell({
   const base = "/portfolios/" + activeId;
   const isOverview = path === base;
   const mobileLinks: NavItem[] = [
-    ["", "მიმოხილვა", LayoutDashboard],
+    ["", "მთავარი", LayoutDashboard],
     ["positions", "პოზიციები", Wallet],
-    ["transactions", "დამატება", Plus],
-    ["statistics", "სტატისტიკა", ChartNoAxesCombined],
+    ["watchlist", "დაკვირვება", Eye],
   ];
   const moreGroups = groups
     .map((group) => ({
@@ -290,10 +288,7 @@ export function Shell({
           aria-label="მობილური ნავიგაცია"
         >
           {mobileLinks.map(([segment, label, Icon]) => {
-            const href =
-              segment === "transactions"
-                ? base + "/transactions?new=1"
-                : base + (segment ? "/" + segment : "");
+            const href = base + (segment ? "/" + segment : "");
             const active =
               path === href ||
               (segment === "positions" && path.startsWith(href + "/"));
@@ -301,6 +296,7 @@ export function Shell({
               <Link
                 key={String(segment)}
                 href={href}
+                prefetch={false}
                 aria-current={active ? "page" : undefined}
                 aria-label={String(label)}
                 className={clsx(
@@ -309,9 +305,9 @@ export function Shell({
                 )}
               >
                 <span className="grid size-6 shrink-0 place-items-center">
-                  <Icon size={segment === "transactions" ? 24 : 19} />
+                  <Icon size={19} />
                 </span>
-                <span className="dock-label max-md:hidden">{label}</span>
+                <span className="dock-label">{label}</span>
               </Link>
             );
           })}
@@ -327,7 +323,7 @@ export function Shell({
             <span className="grid size-6 shrink-0 place-items-center">
               <Menu size={19} />
             </span>
-            <span className="dock-label max-md:hidden">მეტი</span>
+            <span className="dock-label">მეტი</span>
           </button>
         </nav>
         <dialog

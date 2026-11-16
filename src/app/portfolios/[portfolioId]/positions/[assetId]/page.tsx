@@ -1,3 +1,7 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { unitPrice, percentage, pnlClass } from "@/lib/formatters";
+import { MobilePositionHistory } from "@/components/mobile-position-history";
 import { notFound } from "next/navigation";
 import { loadWorkspace } from "@/server/workspace";
 import { PageHeading } from "@/components/shell";
@@ -30,7 +34,24 @@ export default async function Page({
     assetId,
   );
   return (
-    <>
+    <div className="ccx-mobile-position">
+      <div className="ccx-position-intro md:hidden">
+        <div className="ccx-position-identity">
+          <Link href={"/portfolios/" + portfolioId + "/positions"} aria-label="პოზიციებზე დაბრუნება" className="btn btn-ghost btn-square min-h-11 min-w-11">
+            <ArrowLeft size={20} aria-hidden="true" />
+          </Link>
+          <AssetIcon symbol={p.asset.symbol} logoUrl={p.asset.logoUrl} size={32} />
+          <h1 className="min-w-0 truncate text-lg font-semibold">{p.asset.name} <span className="text-xs font-medium text-base-content/65">{p.asset.symbol}</span></h1>
+        </div>
+        {!closed && (
+          <>
+            <p className="text-xs text-base-content/65">მიმდინარე ფასი</p>
+            <p className="mt-1 break-words text-4xl font-semibold tracking-tight tabular-nums">{unitPrice(p.quote?.price ?? null)}</p>
+            {p.quote?.change24h != null && <p className={"mt-1 text-sm " + pnlClass(p.quote.change24h)}>24 სთ · {percentage(p.quote.change24h, true)}</p>}
+            <MobilePositionHistory asset={p.asset.providerId} />
+          </>
+        )}
+      </div>
       <PageHeading
         icon={
           <AssetIcon
@@ -48,7 +69,7 @@ export default async function Page({
         }
         action={
           <div className="flex flex-wrap gap-2">
-            {!closed && <PositionShare position={p} />}
+            {!closed && <div className="ccx-mobile-share"><PositionShare position={p} /></div>}
             <details className="dropdown dropdown-end">
               <summary
                 className="btn btn-ghost btn-square min-h-11 min-w-11"
@@ -97,6 +118,6 @@ export default async function Page({
         plan={data.plan}
         journal={data.journal}
       />
-    </>
+    </div>
   );
 }

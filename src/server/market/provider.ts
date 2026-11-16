@@ -16,14 +16,12 @@ const coinSchema = z.object({
   name: z.string().max(150),
   thumb: z.string().url().nullable().optional(),
 });
-const quoteSchema = z.record(
-  z.string(),
-  z.object({
-    usd: z.number().positive().finite(),
-    usd_24h_change: z.number().finite().nullable().optional(),
-    last_updated_at: z.number().positive(),
-  }),
-);
+const quoteResponseSchema = z.record(z.string(), z.unknown());
+const quoteSchema = z.object({
+  usd: z.number().positive().finite(),
+  usd_24h_change: z.number().finite().nullable().optional(),
+  last_updated_at: z.number().positive().max(8_640_000_000_000),
+});
 
 export class CoinGeckoProvider implements MarketPriceProvider {
   private async request(path: string) {
@@ -45,14 +43,16 @@ export class CoinGeckoProvider implements MarketPriceProvider {
   }
   async quotes(assets: Asset[]): Promise<Quote[]> {
     if (!assets.length) return [];
-    const data = quoteSchema.parse(
+    const data = quoteResponseSchema.parse(
       await this.request(
         `/simple/price?ids=${encodeURIComponent(assets.map((a) => a.providerId).join(","))}&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`,
       ),
     );
     return assets.flatMap((asset) => {
-      const quote = data[asset.providerId];
-      if (!quote) return [];
+      // A malformed quote should not block valid prices in the same response.
+      const parsed = quoteSchema.safeParse(data[asset.providerId]);
+      if (!parsed.success) return [];
+      const quote = parsed.data;
       return [
         {
           assetId: asset.id,

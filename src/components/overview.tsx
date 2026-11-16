@@ -32,6 +32,7 @@ export function Overview({
   history,
   action,
   transactionsPanel,
+  overviewAttention,
 }: {
   summary: PortfolioSummary;
   portfolioId?: string;
@@ -41,6 +42,7 @@ export function Overview({
   history?: ReactNode;
   action?: ReactNode;
   transactionsPanel: ReactNode;
+  overviewAttention?: ReactNode;
 }) {
   const positions = [...s.positions].sort((a, b) =>
     decimal(b.value ?? 0).cmp(a.value ?? 0),
@@ -60,6 +62,10 @@ export function Overview({
     s.contributions !== null && s.withdrawals !== null
       ? decimal(s.contributions).minus(s.withdrawals).toFixed()
       : null;
+  const pnlShare =
+    s.totalPnl !== null && netCapital !== null && decimal(netCapital).gt(0)
+      ? percent(s.totalPnl, netCapital)
+      : null;
   const updatedAt = s.positions
     .map((p) => p.quote?.updatedAt)
     .filter((d): d is string => Boolean(d))
@@ -78,7 +84,7 @@ export function Overview({
   ) => {
     const isUp = direction === "up";
     const Icon = isUp ? TrendingUp : TrendingDown;
-    const label = isUp ? "დღის ზრდა" : "დღის კლება";
+    const label = isUp ? "ყველაზე დიდი ზრდა" : "ყველაზე დიდი კლება";
     const tone = isUp ? "text-success" : "text-error";
     const content = (
       <>
@@ -141,7 +147,7 @@ export function Overview({
     <>
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-xs font-medium text-base-content/65">
-          დღის ლიდერები
+          პოზიციების ცვლილება
         </h2>
         <span className="flex shrink-0 items-center gap-1 text-xs text-base-content/55">
           <span>24 სთ</span>
@@ -179,11 +185,16 @@ export function Overview({
     s.value !== null && decimal(s.value).gt(0) && s.liquidity !== null
       ? percent(s.liquidity, s.value)
       : null;
+  const liquidityTotal = (
+    <p className="ccx-liquidity-total font-semibold tabular-nums">
+      <BalanceValue>{money(s.liquidity)}</BalanceValue>
+    </p>
+  );
   const liquidityDetails = (
     <dl className="text-xs">
       {[
         {
-          label: "ნაღდი ფული",
+          label: "ფულადი ნაშთი",
           value: s.cash,
           Icon: Banknote,
           tone: "bg-success/12 text-success",
@@ -287,9 +298,7 @@ export function Overview({
             aria-hidden="true"
           />
         )}
-        <span
-          className="whitespace-nowrap lg:hidden xl:inline"
-        >
+        <span className="whitespace-nowrap lg:hidden xl:inline">
           {s.stale
             ? "ფასები მოძველდა"
             : s.complete
@@ -308,146 +317,132 @@ export function Overview({
       ? TrendingDown
       : TrendingUp;
   return (
-    <div className="overview-dashboard w-full min-w-0 space-y-3 lg:space-y-4">
-      <h1 className="sr-only">პორტფელის მიმოხილვა</h1>
-      <OverviewToolbar>
-        <div className="relative flex min-w-0 items-center gap-1">
-          {priceStatus}
-          {portfolioId && (
-            <PortfolioPriceRefresh
-              key={portfolioId}
-              portfolioId={portfolioId}
-              canRefresh={!s.complete || s.stale}
-            />
-          )}
-        </div>
-        <div className="hidden lg:block">{action}</div>
-      </OverviewToolbar>
-      <section
-        className="card card-border min-w-0 border-base-300 bg-base-200"
-        aria-label="პორტფელის ღირებულება და შედეგი"
-      >
-        <div className="grid min-w-0 items-start gap-2 p-3 sm:grid-cols-2 sm:gap-3 sm:p-4">
-          <div className="min-w-0">
-            <h2 className="min-h-5 text-xs text-base-content/60">
-              {cryptoOnlyValue
-                ? "კრიპტოაქტივების ღირებულება"
-                : !s.complete
-                  ? "ცნობილი ღირებულება"
-                  : "პორტფელის ღირებულება"}
-            </h2>
-            <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
-              <p className="min-w-0 overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums lg:text-4xl">
-                <BalanceValue>{money(displayedValue)}</BalanceValue>
-              </p>
-            </div>
-          </div>
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1 sm:block">
-            <h2
-              className="text-xs text-base-content/60 sm:flex sm:min-h-5 sm:items-center"
-              title="რეალიზებული და არარეალიზებული შედეგი მთელ პორტფელზე"
-            >
-              სრული P/L
-            </h2>
-            <p
-              className={`flex min-w-0 items-center gap-1.5 overflow-x-auto whitespace-nowrap text-lg font-semibold tabular-nums sm:mt-1 lg:text-xl ${pnlClass(s.totalPnl)}`}
-            >
-              <ProfitIcon size={18} className="shrink-0" />
-              <BalanceValue>{money(s.totalPnl)}</BalanceValue>
-            </p>
-          </div>
-        </div>
-      </section>
-      <div className="grid min-w-0 grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,7fr)_minmax(235px,3fr)] lg:gap-4">
-        <section
-          className="card card-border min-w-0 border-base-300 bg-base-200 lg:has-[[data-history-chart-ready]]:self-stretch"
-          aria-label="ღირებულება და ისტორია"
-        >
-          <div className="card-body gap-2 p-3! sm:p-4! lg:h-full">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h2 className="text-sm font-medium">ისტორია</h2>
-              <span className="badge badge-ghost badge-sm text-xs text-base-content/65">
-                სრული პორტფელი
-              </span>
-            </div>
-            <div
-              id="overview-period-controls"
-              className="min-w-0 max-w-full empty:hidden [&_[role=group]]:p-0"
-            />
-            {history ?? (
-              <p className="py-2 text-xs text-base-content/55">
-                ისტორია ჯერ არ არის
-              </p>
+    <div className="ccx-overview-layout">
+      <div className="overview-dashboard mx-auto w-full min-w-0 max-w-7xl space-y-4 lg:space-y-5">
+        <h1 className="sr-only">პორტფელის მიმოხილვა</h1>
+        <OverviewToolbar>
+          <div className="relative flex min-w-0 items-center gap-1">
+            {positions.length > 0 && priceStatus}
+            {portfolioId && (
+              <PortfolioPriceRefresh
+                key={portfolioId}
+                portfolioId={portfolioId}
+                canRefresh={!s.complete || s.stale}
+              />
             )}
           </div>
-        </section>
-        <aside
-          className="grid min-w-0 items-stretch gap-3 md:grid-cols-2 lg:grid-cols-1 lg:gap-4"
-          aria-label="პორტფელის სტრუქტურა"
+          <div className="hidden lg:block">{action}</div>
+        </OverviewToolbar>
+        <section
+          className="card card-border min-w-0 border-base-300 bg-base-200"
+          data-ccx-balance="true"
+          aria-label="პორტფელის ღირებულება და შედეგი"
         >
+          <div className="ccx-balance-content min-w-0">
+            <div className="min-w-0">
+              <h2 className="min-h-5 text-xs text-base-content/60">
+                {cryptoOnlyValue
+                  ? "კრიპტოაქტივები"
+                  : !s.complete
+                    ? "ცნობილი ღირებულება"
+                    : "პორტფელის ღირებულება"}
+              </h2>
+              <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
+                <p className="ccx-balance-number min-w-0 overflow-x-auto whitespace-nowrap text-[32px] leading-tight font-semibold tracking-tight tabular-nums lg:text-4xl">
+                  <BalanceValue>{money(displayedValue)}</BalanceValue>
+                </p>
+              </div>
+              <p className="mt-2 text-xs text-base-content/80">
+                {freshness}
+                {updatedAt && <> · {dateTime(updatedAt)}</>}
+              </p>
+            </div>
+            <div className="ccx-balance-pnl flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2
+                className="text-xs text-base-content/60 "
+                title="რეალიზებული და არარეალიზებული შედეგი მთელ პორტფელზე"
+              >
+                მოგება / ზარალი
+              </h2>
+              <p
+                className={`flex min-w-0 items-center gap-1.5 overflow-x-auto whitespace-nowrap text-sm font-semibold tabular-nums ${pnlClass(s.totalPnl)}`}
+              >
+                <ProfitIcon size={18} className="shrink-0" />
+                <BalanceValue>{money(s.totalPnl)}</BalanceValue>
+              </p>
+              {pnlShare !== null && (
+                <p className="mt-2 text-xs text-base-content/80">
+                  <BalanceValue>{percentage(pnlShare, true)}</BalanceValue> ·
+                  წმინდა შენატანთან შედარებით
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+        <div className="flex min-w-0 flex-col gap-4 lg:gap-5">
           <section
-            className="card card-border min-w-0 border-base-300 bg-base-200"
-            aria-label="USD ნაშთი და სტეიბლკოინები"
+            className="card card-border min-w-0 border-base-300 bg-base-200 lg:self-stretch"
+            data-ccx-history="true"
+            aria-label="ღირებულება და ისტორია"
           >
-            <details className="collapse collapse-arrow md:hidden">
-              <summary className="collapse-title flex min-h-14 min-w-0 flex-wrap items-baseline gap-2 py-3 pr-10 text-xs">
-                <span className="mr-auto text-base-content/65">ლიკვიდობა</span>
-                <span className="overflow-x-auto whitespace-nowrap text-base font-semibold tabular-nums">
-                  <BalanceValue>{money(s.liquidity)}</BalanceValue>
-                </span>
-                <span className="text-base-content/50">
-                  <BalanceValue>{percentage(liquidityShare)}</BalanceValue>
-                </span>
-              </summary>
-              <div className="collapse-content">{liquidityDetails}</div>
-            </details>
-            <div className="card-body hidden gap-2 p-3! md:flex">
-              <div className="flex items-baseline justify-between gap-2">
-                <h2 className="text-xs text-base-content/65">ლიკვიდობა</h2>
-                <span className="text-xs tabular-nums text-base-content/50">
-                  <BalanceValue>{percentage(liquidityShare)}</BalanceValue>
+            <div className="card-body gap-2 p-4! sm:p-5!">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h2 className="text-sm font-medium">ღირებულების დინამიკა</h2>
+                <span className="badge badge-ghost badge-sm text-xs text-base-content/65">
+                  სრული პორტფელი
                 </span>
               </div>
-              <p className="overflow-x-auto whitespace-nowrap text-xl font-semibold tabular-nums">
-                <BalanceValue>{money(s.liquidity)}</BalanceValue>
-              </p>
-              {liquidityShare !== null ? (
-                <progress
-                  className="progress progress-accent h-1.5 w-full"
-                  value={Math.max(
-                    0,
-                    Math.min(100, Number(liquidityShare ?? 0)),
-                  )}
-                  max={100}
-                  aria-label="ლიკვიდობის წილი სრულ პორტფელში"
-                />
-              ) : (
-                <div
-                  aria-hidden="true"
-                  className="h-1.5 rounded-full bg-base-300"
-                />
+              <div
+                id="overview-period-controls"
+                className="min-w-0 max-w-full empty:hidden [&_[role=group]]:p-0"
+              />
+              {history ?? (
+                <p className="py-2 text-xs text-base-content/55">
+                  შეფასებები ჯერ არ არის შენახული
+                </p>
               )}
-              {liquidityDetails}
             </div>
           </section>
+          <OverviewAssets
+            positions={positions}
+            base={base}
+            transactionsPanel={transactionsPanel}
+          />
+          <details className="collapse collapse-arrow border border-base-300 bg-base-200">
+            <summary className="collapse-title min-h-11 py-3 text-xs text-base-content/60">
+              კაპიტალი და შედეგები
+            </summary>
+            <div className="collapse-content">{secondary}</div>
+          </details>
+        </div>
+      </div>
+      <div className="grid min-w-0 content-start gap-4 lg:gap-5">
+        <section
+          className="ccx-attention-card card min-w-0"
+          aria-label="კაპიტალი"
+        >
+          <details className="collapse collapse-arrow md:hidden">
+            <summary className="collapse-title min-h-11 py-3 text-xs text-base-content/80">
+              კაპიტალი
+            </summary>
+            <div className="collapse-content">{liquidityTotal}{liquidityDetails}</div>
+          </details>
+          <div className="card-body hidden gap-2 p-4! md:flex">
+            <h2 className="text-xs font-medium text-base-content/80">
+              კაპიტალი
+            </h2>
+            {liquidityTotal}{liquidityDetails}
+          </div>
+        </section>
+        {overviewAttention}
+        {positions.length > 0 && (
           <section
-            className="card card-border min-w-0 border-base-300 bg-base-200"
-            aria-label="დღის ლიდერები"
+            className="ccx-attention-card card min-w-0"
+            aria-label="პოზიციების ცვლილება"
           >
-            <div className="card-body gap-2 p-3!">{dailyMoversContent}</div>
+            <div className="card-body gap-2 p-4!">{dailyMoversContent}</div>
           </section>
-        </aside>
-        <OverviewAssets
-          positions={positions}
-          base={base}
-          transactionsPanel={transactionsPanel}
-        />
-        <details className="collapse collapse-arrow border border-base-300 bg-base-200 lg:col-span-2">
-          <summary className="collapse-title min-h-11 py-3 text-xs text-base-content/60">
-            დამატებითი მაჩვენებლები
-          </summary>
-          <div className="collapse-content">{secondary}</div>
-        </details>
+        )}
       </div>
     </div>
   );

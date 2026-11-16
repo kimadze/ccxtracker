@@ -36,12 +36,12 @@ export function FilterButtons<T extends string>({
           onClick={() => onChange(option.value)}
           className={clsx(
             appearance === "period"
-              ? "btn btn-ghost btn-xs h-11 min-h-11 w-11 min-w-0 rounded-none border-0 p-0 text-xs font-medium shadow-none lg:h-8 lg:min-h-8 lg:w-9"
+              ? "btn btn-ghost btn-xs h-11 min-h-11 w-11 min-w-0 rounded-md border-0 p-0 text-xs font-medium shadow-none lg:h-8 lg:min-h-8 lg:w-9"
               : "btn btn-sm min-h-11 shrink-0 gap-2 rounded-field px-3 text-sm",
             appearance === "period"
               ? value === option.value
-                ? "text-secondary"
-                : "text-base-content/60"
+                ? "bg-primary/20 font-semibold text-secondary"
+                : "text-base-content/75"
               : value === option.value
                 ? appearance === "solid"
                   ? "btn-primary"

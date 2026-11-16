@@ -37,6 +37,17 @@ export function OverviewAssets({
     <section className="min-w-0 lg:col-span-2" aria-label="პორტფელის აქტივები">
       <h2 className="sr-only">აქტივები</h2>
       <WorkspaceTabs
+        action={
+          <Link
+          href={base + (tab === "positions" ? "/positions" : "/transactions")}
+          className="btn btn-ghost btn-sm min-h-11 shrink-0 gap-1 text-xs text-base-content/65"
+        >
+          {tab === "positions"
+            ? "ყველა პოზიცია"
+            : "სრული ისტორიის ნახვა"}{" "}
+          <ArrowUpRight size={14} />
+        </Link>
+        }
         integrated
         label="პორტფელის სექციები"
         value={tab}
@@ -62,7 +73,7 @@ export function OverviewAssets({
                       aria-haspopup="dialog"
                       aria-label={p.asset.symbol + " შედეგები"}
                       onClick={() => showResult(p)}
-                      className="flex min-h-[68px] w-full min-w-0 items-center gap-2.5 px-3 py-2.5 text-left hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary"
+                      className="flex min-h-[58px] w-full min-w-0 items-center gap-2.5 px-3 py-2.5 text-left hover:bg-base-300/40 focus-visible:outline-2 focus-visible:outline-primary"
                     >
                       <AssetIcon
                         symbol={p.asset.symbol}
@@ -88,10 +99,7 @@ export function OverviewAssets({
                         <span
                           className={`block overflow-x-auto whitespace-nowrap text-xs ${pnlClass(p.unrealizedPnl)}`}
                         >
-                          <BalanceValue>
-                            {money(p.unrealizedPnl)} ·{" "}
-                            {percentage(p.returnPercent, true)}
-                          </BalanceValue>
+                          <BalanceValue>{percentage(p.returnPercent, true)}</BalanceValue>
                         </span>
                       </span>
                     </button>
@@ -234,15 +242,6 @@ export function OverviewAssets({
             </div>
           </div>
         )}
-        <Link
-          href={base + (tab === "positions" ? "/positions" : "/transactions")}
-          className="btn btn-ghost btn-sm mt-2 min-h-11 w-full gap-1 text-xs text-base-content/65"
-        >
-          {tab === "positions"
-            ? "ყველა პოზიციის ნახვა"
-            : "სრული ისტორიის ნახვა"}{" "}
-          <ArrowUpRight size={14} />
-        </Link>
       </WorkspaceTabs>
       {selected && (
         <OverviewAssetResult
